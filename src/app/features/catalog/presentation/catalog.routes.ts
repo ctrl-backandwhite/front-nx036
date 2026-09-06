@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { exigeSesion } from '@core/auth/sesion.guard';
 import { proveeCatalogo } from '../catalog.providers';
 
 /**
@@ -30,6 +31,8 @@ export const rutas: Routes = [
         // un solo gesto: su código se adelanta de fondo un par de segundos después del arranque, para
         // que al pulsar ya esté. Antes competiría con lo que se está mirando.
         path: 'catalog',
+        // El listado COMPLETO es interno: la portada solo enseña el adelanto.
+        canActivate: [exigeSesion],
         data: { precarga: true },
         loadComponent: () => import('./page/listado.page').then((m) => m.ListadoPage),
       },
@@ -41,10 +44,12 @@ export const rutas: Routes = [
       },
       {
         path: 'favorites',
+        canActivate: [exigeSesion],
         loadComponent: () => import('./page/favoritos.page').then((m) => m.FavoritosPage),
       },
       {
         path: 'history',
+        canActivate: [exigeSesion],
         loadComponent: () => import('./page/historial.page').then((m) => m.HistorialPage),
       },
     ],
