@@ -8,6 +8,7 @@ import { FAVORITOS_PORT } from './domain/port/favoritos.port';
 import { HISTORIAL_PORT } from './domain/port/historial.port';
 import { RESENAS_PORT } from './domain/port/resenas.port';
 import { PROMOCIONES_PORT } from './domain/port/promociones.port';
+import { CIFRAS_DEL_SITIO_PORT } from './domain/port/cifras-del-sitio.port';
 import { ANALITICA_DE_PRODUCTO_PORT } from './domain/port/analitica-de-producto.port';
 import { EDICION_DE_FICHA_PORT } from './domain/port/edicion-de-ficha.port';
 import { CESTA_PORT } from './domain/port/cesta.port';
@@ -16,6 +17,7 @@ import { CatalogoHttpAdapter } from './infrastructure/catalogo-http.adapter';
 import { FavoritosHttpAdapter, HistorialHttpAdapter } from './infrastructure/favoritos-http.adapter';
 import { ResenasHttpAdapter } from './infrastructure/resenas-http.adapter';
 import { PromocionesHttpAdapter } from './infrastructure/promociones-http.adapter';
+import { CifrasDelSitioHttpAdapter } from './infrastructure/cifras-del-sitio-http.adapter';
 import { AnaliticaHttpAdapter } from './infrastructure/analitica-http.adapter';
 import { EdicionDeFichaHttpAdapter } from './infrastructure/edicion-de-ficha-http.adapter';
 import { CestaHttpAdapter } from './infrastructure/cesta-http.adapter';
@@ -87,6 +89,10 @@ export function proveeCatalogo(): EnvironmentProviders {
 
     PromocionesHttpAdapter,
     { provide: PROMOCIONES_PORT, useFactory: () => inject(PromocionesHttpAdapter) },
+
+    /* Las cifras del sitio: idiomas, divisas y almacenes. */
+    CifrasDelSitioHttpAdapter,
+    { provide: CIFRAS_DEL_SITIO_PORT, useFactory: () => inject(CifrasDelSitioHttpAdapter) },
 
     AnaliticaHttpAdapter,
     { provide: ANALITICA_DE_PRODUCTO_PORT, useFactory: () => inject(AnaliticaHttpAdapter) },

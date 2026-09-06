@@ -81,12 +81,32 @@ FROM nginx:alpine AS final
 # carpeta en el puerto 80 sin ninguna de nuestras reglas —sin el 403 a los
 # rastreadores, sin el reenvío al backend y sin las reglas de caché—. Dejarla
 # viva sería abrir una segunda puerta al mismo contenido, y sin protección.
+# El módulo de JavaScript de nginx (njs). Es lo que permite resolver las etiquetas para compartir de
+# la ficha en el momento de la petición, en vez de prerenderizar 7.729 páginas que además quedarían
+# obsoletas en cuanto se cargara un producto nuevo. El porqué, medido, en `seo-ficha.js`.
+#
+# `load_module` solo vale en el contexto principal, así que se añade a la PRIMERA línea del
+# `nginx.conf` de la imagen; nuestro fichero se incluye más adentro, dentro de `http`, y allí ya no
+# se admite.
+RUN apk add --no-cache nginx-module-njs \
+ && sed -i '1i load_module modules/ngx_http_js_module.so;' /etc/nginx/nginx.conf
+
+COPY seo-ficha.js /etc/nginx/njs/seo-ficha.js
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Solo la carpeta `browser`. La salida de `ng build` tiene también
 # `prerendered-routes.json` y `3rdpartylicenses.txt`, que son artefactos de la
 # construcción y no tienen por qué acabar publicados en la web.
 COPY --from=construccion /app/dist/front-nx036/browser /usr/share/nginx/html
+
+# Precompresión. Cada fichero de texto se deja además en `.gz` con el nivel máximo, y nginx lo sirve
+# tal cual gracias a `gzip_static`. Comprimir al construir en vez de en cada petición aprieta más
+# —nivel 9 frente al 6 que se puede permitir en caliente— y no gasta procesador por visita.
+# Se conserva el original al lado (`-k`) porque hace falta para quien no acepte gzip.
+RUN find /usr/share/nginx/html -type f \
+      \( -name '*.js' -o -name '*.css' -o -name '*.html' -o -name '*.svg' \
+         -o -name '*.json' -o -name '*.txt' -o -name '*.xml' \) \
+      -size +1k -exec gzip -9 -k {} \;
 
 # El mismo puerto que el escaparate de React, que es el que espera la pasarela
 # de delante. Está declarado en el `listen` del nginx.conf.

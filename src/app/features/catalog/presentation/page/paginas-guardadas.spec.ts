@@ -9,6 +9,7 @@ import { CESTA_PORT } from '../../domain/port/cesta.port';
 import { FAVORITOS_PORT } from '../../domain/port/favoritos.port';
 import { HISTORIAL_PORT } from '../../domain/port/historial.port';
 import { PROMOCIONES_PORT } from '../../domain/port/promociones.port';
+import { CIFRAS_DEL_SITIO_PORT } from '../../domain/port/cifras-del-sitio.port';
 import { PaginaDeProductos } from '../../domain/model/producto';
 import { FavoritosPage } from './favoritos.page';
 import { HistorialPage } from './historial.page';
@@ -161,6 +162,12 @@ describe('PortadaPage', () => {
           },
         },
         { provide: PROMOCIONES_PORT, useValue: { vivas: async () => exito([]) } },
+        {
+          // Las cifras del sitio: idiomas, divisas y almacenes. El adaptador de verdad nunca falla
+          // —cae a valores de respaldo—, así que el doble tampoco tiene un camino de error.
+          provide: CIFRAS_DEL_SITIO_PORT,
+          useValue: { consulta: async () => exito({ idiomas: 8, divisas: 25, almacenes: 2 }) },
+        },
         { provide: CATALOGO_PORT, useValue: { ficha: vi.fn() } },
         { provide: CESTA_PORT, useValue: { anade: vi.fn(), productosQueLleva: vi.fn() } },
         { provide: FAVORITOS_PORT, useValue: { identificadores: async () => exito([]) } },
@@ -216,6 +223,11 @@ describe('PortadaPage', () => {
           },
         },
         { provide: PROMOCIONES_PORT, useValue: { vivas: async () => exito([]) } },
+        {
+          // Aquí NO llegan datos, que es lo que la prueba certifica: las cifras se enseñan pendientes.
+          provide: CIFRAS_DEL_SITIO_PORT,
+          useValue: { consulta: async () => fallo(creaError('sin-conexion')) },
+        },
         { provide: CATALOGO_PORT, useValue: { ficha: vi.fn() } },
         { provide: CESTA_PORT, useValue: { anade: vi.fn(), productosQueLleva: vi.fn() } },
         { provide: FAVORITOS_PORT, useValue: { identificadores: async () => exito([]) } },

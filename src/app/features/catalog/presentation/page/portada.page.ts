@@ -12,6 +12,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { PORTADA_PORT, TAXONOMIA_PORT } from '../../domain/port/catalogo.port';
+import { CIFRAS_DEL_SITIO_PORT } from '../../domain/port/cifras-del-sitio.port';
 import { SesionActual } from '@core/auth/sesion-actual';
 import { RECUPERADOR_DE_SESION } from '@core/auth/recuperador-de-sesion.port';
 import { FondoHero } from '../component/fondo-hero';
@@ -149,6 +150,7 @@ import { CartelPromociones } from '../component/cartel-promociones';
 export class PortadaPage {
   private readonly portada = inject(PORTADA_PORT);
   private readonly taxonomia = inject(TAXONOMIA_PORT);
+  private readonly cifrasDelSitio = inject(CIFRAS_DEL_SITIO_PORT);
   private readonly traduccion = inject(TraduccionService);
 
   protected readonly sesion = inject(SesionActual);
@@ -180,6 +182,15 @@ export class PortadaPage {
     },
   });
 
+  /* Idiomas, divisas y almacenes. Nunca falla —el adaptador cae a los valores de respaldo— así que
+   * la portada no tiene que decidir qué hacer si no llegan. */
+  private readonly cifras_ = resource({
+    loader: async () => {
+      const resultado = await this.cifrasDelSitio.consulta();
+      return resultado.ok ? resultado.valor : null;
+    },
+  });
+
   private readonly cuantosProductos = computed(() => this.resumen.value()?.totalDeProductos ?? 0);
   private readonly cuantasCategorias = computed(() => this.categorias.value()?.length ?? 0);
 
@@ -190,12 +201,17 @@ export class PortadaPage {
   );
 
   /**
-   * El cuerpo del hero lleva los idiomas y las divisas dentro de la frase. Los dos son ocho y doce en
-   * el diccionario de respaldo; los reales los administra el panel y llegarán del contexto de
-   * plataforma cuando esté portado (anotado en el informe del porte).
+   * El cuerpo del hero lleva los idiomas y las divisas dentro de la frase, y son los REALES.
+   *
+   * <p>Estaban escritos a mano —ocho y doce— y el doce llevaba tiempo siendo mentira: el panel
+   * administra veinticinco divisas. Un número inventado en el escaparate es peor que no ponerlo,
+   * porque nadie se entera de que ha dejado de ser cierto.
    */
   protected readonly cuerpo = computed(() =>
-    this.traduccion.tCon('home.hero.body', { langs: '8', currencies: '12' }),
+    this.traduccion.tCon('home.hero.body', {
+      langs: String(this.cifras_.value()?.idiomas ?? 8),
+      currencies: String(this.cifras_.value()?.divisas ?? 12),
+    }),
   );
 
   protected readonly propuestas = computed(() => [
@@ -210,6 +226,8 @@ export class PortadaPage {
     },
   ]);
 
+  /* Las CUATRO del front anterior. El porte enseñaba solo las dos primeras: faltaban los almacenes y
+   * los idiomas, que son justo las que cuentan el alcance del sitio. */
   protected readonly cifras = computed(() => [
     {
       clave: 'home.stat.products',
@@ -220,6 +238,16 @@ export class PortadaPage {
       clave: 'home.stat.categories',
       icono: faChartLine,
       valor: this.cuantasCategorias() ? String(this.cuantasCategorias()) : '…',
+    },
+    {
+      clave: 'home.stat.warehouses',
+      icono: faGlobe,
+      valor: this.cifras_.value() ? String(this.cifras_.value()!.almacenes) : '…',
+    },
+    {
+      clave: 'home.stat.languages',
+      icono: faBolt,
+      valor: this.cifras_.value() ? String(this.cifras_.value()!.idiomas) : '…',
     },
   ]);
 

@@ -61,11 +61,18 @@ import {
     AvisoDeIntegraciones,
   ],
   template: `
-    <div class="grid gap-8 lg:grid-cols-[16rem_1fr] xl:grid-cols-[16rem_1fr_18rem] xl:gap-10">
-      @if (avisoVisible()) {
-        <nx-aviso-de-integraciones (cierra)="avisoVisible.set(false)" />
-      }
+    <!-- El aviso va FUERA de la rejilla, y no es un detalle de orden.
+         Es una capa flotante que cubre la pantalla, pero su elemento anfitrión sí ocupa sitio: metido
+         dentro, se comía la PRIMERA COLUMNA de la rejilla y empujaba todo lo demás una posición. El
+         índice lateral, que debe medir 16rem, acababa en la columna del medio y salía de 810 px en vez
+         de 240; el texto se iba a la tercera. Con el aviso cerrado la página se recolocaba sola, así
+         que la maqueta cambiaba según si lo habías cerrado o no. El front anterior lo saca del árbol
+         con un portal; aquí basta con no meterlo en la rejilla. -->
+    @if (avisoVisible()) {
+      <nx-aviso-de-integraciones (cierra)="avisoVisible.set(false)" />
+    }
 
+    <div class="grid gap-8 lg:grid-cols-[16rem_1fr] xl:grid-cols-[16rem_1fr_18rem] xl:gap-10">
       <nx-indice-de-documentacion />
 
       <article class="max-w-3xl min-w-0">

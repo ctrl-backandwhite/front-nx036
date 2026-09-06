@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { CIFRAS_DEL_SITIO_PORT } from '@features/catalog/domain/port/cifras-del-sitio.port';
 import { Router, provideRouter } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
@@ -72,6 +73,10 @@ async function monta(busca = vi.fn().mockResolvedValue(exito(pagina(2, 2)))) {
         useValue: { productosQueLleva: async () => exito([]), anade: vi.fn() },
       },
       { provide: FAVORITOS_PORT, useValue: { identificadores: async () => exito([]) } },
+      {
+        provide: CIFRAS_DEL_SITIO_PORT,
+        useValue: { consulta: async () => exito({ idiomas: 8, divisas: 25, almacenes: 2 }) },
+      },
     ],
   });
   await vista.fixture.whenStable();
@@ -175,7 +180,8 @@ describe('ListadoPage', () => {
     await TestBed.inject(Router).navigate([], { queryParams: { grupo: 'g1', q: 'gorro' } });
     await vista.fixture.whenStable();
     vista.fixture.detectChanges();
-    const limpiar = [...vista.container.querySelectorAll<HTMLElement>('button.btn-ghost')].at(-1)!;
+    // El botón de limpiar vive dentro del bloque plegable de la barra y es el único botón suelto ahí.
+    const limpiar = vista.container.querySelector<HTMLElement>('#filtros-del-catalogo > button')!;
     await userEvent.click(limpiar);
     await vista.fixture.whenStable();
     expect(TestBed.inject(Router).url).not.toContain('grupo');

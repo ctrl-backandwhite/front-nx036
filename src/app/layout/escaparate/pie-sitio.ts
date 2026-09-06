@@ -68,8 +68,13 @@ const REDES = [
   selector: 'nx-pie-sitio',
   imports: [RouterLink, FaIconComponent, FormField],
   template: `
+    <!-- DIVERGENCIA DELIBERADA del front anterior, pedida por el titular el 6-sep-2026.
+         Allí las cuatro columnas se apelotonan a la izquierda —ocupan 834 px de 1440— y el resto del
+         pie queda vacío. Aquí se reparten a lo ancho con un tope, para que en una pantalla muy ancha
+         no acaben tan separadas que dejen de leerse como un grupo. El contenido es el mismo. -->
     <footer
-      class="hidden md:flex footer sm:footer-horizontal bg-base-200 text-base-content/80 border-t border-base-300 px-4 lg:px-10 py-10 mt-12"
+      class="hidden md:flex footer sm:footer-horizontal bg-base-200 text-base-content/80 border-t border-base-300 px-4 lg:px-10 py-10 mt-12
+             w-full max-w-screen-2xl mx-auto justify-between gap-8"
     >
       <aside class="max-w-xs">
         <a routerLink="/" class="inline-flex items-center gap-2 font-medium text-[15px]">

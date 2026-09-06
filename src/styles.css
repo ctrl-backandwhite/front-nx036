@@ -30,6 +30,170 @@
 @source not "./test-setup.ts";
 @source not "./test-providers.ts";
 
+/* ═══════════════════════════════════════════════════════════════════════════════
+   TIPOGRAFÍA — servida DESDE ESTE PROYECTO, nunca desde Google Fonts
+   ═══════════════════════════════════════════════════════════════════════════════
+
+   El front React (`../frontend`) todavía pide estas dos familias con un `<link>` a
+   `fonts.googleapis.com`. Aquí NO, y el motivo principal no es el tiempo de carga:
+
+   · PROTECCIÓN DE DATOS. Cada `<link>` a un tercero obliga al navegador de quien
+     visita a conectarse a ese tercero, y en esa conexión viajan su IP, su
+     User-Agent y el Referer con la página que está mirando. Google Fonts no
+     necesita cookies para eso. Este proyecto vende a la UE: un tribunal alemán
+     (LG München I, 3 O 17493/20) condenó exactamente ese `<link>` como cesión de
+     datos sin base legal. Sirviendo el .woff2 desde nuestro propio dominio la
+     conexión no sale de aquí y el problema desaparece de raíz.
+   · RENDIMIENTO. Se ahorran dos apretones de manos TLS con dominios distintos
+     (`fonts.googleapis.com` para el CSS y `fonts.gstatic.com` para el fichero), y
+     con ellos el descubrimiento en cascada CSS → CSS → fuente. Además el .woff2
+     viaja por la misma conexión HTTP/2 que el resto de la página y lo cachea
+     Cloudflare, no un tercero.
+
+   CÓMO ESTÁ MONTADO, y por qué así:
+
+   · Los ficheros viven en `src/fonts/`, NO en `public/`. No es indiferente: lo que
+     se pone en `public/` se copia con su nombre tal cual y cae en el `location /`
+     de nginx.conf, que sirve `Cache-Control: no-cache`. Lo que se referencia desde
+     ESTA hoja lo emite el compilador en `media/` con hash en el nombre
+     (`roboto-latin-wght-XXXXXXXX.woff2`) y casa con la regla de nginx que da un año
+     de caché inmutable. Una fuente es el estático más inmutable que existe: tiene
+     que ir por el camino con hash.
+   · Son los MISMOS ficheros que servía Google (Roboto v51, Roboto Mono v25),
+     descargados una vez. Se eligieron sobre los de `@fontsource` para que el
+     dibujo de las letras sea idéntico al del React, que es la referencia visual.
+   · Son fuentes VARIABLES: un solo .woff2 por familia y subconjunto cubre todos los
+     pesos. Cuatro ficheros en lugar de doce estáticos.
+   · Los pesos se declaran SUELTOS (300, 400, 500, 700), no como rango `300 700`,
+     copiando lo que hacía Google. Importa: el proyecto usa `font-semibold` en 76
+     sitios. Con pesos sueltos el 600 no existe y el navegador lo redondea a 700,
+     igual que en el React; con un rango continuo se dibujaría un 600 de verdad y
+     los titulares saldrían más estrechos que en la referencia.
+   · `font-display: swap`: el texto se lee desde el primer pintado con la fuente del
+     sistema y cambia a Roboto al llegar. Nunca hay un hueco en blanco.
+   · Cada subconjunto lleva su `unicode-range`, que es lo que hace que el navegador
+     se descargue `latin-ext` SOLO si la página tiene algún carácter que lo necesite.
+     Se traen latin y latin-ext y ninguno más: los ocho idiomas del sitio son
+     de/en/es/fr/it/nl/pt/zh, así que cirílico, griego y vietnamita no pintarían
+     nunca una letra, y el chino tampoco lo cubre Roboto (lo resuelve la fuente CJK
+     del sistema). */
+
+/* Roboto — subconjunto latin, pesos 300, 400, 500, 700 */
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 300;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url('./fonts/roboto-latin-wght.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url('./fonts/roboto-latin-wght.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 500;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url('./fonts/roboto-latin-wght.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 700;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url('./fonts/roboto-latin-wght.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Roboto — subconjunto latin-ext, pesos 300, 400, 500, 700 */
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 300;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url('./fonts/roboto-latin-ext-wght.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url('./fonts/roboto-latin-ext-wght.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 500;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url('./fonts/roboto-latin-ext-wght.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 700;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url('./fonts/roboto-latin-ext-wght.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* Roboto Mono — subconjunto latin, pesos 400, 500 */
+@font-face {
+  font-family: 'Roboto Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url('./fonts/roboto-mono-latin-wght.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Roboto Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url('./fonts/roboto-mono-latin-wght.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Roboto Mono — subconjunto latin-ext, pesos 400, 500 */
+@font-face {
+  font-family: 'Roboto Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url('./fonts/roboto-mono-latin-ext-wght.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Roboto Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url('./fonts/roboto-mono-latin-ext-wght.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
 /* Paleta NX036 "Aduana / Cargo" — identidad de comercio transfronterizo.
  * Cobalto profundo (acción/CTA) sobre neutros cálidos de arena + acento latón: la tensión
  * frío/cálido evita el look de "azul SaaS" genérico y del índigo violáceo de IA. Marino como
@@ -1130,8 +1294,15 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
  * la documentación, sin ir más lejos—. `clip` recorta sin crear ese contenedor.
  *
  * No esconde nada: todo bloque ancho de verdad —código, tablas— lleva ya su propio `overflow-x: auto` y
- * se desplaza por dentro. Comprobado después de aplicarla. */
-main {
+ * se desplaza por dentro. Comprobado después de aplicarla.
+ *
+ * Y va en ESTA pantalla, no en el `main` de todas. Ponerlo en el `main` arreglaba la documentación y
+ * rompía la portada: el mosaico de fotos del encabezado se sale del contenedor a propósito —ocupa el
+ * ancho de la ventana entera, que es el efecto— y `clip` en el `main` se lo comía, dejándolo metido
+ * dentro de la columna de texto. Lo genérico no siempre es lo correcto: aquí lo que desborda es una
+ * pantalla concreta, y la regla se queda en ella. */
+nx-desarrolladores {
+  display: block;
   overflow-x: clip;
 }
 
@@ -1152,4 +1323,29 @@ pre {
  * `<pre>` quedan fuera: ahí partir el código lo haría ilegible, y para eso tienen su desplazamiento. */
 :not(pre) > code {
   overflow-wrap: anywhere;
+}
+
+/* Los componentes que SON una celda de su rejilla desaparecen de la maquetación.
+ *
+ * Esta es LA diferencia estructural entre las dos tecnologías, y no se ve leyendo el marcado porque
+ * las clases son idénticas. En React, `<aside class="hero …">` es hijo directo de la rejilla, así que
+ * es una celda y se estira a la altura de la fila. En Angular, el mismo `<aside>` vive dentro del
+ * componente, y quien es hijo de la rejilla es el ELEMENTO ANFITRIÓN —`<nx-panel-de-marca>`—, que no
+ * lleva ninguna de esas clases. El aside pasa a ser un bloque suelto dentro de él y ocupa solo lo que
+ * mide su contenido.
+ *
+ * Medido en la pantalla de acceso a 1440 px: el panel de la izquierda salía de 720x448 en vez de
+ * 720x900. Se veía como media pantalla oscura y el resto en blanco, con la imagen de fondo cortada a
+ * la mitad.
+ *
+ * `display: contents` hace que el anfitrión no genere caja: sus hijos pasan a ser hijos de la rejilla
+ * a todos los efectos de maquetación, que es exactamente el DOM que tiene el front anterior. No se
+ * pierde nada por el camino —el elemento sigue ahí para Angular— y no hace falta repetir las clases
+ * de la celda en dos sitios.
+ *
+ * Cuándo añadir uno aquí: cuando un componente esté DENTRO de una rejilla o una caja flexible y su
+ * raíz sea quien tiene que comportarse como celda. Se detecta comparando la altura del componente con
+ * la de su hermano. */
+:is(nx-panel-de-marca, nx-panel-de-alta, nx-indice-de-documentacion) {
+  display: contents;
 }

@@ -42,3 +42,8 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# Resultados de las tandas de certificación: son de cada ejecución, no del proyecto.
+e2e/resultados/
+test-results/
+playwright-report/
