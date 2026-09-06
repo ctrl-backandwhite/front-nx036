@@ -210,7 +210,8 @@
               "functions": 90,
               "lines": 90
             },
-            "buildTarget": "front-nx036:build:local"
+            "buildTarget": "front-nx036:build:local",
+            "providersFile": "src/test-providers.ts"
           }
         },
         "lint": {

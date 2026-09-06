@@ -76,7 +76,7 @@ describe('EstadoDelServicioPage', () => {
     await monta(new ServicioFalso());
 
     for (const componente of COMPONENTES_DEL_SERVICIO) {
-      expect(screen.getByText(t(`status.comp.${componente}`))).toBeInTheDocument();
+      expect(await screen.findByText(t(`status.comp.${componente}`))).toBeInTheDocument();
     }
   });
 

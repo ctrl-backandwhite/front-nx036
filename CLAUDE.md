@@ -163,8 +163,13 @@ sugerencias:
 - **Diferir lo que no se ve.** Todo bloque por debajo del pliegue —pie de página, chat, asistente,
   carruseles del final, secciones secundarias de la portada— va en `@defer` con su disparador:
   `@defer (on viewport)` para lo que aparece al bajar, `(on interaction)` para lo que espera un gesto,
-  `(on idle)` para lo accesorio. En las páginas prerenderizadas, además, `@defer (hydrate on viewport)`:
-  el HTML llega pintado y el código solo se descarga si de verdad hace falta.
+  `(on idle)` para lo accesorio.
+- **En las páginas prerenderizadas hay que declarar SIEMPRE LOS DOS disparadores**, el normal y el de
+  hidratación: `@defer (on viewport; hydrate on viewport)`. Escribir solo `hydrate on viewport` deja el
+  contenido INVISIBLE para quien llega navegando desde otra pantalla, porque entonces no hay HTML del
+  servidor que hidratar y el bloque se queda sin nada que lo dispare. No es un defecto de pruebas: es
+  contenido que no aparece en producción, y sin ruido de ningún tipo. Se detectó con seis bloques ya
+  escritos así.
 - **Carga en diferido por contexto**, que ya está montada: nadie que entre a mirar el catálogo se
   descarga el panel de administración.
 - **Precarga selectiva**: una ruta que se visita mucho se marca con `data: { precarga: true }` y su

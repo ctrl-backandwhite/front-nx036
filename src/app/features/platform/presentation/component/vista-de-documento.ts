@@ -42,7 +42,7 @@ import { TraduccionService } from '@core/i18n/traduccion.service';
         prerenderizado —se lee y se indexa sin esperar a nada— y el código que lo gobierna solo se
         descarga cuando alguien baja de verdad. Lo que se ve sin desplazarse, arriba, queda fuera.
       -->
-      @defer (hydrate on viewport) {
+      @defer (on idle; hydrate on viewport) {
         <div class="space-y-6">
           @for (seccion of documento().sections; track seccion.h) {
             <section>

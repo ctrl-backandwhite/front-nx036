@@ -194,4 +194,55 @@ describe('GuiaDeBienvenida', () => {
     expect(guarda).toHaveBeenCalledWith('nx036.welcome.v1', expect.any(String));
     expect(vista.container.querySelector('[role=dialog]')).toBeNull();
   });
+
+  /**
+   * El simulador es el corazón de la guía: mover una cantidad y ver cambiar el importe es lo que hace
+   * entender la regla. El desglose lo calcula el SERVIDOR, con el mismo servicio que el pago.
+   */
+  it('cambiar las unidades pide otro desglose al servidor', async () => {
+    const simula = vi.fn().mockResolvedValue(
+      exito({
+        subtotalFormateado: '19,80 €',
+        arancelFormateado: '3,00 €',
+        partidas: 1,
+        envioFormateado: '5,00 €',
+        subsidioDeEnvioFormateado: '2,00 €',
+        envioNetoFormateado: '3,00 €',
+        subsidioDeArancelFormateado: '',
+        arancelNetoFormateado: '3,00 €',
+        impuestoFormateado: '4,00 €',
+        totalFormateado: '29,80 €',
+        pesoGramos: 400,
+        superaElTope: true,
+        topeFormateado: '150,00 €',
+      }),
+    );
+    const vista = await monta(async () => exito(EJEMPLOS), simula);
+    // Hasta el paso del arancel, que es donde se ven los productos y su contador.
+    await userEvent.click(screen.getByText(/welcome.next|Next|Siguiente/i));
+    vista.fixture.detectChanges();
+    await userEvent.click(screen.getByText(/welcome.next|Next|Siguiente/i));
+    vista.fixture.detectChanges();
+
+    const sumar = [...vista.container.querySelectorAll<HTMLElement>('button.btn-ghost')].at(-1)!;
+    await userEvent.click(sumar);
+    vista.fixture.detectChanges();
+    await new Promise((sigue) => setTimeout(sigue, 600));
+    await vista.fixture.whenStable();
+    vista.fixture.detectChanges();
+
+    expect(simula).toHaveBeenCalled();
+    expect(vista.container.textContent).toContain('29,80 €');
+    // Por encima del tope del transportista hay que avisar: el pedido no saldría.
+    expect(vista.container.querySelector('[role=alert]')).not.toBeNull();
+  });
+
+  /** Sin ninguna unidad puesta no hay nada que simular: no se molesta al servidor. */
+  it('sin unidades no se pide simulación', async () => {
+    const simula = vi.fn();
+    const vista = await monta(async () => exito({ ...EJEMPLOS, ejemplos: [] }), simula);
+    await new Promise((sigue) => setTimeout(sigue, 600));
+    vista.fixture.detectChanges();
+    expect(simula).not.toHaveBeenCalled();
+  });
 });

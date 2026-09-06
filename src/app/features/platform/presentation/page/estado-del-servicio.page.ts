@@ -68,7 +68,7 @@ import { CompruebaEstadoDelServicio } from '../../application/use-case/comprueba
         La lista detallada se hidrata al llegar a ella. Lo que decide si alguien se queda tranquilo es
         el rótulo de arriba —«todos los sistemas operativos»—, y ese sí llega pintado y vivo.
       -->
-      @defer (hydrate on viewport) {
+      @defer (on idle; hydrate on viewport) {
       <div class="space-y-2">
         @for (componente of componentes; track componente) {
           <div class="card p-4 flex items-center justify-between">

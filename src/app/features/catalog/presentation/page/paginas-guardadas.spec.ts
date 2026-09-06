@@ -185,4 +185,36 @@ describe('PortadaPage', () => {
     const vista = await monta(true);
     expect(vista.container.querySelector('a[href="/catalog"]')).not.toBeNull();
   });
+
+  /**
+   * Las cifras son REALES y suben o bajan solas: los números escritos a mano contradecían lo que
+   * enseñaba el panel.
+   */
+  it('sin datos todavía, las cifras se enseñan como pendientes', async () => {
+    const vista = await render(PortadaPage, {
+      providers: [
+        provideRouter([]),
+        SESION_RESUELTA,
+        {
+          provide: PORTADA_PORT,
+          useValue: { secciones: async () => fallo(creaError('sin-conexion')) },
+        },
+        {
+          provide: TAXONOMIA_PORT,
+          useValue: {
+            categoriasRaiz: async () => fallo(creaError('sin-conexion')),
+            arbolDeCategorias: vi.fn(),
+            proveedores: vi.fn(),
+          },
+        },
+        { provide: PROMOCIONES_PORT, useValue: { vivas: async () => exito([]) } },
+        { provide: CATALOGO_PORT, useValue: { ficha: vi.fn() } },
+        { provide: CESTA_PORT, useValue: { anade: vi.fn(), productosQueLleva: vi.fn() } },
+        { provide: FAVORITOS_PORT, useValue: { identificadores: async () => exito([]) } },
+      ],
+    });
+    await vista.fixture.whenStable();
+    vista.fixture.detectChanges();
+    expect(vista.container.textContent).toContain('…');
+  });
 });

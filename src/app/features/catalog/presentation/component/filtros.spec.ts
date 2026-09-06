@@ -120,6 +120,64 @@ describe('BarraDeFiltros', () => {
     expect(vista.fixture.componentInstance.criterio().envioGratis).toBe(true);
   });
 
+  /**
+   * Cada control devuelve el criterio ENTERO con su campo cambiado. Se recorren todos porque el fallo
+   * típico es que uno se quede sin conectar: no se ve, sencillamente ese filtro no filtra.
+   */
+  it('cada control escribe su parte del criterio', async () => {
+    const { vista } = await monta(true);
+    const desplegables = [...vista.container.querySelectorAll<HTMLSelectElement>('select')];
+    const valores = ['c1', 's1', 'CN', 'CE', 'true', '4', 'price_asc'];
+    for (const [i, valor] of valores.entries()) {
+      await userEvent.selectOptions(desplegables[i], valor);
+      vista.fixture.detectChanges();
+    }
+    const criterio = vista.fixture.componentInstance.criterio();
+    expect(criterio.categoria).toBe('c1');
+    expect(criterio.proveedor).toBe('s1');
+    expect(criterio.enviaDesde).toBe('CN');
+    expect(criterio.certificacion).toBe('CE');
+    expect(criterio.verificado).toBe('true');
+    expect(criterio.valoracionMinima).toBe('4');
+    expect(criterio.orden).toBe('price_asc');
+  });
+
+  it('el rango de precio viaja como texto, tal y como se teclea', async () => {
+    const { vista } = await monta();
+    const campos = [...vista.container.querySelectorAll<HTMLInputElement>('input[type=number]')];
+    campos[0].value = '5';
+    campos[0].dispatchEvent(new Event('change'));
+    campos[1].value = '50';
+    campos[1].dispatchEvent(new Event('change'));
+    vista.fixture.detectChanges();
+    expect(vista.fixture.componentInstance.criterio().precioMinimo).toBe('5');
+    expect(vista.fixture.componentInstance.criterio().precioMaximo).toBe('50');
+  });
+
+  it('el interruptor de vídeo también escribe su parte', async () => {
+    const { vista } = await monta();
+    await userEvent.click(screen.getAllByRole('switch')[1]);
+    vista.fixture.detectChanges();
+    expect(vista.fixture.componentInstance.criterio().conVideo).toBe(true);
+  });
+
+  /** Vaciar el buscador tiene que dejar el criterio sin texto, no con una cadena vacía puesta. */
+  it('vaciar el buscador quita el filtro de texto', async () => {
+    const vista = await render(BarraDeFiltros, {
+      inputs: {
+        criterio: { ...CRITERIO_VACIO, texto: 'gorro' },
+        categorias: [],
+        proveedores: [],
+      },
+    });
+    const buscador = vista.container.querySelector<HTMLInputElement>('input[type=search]')!;
+    await userEvent.clear(buscador);
+    vista.fixture.detectChanges();
+    await new Promise((sigue) => setTimeout(sigue, 350));
+    vista.fixture.detectChanges();
+    expect(vista.fixture.componentInstance.criterio().texto).toBeUndefined();
+  });
+
   it('ofrece limpiar solo cuando hay filtros puestos', async () => {
     const limpia = vi.fn();
     const vista = await render(BarraDeFiltros, {
@@ -185,5 +243,24 @@ describe('HileraDeslizable', () => {
   it('sin recorrido no pinta indicador', async () => {
     const vista = await render(HileraDeslizable);
     expect(vista.container.querySelectorAll('.bg-brand-500')).toHaveLength(0);
+  });
+
+  /**
+   * El indicador aparece solo cuando de verdad hay más a los lados, y su posición sigue al
+   * desplazamiento: es lo único que dice que la fila continúa, porque la barra va oculta.
+   */
+  it('con recorrido aparece el indicador y sigue al desplazamiento', async () => {
+    const vista = await render(HileraDeslizable);
+    const caja = vista.container.querySelector<HTMLElement>('.snap-x')!;
+    Object.defineProperty(caja, 'scrollWidth', { value: 1000, configurable: true });
+    Object.defineProperty(caja, 'clientWidth', { value: 400, configurable: true });
+    Object.defineProperty(caja, 'scrollLeft', { value: 300, configurable: true });
+
+    caja.dispatchEvent(new Event('scroll'));
+    vista.fixture.detectChanges();
+
+    const barra = vista.container.querySelector<HTMLElement>('.bg-brand-500');
+    expect(barra).not.toBeNull();
+    expect(barra?.style.marginLeft).not.toBe('');
   });
 });

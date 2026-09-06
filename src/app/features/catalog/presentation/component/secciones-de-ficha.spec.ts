@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/angular';
-import { describe, expect, it } from 'vitest';
+import userEvent from '@testing-library/user-event';
+import { describe, expect, it, vi } from 'vitest';
 import { FichaDeProducto } from '../../domain/model/producto';
 import { AdvertenciasSeguridad, IdentidadCumplimiento } from './cumplimiento-producto';
 import { BasculaVariantes } from './bascula-variantes';
@@ -157,5 +158,24 @@ describe('PestanasFicha', () => {
   it('ofrece las cinco secciones de la ficha', async () => {
     await render(PestanasFicha);
     expect(screen.getAllByRole('tab')).toHaveLength(5);
+  });
+
+  /**
+   * No ocultan contenido: todas las secciones están siempre en la página. Es lo que permite buscar
+   * dentro con el navegador y que un enlace a una sección concreta funcione.
+   */
+  it('pulsar una pestaña la marca y lleva a su sección', async () => {
+    const seccion = document.createElement('section');
+    seccion.id = 'tab-packing';
+    seccion.scrollIntoView = vi.fn();
+    document.body.appendChild(seccion);
+
+    const vista = await render(PestanasFicha);
+    await userEvent.click(screen.getAllByRole('tab')[2]);
+    vista.fixture.detectChanges();
+
+    expect(screen.getAllByRole('tab')[2]).toHaveAttribute('aria-selected', 'true');
+    expect(seccion.scrollIntoView).toHaveBeenCalled();
+    seccion.remove();
   });
 });

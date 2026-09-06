@@ -27,9 +27,11 @@ describe('rutas de catálogo', () => {
     expect(rutas[0].providers).toHaveLength(1);
   });
 
-  it('todas las pantallas se cargan en diferido', () => {
+  it('todas las pantallas se cargan en diferido y resuelven su componente', async () => {
     for (const ruta of pantallas) {
       expect(ruta.loadComponent, `sin carga diferida: ${ruta.path}`).toBeTypeOf('function');
+      const componente = await (ruta.loadComponent as () => Promise<unknown>)();
+      expect(componente, `no resuelve: ${ruta.path}`).toBeTypeOf('function');
     }
   });
 

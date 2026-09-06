@@ -201,4 +201,27 @@ describe('GaleriaFicha', () => {
     vista.fixture.detectChanges();
     expect(vista.container.querySelector('[role=dialog]')).not.toBeNull();
   });
+
+  /**
+   * Mientras el pase corre el fundido es largo —es decorativo—; en cuanto manda quien mira, el cambio
+   * tiene que ser inmediato: un fundido largo tras pulsar se percibe como que la web va lenta.
+   */
+  it('el fundido es largo durante el pase e inmediato después', async () => {
+    const vista = await render(GaleriaFicha, {
+      inputs: { fotos: FOTOS, titulo: 'Gorro', activa: 0, pasePasando: true },
+    });
+    expect(screen.getByAltText('Gorro').className).toContain('animate-fade-gallery');
+
+    await vista.rerender({
+      inputs: { fotos: FOTOS, titulo: 'Gorro', activa: 0, pasePasando: false },
+    });
+    expect(screen.getByAltText('Gorro').className).toContain('animate-fade-gallery-fast');
+  });
+
+  it('el contador dice en qué foto se está', async () => {
+    const vista = await render(GaleriaFicha, {
+      inputs: { fotos: FOTOS, titulo: 'Gorro', activa: 1 },
+    });
+    expect(vista.container.textContent).toContain('2 / 3');
+  });
 });

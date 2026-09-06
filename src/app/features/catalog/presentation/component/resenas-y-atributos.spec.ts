@@ -100,6 +100,32 @@ describe('SeccionResenas', () => {
     expect(publica).toHaveBeenCalled();
   });
 
+  /** Se enseñan por defecto las del idioma de quien mira; el filtro deja ver todas. */
+  it('con reseñas en varios idiomas ofrece filtrarlas', async () => {
+    const { vista } = await monta(async () =>
+      exito({
+        items: [
+          { id: 'r1', valoracion: 5, idioma: 'es', cuerpo: 'Muy bien' },
+          { id: 'r2', valoracion: 4, idioma: 'en', cuerpo: 'Good' },
+        ],
+        total: 2,
+        media: 4.5,
+        reparto: { '5': 1, '4': 1 },
+      }),
+    );
+    const distintivos = [...vista.container.querySelectorAll<HTMLElement>('.badge')];
+    const soloIngles = distintivos.find((d) => d.textContent?.trim() === 'EN')!;
+    await userEvent.click(soloIngles);
+    vista.fixture.detectChanges();
+    expect(vista.container.textContent).toContain('Good');
+    expect(vista.container.textContent).not.toContain('Muy bien');
+
+    const todas = distintivos[0];
+    await userEvent.click(todas);
+    vista.fixture.detectChanges();
+    expect(vista.container.textContent).toContain('Muy bien');
+  });
+
   it('un fallo al publicar se cuenta, no se traga', async () => {
     const publica = vi.fn().mockResolvedValue(fallo(creaError('error-del-servidor', 'no se pudo')));
     const { vista } = await monta(
@@ -236,5 +262,44 @@ describe('piezas fijas de la ficha', () => {
   it('la tarjeta de vendedor habla de NX036, no del proveedor', async () => {
     await render(TarjetaVendedor, { providers: [provideRouter([])] });
     expect(screen.getByText('NX036')).toBeInTheDocument();
+  });
+});
+
+describe('Recomendados, desplazamiento', () => {
+  it('las flechas mueven el carril', async () => {
+    const vista = await render(Recomendados, {
+      inputs: { idDelProducto: 'p1' },
+      providers: [
+        provideRouter([]),
+        { provide: CATALOGO_PORT, useValue: { relacionados: async () => exito([]) } },
+      ],
+    });
+    await vista.fixture.whenStable();
+    vista.fixture.detectChanges();
+    const carril = vista.container.querySelector<HTMLElement>('.scroll-smooth')!;
+    carril.scrollBy = vi.fn();
+    const flechas = [...vista.container.querySelectorAll<HTMLElement>('.join button')];
+    await userEvent.click(flechas[0]);
+    await userEvent.click(flechas[1]);
+    expect(carril.scrollBy).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('VisorGaleria, teclado', () => {
+  /** Quedarse encerrado dentro de una imagen es de las cosas que más irritan. */
+  it('el escape cierra y las flechas pasan de foto', async () => {
+    const cierra = vi.fn();
+    const anterior = vi.fn();
+    const siguiente = vi.fn();
+    await render(VisorGaleria, {
+      inputs: { src: 'a.jpg', titulo: 'Gorro', indice: 1, total: 3 },
+      on: { cierra, anterior, siguiente },
+    });
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    expect(cierra).toHaveBeenCalled();
+    expect(anterior).toHaveBeenCalled();
+    expect(siguiente).toHaveBeenCalled();
   });
 });

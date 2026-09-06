@@ -24,6 +24,9 @@ import '@testing-library/jest-dom/vitest';
 class ObservadorDeVisibilidadFalso implements IntersectionObserver {
   readonly root: Element | Document | null = null;
   readonly rootMargin = '0px';
+  // `scrollMargin` es parte de la interfaz desde una revisión reciente del estándar. No hace nada aquí
+  // —el doble avisa siempre—, pero sin ella el tipo no cuadra y las pruebas ni compilan.
+  readonly scrollMargin = '0px';
   readonly thresholds: readonly number[] = [0];
 
   constructor(private readonly avisa: IntersectionObserverCallback) {}
@@ -77,4 +80,22 @@ if (typeof globalThis.matchMedia === 'undefined') {
     removeListener: () => undefined,
     dispatchEvent: () => false,
   })) as unknown as typeof globalThis.matchMedia;
+}
+
+/**
+ * Doble de `requestIdleCallback`.
+ *
+ * <p>Es la pieza que faltaba para que los bloques diferidos se pinten en las pruebas. Un
+ * `@defer (hydrate on viewport)` que no declara disparador propio usa «cuando el navegador esté
+ * ocioso», y el DOM simulado no trae esa función: el bloque se quedaba esperando un momento de reposo
+ * que no llegaba nunca. El fallo se leía como «no encuentro este texto», que es exactamente la pista
+ * que no ayuda.
+ *
+ * <p>Aquí el reposo llega enseguida, que es lo que interesa comprobar: qué se pinta cuando el bloque
+ * entra, no cuánto tarda el navegador en decidirlo.
+ */
+if (typeof globalThis.requestIdleCallback === 'undefined') {
+  globalThis.requestIdleCallback = ((tarea: IdleRequestCallback) =>
+    setTimeout(() => tarea({ didTimeout: false, timeRemaining: () => 50 }), 0) as unknown as number) as typeof globalThis.requestIdleCallback;
+  globalThis.cancelIdleCallback = ((id: number) => clearTimeout(id)) as typeof globalThis.cancelIdleCallback;
 }

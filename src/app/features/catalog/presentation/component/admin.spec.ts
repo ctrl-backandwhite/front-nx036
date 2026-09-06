@@ -72,6 +72,40 @@ describe('PanelDeOrigen', () => {
     expect(vista.fixture.debugElement.injector.get(AvisosStore).avisos()[0].tipo).toBe('error');
   });
 
+  /**
+   * El enlace se pide en un FORMULARIO y no en una cadena de preguntas sueltas: hay que poder revisar
+   * lo pegado antes de guardar. El dominio lo valida el backend, que es quien manda.
+   */
+  it('editar el enlace de origen guarda lo que se teclea', async () => {
+    const guardaUrlDeOrigen = vi.fn().mockResolvedValue(exito(undefined));
+    const { vista, cambiada } = await monta({ guardaUrlDeOrigen });
+    const dialogo = vista.fixture.debugElement.injector.get(DialogoStore);
+    const botones = [...vista.container.querySelectorAll<HTMLElement>('button')];
+    await userEvent.click(botones[0]);
+    expect(dialogo.actual()?.clase).toBe('form');
+    dialogo.cierra({ sourceUrl: 'https://detail.1688.com/offer/9.html' });
+    await new Promise((sigue) => setTimeout(sigue, 0));
+    await vista.fixture.whenStable();
+    expect(guardaUrlDeOrigen).toHaveBeenCalledWith('p1', 'https://detail.1688.com/offer/9.html');
+    expect(cambiada).toHaveBeenCalled();
+  });
+
+  /** Un guardado que no guarda nada solo gasta una petición y enseña una confirmación vacía. */
+  it('sin cambio, no se llama al servidor', async () => {
+    const guardaUrlDeOrigen = vi.fn();
+    const { vista } = await monta(
+      { guardaUrlDeOrigen },
+      ficha({ urlDeOrigen: 'https://detail.1688.com/offer/1.html' }),
+    );
+    const dialogo = vista.fixture.debugElement.injector.get(DialogoStore);
+    const botones = [...vista.container.querySelectorAll<HTMLElement>('button')];
+    await userEvent.click(botones.find((b) => b.classList.contains('btn-ghost'))!);
+    dialogo.cierra({ sourceUrl: 'https://detail.1688.com/offer/1.html' });
+    await new Promise((sigue) => setTimeout(sigue, 0));
+    await vista.fixture.whenStable();
+    expect(guardaUrlDeOrigen).not.toHaveBeenCalled();
+  });
+
   /** Borrar un producto entero no puede pasar por un descuido. */
   it('borrar el producto exige confirmación', async () => {
     const borraProducto = vi.fn().mockResolvedValue(exito(undefined));
@@ -233,5 +267,34 @@ describe('AccionesDeAdmin', () => {
     await TestBed.inject(AccionesDeAdmin).copiaFotoDeVariante('p1', 'foto.jpg', alTerminar);
     expect(alTerminar).not.toHaveBeenCalled();
     expect(TestBed.inject(AvisosStore).avisos()[0].tipo).toBe('error');
+  });
+
+  it('quitar el vídeo y borrar una variante también piden confirmación', async () => {
+    const borraVideo = vi.fn().mockResolvedValue(exito(undefined));
+    const borraValorDeVariante = vi.fn().mockResolvedValue(exito(undefined));
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        AccionesDeAdmin,
+        { provide: EDICION_DE_FICHA_PORT, useValue: { borraVideo, borraValorDeVariante } },
+      ],
+    });
+    const acciones = TestBed.inject(AccionesDeAdmin);
+    const dialogo = TestBed.inject(DialogoStore);
+    const alTerminar = vi.fn();
+
+    const quitarVideo = acciones.borraVideo('p1', alTerminar);
+    await new Promise((sigue) => setTimeout(sigue, 0));
+    dialogo.cierra(true);
+    await quitarVideo;
+
+    const quitarVariante = acciones.borraVariante('vv1', alTerminar);
+    await new Promise((sigue) => setTimeout(sigue, 0));
+    dialogo.cierra(true);
+    await quitarVariante;
+
+    expect(borraVideo).toHaveBeenCalledWith('p1');
+    expect(borraValorDeVariante).toHaveBeenCalledWith('vv1');
+    expect(alTerminar).toHaveBeenCalledTimes(2);
   });
 });

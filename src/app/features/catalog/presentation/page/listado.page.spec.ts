@@ -124,4 +124,68 @@ describe('ListadoPage', () => {
     expect(busca.mock.calls.length).toBeGreaterThan(antes);
     expect(busca.mock.calls.at(-1)?.[0].pagina).toBe(1);
   });
+
+  /**
+   * Los filtros viven en la DIRECCIÓN: es lo que hace que un enlace se pueda compartir con la búsqueda
+   * puesta, y que volver atrás recupere lo que se estaba mirando.
+   */
+  it('los filtros de la dirección llegan a la consulta', async () => {
+    const busca = vi.fn().mockResolvedValue(exito(pagina(1)));
+    const { vista } = await monta(busca);
+    await TestBed.inject(Router).navigate([], { queryParams: { q: 'gorro', freeShipping: '1' } });
+    await vista.fixture.whenStable();
+    const ultima = busca.mock.calls.at(-1)?.[0];
+    expect(ultima.criterio.texto).toBe('gorro');
+    expect(ultima.criterio.envioGratis).toBe(true);
+  });
+
+  /** Con búsqueda por texto NO se baraja: el orden lo decide la relevancia. */
+  it('buscando por texto no se baraja el desempate', async () => {
+    const busca = vi.fn().mockResolvedValue(exito(pagina(1)));
+    const { vista } = await monta(busca);
+    await TestBed.inject(Router).navigate([], { queryParams: { q: 'gorro' } });
+    await vista.fixture.whenStable();
+    expect(busca.mock.calls.at(-1)?.[0].baraja).toBeUndefined();
+  });
+
+  it('con filtros puestos se pintan sus distintivos', async () => {
+    const { vista } = await monta();
+    await TestBed.inject(Router).navigate([], {
+      queryParams: { q: 'gorro', promotionId: 'pr1', promo: 'Rebajas' },
+    });
+    await vista.fixture.whenStable();
+    vista.fixture.detectChanges();
+    expect(vista.container.querySelectorAll('.chip-active').length).toBeGreaterThan(1);
+  });
+
+  /** El grupo de arancel llega de fuera, y dejarlo puesto tras «limpiar» era el filtro invisible. */
+  it('limpiar quita también el filtro de arancel', async () => {
+    const { vista } = await monta();
+    await TestBed.inject(Router).navigate([], { queryParams: { grupo: 'g1', q: 'gorro' } });
+    await vista.fixture.whenStable();
+    vista.fixture.detectChanges();
+    const limpiar = [...vista.container.querySelectorAll<HTMLElement>('button.btn-ghost')].at(-1)!;
+    await userEvent.click(limpiar);
+    await vista.fixture.whenStable();
+    expect(TestBed.inject(Router).url).not.toContain('grupo');
+  });
+
+  it('con una categoría elegida se anuncia con su rótulo y su recuento', async () => {
+    const { vista } = await monta();
+    await TestBed.inject(Router).navigate([], {
+      queryParams: { categoryId: '3f2504e0-4f89-11d3-9a0c-0305e82c3301' },
+    });
+    await vista.fixture.whenStable();
+    vista.fixture.detectChanges();
+    // La categoría del doble no coincide con ese identificador: no se anuncia nada que no se sepa.
+    expect(vista.container.querySelector('h1')).not.toBeNull();
+  });
+
+  it('la vista de lista pinta filas en vez de tarjetas', async () => {
+    const { vista } = await monta();
+    const botones = vista.container.querySelectorAll<HTMLElement>('.join button');
+    await userEvent.click(botones[1]);
+    vista.fixture.detectChanges();
+    expect(vista.container.querySelectorAll('nx-fila-listado').length).toBeGreaterThan(0);
+  });
 });

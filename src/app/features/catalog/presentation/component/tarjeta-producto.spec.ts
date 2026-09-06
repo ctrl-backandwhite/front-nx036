@@ -39,7 +39,7 @@ async function monta(
   const vista = await render(TarjetaProducto, {
     inputs: { producto: entrada },
     providers: [
-      provideRouter([]),
+      provideRouter([{ path: '**', children: [] }]),
       {
         provide: CATALOGO_PORT,
         useValue: { ficha: puertos.ficha ?? vi.fn().mockResolvedValue(exito({ ...entrada, variantes: [] })) },
@@ -135,5 +135,60 @@ describe('TarjetaProducto', () => {
     await userEvent.click(botones[botones.length - 1]);
     vista.fixture.detectChanges();
     expect(TestBed.inject(AvisosStore).avisos()[0].tipo).toBe('error');
+  });
+
+  it('pinta los distintivos que el backend marca', async () => {
+    const { container } = await monta(
+      producto({ tendencia: 0.8, etiquetas: ['ready', 'free_shipping'] }),
+    );
+    // Superventas, «listo para enviar» y envío gratis: tres distintivos sobre la foto.
+    expect(container.querySelectorAll('.absolute.top-2.left-2 > span')).toHaveLength(3);
+  });
+
+  /** El escudo ya significa «marca» en la tarjeta: aquí va una mano que paga. */
+  it('marca los productos cuyo arancel paga la tienda', async () => {
+    const { container } = await monta(
+      producto({ arancel: { centimosExtra: null, cubierto: true } }),
+    );
+    expect(container.querySelector('.text-emerald-600')).not.toBeNull();
+  });
+
+  it('enseña la valoración y las ventas abreviadas', async () => {
+    const { container } = await monta(producto({ valoracion: 4.27, ventasMensuales: 12_345 }));
+    expect(container.textContent).toContain('4.3');
+    expect(container.textContent).toContain('12.3k');
+  });
+
+  /**
+   * Con cesta, el filtro lleva a las líneas de declaración DE LA CESTA; sin ella, al grupo de este
+   * producto, que es la única referencia que hay.
+   */
+  it('el filtro de arancel apunta al grupo del producto cuando la cesta está vacía', async () => {
+    const vista = await monta(
+      producto({
+        arancel: { centimosExtra: 300, formateado: '3,00 €', cubierto: false, grupo: 'g1' },
+      }),
+    );
+    const filtro = [...vista.container.querySelectorAll<HTMLElement>('button')].find((b) =>
+      b.classList.contains('underline'),
+    )!;
+    await userEvent.click(filtro);
+    await vista.fixture.whenStable();
+    const { Router } = await import('@angular/router');
+    expect(TestBed.inject(Router).url).toContain('grupo=g1');
+  });
+
+  it('la primera fila pide su foto con prioridad', async () => {
+    const vista = await render(TarjetaProducto, {
+      inputs: { producto: producto({ imagenPrincipal: 'foto.jpg' }), prioritaria: true },
+      providers: [
+        provideRouter([{ path: '**', children: [] }]),
+        { provide: CATALOGO_PORT, useValue: { ficha: vi.fn() } },
+        { provide: CESTA_PORT, useValue: { anade: vi.fn(), productosQueLleva: vi.fn() } },
+        { provide: FAVORITOS_PORT, useValue: {} },
+      ],
+    });
+    vista.fixture.detectChanges();
+    expect(vista.container.querySelector('img[fetchpriority=high]')).not.toBeNull();
   });
 });

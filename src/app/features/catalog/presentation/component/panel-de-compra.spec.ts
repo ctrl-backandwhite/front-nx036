@@ -108,4 +108,83 @@ describe('PanelDeCompra', () => {
     const sinAdmin = await monta(ficha());
     expect(sinAdmin.vista.container.textContent).not.toContain('EXT');
   });
+
+  it('comprar ahora también avisa a quien lo monta', async () => {
+    const compraAhora = vi.fn();
+    const entrada = ficha();
+    const vista = await render(PanelDeCompra, {
+      inputs: { ficha: entrada },
+      on: { compraAhora },
+      providers: [SeleccionDeLaFicha, { provide: EDICION_DE_FICHA_PORT, useValue: {} }],
+    });
+    vista.fixture.debugElement.injector.get(SeleccionDeLaFicha).empieza(entrada);
+    vista.fixture.detectChanges();
+    await userEvent.click(vista.container.querySelector<HTMLElement>('button.btn-primary')!);
+    expect(compraAhora).toHaveBeenCalled();
+  });
+
+  it('con sesión ofrece el corazón y avisa al pulsarlo', async () => {
+    const marcaFavorito = vi.fn();
+    const entrada = ficha();
+    const vista = await render(PanelDeCompra, {
+      inputs: { ficha: entrada },
+      on: { marcaFavorito },
+      providers: [SeleccionDeLaFicha, { provide: EDICION_DE_FICHA_PORT, useValue: {} }],
+    });
+    vista.fixture.debugElement.injector.get(SeleccionDeLaFicha).empieza(entrada);
+    vista.fixture.debugElement.injector
+      .get(SesionActual)
+      .publica({ id: 'u1', rol: 'USER', nombreVisible: 'Ana', pais: 'ES' });
+    vista.fixture.detectChanges();
+    const corazon = [...vista.container.querySelectorAll<HTMLElement>('button.btn-sm')].at(-1)!;
+    await userEvent.click(corazon);
+    expect(marcaFavorito).toHaveBeenCalled();
+  });
+
+  it('el distintivo de arancel avisa al pedir su filtro', async () => {
+    const filtraPorGrupo = vi.fn();
+    const entrada = ficha({
+      arancel: { centimosExtra: 300, formateado: '3,00 €', cubierto: false, grupo: 'g1' },
+    });
+    const vista = await render(PanelDeCompra, {
+      inputs: { ficha: entrada },
+      on: { filtraPorGrupo },
+      providers: [SeleccionDeLaFicha, { provide: EDICION_DE_FICHA_PORT, useValue: {} }],
+    });
+    vista.fixture.debugElement.injector.get(SeleccionDeLaFicha).empieza(entrada);
+    vista.fixture.detectChanges();
+    const filtro = [...vista.container.querySelectorAll<HTMLElement>('button')].find((b) =>
+      b.classList.contains('underline'),
+    )!;
+    await userEvent.click(filtro);
+    expect(filtraPorGrupo).toHaveBeenCalled();
+  });
+
+  it('elegir color y cambiar cantidades llega a quien lo monta', async () => {
+    const eligeColor = vi.fn();
+    const cambia = vi.fn();
+    const entrada = ficha({
+      ejesDeVariante: [eje('Color', ['Rojo', 'Azul']), eje('Talla', ['S'])],
+      variantes: [
+        { id: 'v1', existencias: 2, opciones: { Color: 'Rojo', Talla: 'S' }, activa: true },
+        { id: 'v2', existencias: 2, opciones: { Color: 'Azul', Talla: 'S' }, activa: true },
+      ],
+    });
+    const vista = await render(PanelDeCompra, {
+      inputs: { ficha: entrada },
+      on: { eligeColor, cambia },
+      providers: [SeleccionDeLaFicha, { provide: EDICION_DE_FICHA_PORT, useValue: {} }],
+    });
+    vista.fixture.debugElement.injector.get(SeleccionDeLaFicha).empieza(entrada);
+    vista.fixture.detectChanges();
+
+    await userEvent.click(screen.getByTitle('Azul'));
+    vista.fixture.detectChanges();
+    expect(eligeColor).toHaveBeenCalled();
+
+    const sumar = [...vista.container.querySelectorAll<HTMLElement>('.join button')].at(-1)!;
+    await userEvent.click(sumar);
+    vista.fixture.detectChanges();
+    expect(cambia).toHaveBeenCalled();
+  });
 });

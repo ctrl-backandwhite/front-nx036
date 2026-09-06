@@ -122,7 +122,7 @@ import {
           igual y quien llega desde un enlace con ancla la encuentra donde estaba; lo que se ahorra es
           el código que la gobierna hasta que hace falta.
         -->
-        @defer (hydrate on viewport) {
+        @defer (on idle; hydrate on viewport) {
           <nx-seccion-de-integraciones />
 
           <nx-seccion-de-catalogo />
@@ -224,7 +224,7 @@ import {
       </article>
 
       <aside class="hidden xl:block">
-        @defer (hydrate on idle) {
+        @defer (on idle; hydrate on idle) {
         <div class="sticky top-20 space-y-4 text-[12px]">
           <div class="card p-4">
             <div class="text-[11px] uppercase tracking-wider text-ink-500 font-medium mb-2">

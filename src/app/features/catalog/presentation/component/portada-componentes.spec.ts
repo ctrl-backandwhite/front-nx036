@@ -171,4 +171,86 @@ describe('CartelPromociones', () => {
     const vista = await monta(async () => fallo(creaError('sin-conexion')));
     expect(vista.container.textContent?.trim()).toBe('');
   });
+
+  /** Con el ratón encima, el pase se detiene: nadie quiere que le cambien lo que está leyendo. */
+  it('el pase se pausa al pasar el ratón por encima', async () => {
+    const vista = await monta(async () =>
+      exito([
+        { id: '1', nombre: 'Una', porcentaje: 10, productos: [] },
+        { id: '2', nombre: 'Otra', porcentaje: 20, productos: [] },
+      ]),
+    );
+    const cartel = vista.container.querySelector<HTMLElement>('section')!;
+    cartel.dispatchEvent(new Event('mouseenter'));
+    vista.fixture.detectChanges();
+    cartel.dispatchEvent(new Event('mouseleave'));
+    vista.fixture.detectChanges();
+    expect(vista.container.textContent).toContain('Una');
+  });
+
+  /** El porcentaje es el TECHO: el suelo de coste recorta el descuento en algunos productos. */
+  it('anuncia el descuento como un máximo y los días que quedan', async () => {
+    const manana = new Date(Date.now() + 86_400_000).toISOString();
+    const vista = await monta(async () =>
+      exito([{ id: '1', nombre: 'Una', porcentaje: 30, terminaEl: manana, productos: [] }]),
+    );
+    expect(vista.container.textContent).toContain('30');
+    expect(vista.container.querySelectorAll('.bg-white\\/10').length).toBeGreaterThan(0);
+  });
+});
+
+describe('SeccionesPortada, más a fondo', () => {
+  it('las categorías destacadas llevan al listado con su filtro puesto', async () => {
+    const vista = await render(SeccionesPortada, {
+      providers: [
+        ...PROVEEDORES_DE_TARJETA,
+        {
+          provide: PORTADA_PORT,
+          useValue: {
+            secciones: async () =>
+              exito({
+                secciones: [],
+                categoriasDestacadas: [
+                  { id: 'c1', slug: 'gorros', nombre: 'Gorros', posicion: 0, cuantosProductos: 4, hijas: [] },
+                ],
+                totalDeProductos: 4,
+              }),
+          },
+        },
+      ],
+    });
+    await vista.fixture.whenStable();
+    vista.fixture.detectChanges();
+    const enlace = vista.container.querySelector('a')!;
+    expect(enlace.getAttribute('href')).toContain('categoryId=c1');
+    // Sin foto de categoría, la distinción visual la da un círculo con la inicial.
+    expect(vista.container.textContent).toContain('G');
+  });
+
+  it('«ver todos» lleva al orden que representa cada hilera', async () => {
+    const vista = await render(SeccionesPortada, {
+      providers: [
+        ...PROVEEDORES_DE_TARJETA,
+        {
+          provide: PORTADA_PORT,
+          useValue: {
+            secciones: async () =>
+              exito({
+                secciones: [
+                  { codigo: 'video', titulo: 'Con vídeo', items: [producto('a')] },
+                  { codigo: 'top_selling', titulo: 'Más vendidos', items: [producto('b')] },
+                ],
+                categoriasDestacadas: [],
+                totalDeProductos: 2,
+              }),
+          },
+        },
+      ],
+    });
+    await vista.fixture.whenStable();
+    vista.fixture.detectChanges();
+    const enlaces = [...vista.container.querySelectorAll('a')].map((a) => a.getAttribute('href'));
+    expect(enlaces.some((h) => h?.includes('hasVideo=1'))).toBe(true);
+    expect(enlaces.some((h) => h?.includes('sort=sales'))).toBe(true);
+  });
 });

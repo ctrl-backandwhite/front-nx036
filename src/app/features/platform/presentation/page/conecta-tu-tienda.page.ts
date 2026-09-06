@@ -68,7 +68,7 @@ import {
       </ol>
 
       <!-- Las notas técnicas cierran la página: quien solo quiere el paso a paso no llega a ellas. -->
-      @defer (hydrate on viewport) {
+      @defer (on idle; hydrate on viewport) {
       <div class="grid gap-3 sm:grid-cols-3">
         @for (nota of notas; track nota.titulo) {
           <div class="card bg-base-100 p-4 text-sm">

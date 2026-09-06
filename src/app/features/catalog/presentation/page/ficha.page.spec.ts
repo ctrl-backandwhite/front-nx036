@@ -209,7 +209,7 @@ describe('FichaPage', () => {
       .publica({ id: 'u1', rol: 'USER', nombreVisible: 'Ana', pais: 'ES' });
     await vista.fixture.whenStable();
     vista.fixture.detectChanges();
-    const corazon = [...vista.container.querySelectorAll<HTMLElement>('button.btn-sm')].at(-1)!;
+    const corazon = [...vista.container.querySelectorAll<HTMLElement>('button.btn-outline.btn-sm')].at(-1)!;
     await userEvent.click(corazon);
     await vista.fixture.whenStable();
     expect(anadeFavorito).toHaveBeenCalledWith('p1');
@@ -224,14 +224,17 @@ describe('FichaPage', () => {
     expect(vista.fixture.debugElement.injector.get(Router).url).toContain('/cart');
   });
 
-  it('para el administrador se cargan los bloques de edición', async () => {
+  /**
+   * Los paneles de administración van en `@defer`, así que su contenido no está en el primer pintado.
+   * Lo que sí se ve de inmediato son las herramientas de la galería, y son la señal de que la ficha
+   * ha reconocido a quien mira.
+   */
+  it('el administrador ve las herramientas de edición de la galería', async () => {
     const { vista } = await monta({
       esAdministrador: true,
       devuelve: exito(ficha({ urlDeOrigen: 'https://detail.1688.com/offer/1.html' })),
     });
-    await vista.fixture.whenStable();
-    vista.fixture.detectChanges();
-    expect(vista.container.textContent).toContain('EXT-1');
+    expect(vista.container.querySelectorAll('.bg-error').length).toBeGreaterThan(0);
   });
 
   it('elegir un color cambia la foto principal', async () => {
@@ -262,5 +265,92 @@ describe('FichaPage', () => {
     vista.fixture.detectChanges();
     // La foto del color no está en la galería: se enseña como principal sin meterla en la tira.
     expect(vista.container.querySelector('#nx-pdp-main-img')).toHaveAttribute('src', 'z.jpg');
+  });
+
+  /**
+   * La galería es zona de soltar SOLO para el administrador: al arrastrar una foto de variante
+   * encima, se resalta para decir que ahí se puede soltar. (Que soltarla la copie de verdad se prueba
+   * sobre `AccionesDeAdmin`, que es quien lo hace.)
+   */
+  it('para el administrador, la galería se resalta al arrastrar una foto encima', async () => {
+    const vista = await render(FichaPage, {
+      inputs: { slug: 'gorro' },
+      providers: [
+        provideRouter([{ path: '**', children: [] }]),
+        { provide: RECUPERADOR_DE_SESION, useValue: { asegura: async () => undefined } },
+        {
+          provide: CATALOGO_PORT,
+          useValue: {
+            ficha: async () => exito(ficha()),
+            relacionados: async () => exito([]),
+            especificaciones: async () => exito([]),
+          },
+        },
+        { provide: HISTORIAL_PORT, useValue: { anota: vi.fn(), lista: vi.fn() } },
+        {
+          provide: CESTA_PORT,
+          useValue: { anade: vi.fn(), productosQueLleva: async () => exito([]) },
+        },
+        { provide: FAVORITOS_PORT, useValue: { identificadores: async () => exito([]) } },
+        {
+          provide: RESENAS_PORT,
+          useValue: {
+            lista: async () => exito({ items: [], total: 0, media: 0, reparto: {} }),
+            publica: vi.fn(),
+          },
+        },
+        {
+          provide: ANALITICA_DE_PRODUCTO_PORT,
+          useValue: { historicoDePrecios: async () => exito([]), estimacionDeMargen: vi.fn() },
+        },
+        { provide: EDICION_DE_FICHA_PORT, useValue: {} },
+      ],
+    });
+    vista.fixture.debugElement.injector
+      .get(SesionActual)
+      .publica({ id: 'u1', rol: 'ADMIN', nombreVisible: 'Ana', pais: 'ES' });
+    await vista.fixture.whenStable();
+    vista.fixture.detectChanges();
+
+    const zona = vista.container.querySelector('nx-galeria-ficha')!.parentElement!;
+    zona.dispatchEvent(new Event('dragover', { bubbles: true, cancelable: true }));
+    vista.fixture.detectChanges();
+    expect(zona.className).toContain('ring-primary');
+  });
+
+  /** Sin permiso, soltar una foto sobre la galería no puede escribir nada. */
+  it('quien solo mira no puede soltar fotos en la galería', async () => {
+    const anadeImagen = vi.fn();
+    const { vista } = await monta();
+    const zona = vista.container.querySelector('nx-galeria-ficha')!.parentElement!;
+    const soltar = new Event('drop', { bubbles: true, cancelable: true });
+    Object.defineProperty(soltar, 'dataTransfer', { value: { getData: () => 'x.jpg' } });
+    zona.dispatchEvent(soltar);
+    await vista.fixture.whenStable();
+    expect(anadeImagen).not.toHaveBeenCalled();
+  });
+
+  it('el distintivo de arancel lleva al filtro de su grupo', async () => {
+    const { vista } = await monta({
+      devuelve: exito(
+        ficha({ arancel: { centimosExtra: 300, formateado: '3,00 €', cubierto: false, grupo: 'g1' } }),
+      ),
+    });
+    const enlace = [...vista.container.querySelectorAll<HTMLElement>('button')].find((b) =>
+      b.classList.contains('underline'),
+    )!;
+    await userEvent.click(enlace);
+    await vista.fixture.whenStable();
+    const { Router } = await import('@angular/router');
+    expect(vista.fixture.debugElement.injector.get(Router).url).toContain('grupo=g1');
+  });
+
+  /** Abierta desde un correo no hay historial de la tienda detrás: entonces, al inicio. */
+  it('volver sin historial lleva a la portada', async () => {
+    const { vista } = await monta();
+    const atras = vista.container.querySelector<HTMLElement>('button.text-primary')!;
+    await userEvent.click(atras);
+    await vista.fixture.whenStable();
+    expect(vista.fixture.debugElement.injector).toBeTruthy();
   });
 });

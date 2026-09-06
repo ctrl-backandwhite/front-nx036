@@ -31,7 +31,7 @@ import { NoEncontradaPage } from './no-encontrada.page';
       <nx-vista-de-documento [documento]="contenido()" />
       @if (documento === 'cookies') {
         <!-- La tabla va DESPUÉS de todo el texto de la política: nadie la ve sin bajar hasta el final. -->
-        @defer (hydrate on viewport) {
+        @defer (on idle; hydrate on viewport) {
           <nx-tabla-cookies [filas]="filasDeCookies()" />
         }
       }

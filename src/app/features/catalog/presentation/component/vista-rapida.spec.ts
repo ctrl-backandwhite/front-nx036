@@ -116,4 +116,30 @@ describe('VistaRapida', () => {
     await userEvent.click(vista.container.querySelectorAll<HTMLElement>('button')[0]);
     expect(cierra).toHaveBeenCalled();
   });
+
+  it('las miniaturas saltan a su foto', async () => {
+    const { vista } = await monta();
+    const miniaturas = [...vista.container.querySelectorAll<HTMLElement>('button.h-12')];
+    await userEvent.click(miniaturas[1]);
+    vista.fixture.detectChanges();
+    expect(vista.container.querySelector('img')).toHaveAttribute('src', 'b.jpg');
+  });
+
+  it('pulsar el fondo también cierra', async () => {
+    const { vista, cierra } = await monta();
+    await userEvent.click(vista.container.querySelector<HTMLElement>('[aria-hidden=true]')!);
+    expect(cierra).toHaveBeenCalled();
+  });
+
+  /** Al cambiar de producto se vuelve a la primera foto: la quinta puede no existir en el siguiente. */
+  it('cambiar de producto vuelve a la primera foto', async () => {
+    const { vista } = await monta();
+    const miniaturas = [...vista.container.querySelectorAll<HTMLElement>('button.h-12')];
+    await userEvent.click(miniaturas[1]);
+    vista.fixture.detectChanges();
+    await vista.rerender({ inputs: { slug: 'otro' } });
+    await vista.fixture.whenStable();
+    vista.fixture.detectChanges();
+    expect(vista.container.querySelector('img')).toHaveAttribute('src', 'a.jpg');
+  });
 });
