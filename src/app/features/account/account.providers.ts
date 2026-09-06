@@ -22,6 +22,46 @@ import { SeguridadHttpAdapter } from './infrastructure/seguridad-http.adapter';
 import { StripeTarjetaAdapter } from './infrastructure/stripe-tarjeta.adapter';
 import { QrLocalAdapter } from './infrastructure/qr-local.adapter';
 import { DescargaNavegadorAdapter } from './infrastructure/descarga-navegador.adapter';
+import { CobrosStore } from './application/state/cobros.store';
+import { CuentaStore } from './application/state/cuenta.store';
+import { DireccionesStore } from './application/state/direcciones.store';
+import { PlanesStore } from './application/state/planes.store';
+import {
+  ConfirmaBajaDeCuenta,
+  SolicitaBajaDeCuenta,
+} from './application/use-case/baja-de-cuenta.use-case';
+import { CambiaContrasena } from './application/use-case/cambia-contrasena.use-case';
+import {
+  AnadePaypal,
+  AnadeTarjeta,
+  CargaCobros,
+  EliminaMetodoDePago,
+  MarcaMetodoPorDefecto,
+  PideCodigoDeBajaDeMetodo,
+} from './application/use-case/cobros.use-case';
+import { DescargaMisDatos } from './application/use-case/descarga-mis-datos.use-case';
+import {
+  CargaDirecciones,
+  EliminaDireccion,
+  GuardaDireccion,
+} from './application/use-case/direcciones.use-case';
+import { GuardaPerfil } from './application/use-case/guarda-perfil.use-case';
+import {
+  CancelaSuscripcion,
+  CargaFacturas,
+  CargaPlanes,
+  ContrataPlan,
+  DescargaFactura,
+} from './application/use-case/planes.use-case';
+import { RecuperaCuenta } from './application/use-case/recupera-cuenta.use-case';
+import {
+  ActivaDobleFactor,
+  CargaSesionesActivas,
+  ConfirmaDobleFactor,
+  ConsultaDobleFactor,
+  DesactivaDobleFactor,
+  RevocaSesion,
+} from './application/use-case/seguridad.use-case';
 
 /**
  * Ata los puertos de «account» con sus adaptadores.
@@ -32,6 +72,13 @@ import { DescargaNavegadorAdapter } from './infrastructure/descarga-navegador.ad
  *
  * <p>Se declara en la ruta del contexto (`providers: [proveeAccount()]`) para que estas dependencias no
  * pesen en el arranque de quien nunca abre su perfil.
+ *
+ * <p>Con los puertos viajan también los CASOS DE USO y el ESTADO. Antes se marcaban `providedIn: 'root'`
+ * y eso los construía en el inyector RAÍZ, que no ve lo que se declara en una ruta: al abrir el perfil
+ * Angular no encontraba el `PerfilPort` y la pantalla moría con «NG0201: No provider found». Las pruebas
+ * no lo detectaban porque en ellas el caso de uso y el doble del puerto se dan en el mismo banco; solo
+ * se veía navegando. La regla que queda: quien depende de un puerto de este contexto vive en su
+ * inyector, no en la raíz.
  */
 export function proveeAccount(): EnvironmentProviders {
   return makeEnvironmentProviders([
@@ -67,5 +114,44 @@ export function proveeAccount(): EnvironmentProviders {
 
     DescargaNavegadorAdapter,
     { provide: DESCARGA_PORT, useFactory: () => inject(DescargaNavegadorAdapter) },
+
+    /* El estado de las pantallas de la cuenta. Va con los puertos y no en la raíz porque quien lo
+     * escribe son los casos de uso de aquí: repartirlos entre dos inyectores daría dos estados, y el
+     * formulario del perfil leería uno distinto del que acaba de rellenar el caso de uso. */
+    CobrosStore,
+    CuentaStore,
+    DireccionesStore,
+    PlanesStore,
+
+    // Los casos de uso, junto a los puertos de los que dependen: mismo inyector, misma vida.
+    SolicitaBajaDeCuenta,
+    ConfirmaBajaDeCuenta,
+    CambiaContrasena,
+    CargaCobros,
+    AnadeTarjeta,
+    AnadePaypal,
+    MarcaMetodoPorDefecto,
+    PideCodigoDeBajaDeMetodo,
+    EliminaMetodoDePago,
+    DescargaMisDatos,
+    CargaDirecciones,
+    GuardaDireccion,
+    EliminaDireccion,
+    GuardaPerfil,
+    CargaPlanes,
+    CargaFacturas,
+    ContrataPlan,
+    CancelaSuscripcion,
+    DescargaFactura,
+    /* `RecuperaCuenta` no depende de ningún puerto de «account» —pide el usuario por el puerto de
+     * «auth», que sí está en la raíz—, pero escribe en `CuentaStore`, que vive aquí. Dejarlo en la raíz
+     * le dejaría sin ese almacén: donde está el estado tiene que estar quien lo escribe. */
+    RecuperaCuenta,
+    ConsultaDobleFactor,
+    ActivaDobleFactor,
+    ConfirmaDobleFactor,
+    DesactivaDobleFactor,
+    CargaSesionesActivas,
+    RevocaSesion,
   ]);
 }

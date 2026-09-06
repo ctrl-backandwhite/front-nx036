@@ -15,7 +15,7 @@ export const TAMANO_DE_LISTA_GUARDADA = 24;
  * el día que haya que mezclar la lista con algo más —una promoción, un aviso de bajada de precio— se
  * añade aquí y ninguna plantilla cambia.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class ListaFavoritos {
   private readonly puerto = inject(FAVORITOS_PORT);
 
@@ -25,7 +25,7 @@ export class ListaFavoritos {
 }
 
 /** Las fichas por las que se ha pasado, de la visita más reciente a la más antigua. */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class ListaHistorial {
   private readonly puerto = inject(HISTORIAL_PORT);
 

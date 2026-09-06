@@ -14,7 +14,7 @@ import { RESENAS_PORT } from '../../domain/port/resenas.port';
  * <p>El idioma es el activo, no el del producto: una reseña se escribe en el idioma en el que se está
  * leyendo la tienda.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class PublicaResena {
   private readonly puerto = inject(RESENAS_PORT);
   private readonly sesion = inject(SesionActual);

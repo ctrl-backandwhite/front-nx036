@@ -10,7 +10,7 @@ import { Injectable, computed, signal } from '@angular/core';
  * tarda medio segundo en encenderse se percibe como que no ha funcionado, y la gente vuelve a pulsar.
  * Deshacerlo si falla es cosa del caso de uso.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class FavoritosStore {
   private readonly _ids = signal<ReadonlySet<string>>(new Set());
   private readonly _cargados = signal(false);

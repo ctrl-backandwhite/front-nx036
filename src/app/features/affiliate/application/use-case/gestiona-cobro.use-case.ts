@@ -16,7 +16,7 @@ import { COBRO_DE_AFILIADO_PORT } from '../../domain/port/afiliado.port';
  * aplicación —transferencia, PayPal o abono en la cartera—, así que aquí no hay ningún camino que mueva
  * dinero. Esto es a propósito y no una carencia: el cobro de afiliados se ejecuta a mano.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class GestionaCobro {
   private readonly cobro = inject(COBRO_DE_AFILIADO_PORT);
 

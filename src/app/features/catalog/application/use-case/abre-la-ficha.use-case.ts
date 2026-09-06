@@ -18,7 +18,7 @@ import { ReferenciaDeCestaStore } from '../state/referencia-de-cesta.store';
  * nadie anónimo. Y si falla se traga en silencio: es accesorio a la ficha, y enseñar un error por no
  * haber podido guardar el historial molestaría a quien está mirando un producto.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class AbreLaFicha {
   private readonly catalogo = inject(CATALOGO_PORT);
   private readonly historial = inject(HISTORIAL_PORT);

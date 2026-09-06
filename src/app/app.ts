@@ -24,7 +24,15 @@ export class App {
     effect(() => {
       const raiz = this.documento.documentElement;
       raiz.lang = this.preferencias.idioma();
-      raiz.setAttribute('data-theme', this.preferencias.tema());
+      const elegido = this.preferencias.tema();
+      if (elegido) {
+        raiz.setAttribute('data-theme', elegido);
+      } else {
+        // Sin elección explícita se QUITA el atributo, en vez de poner el claro: el atributo gana sobre
+        // la preferencia del sistema, así que ponerlo condena a modo claro a quien tiene el equipo en
+        // oscuro. Sin él, daisyUI resuelve por `prefers-color-scheme`.
+        raiz.removeAttribute('data-theme');
+      }
     });
   }
 }

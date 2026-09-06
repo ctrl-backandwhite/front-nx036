@@ -15,7 +15,7 @@ export const FALTA_EL_TITULAR = 'BILLING_CARD_NAME_REQUIRED';
  * condenada al error en toda instalación sin cobros configurados, y ensuciaba el registro con fallos que
  * no lo eran.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class CargaCobros {
   private readonly metodos = inject(METODOS_DE_PAGO_PORT);
   private readonly almacen = inject(CobrosStore);
@@ -52,7 +52,7 @@ export class CargaCobros {
  * confirme el alta con los datos que solo ella ha visto, y refrescar la lista. El número de la tarjeta
  * no pasa por aquí en ningún momento: vive dentro del campo de la pasarela y de ahí no sale.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class AnadeTarjeta {
   private readonly metodos = inject(METODOS_DE_PAGO_PORT);
   private readonly cobros = inject(CargaCobros);
@@ -75,7 +75,7 @@ export class AnadeTarjeta {
 }
 
 /** Guarda una cuenta de PayPal como método de pago. El correo se cifra en el servidor. */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class AnadePaypal {
   private readonly metodos = inject(METODOS_DE_PAGO_PORT);
   private readonly cobros = inject(CargaCobros);
@@ -87,7 +87,7 @@ export class AnadePaypal {
 }
 
 /** Cambia cuál es el método con el que se cobra por omisión. */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class MarcaMetodoPorDefecto {
   private readonly metodos = inject(METODOS_DE_PAGO_PORT);
   private readonly cobros = inject(CargaCobros);
@@ -105,7 +105,7 @@ export class MarcaMetodoPorDefecto {
  * con consecuencias: quien entrara un minuto con la sesión abierta podría dejar la cuenta sin cobro y
  * sin que el titular se enterara.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class PideCodigoDeBajaDeMetodo {
   private readonly metodos = inject(METODOS_DE_PAGO_PORT);
 
@@ -115,7 +115,7 @@ export class PideCodigoDeBajaDeMetodo {
 }
 
 /** Paso 2: eliminar el método validando el código recibido. */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class EliminaMetodoDePago {
   private readonly metodos = inject(METODOS_DE_PAGO_PORT);
   private readonly cobros = inject(CargaCobros);

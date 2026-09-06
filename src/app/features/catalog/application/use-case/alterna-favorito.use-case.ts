@@ -13,7 +13,7 @@ import { FavoritosStore } from '../state/favoritos.store';
  * desmarcando lo que quería marcar. Si la llamada falla se DESHACE, que es lo que convierte el
  * optimismo en algo honesto.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class AlternaFavorito {
   private readonly puerto = inject(FAVORITOS_PORT);
   private readonly estado = inject(FavoritosStore);

@@ -15,7 +15,7 @@ import { RECARGA_PORT } from '../../domain/port/cartera.port';
  * <p>El importe se valida ANTES de salir a la red. Un «1e999» pegado en el campo viaja como `null` al
  * serializar el JSON, y el servidor recibiría una recarga sin importe.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class IniciaRecarga {
   private readonly recarga = inject(RECARGA_PORT);
   private readonly preferencias = inject(PreferenciasService);

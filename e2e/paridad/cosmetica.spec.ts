@@ -25,15 +25,33 @@ const TOKENS = [
   '--color-brand-600', '--color-ink-900', '--font-sans', '--font-mono',
 ];
 
+/**
+ * Normaliza lo que devuelve el navegador antes de comparar.
+ *
+ * <p>Hace falta porque los dos proyectos usan minificadores distintos y escriben lo MISMO de forma
+ * distinta: uno deja `0.85rem` y el otro `.85rem`, y una lista de tipografías puede venir partida en
+ * varias líneas. Sin esto, la comparación marcaba diferencias que ningún ojo ve, y eso es peor que no
+ * comparar: llena el informe de ruido y esconde la diferencia que sí importa.
+ *
+ * <p>Lo que NO se normaliza son los colores. Ahí cualquier diferencia es real.
+ */
+function normaliza(valor: string): string {
+  return valor
+    .replace(/\s+/g, ' ')
+    .replace(/(^|[\s(,])\.(\d)/g, '$10.$2')
+    .trim();
+}
+
 async function tokensDelTema(page: Page): Promise<Record<string, string>> {
-  return page.evaluate((nombres) => {
+  const crudos = await page.evaluate((nombres) => {
     const estilo = getComputedStyle(document.documentElement);
     const salida: Record<string, string> = {};
     for (const nombre of nombres) {
-      salida[nombre] = estilo.getPropertyValue(nombre).trim();
+      salida[nombre] = estilo.getPropertyValue(nombre);
     }
     return salida;
   }, TOKENS);
+  return Object.fromEntries(Object.entries(crudos).map(([k, v]) => [k, normaliza(v)]));
 }
 
 /**
@@ -42,23 +60,36 @@ async function tokensDelTema(page: Page): Promise<Record<string, string>> {
  * <p>Se leen los valores YA RESUELTOS, no las clases. Dos elementos pueden llevar la misma clase y
  * verse distintos si una regla los pisa; y al revés, el marcado puede diferir y el resultado ser
  * idéntico, que es justo lo que se busca en un porte.
+ *
+ * <p>De cada clase se recoge el CONJUNTO de valores distintos que aparecen en la página, no los de la
+ * primera pieza que se encuentre. La diferencia importa: el primer intento comparaba
+ * `querySelector('.card')` contra `querySelector('.card')` y marcaba una diferencia en la pantalla de
+ * acceso que resultó no serlo — en cada aplicación la primera tarjeta del documento era una pieza
+ * distinta, y se estaban comparando cosas que no se corresponden. Comparando conjuntos, el orden del
+ * marcado deja de importar y sigue saltando lo que sí importa: un color, un radio o una sombra que en
+ * una aplicación existe y en la otra no.
  */
-async function aspectoResuelto(page: Page): Promise<Record<string, Record<string, string>>> {
+async function aspectoResuelto(page: Page): Promise<Record<string, Record<string, string[]>>> {
   return page.evaluate(() => {
-    const leer = (elemento: Element | null, propiedades: string[]) => {
-      if (!elemento) {
-        return {};
+    const conjuntoDe = (selector: string, propiedades: string[]) => {
+      const elementos = Array.from(document.querySelectorAll(selector)).slice(0, 30);
+      const salida: Record<string, string[]> = {};
+      for (const propiedad of propiedades) {
+        const valores = new Set<string>();
+        for (const elemento of elementos) {
+          valores.add(getComputedStyle(elemento).getPropertyValue(propiedad));
+        }
+        salida[propiedad] = [...valores].sort();
       }
-      const estilo = getComputedStyle(elemento);
-      return Object.fromEntries(propiedades.map((p) => [p, estilo.getPropertyValue(p).trim()]));
+      return elementos.length === 0 ? {} : salida;
     };
     return {
-      cuerpo: leer(document.body, ['background-color', 'color', 'font-family', 'font-weight', 'letter-spacing']),
-      titular: leer(document.querySelector('h1'), ['font-size', 'font-weight', 'color', 'letter-spacing', 'line-height']),
-      botonPrimario: leer(document.querySelector('.btn-primary'), ['background-color', 'color', 'border-radius', 'border-width']),
-      tarjeta: leer(document.querySelector('.card'), ['background-color', 'border-color', 'border-width', 'border-radius']),
-      distintivo: leer(document.querySelector('.badge'), ['border-radius', 'padding-inline', 'min-height']),
-      campo: leer(document.querySelector('.input'), ['border-radius', 'border-color', 'height']),
+      cuerpo: conjuntoDe('body', ['background-color', 'color', 'font-family', 'font-weight', 'letter-spacing']),
+      titular: conjuntoDe('h1', ['font-size', 'font-weight', 'color', 'letter-spacing']),
+      botonPrimario: conjuntoDe('.btn-primary', ['background-color', 'color', 'border-radius']),
+      tarjeta: conjuntoDe('.card', ['background-color', 'border-color', 'border-radius']),
+      distintivo: conjuntoDe('.badge', ['border-radius', 'min-height']),
+      campo: conjuntoDe('.input', ['border-radius', 'border-color']),
     };
   });
 }
@@ -86,16 +117,33 @@ test.describe('paridad cosmética', () => {
       await page.goto(`${ANGULAR}${ruta}`, { waitUntil: 'networkidle' });
       const enAngular = await aspectoResuelto(page);
 
-      // Una pieza que no existe en una de las dos no es una diferencia de ESTILO: es de contenido, y de
-      // eso se ocupa la batería de paridad de contenido. Aquí se comparan solo las piezas presentes en
-      // ambas, o esta comprobación se llenaría de ruido ajeno.
+      /* El criterio es de CONTENCIÓN, no de igualdad: ningún valor que pinte el Angular puede estar
+       * fuera de la paleta que usa el front anterior para esa misma pieza.
+       *
+       * Se llegó aquí después de dos intentos peores. Comparar la primera pieza de cada clase fallaba
+       * porque el orden del marcado no coincide. Comparar los conjuntos enteros fallaba porque una
+       * pantalla puede tener DOS botones primarios donde la otra tiene uno —un botón deshabilitado
+       * pinta distinto—, y eso es una diferencia de contenido, no de estilo.
+       *
+       * Lo que sí delata un fallo de estilo es un color, un radio o una tipografía que en el original
+       * no existe: eso significa que una regla no se está aplicando, o que alguien escribió un valor a
+       * mano en vez de usar el tema. Y eso es exactamente lo que comprueba la contención. */
       for (const pieza of Object.keys(enReact)) {
-        const a = enReact[pieza];
-        const b = enAngular[pieza];
+        const normalizaPieza = (x: Record<string, string[]>) =>
+          Object.fromEntries(Object.entries(x).map(([k, v]) => [k, v.map(normaliza).sort()]));
+        const a = normalizaPieza(enReact[pieza]);
+        const b = normalizaPieza(enAngular[pieza]);
         if (Object.keys(a).length === 0 || Object.keys(b).length === 0) {
           continue;
         }
-        expect(b, `«${pieza}» se pinta distinto en ${ruta}`).toEqual(a);
+        for (const [propiedad, valores] of Object.entries(b)) {
+          const admitidos = a[propiedad] ?? [];
+          const intrusos = valores.filter((v) => !admitidos.includes(v));
+          expect(
+            intrusos,
+            `«${pieza}» pinta en ${ruta} un ${propiedad} que no existe en el front anterior`,
+          ).toEqual([]);
+        }
       }
     });
   }

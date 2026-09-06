@@ -12,7 +12,7 @@ import { PEDIDOS_PORT } from '../../domain/port/pedidos.port';
  * traducido a partir de él, y dejarlo en manos de cada pantalla acababa en fichas con los títulos en
  * chino —la copia que se guardó al comprar— cuando alguien olvidaba pasarlo.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class ConsultaPedido {
   private readonly pedidos = inject(PEDIDOS_PORT);
   private readonly traduccion = inject(TraduccionService);

@@ -11,7 +11,7 @@ import {
  * <p>La configuración se guarda aparte de la lista porque decide si la sección ENTERA se pinta: sin
  * pasarela activa no hay nada que enseñar, y pedir la lista sería una llamada condenada al 404.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class CobrosStore {
   private readonly _configuracion = signal<ConfiguracionDeCobro | null>(null);
   private readonly _metodos = signal<readonly MetodoDePago[]>([]);

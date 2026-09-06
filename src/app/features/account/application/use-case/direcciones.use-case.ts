@@ -6,7 +6,7 @@ import { DIRECCIONES_PORT } from '../../domain/port/direcciones.port';
 import { DireccionesStore } from '../state/direcciones.store';
 
 /** Trae el libro de direcciones y lo deja en el almacén compartido. */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class CargaDirecciones {
   private readonly direcciones = inject(DIRECCIONES_PORT);
   private readonly almacen = inject(DireccionesStore);
@@ -36,7 +36,7 @@ export class CargaDirecciones {
  * <p>Refrescar después es parte de la operación: sin ello la pantalla enseña la lista de antes y parece
  * que el guardado no ha hecho nada.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class GuardaDireccion {
   private readonly direcciones = inject(DIRECCIONES_PORT);
   private readonly carga = inject(CargaDirecciones);
@@ -59,7 +59,7 @@ export class GuardaDireccion {
  * <p>Los pedidos anteriores NO se ven afectados: cada uno guarda su propia copia de la dirección a la
  * que se envió. Lo que se pierde es la comodidad de tenerla apuntada.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class EliminaDireccion {
   private readonly direcciones = inject(DIRECCIONES_PORT);
   private readonly carga = inject(CargaDirecciones);

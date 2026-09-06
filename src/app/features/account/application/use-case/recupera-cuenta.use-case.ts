@@ -13,7 +13,7 @@ import { CuentaStore } from '../state/cuenta.store';
  * <p>Sin credencial guardada NO se pregunta al backend: preguntarlo provocaba un rechazo por sesión
  * caducada, y con él un intento de renovación inútil, en cada arranque en frío de un visitante anónimo.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class RecuperaCuenta {
   private readonly usuarioActual = inject(USUARIO_ACTUAL_PORT);
   private readonly tokens = inject(TokenStore);

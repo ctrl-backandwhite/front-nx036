@@ -5,7 +5,7 @@ import { CodigoDeReferido, PanelDeAfiliado } from '../../domain/model/afiliado';
 import { PANEL_DE_AFILIADO_PORT } from '../../domain/port/afiliado.port';
 
 /** El panel del afiliado: darse de alta, mirar cómo va y crear enlaces nuevos. */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class ConsultaPanelDeAfiliado {
   private readonly panel = inject(PANEL_DE_AFILIADO_PORT);
 

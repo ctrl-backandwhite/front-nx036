@@ -19,7 +19,7 @@ export const CONTRASENAS_DISTINTAS = 'PROFILE_PASSWORD_MISMATCH';
  * rechaza aquí el texto lo pone la pantalla desde el diccionario. Mezclar las dos cosas acabaría con dos
  * redacciones distintas del mismo fallo.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class CambiaContrasena {
   private readonly perfil = inject(PERFIL_PORT);
 

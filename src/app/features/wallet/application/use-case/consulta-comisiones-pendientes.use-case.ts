@@ -10,7 +10,7 @@ import { COMISIONES_PENDIENTES_PORT } from '../../domain/port/comisiones-pendien
  * <p>Se consulta aparte del saldo a propósito: quien no es afiliado recibe un rechazo del servidor y eso
  * no puede impedir que se vea la cartera. Por eso la pantalla trata este dato como decorado.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class ConsultaComisionesPendientes {
   private readonly comisiones = inject(COMISIONES_PENDIENTES_PORT);
 

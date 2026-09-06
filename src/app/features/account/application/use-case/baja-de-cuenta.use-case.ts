@@ -12,7 +12,7 @@ import { CuentaStore } from '../state/cuenta.store';
  * persona, no el rastro — y quien pregunte por el catálogo de datos borrados se llevará una sorpresa si
  * esto se cuenta de otra manera.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class SolicitaBajaDeCuenta {
   private readonly baja = inject(BAJA_DE_CUENTA_PORT);
 
@@ -29,7 +29,7 @@ export class SolicitaBajaDeCuenta {
  * este contexto porque la maquinaria de sesión pertenece a «auth» y de otro contexto solo se ve su
  * contrato público.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class ConfirmaBajaDeCuenta {
   private readonly baja = inject(BAJA_DE_CUENTA_PORT);
   private readonly finDeSesion = inject(FIN_DE_SESION_PORT);

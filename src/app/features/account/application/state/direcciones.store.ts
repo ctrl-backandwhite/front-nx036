@@ -10,7 +10,7 @@ export const DIRECCIONES_EN_EL_PERFIL = 4;
  * <p>Lo comparten la pestaña del perfil y la página de direcciones, que es lo que permite que guardar
  * en una se vea en la otra sin volver a preguntar al servidor.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class DireccionesStore {
   private readonly _direcciones = signal<readonly Direccion[]>([]);
   private readonly _cargando = signal(false);

@@ -10,7 +10,7 @@ import { DESCARGA_PORT } from '../../domain/port/descarga.port';
  * <p>Son dos pasos que siempre van juntos —pedirlo y entregarlo— y por eso hay un caso de uso: si la
  * pantalla tuviera que acordarse de los dos, el día que se añada otra descarga faltaría uno.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class DescargaMisDatos {
   private readonly portabilidad = inject(PORTABILIDAD_PORT);
   private readonly descarga = inject(DESCARGA_PORT);

@@ -11,7 +11,7 @@ import { SEGUIMIENTO_DE_PEDIDO_PORT } from '../../domain/port/pedidos.port';
  * ficha del cliente, a la del panel o a cualquier sitio que lo pinte mañana, sin que nadie tenga que
  * acordarse de llamar a la misma función.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class SiguePedido {
   private readonly seguimiento = inject(SEGUIMIENTO_DE_PEDIDO_PORT);
 

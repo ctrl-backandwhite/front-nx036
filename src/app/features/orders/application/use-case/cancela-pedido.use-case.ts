@@ -14,7 +14,7 @@ import { CANCELACION_DE_PEDIDO_PORT } from '../../domain/port/pedidos.port';
  * <p>Aquí no se pregunta nada: preguntar es cosa de la pantalla. Este caso de uso recibe la decisión ya
  * tomada y la ejecuta, para que la regla de negocio no dependa de que alguien acepte un diálogo.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class CancelaPedido {
   private readonly cancelacion = inject(CANCELACION_DE_PEDIDO_PORT);
   private readonly traduccion = inject(TraduccionService);

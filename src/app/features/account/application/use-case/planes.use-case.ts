@@ -13,7 +13,7 @@ import { PlanesStore } from '../state/planes.store';
  * piden por separado y el fallo de la segunda no arrastra a la primera. Sin sesión, la suscripción
  * sencillamente no se consulta.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class CargaPlanes {
   private readonly planes = inject(PLANES_PORT);
   private readonly almacen = inject(PlanesStore);
@@ -44,7 +44,7 @@ export class CargaPlanes {
 }
 
 /** Trae el historial de facturas del plan. */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class CargaFacturas {
   private readonly facturas = inject(FACTURAS_PORT);
   private readonly almacen = inject(PlanesStore);
@@ -69,7 +69,7 @@ export type ResultadoDeContratacion = 'contratado' | 'bajada-programada';
  * menor. El servidor lo dice con un estado propio, y distinguirlo importa porque el mensaje «contratado»
  * en una bajada haría creer que el plan grande se pierde hoy.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class ContrataPlan {
   private readonly planes = inject(PLANES_PORT);
   private readonly carga = inject(CargaPlanes);
@@ -90,7 +90,7 @@ export class ContrataPlan {
 }
 
 /** Cancela la suscripción vigente. Sigue activa hasta el final del periodo ya pagado. */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class CancelaSuscripcion {
   private readonly planes = inject(PLANES_PORT);
   private readonly carga = inject(CargaPlanes);
@@ -102,7 +102,7 @@ export class CancelaSuscripcion {
 }
 
 /** Baja la factura del plan y se la entrega al navegador. */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class DescargaFactura {
   private readonly facturas = inject(FACTURAS_PORT);
   private readonly descarga = inject(DESCARGA_PORT);

@@ -8,7 +8,7 @@ import { CARTERA_PORT } from '../../domain/port/cartera.port';
 const MOVIMIENTOS_POR_PAGINA = 20;
 
 /** El saldo y los últimos movimientos, que es lo que pinta la pantalla de la cartera. */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class ConsultaCartera {
   private readonly cartera = inject(CARTERA_PORT);
 

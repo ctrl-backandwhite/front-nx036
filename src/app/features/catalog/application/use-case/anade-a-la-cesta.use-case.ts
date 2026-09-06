@@ -26,7 +26,7 @@ export type MotivoDeRechazo = 'sin-existencias' | 'sin-precio';
  *       dice. Añadir a ciegas acaba en pedidos con la talla equivocada.
  * </ul>
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class AnadeALaCesta {
   private readonly catalogo = inject(CATALOGO_PORT);
   private readonly cesta = inject(CESTA_PORT);

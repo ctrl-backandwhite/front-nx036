@@ -18,7 +18,7 @@ export const TAMANO_DE_PAGINA = 36;
  * pantalla con el esqueleto puesto para siempre— y adjuntar lo que ya lleva el comprador, que es lo que
  * permite al backend decir cuánto arancel suma cada producto.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class BuscaProductos {
   private readonly catalogo = inject(CATALOGO_PORT);
   private readonly cesta = inject(CESTA_PORT);

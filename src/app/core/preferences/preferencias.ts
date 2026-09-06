@@ -135,16 +135,30 @@ export class PreferenciasService {
 
   private readonly _idioma = signal(this.leeInicial(COOKIE_IDIOMA, idiomaValido, () => this.idiomaSugerido()));
   private readonly _moneda = signal(this.leeInicial(COOKIE_MONEDA, monedaValida, () => MONEDA_POR_DEFECTO));
-  private readonly _tema = signal(this.leeInicial(COOKIE_TEMA, temaValido, () => TEMA_POR_DEFECTO));
+  /**
+   * El tema ELEGIDO, o `null` si nadie ha elegido.
+   *
+   * <p>La diferencia entre «no ha elegido» y «ha elegido el claro» es justo lo que hacía falta. Al
+   * arrancar se ponía siempre `data-theme="nx036-pastel"`, y ese atributo GANA sobre la preferencia del
+   * sistema: quien tiene el equipo en modo oscuro veía la web en claro y no había forma de que saliera
+   * oscura sola. Sin atributo, daisyUI elige por `prefers-color-scheme`, que es lo que hace el front
+   * anterior.
+   */
+  private readonly _tema = signal<string | null>(
+    this.leeCookieInicial(COOKIE_TEMA, temaValido),
+  );
 
   readonly idioma = this._idioma.asReadonly();
   readonly moneda = this._moneda.asReadonly();
   readonly tema = this._tema.asReadonly();
 
+  /** El tema que de verdad se está pintando, para quien necesite el nombre y no el hecho de la elección. */
+  readonly temaEfectivo = computed(() => this._tema() ?? TEMA_POR_DEFECTO);
+
   readonly todas = computed<Preferencias>(() => ({
     idioma: this._idioma(),
     moneda: this._moneda(),
-    tema: this._tema(),
+    tema: this.temaEfectivo(),
   }));
 
   cambiaIdioma(valor: string): void {
@@ -165,6 +179,12 @@ export class PreferenciasService {
     this.guarda(COOKIE_TEMA, limpio);
     this._tema.set(limpio);
     this.documento.documentElement.setAttribute('data-theme', limpio);
+  }
+
+  /** El valor de la cookie ya comprobado, o `null` si no la hay. No inventa un valor por defecto. */
+  private leeCookieInicial(cookie: string, valida: (v: string | null) => string): string | null {
+    const guardado = this.leeCookie(cookie);
+    return guardado ? valida(guardado) : null;
   }
 
   private leeInicial(cookie: string, valida: (v: string | null) => string, sugerido: () => string): string {

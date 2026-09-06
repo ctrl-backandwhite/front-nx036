@@ -13,7 +13,7 @@ import { CampoEnYuanes, EDICION_DE_FICHA_PORT } from '../../domain/port/edicion-
  * <p>Solo lo cargan las pantallas de administración, que van en diferido: quien compra no se descarga
  * ni una línea de esto.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class EditaLaFicha {
   private readonly puerto = inject(EDICION_DE_FICHA_PORT);
 

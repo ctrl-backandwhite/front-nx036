@@ -9,7 +9,7 @@ import { Injectable, signal } from '@angular/core';
  * al principio de golpe. Quedarse con la de antes solo puede hacer que se prometa «+3,00 €» de algo que
  * acaba de salir gratis, nunca al revés: se promete de más, jamás de menos.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class ReferenciaDeCestaStore {
   private readonly _productos = signal<readonly string[]>([]);
   readonly productos = this._productos.asReadonly();

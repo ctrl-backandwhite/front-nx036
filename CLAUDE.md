@@ -128,8 +128,31 @@ Nada de API retirada ni de estilo de versiones anteriores. En concreto:
 - `inject()` en lugar de inyección por constructor.
 - Flujo de control nativo en plantillas: `@if`, `@for`, `@switch`, `@defer`. Nunca `*ngIf`/`*ngFor`.
 - Nada de `ngClass` ni `ngStyle`: asociaciones `[class.x]` y `[style.x]`.
-- Formularios: **Signal Forms** (`@angular/forms/signals`) para lo nuevo; reactivos si algo no encaja.
-  Nunca formularios de plantilla.
+- **Formularios: Signal Forms, SIEMPRE.** `form()` de `@angular/forms/signals` con la directiva
+  `FormField`. No es una preferencia entre tres opciones: es la única.
+
+  Y no basta con evitar `ngModel`. **Cablear un campo a mano —`[value]="x()"` más
+  `(input)="x.set(...)"`— tampoco vale**, aunque use signals por dentro. Con eso se pierde justo lo que
+  hace falta cuando un formulario crece: si un campo se ha tocado, si está sucio, la validación
+  declarativa, la validación cruzada entre campos, y un único sitio donde preguntar si se puede enviar.
+  Cada pantalla acaba resolviendo eso por su cuenta, y con doscientos campos son doscientas formas
+  distintas de resolverlo.
+
+  El patrón, tal como está en `features/auth/presentation/page/acceso.page.ts`:
+
+  ```ts
+  protected readonly modelo = signal({ email: '', contrasena: '' });
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    required(ruta.email);
+    email(ruta.email);
+    required(ruta.contrasena);
+  });
+  ```
+  ```html
+  <input [formField]="formulario.email" />
+  @if (formulario.email().errors().length) { … }
+  <button [disabled]="formulario().invalid()">Enviar</button>
+  ```
 - Imágenes estáticas con `NgOptimizedImage`.
 - `@Service` para los servicios de raíz nuevos, en vez de `@Injectable({providedIn:'root'})`.
 

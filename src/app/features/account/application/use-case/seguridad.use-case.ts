@@ -15,7 +15,7 @@ export interface AltaDibujada extends AltaDeDobleFactor {
 }
 
 /** Consulta si la cuenta tiene el segundo factor puesto. */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class ConsultaDobleFactor {
   private readonly dobleFactor = inject(DOBLE_FACTOR_PORT);
 
@@ -34,7 +34,7 @@ export class ConsultaDobleFactor {
  * decisión suelta es lo que llevó, en su día, a resolverla pidiéndosela a un servicio externo de códigos
  * QR y con ella el segundo factor de todas las cuentas.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class ActivaDobleFactor {
   private readonly dobleFactor = inject(DOBLE_FACTOR_PORT);
   private readonly qr = inject(CODIGO_QR_PORT);
@@ -55,7 +55,7 @@ export class ActivaDobleFactor {
  * <p>Devuelve los códigos de respaldo, que solo se enseñan UNA vez: son la única forma de recuperar la
  * cuenta si se pierde el móvil, y el servidor no los vuelve a mostrar.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class ConfirmaDobleFactor {
   private readonly dobleFactor = inject(DOBLE_FACTOR_PORT);
 
@@ -65,7 +65,7 @@ export class ConfirmaDobleFactor {
 }
 
 /** Quita el segundo factor. Exige la contraseña de la cuenta. */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class DesactivaDobleFactor {
   private readonly dobleFactor = inject(DOBLE_FACTOR_PORT);
 
@@ -75,7 +75,7 @@ export class DesactivaDobleFactor {
 }
 
 /** Los dispositivos con la sesión abierta. */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class CargaSesionesActivas {
   private readonly sesiones = inject(SESIONES_ACTIVAS_PORT);
 
@@ -88,7 +88,7 @@ export class CargaSesionesActivas {
 }
 
 /** Echa a un dispositivo y devuelve la lista ya sin él. */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class RevocaSesion {
   private readonly sesiones = inject(SESIONES_ACTIVAS_PORT);
   private readonly carga = inject(CargaSesionesActivas);

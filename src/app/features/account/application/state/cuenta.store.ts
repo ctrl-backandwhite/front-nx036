@@ -35,7 +35,7 @@ function aDatosDePerfil(titular: Usuario | null): DatosDePerfil {
  * contrato público, y copiarlo aquí obligaría a mantener dos versiones del mismo dato. Lo que no se toca
  * es su maquinaria —su almacén de sesión, sus casos de uso—: eso es privado de aquel contexto.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class CuentaStore {
   private readonly _titular = signal<Usuario | null>(null);
   private readonly _resuelta = signal(false);

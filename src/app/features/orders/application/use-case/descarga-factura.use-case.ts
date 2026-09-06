@@ -11,7 +11,7 @@ import { FACTURA_DE_PEDIDO_PORT } from '../../domain/port/pedidos.port';
  * <p>Devuelve el archivo en vez de guardarlo: entregarlo al navegador es plumbing de pantalla, y meter
  * aquí un elemento del documento ataría el caso de uso a que exista un DOM.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class DescargaFactura {
   private readonly factura = inject(FACTURA_DE_PEDIDO_PORT);
   private readonly traduccion = inject(TraduccionService);

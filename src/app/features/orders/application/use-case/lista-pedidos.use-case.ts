@@ -5,7 +5,7 @@ import { ResumenDePedido } from '../../domain/model/pedido';
 import { PEDIDOS_PORT } from '../../domain/port/pedidos.port';
 
 /** Los pedidos de quien mira, tal cual llegan. Filtrar y ordenar es cosa de la pantalla. */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class ListaPedidos {
   private readonly pedidos = inject(PEDIDOS_PORT);
 

@@ -12,7 +12,7 @@ import { RecuperaCuenta } from './recupera-cuenta.use-case';
  * puede recortar el nombre y decide qué idioma queda activo, así que sin releer la pantalla enseñaría lo
  * que se tecleó y no lo que quedó guardado — y el siguiente guardado escribiría encima lo viejo.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class GuardaPerfil {
   private readonly perfil = inject(PERFIL_PORT);
   private readonly recupera = inject(RecuperaCuenta);

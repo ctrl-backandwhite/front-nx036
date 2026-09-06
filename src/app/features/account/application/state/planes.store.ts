@@ -2,7 +2,7 @@ import { Injectable, computed, signal } from '@angular/core';
 import { Factura, Periodo, Plan, Suscripcion, esPlanDePrueba } from '../../domain/model/plan';
 
 /** El catálogo de planes, la suscripción vigente y las facturas emitidas. */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class PlanesStore {
   private readonly _planes = signal<readonly Plan[]>([]);
   private readonly _suscripcion = signal<Suscripcion | null>(null);

@@ -15,7 +15,7 @@ export type ClaseDeRetorno = 'pasarela' | 'paypal';
  * <p>Cada confirmación MUEVE dinero y solo puede lanzarse una vez por visita. El pestillo lo pone la
  * pantalla, que es quien sabe cuántas veces la han abierto; aquí solo se ejecuta lo que se pide.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class ConfirmaRecarga {
   private readonly recarga = inject(RECARGA_PORT);
 
