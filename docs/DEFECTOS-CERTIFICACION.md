@@ -69,6 +69,18 @@ No lo veían las pruebas, ni el lint, ni la compilación, ni la comprobación de
 sesión con una cuenta real y navegar. Es, junto con P-8 y P-10, el argumento de que **la certificación
 tiene que ejecutar la aplicación**.
 
+## B bis. Defectos abiertos del porte
+
+Encontrados por la certificación y **no corregidos todavía**. Se dejan escritos con su medida para que
+se puedan retomar sin repetir el diagnóstico.
+
+| # | Qué pasa | Medida | Notas |
+|---|---|---|---|
+| A-1 | **La documentación para desarrolladores se desplaza en horizontal en el móvil.** El original no. | 115 px de desborde a 412 px de ancho | El primer bloque de código está bien contenido (348 px dentro de 412): el culpable es otro `<code>` de 486 px, probablemente en una pestaña que no se ve. Se descartó ya la cadena de contenedores entera, que tiene `min-width: 0` en todos los niveles |
+| A-2 | **Tres enlaces del pie quedan por debajo del mínimo táctil** en el móvil, y el original los tiene por encima | 18-19 px de alto, mínimo AA 24 px | «Newsletter», «Preferencias de cookies», «Volver al acceso». Es el pie del marco nuevo, más apretado que el heredado |
+| A-3 | **Las peticiones del prerenderizado no viajan en el documento**, así que el navegador las repite al hidratar | 2 peticiones repetidas en la portada | El estado de transferencia existe (`ng-state`) pero no las contiene. Con la dirección interna ya configurada conviene volver a medirlo |
+| A-4 | **`/about`, `/contact` y `/pricing` tardan más que en el original** | Pendiente de medir con la red limitada | Aparece de forma intermitente, así que hace falta una medición aislada antes de darlo por bueno |
+
 ## C. Pendiente de decisión del titular
 
 1. **H-1**, arriba.

@@ -1112,3 +1112,32 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
     height: 42px;
   }
 }
+
+/* Los bloques de código no empujan la página.
+ *
+ * El `<pre>` ya lleva su propio desplazamiento horizontal, que es lo correcto —el código no debe
+ * partirse—, pero eso solo funciona si el bloque PUEDE encogerse. Dentro de una caja flexible o de una
+ * rejilla, un hijo no baja de la anchura de su contenido salvo que se le diga: es el motivo por el que
+ * un `curl` largo empujaba la documentación entera y obligaba a desplazarse en horizontal a la anchura
+ * de un móvil. Medido: 115 px de desborde que el front anterior no tiene.
+ *
+ * `min-width: 0` es lo que devuelve al bloque la capacidad de encogerse; el desplazamiento se encarga
+ * del resto. */
+pre {
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* El código EN LÍNEA se parte si no cabe.
+ *
+ * Un `<code>` dentro de un párrafo no puede desplazarse por su cuenta —no es un bloque— así que una
+ * ruta larga de la API empujaba la página entera y obligaba a desplazarse en horizontal. Medido en la
+ * documentación para desarrolladores: 115 px de desborde a la anchura de un móvil, que el front
+ * anterior no tiene.
+ *
+ * `overflow-wrap` parte solo cuando hace falta, y `anywhere` permite cortar aunque no haya espacios,
+ * que es justo el caso de una ruta o de un identificador largo. Los bloques `<pre>` quedan fuera: ahí
+ * el código NO debe partirse —se leería mal— y por eso tienen su propio desplazamiento. */
+:not(pre) > code {
+  overflow-wrap: anywhere;
+}

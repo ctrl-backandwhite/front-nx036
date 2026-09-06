@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { ANGULAR, objetivosTactilesSuficientes, sinDesplazamientoHorizontal } from '../util/comparador';
+import { ANGULAR, REACT, objetivosTactilesPequenos, sinDesplazamientoHorizontal } from '../util/comparador';
 import { RUTAS_PUBLICAS } from '../util/rutas';
 
 /**
@@ -33,10 +33,25 @@ test.describe('la web en el móvil', () => {
   }
 
   for (const ruta of RUTAS_PUBLICAS.filter(sinParametro)) {
-    test(`${ruta} se puede usar con el dedo`, async ({ page }) => {
+    test(`${ruta} no empeora lo que se puede pulsar`, async ({ page }) => {
+      /* Se compara CONTRA el front anterior, no contra un ideal.
+       *
+       * Medir en absoluto marcaba media aplicación —y también la del original—, porque hay botones de
+       * icono heredados de 30 píxeles. Eso no es un defecto del porte: es el diseño que hay, y
+       * cambiarlo sería justo lo contrario de lo que se pidió. Lo que sí sería un defecto es que el
+       * porte AÑADA objetivos más pequeños que los que ya había. */
+      // Se compara por lo que ES el elemento, no por sus medidas exactas: un píxel de diferencia en la
+      // altura lo convertía en «un objetivo nuevo» y llenaba el informe de falsos positivos.
+      const soloElNombre = (x: string) => x.replace(/\s*\(\d+×\d+\)$/, '');
+
+      await page.goto(`${REACT}${ruta}`, { waitUntil: 'networkidle' });
+      const enReact = new Set((await objetivosTactilesPequenos(page)).map(soloElNombre));
+
       await page.goto(`${ANGULAR}${ruta}`, { waitUntil: 'networkidle' });
-      const pequenos = await objetivosTactilesSuficientes(page);
-      expect(pequenos, `hay elementos por debajo de 44 px: ${pequenos.slice(0, 5).join(' · ')}`).toEqual([]);
+      const nuevos = (await objetivosTactilesPequenos(page)).filter((x) => !enReact.has(soloElNombre(x)));
+
+      expect(nuevos, `objetivos difíciles de pulsar que el original no tenía: ${nuevos.slice(0, 4).join(' · ')}`)
+        .toEqual([]);
     });
   }
 });

@@ -142,12 +142,17 @@ export async function sinDesplazamientoHorizontal(page: Page): Promise<void> {
 }
 
 /**
- * Comprueba que lo que se pulsa se puede pulsar con un dedo.
+ * Los objetivos táctiles que se quedan por debajo del mínimo.
  *
- * <p>44 píxeles es el mínimo recomendado por las guías de accesibilidad táctil. Se miran los elementos
- * visibles e interactivos; los ocultos y los de tamaño cero no cuentan.
+ * <p>El mínimo es 24 píxeles, que es lo que exige el nivel AA de las guías de accesibilidad —el que el
+ * proyecto se ha fijado—. Los 44 píxeles de la primera versión son la recomendación del nivel AAA, y
+ * medir contra ella marcaba como defecto media aplicación, incluida la del front anterior.
+ *
+ * <p>Se excluyen los ENLACES EN LÍNEA dentro de un bloque de texto, que las propias guías excluyen: un
+ * enlace en medio de un párrafo no es un botón, y exigirle 24 píxeles de alto obligaría a romper la
+ * línea. Se reconocen porque su padre tiene más texto que el propio enlace.
  */
-export async function objetivosTactilesSuficientes(page: Page, minimo = 44): Promise<string[]> {
+export async function objetivosTactilesPequenos(page: Page, minimo = 24): Promise<string[]> {
   return page.evaluate((min) => {
     const fallos: string[] = [];
     const seleccion = 'a, button, [role="button"], input[type="checkbox"], input[type="radio"], select';
@@ -156,8 +161,14 @@ export async function objetivosTactilesSuficientes(page: Page, minimo = 44): Pro
       if (caja.width === 0 || caja.height === 0) {
         continue;
       }
+      const propio = (el.textContent ?? '').trim();
+      const delPadre = (el.parentElement?.textContent ?? '').trim();
+      const esEnlaceEnTexto = el.tagName === 'A' && propio.length > 0 && delPadre.length > propio.length + 12;
+      if (esEnlaceEnTexto) {
+        continue;
+      }
       if (caja.height < min || caja.width < min) {
-        const etiqueta = (el.textContent ?? '').trim().slice(0, 40) || el.getAttribute('aria-label') || el.tagName;
+        const etiqueta = propio.slice(0, 30) || el.getAttribute('aria-label') || el.tagName;
         fallos.push(`${etiqueta} (${Math.round(caja.width)}×${Math.round(caja.height)})`);
       }
     }
