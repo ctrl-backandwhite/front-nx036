@@ -154,7 +154,44 @@ panel— se marca `RenderMode.Client`, porque su HTML depende de quién mira.
 
 ---
 
-## 7. Pruebas
+## 7. Rendimiento: no se replica lo lento
+
+Este porte **no es una copia literal**. El diseño y el comportamiento se heredan tal cual, pero donde
+el original va lento y Angular 22 trae una forma de ir más rápido, se usa. Las siguientes no son
+sugerencias:
+
+- **Diferir lo que no se ve.** Todo bloque por debajo del pliegue —pie de página, chat, asistente,
+  carruseles del final, secciones secundarias de la portada— va en `@defer` con su disparador:
+  `@defer (on viewport)` para lo que aparece al bajar, `(on interaction)` para lo que espera un gesto,
+  `(on idle)` para lo accesorio. En las páginas prerenderizadas, además, `@defer (hydrate on viewport)`:
+  el HTML llega pintado y el código solo se descarga si de verdad hace falta.
+- **Carga en diferido por contexto**, que ya está montada: nadie que entre a mirar el catálogo se
+  descarga el panel de administración.
+- **Precarga selectiva**: una ruta que se visita mucho se marca con `data: { precarga: true }` y su
+  código se adelanta de fondo **dos segundos después** del arranque, nunca antes. Precargarlo todo
+  compite con lo que la persona está mirando ahora.
+- **Imágenes con `NgOptimizedImage`**, y la principal de cada pantalla con `priority`. Es lo que decide
+  el tiempo hasta que se ve algo útil en una ficha de producto.
+- **Nada de repetir peticiones tras hidratar**: las que se hicieron al generar el HTML viajan dentro del
+  documento y el navegador las reaprovecha.
+- **Una sola petición por pantalla siempre que se pueda.** Si una vista necesita tres llamadas, mira si
+  el backend ya ofrece una que las cubra; si no, dilo, pero no encadenes tres esperas.
+- **`httpResource` con parámetros reactivos** en vez de suscribirse y volver a pedir a mano: la
+  petición se repite sola cuando cambia el filtro, y se cancela sola cuando deja de hacer falta.
+- **Sin `zone.js`**: no se repinta la aplicación entera porque haya terminado un temporizador. Repinta
+  lo que depende del signal que ha cambiado, y nada más.
+- **Listas con `track`** por identificador estable en todo `@for`. Un `track` por índice reconstruye la
+  lista entera al reordenar.
+
+Al abrir un cambio, la pregunta no es solo «¿hace lo mismo que el React?», sino **«¿lo hace en menos
+tiempo o en menos bytes?»**. Si la respuesta es que va peor, hay que decirlo, no callarlo.
+
+Referencias medidas hasta ahora: el arranque bajó de 1,72 MB a 447 kB al partir el diccionario de los
+ocho idiomas, y la hoja de estilos de 105 kB a 58 kB al dejar los ficheros de datos fuera del escaneo.
+
+---
+
+## 8. Pruebas
 
 Norma del proyecto: **90 % de cobertura en el front**. Cada desarrollo llega con sus pruebas.
 
@@ -169,7 +206,7 @@ Norma del proyecto: **90 % de cobertura en el front**. Cada desarrollo llega con
 
 ---
 
-## 8. Idioma
+## 9. Idioma
 
 Código y comentarios **en español**, como el resto del repositorio: los comentarios explican **por qué**,
 no repiten lo que el código ya dice. Los identificadores del dominio conservan el vocabulario del negocio.

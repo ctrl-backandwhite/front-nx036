@@ -7,6 +7,8 @@
 // Se exporta por defecto para que el `import()` diferido del servicio de traducción no tenga que
 // conocer el nombre de la constante de cada idioma.
 const diccionario: Record<string, string> = {
+  'theme.light': 'Clair',
+  'theme.dark': 'Sombre',
   'quickview.title': "Détail du produit",
   'quickview.close': "Fermer",
   'quickview.error': "Impossible de charger le produit",

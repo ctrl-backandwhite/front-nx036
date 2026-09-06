@@ -1,15 +1,21 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
-import { provideClientHydration, withIncrementalHydration } from '@angular/platform-browser';
+import {
+  provideClientHydration,
+  withHttpTransferCacheOptions,
+  withIncrementalHydration,
+} from '@angular/platform-browser';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import {
   provideRouter,
   withComponentInputBinding,
   withInMemoryScrolling,
+  withPreloading,
   withViewTransitions,
 } from '@angular/router';
 import { routes } from './app.routes';
 import { proveeNucleo } from './composition/nucleo.providers';
 import { proveeAuth } from '@features/auth/auth.providers';
+import { PrecargaSelectiva } from '@core/performance/precarga-selectiva';
 import { authInterceptor } from '@core/http/interceptor/auth.interceptor';
 import { captchaInterceptor } from '@core/http/interceptor/captcha.interceptor';
 import { preferenciasInterceptor } from '@core/http/interceptor/preferencias.interceptor';
@@ -30,6 +36,9 @@ export const appConfig: ApplicationConfig = {
       // Al navegar se sube arriba; al volver atrás se recupera dónde estaba. Sin esto, entrar en una
       // ficha desde el listado deja la página a media altura.
       withInMemoryScrolling({ scrollPositionRestoration: 'enabled', anchorScrolling: 'enabled' }),
+      // Adelanta de fondo el código de las secciones marcadas, pero solo cuando la primera pantalla ya
+      // está servida: precargarlo todo desde el principio compite con lo que la persona está mirando.
+      withPreloading(PrecargaSelectiva),
     ),
 
     provideHttpClient(
@@ -59,7 +68,22 @@ export const appConfig: ApplicationConfig = {
      * página, el chat o el carrusel de abajo del todo dejan de pesar en el arranque, que es justo lo que
      * hacía lento al front anterior.
      */
-    provideClientHydration(withIncrementalHydration()),
+    provideClientHydration(
+      withIncrementalHydration(),
+      /**
+       * Las peticiones hechas al generar el HTML viajan DENTRO del documento y el navegador las
+       * reaprovecha en vez de repetirlas nada más arrancar.
+       *
+       * <p>Sin esto, el prerenderizado sirve de poco: la página llega pintada y acto seguido pide otra
+       * vez los mismos datos, con el parpadeo correspondiente. `includePostRequests` se deja apagado a
+       * propósito —una petición que escribe no se puede servir de una caché— y las cabeceras no se
+       * incluyen porque llevan la credencial.
+       */
+      withHttpTransferCacheOptions({
+        includePostRequests: false,
+        includeHeaders: [],
+      }),
+    ),
 
     proveeNucleo(),
 
