@@ -5,7 +5,7 @@ import { ReferenciaDeCestaStore } from './referencia-de-cesta.store';
 
 describe('FavoritosStore', () => {
   function almacen(): FavoritosStore {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({ providers: [FavoritosStore] });
     return TestBed.inject(FavoritosStore);
   }
 
@@ -44,7 +44,7 @@ describe('FavoritosStore', () => {
 
 describe('ReferenciaDeCestaStore', () => {
   it('sabe si hay algo con lo que comparar el arancel', () => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({ providers: [ReferenciaDeCestaStore] });
     const store = TestBed.inject(ReferenciaDeCestaStore);
     expect(store.hayCesta()).toBe(false);
     store.fija(['p1']);

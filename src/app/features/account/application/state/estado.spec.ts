@@ -35,7 +35,7 @@ describe('CuentaStore', () => {
   let almacen: CuentaStore;
 
   beforeEach(() => {
-    almacen = TestBed.configureTestingModule({}).inject(CuentaStore);
+    almacen = TestBed.configureTestingModule({ providers: [CuentaStore] }).inject(CuentaStore);
   });
 
   it('al arrancar no se sabe todavía quién mira', () => {
@@ -85,7 +85,7 @@ describe('DireccionesStore', () => {
   let almacen: DireccionesStore;
 
   beforeEach(() => {
-    almacen = TestBed.configureTestingModule({}).inject(DireccionesStore);
+    almacen = TestBed.configureTestingModule({ providers: [DireccionesStore] }).inject(DireccionesStore);
   });
 
   it('mientras no se hayan cargado no se dice que estén vacías', () => {
@@ -126,7 +126,7 @@ describe('CobrosStore', () => {
   let almacen: CobrosStore;
 
   beforeEach(() => {
-    almacen = TestBed.configureTestingModule({}).inject(CobrosStore);
+    almacen = TestBed.configureTestingModule({ providers: [CobrosStore] }).inject(CobrosStore);
   });
 
   it('sin configuración no hay cobro con tarjeta ni clave que dar a la pasarela', () => {
@@ -165,7 +165,7 @@ describe('PlanesStore', () => {
   };
 
   beforeEach(() => {
-    almacen = TestBed.configureTestingModule({}).inject(PlanesStore);
+    almacen = TestBed.configureTestingModule({ providers: [PlanesStore] }).inject(PlanesStore);
   });
 
   it('empieza en mensual', () => {

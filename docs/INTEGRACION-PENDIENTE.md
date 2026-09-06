@@ -105,6 +105,30 @@ en la parte del CSS que mejor se comprime.
       que se nota. Si la diferencia comprimida se sostiene, revisar si daisyUI está emitiendo
       componentes que ninguna pantalla usa.
 
+## 6 ter. Modernización decidida tras auditar el código
+
+Auditado el proyecto entero contra lo que Angular 22 ya resuelve mejor. **Lo viejo está limpio**: cero
+`BehaviorSubject`, cero `@ViewChild`/`@HostListener`, cero `*ngIf`/`*ngFor`/`ngClass`, y ninguna
+suscripción manual en código de producción —las nueve que aparecían estaban en ficheros de prueba—. Y
+lo nuevo se usa de verdad: 69 `linkedSignal`, 36 recursos, 16 `NgOptimizedImage`, 15 `model()`, 14
+`afterNextRender`, 6 `@let`.
+
+Quedan tres cosas, y estas son las decisiones:
+
+- [ ] **12 `effect()` que solo derivan estado pasan a `computed()` o `linkedSignal()`.** Es lo único de
+      la lista con valor real y no cosmético: un `effect` que hace `set()` a partir de otros signals es
+      un antipatrón conocido —se ejecuta en un orden que no controlas, puede encadenar bucles, y no es
+      perezoso: recalcula aunque nadie mire el resultado—. Casi todos son el mismo caso: copiar una
+      entrada a un modelo editable y volver a copiarla cuando cambia, que es **exactamente** para lo
+      que existe `linkedSignal`.
+- [ ] **60 servicios pasan de `@Injectable({ providedIn: 'root' })` a `@Service()`**, que es la forma
+      que Angular 22 recomienda para un servicio de raíz. Solo aplica a los que de verdad son de raíz:
+      los que se están moviendo a los proveedores de su contexto se quedan como `@Injectable()`.
+- [x] **Suscripciones manuales**: nada que hacer, no hay ninguna fuera de las pruebas.
+
+Se ejecuta DESPUÉS de la migración a Signal Forms y ANTES de la certificación final, para que la
+certificación mida el estado definitivo y no uno intermedio.
+
 ## 7. Verificación final, con la máquina libre
 
 Durante el porte la máquina llegó a **carga 74 con 50 procesos de prueba simultáneos**. En esas
