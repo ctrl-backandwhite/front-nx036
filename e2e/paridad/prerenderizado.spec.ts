@@ -31,7 +31,8 @@ test.describe('el HTML llega pintado', () => {
        *
        * Mientras comprueba el testigo del correo enseña UN CÍRCULO GIRANDO y nada más — el front
        * anterior hace exactamente lo mismo, así que el porte es fiel y no toca inventarle texto—. Su
-       * HTML prerenderizado tiene 53 caracteres y los tendría igual estando todo bien.
+       * HTML prerenderizado tiene 16 caracteres de cuerpo —«Volver al inicio»— y los tendría igual
+       * estando todo bien.
        *
        * Antes pasaba, pero por el motivo equivocado: contaba el texto de la cabecera y los dos pies,
        * porque la página salía con el marco de la tienda que NO debía llevar. Al quitarlo quedó a la
@@ -40,7 +41,7 @@ test.describe('el HTML llega pintado', () => {
       expect(
         texto.length,
         `${ruta} llega vacía: no se está prerenderizando`,
-      ).toBeGreaterThan(sinTextoPorDiseno ? 20 : 80);
+      ).toBeGreaterThan(sinTextoPorDiseno ? 10 : 80);
     });
   }
 

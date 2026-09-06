@@ -76,7 +76,18 @@ tiene que ejecutar la aplicación**.
 | A-1 | **La documentación para desarrolladores se desplazaba en horizontal en el móvil**, 115 px a 412 px de ancho, y el original no | **CERRADO.** Las tres primeras respuestas eran falsas: no era el bloque de código, ni el diálogo de bienvenida, ni la barra inferior — los tres **medían** 527 px porque el desborde ya existía, y arreglar cualquiera dejaba el número clavado en 115. Desbordaba la prosa de la guía (427 px de ancho intrínseco en una columna de 369). Resuelto con `main { overflow-x: clip }` en la hoja central; `clip` y no `hidden` para no desactivar `position: sticky` en el índice lateral |
 | A-2 | Tres enlaces del pie por debajo del mínimo táctil que el original no tenía | **ERA FALSO.** Al ir a mirarlos a mano no estaban en ninguna de las dos aplicaciones. El pie va en `@defer (on viewport)`: hasta que no se baja, ese marcado NO EXISTE, y la prueba comparaba una pantalla con pie contra otra sin él según cuál terminara antes. Corregido bajando al fondo en las dos antes de medir |
 | A-3 | Las peticiones del prerenderizado no viajan en el documento y el navegador las repite al hidratar | Abierto. Vuelve a medirse ahora que el prerenderizado sí lleva datos |
-| A-4 | `/about`, `/contact` y `/pricing` medían más lentas que el original | **LA MEDIDA NO VALÍA.** Se estaba sirviendo el build de `local`, que tiene `optimization: false` y mapas de origen: 26 MB contra el React de producción. Reconstruido con optimización (7,1 MB, 285 kB comprimidos de arranque) para que la comparación sea entre iguales |
+| A-4 | `/about`, `/contact` y `/pricing` medían más lentas que el original | **CERRADO, y era doble.** Primero, la medida no valía: se servía el build de `local`, con la optimización apagada. Y al medir en igualdad apareció la causa real, que era un defecto de verdad: **el porte cargaba Stripe en páginas públicas**. `@stripe/stripe-js` mete su `<script>` en la página en cuanto se CARGA el módulo, sin que nadie llame a `loadStripe`: `/about` y `/pricing` pedían cinco recursos a `js.stripe.com` y `m.stripe.network` —más de 1 MB, un tercio del peso— donde el original no pide nada. Resuelto importando de `@stripe/stripe-js/pure`. Comprobado que Stripe sigue llegando al pedir añadir una tarjeta, y solo entonces |
+
+### Peso por página tras el arreglo, medido en frío a 412 px
+
+| Ruta | Antes (porte) | Ahora | Original |
+|---|---|---|---|
+| `/` | 1.255 kB | **920 kB** | 2.333 kB |
+| `/pricing` | 2.136 kB | **916 kB** | 1.485 kB |
+| `/about` | 2.374 kB | **1.181 kB** | 1.620 kB |
+| `/contact` | 2.318 kB | **1.187 kB** | 1.580 kB |
+
+El porte pasa a descargar menos que el original en las cuatro.
 
 ## C. Pendiente de decisión del titular
 

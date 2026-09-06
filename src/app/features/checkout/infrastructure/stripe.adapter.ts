@@ -1,10 +1,30 @@
 import { Injectable, inject } from '@angular/core';
-import { Stripe, loadStripe } from '@stripe/stripe-js';
+import { Stripe } from '@stripe/stripe-js';
+import { loadStripe } from '@stripe/stripe-js/pure';
 import { DOCUMENT } from '@angular/core';
 import { Result, exito, fallo } from '@shared/result/result';
 import { AppError, creaError } from '@shared/error/app-error';
 import { esNavegador } from '@core/platform/plataforma';
 import { PasarelaDePagoPort } from '../domain/port/pasarela-de-pago.port';
+
+/*
+ * Se importa `loadStripe` de `@stripe/stripe-js/pure` y NO del módulo principal.
+ *
+ * El módulo principal mete la etiqueta <script> de Stripe en la página en cuanto se CARGA, sin que
+ * nadie llame a `loadStripe`. Basta con que este fichero acabe en un fragmento que el navegador se
+ * descargue por cualquier motivo para que Stripe entre en escena. Medido: `/about` y `/pricing`
+ * pedían cinco recursos a `js.stripe.com` y `m.stripe.network` —más de 1 MB, un tercio del peso de la
+ * página— en dos pantallas donde no hay nada que pagar. El front anterior no pide NADA a Stripe en
+ * ninguna de las dos.
+ *
+ * No es solo peso: `m.stripe.network` es la detección avanzada de fraude, que perfila a quien mira.
+ * Cargarla en una página pública la convierte en un tercero que observa a gente que no ha empezado
+ * ninguna compra, y eso hay que decidirlo, no heredarlo de un import.
+ *
+ * Con `/pure` el script se pide la primera vez que se llama a `loadStripe`, que es cuando de verdad
+ * hace falta. Lo dice su propia documentación: «Stripe.js will not be loaded until loadStripe is
+ * called».
+ */
 
 /**
  * Stripe, y el ÚNICO fichero del proyecto que lo nombra.
