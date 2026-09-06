@@ -319,6 +319,37 @@ describe('ImpuestosPage', () => {
     await waitFor(() => expect(puerto.regiones).toHaveBeenCalledWith('ES'));
   });
 
+  /**
+   * El vacío de la tasa regional SIGNIFICA «usa la nacional», y un 0 significaría «exenta»: son dos
+   * configuraciones distintas y las dos válidas, así que dejarla en blanco tiene que dejar guardar.
+   */
+  it('la tasa de una región puede quedarse en blanco', async () => {
+    await monta();
+
+    await userEvent.click(await screen.findByRole('button', { name: /Regiones/i }));
+    await userEvent.type(await screen.findByLabelText(/Código/i), 'CA');
+    await userEvent.type(screen.getByLabelText(/^Nombre/i), 'California');
+
+    await waitFor(() => {
+      const botones = screen.getAllByRole('button', { name: /^Guardar/i });
+      expect(botones[botones.length - 1]).toBeEnabled();
+    });
+  });
+
+  it('una tasa regional disparatada no se puede guardar', async () => {
+    await monta();
+
+    await userEvent.click(await screen.findByRole('button', { name: /Regiones/i }));
+    await userEvent.type(await screen.findByLabelText(/Código/i), 'CA');
+    await userEvent.type(screen.getByLabelText(/^Nombre/i), 'California');
+    await userEvent.type(screen.getByLabelText(/Tasa propia/i), '250');
+
+    await waitFor(() => {
+      const botones = screen.getAllByRole('button', { name: /^Guardar/i });
+      expect(botones[botones.length - 1]).toBeDisabled();
+    });
+  });
+
   it('sin regiones lo dice en vez de dejar la tabla muda', async () => {
     await monta();
 

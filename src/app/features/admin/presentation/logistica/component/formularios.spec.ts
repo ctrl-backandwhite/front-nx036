@@ -261,6 +261,17 @@ describe('ModalAltaDePedido', () => {
     expect(puertos.alta.crea).not.toHaveBeenCalled();
   });
 
+  /** El aviso al pie dice QUÉ falta; el rojo del campo dice DÓNDE. Hacen falta los dos. */
+  it('al intentar guardar sin dirección lo señala en los propios campos', async () => {
+    await monta();
+
+    await userEvent.type(screen.getByLabelText(/Artículos|Productos/i), 'gorro');
+    await userEvent.click(await screen.findByRole('button', { name: /Gorro de lana/ }));
+    await userEvent.click(screen.getByRole('button', { name: /Guardar/i }));
+
+    expect((await screen.findAllByText(/obligatorio/i)).length).toBeGreaterThan(0);
+  });
+
   it('con líneas y dirección manda el alta y cierra', async () => {
     const { puertos, creado, cierra } = await monta();
 
