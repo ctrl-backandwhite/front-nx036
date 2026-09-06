@@ -85,9 +85,14 @@ import {
         </header>
 
         <section class="card p-5 mb-8 bg-brand-50 border-brand-100">
-          <h2 class="mt-0! flex items-center gap-2 text-brand-700 text-base font-medium">
+          <!-- Encabezado de nivel 3, como en el front anterior, y no de nivel 2. No es cosmético: el
+               nivel es lo que da la jerarquía de la página, que es por donde se mueve quien navega con
+               lector de pantalla y lo que leen los buscadores para entender el esquema. Subirlo metía
+               esta nota al mismo nivel que las secciones grandes de la documentación, y obligaba
+               además a bajarle el tamaño a mano para que no cantara. -->
+          <h3 class="mt-0! flex items-center gap-2 text-brand-700">
             <fa-icon [icon]="iconos.apreton" /> {{ t('docs.mission.heading') }}
-          </h2>
+          </h3>
           <p class="text-[14px] text-ink-700 leading-relaxed mt-2">{{ t('docs.mission.body') }}</p>
         </section>
 
@@ -242,6 +247,37 @@ import {
               {{ t('docs.env.sandbox') }}
             </div>
             <nx-bloque-de-url [url]="urlDePruebas" />
+          </div>
+
+          <!-- El estado de cada entorno. Faltaba, y se echaba de menos justo aquí: quien va a integrar
+               mira este panel para saber contra qué puede tirar hoy. Va como TABLA de verdad, con sus
+               encabezados, para que se navegue como tabla y no como dos líneas sueltas. -->
+          <div class="card p-4">
+            <div class="text-[11px] uppercase tracking-wider text-ink-500 font-medium mb-2">
+              {{ t('docs.environments') }}
+            </div>
+            <table class="w-full text-[12px]">
+              <thead class="text-ink-500 text-left">
+                <tr>
+                  <th class="font-medium py-1">{{ t('docs.col.name') }}</th>
+                  <th class="font-medium py-1 text-right">{{ t('docs.col.status') }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="py-1">{{ t('docs.env.sandbox') }}</td>
+                  <td class="py-1 text-right">
+                    <span class="badge bg-emerald-100 text-emerald-700">OK</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="py-1">{{ t('docs.env.production') }}</td>
+                  <td class="py-1 text-right">
+                    <span class="badge bg-amber-100 text-amber-700">Beta</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
         }

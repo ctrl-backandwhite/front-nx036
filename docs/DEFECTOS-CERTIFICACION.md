@@ -106,8 +106,8 @@ pantalla se lee lo mismo.
 
 | # | Qué pasa | Medida |
 |---|---|---|
-| D-1 | **«Nuestra misión» va como `h2` y en el front anterior es `h3`.** Rompe la jerarquía de encabezados de la página, que es lo que usan los lectores de pantalla para moverse por secciones y los buscadores para entender el esquema | 28 titulares frente a 23, sin que falte ni un texto |
-| D-2 | **Una tabla de referencia se pinta con otro marcado.** El contenido está —los entornos y su estado— pero no como `<table>`, así que no se navega como tabla | 17 tablas frente a 18, solo en escritorio |
+| D-1 | **CERRADO.** «Nuestra misión» iba como `h2` donde el original usa `h3`. Rompe la jerarquía de encabezados de la página, que es lo que usan los lectores de pantalla para moverse por secciones y los buscadores para entender el esquema | 28 titulares frente a 23, sin que falte ni un texto |
+| D-2 | **CERRADO.** Faltaba la tabla de estado de los entornos en el panel lateral; se pintaba como dos líneas sueltas. El contenido está —los entornos y su estado— pero no como `<table>`, así que no se navega como tabla | 17 tablas frente a 18, solo en escritorio |
 
 ## C. Pendiente de decisión del titular
 
