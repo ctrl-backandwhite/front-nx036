@@ -16,6 +16,8 @@ import { routes } from './app.routes';
 import { proveeNucleo } from './composition/nucleo.providers';
 import { proveeAuth } from '@features/auth/auth.providers';
 import { proveeCarrito } from '@features/cart/cart.providers';
+import { proveeNotifications } from '@features/notifications/notifications.providers';
+import { proveeSupport } from '@features/support/support.providers';
 import { PrecargaSelectiva } from '@core/performance/precarga-selectiva';
 import { authInterceptor } from '@core/http/interceptor/auth.interceptor';
 import { captchaInterceptor } from '@core/http/interceptor/captcha.interceptor';
@@ -95,5 +97,11 @@ export const appConfig: ApplicationConfig = {
     // de página, y la usa la pantalla de pago, que es OTRO contexto. Colgada de la ruta de la cesta,
     // entrar directamente a pagar dejaba el puerto sin proveedor.
     proveeCarrito(),
+
+    // Los avisos y la asistencia también viven en el marco de página —la campana, el desplegable y el
+    // acompañante flotante se ven en cualquier pantalla—, así que no pueden colgar de sus rutas: nadie
+    // pasa por ellas para ver la campana.
+    proveeNotifications(),
+    proveeSupport(),
   ],
 };

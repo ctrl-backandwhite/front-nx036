@@ -1,6 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { Rol, Usuario, tieneRol } from '../../domain/model/usuario';
+import { Rol, Usuario, nombreParaSaludar, tieneRol } from '../../domain/model/usuario';
 import { PaisDelUsuario } from '@core/http/pais-del-usuario';
+import { SesionActual } from '@core/auth/sesion-actual';
 
 /**
  * Quién está dentro. Es el estado de sesión, y lo consulta media aplicación.
@@ -12,10 +13,16 @@ import { PaisDelUsuario } from '@core/http/pais-del-usuario';
  * <p>El país se propaga aquí y no en cada sitio que toca el usuario: es lo que viaja en cada petición
  * para calcular el margen, y tener dos escrituras distintas de un dato así acaba en precios que no
  * cuadran con lo que se pintó.
+ *
+ * <p>Y publica el HECHO de que hay alguien dentro en `SesionActual`, del núcleo. Esa es la ÚNICA
+ * escritura permitida sobre él en toda la aplicación, y es lo que permite que la cabecera, el panel o
+ * el guardián de rutas sepan quién mira sin tener que entrar en las tripas de este contexto. Aquí queda
+ * la cuenta ENTERA —empresa, teléfono, idioma—; allí solo lo mínimo para decidir qué se enseña.
  */
 @Injectable({ providedIn: 'root' })
 export class SesionStore {
   private readonly pais = inject(PaisDelUsuario);
+  private readonly sesionActual = inject(SesionActual);
 
   private readonly _usuario = signal<Usuario | null>(null);
   private readonly _cargando = signal(false);
@@ -42,6 +49,17 @@ export class SesionStore {
     this._usuario.set(usuario);
     this._resuelta.set(true);
     this.pais.fija(usuario?.pais ?? '');
+    this.sesionActual.publica(
+      usuario
+        ? {
+            id: usuario.id,
+            rol: usuario.rol,
+            nombreVisible: nombreParaSaludar(usuario),
+            pais: usuario.pais ?? '',
+            ...(usuario.avatarUrl ? { avatarUrl: usuario.avatarUrl } : {}),
+          }
+        : null,
+    );
   }
 
   marcaCargando(cargando: boolean): void {

@@ -14,4 +14,24 @@ export const rutas: Routes = [
     path: 'login',
     loadComponent: () => import('./page/acceso.page').then((m) => m.AccesoPage),
   },
+  {
+    path: 'register',
+    loadComponent: () => import('./page/alta.page').then((m) => m.AltaPage),
+  },
+  {
+    path: 'activate',
+    loadComponent: () => import('./page/activacion.page').then((m) => m.ActivacionPage),
+  },
+  {
+    path: 'password-reset',
+    loadComponent: () =>
+      import('./page/restablece-contrasena.page').then((m) => m.RestableceContrasenaPage),
+  },
+  {
+    // El proveedor de identidad devuelve AQUÍ, con los testigos en el fragmento de la dirección. La
+    // ruta es la que está registrada en el backend: cambiarla rompe el acceso con Google en producción.
+    path: 'auth/callback',
+    loadComponent: () =>
+      import('./page/retorno-de-acceso.page').then((m) => m.RetornoDeAccesoPage),
+  },
 ];
