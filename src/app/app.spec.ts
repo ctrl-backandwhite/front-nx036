@@ -4,12 +4,16 @@ import { provideRouter } from '@angular/router';
 import { App } from './app';
 import { PreferenciasService } from '@core/preferences/preferencias';
 import { proveeNucleo } from './composition/nucleo.providers';
+import { proveeAtribucionDeReferido } from '@features/affiliate/affiliate.providers';
+import { proveeAuth } from '@features/auth/auth.providers';
 
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [provideRouter([]), proveeNucleo()],
+      // El armazón monta la captura de referido, que registra de quién viene la visita en cualquier
+      // página. Necesita su puerto igual que en la aplicación de verdad.
+      providers: [provideRouter([]), proveeNucleo(), proveeAuth(), proveeAtribucionDeReferido()],
     }).compileComponents();
   });
 
