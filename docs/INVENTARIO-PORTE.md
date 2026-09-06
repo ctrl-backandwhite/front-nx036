@@ -246,29 +246,31 @@ son contextos sino capas compartidas, y que por eso se portan antes que nada:
 
 **19 ficheros** sin contar pruebas (hay 17 ficheros `*.test.ts`). Todas las rutas van bajo el prefijo `/api` que pone `client.ts` (`baseURL = API_BASE + '/api'`). `${…}` marca un parámetro de ruta.
 
+En todo `src/` hay **423 puntos de llamada** al backend y **todos** tienen la ruta escrita como literal, así que la lista de abajo es completa: no hay ninguna dirección construida en tiempo de ejecución que se pueda haber escapado. Deduplicadas dentro de cada módulo salen **373 endpoints**, más los 43 que se llaman fuera de `src/api/` (apartado 3.2).
+
 
 | Módulo | Líneas | Contexto | Nº endpoints |
 |---|---|---|---|
 | `api/addresses.ts` | 37 | `account` | 4 |
-| `api/admin.ts` | 680 | `admin` | 143 |
-| `api/affiliate.ts` | 106 | `affiliate` | 10 |
-| `api/billing.ts` | 150 | `account` | 13 |
+| `api/admin.ts` | 680 | `admin` | 170 |
+| `api/affiliate.ts` | 106 | `affiliate` | 13 |
+| `api/billing.ts` | 150 | `account` | 15 |
 | `api/carrierLimits.ts` | 49 | `admin` | 3 |
 | `api/cart.ts` | 32 | `cart` | 5 |
-| `api/catalog.ts` | 577 | `catalog` | 28 |
+| `api/catalog.ts` | 577 | `catalog` | 33 |
 | `api/chat.ts` | 31 | `support` | 1 |
 | `api/client.ts` | 173 | `core` | 0 |
-| `api/compliance.ts` | 98 | `admin` | 9 |
-| `api/legal.ts` | 78 | `platform` | 4 |
+| `api/compliance.ts` | 98 | `admin` | 10 |
+| `api/legal.ts` | 78 | `platform` | 5 |
 | `api/operator.ts` | 64 | `admin` | 5 |
 | `api/orders.ts` | 372 | `orders` | 10 |
-| `api/platform.ts` | 165 | `platform` | 69 |
+| `api/platform.ts` | 165 | `platform` | 70 |
 | `api/profile.ts` | 36 | `account` | 5 |
-| `api/purchases.ts` | 92 | `admin` | 11 |
+| `api/purchases.ts` | 92 | `admin` | 12 |
 | `api/savedCart.ts` | 18 | `cart` | 4 |
 | `api/suggestions.ts` | 37 | `cart` | 1 |
-| `api/wallet.ts` | 88 | `wallet` | 6 |
-| **Total** | **2883** | | **331** |
+| `api/wallet.ts` | 88 | `wallet` | 7 |
+| **Total** | **2883** | | **373** |
 
 ### 3.1 Endpoints, uno por uno
 
@@ -282,11 +284,12 @@ son contextos sino capas compartidas, y que por eso se portan antes que nada:
 | `PUT` | `/me/addresses/${id}` |
 | `DELETE` | `/me/addresses/${id}` |
 
-#### `api/billing.ts` → `account` (150 líneas, 13 endpoints)
+#### `api/billing.ts` → `account` (150 líneas, 15 endpoints)
 
 | Método | Ruta |
 |---|---|
 | `GET` | `/billing/plans` |
+| `POST` | `/billing/subscribe` |
 | `GET` | `/me/billing/config` |
 | `GET` | `/me/billing/invoices` |
 | `POST` | `/me/orders/${orderId}/pay-saved-card` |
@@ -298,6 +301,7 @@ son contextos sino capas compartidas, y que por eso se portan antes que nada:
 | `POST` | `/me/payment-methods/paypal` |
 | `POST` | `/me/payment-methods/setup-intent` |
 | `GET` | `/me/subscription` |
+| `POST` | `/me/subscription` |
 | `POST` | `/me/subscription/cancel` |
 
 #### `api/profile.ts` → `account` (36 líneas, 5 endpoints)
@@ -310,7 +314,7 @@ son contextos sino capas compartidas, y que por eso se portan antes que nada:
 | `POST` | `/me/delete/request` |
 | `POST` | `/me/password` |
 
-#### `api/admin.ts` → `admin` (680 líneas, 143 endpoints)
+#### `api/admin.ts` → `admin` (680 líneas, 170 endpoints)
 
 | Método | Ruta |
 |---|---|
@@ -318,6 +322,7 @@ son contextos sino capas compartidas, y que por eso se portan antes que nada:
 | `POST` | `/admin/academy/courses` |
 | `PUT` | `/admin/academy/courses/${id}` |
 | `DELETE` | `/admin/academy/courses/${id}` |
+| `GET` | `/admin/affiliates` |
 | `GET` | `/admin/affiliates/${id}` |
 | `POST` | `/admin/affiliates/${id}/payout` |
 | `POST` | `/admin/affiliates/${id}/status` |
@@ -325,6 +330,7 @@ son contextos sino capas compartidas, y que por eso se portan antes que nada:
 | `POST` | `/admin/affiliates/commissions/${commissionId}/review` |
 | `GET` | `/admin/affiliates/config` |
 | `PUT` | `/admin/affiliates/config` |
+| `POST` | `/admin/affiliates/payouts/${id}/approve` |
 | `POST` | `/admin/affiliates/payouts/${id}/reject` |
 | `GET` | `/admin/affiliates/payouts/pending` |
 | `POST` | `/admin/affiliates/reindex` |
@@ -338,7 +344,9 @@ son contextos sino capas compartidas, y que por eso se portan antes que nada:
 | `PUT` | `/admin/catalog/categories/${id}` |
 | `DELETE` | `/admin/catalog/categories/${id}` |
 | `PUT` | `/admin/catalog/categories/${id}/toggle` |
+| `POST` | `/admin/catalog/categories/bulk` |
 | `PUT` | `/admin/catalog/categories/bulk-active` |
+| `GET` | `/admin/catalog/categories/paged` |
 | `POST` | `/admin/catalog/categories/reindex` |
 | `DELETE` | `/admin/catalog/products/${id}` |
 | `POST` | `/admin/catalog/products/${id}/duplicate` |
@@ -348,6 +356,8 @@ son contextos sino capas compartidas, y que por eso se portan antes que nada:
 | `GET` | `/admin/catalog/products/${productId}/variants` |
 | `POST` | `/admin/catalog/products/${productId}/variants` |
 | `DELETE` | `/admin/catalog/products/${productId}/video` |
+| `POST` | `/admin/catalog/products/bulk` |
+| `POST` | `/admin/catalog/products/bulk-delete` |
 | `PUT` | `/admin/catalog/products/bulk-status` |
 | `POST` | `/admin/catalog/products/create` |
 | `GET` | `/admin/catalog/products/export` |
@@ -355,6 +365,9 @@ son contextos sino capas compartidas, y que por eso se portan antes que nada:
 | `DELETE` | `/admin/catalog/products/images/${imageId}` |
 | `PUT` | `/admin/catalog/products/subsidy` |
 | `PUT` | `/admin/catalog/products/surcharge` |
+| `POST` | `/admin/catalog/reindex` |
+| `GET` | `/admin/catalog/reindex/status` |
+| `GET` | `/admin/catalog/suppliers` |
 | `PUT` | `/admin/catalog/suppliers/${id}` |
 | `DELETE` | `/admin/catalog/suppliers/${id}` |
 | `POST` | `/admin/catalog/suppliers/${id}/trustpass` |
@@ -374,8 +387,11 @@ son contextos sino capas compartidas, y que por eso se portan antes que nada:
 | `PUT` | `/admin/currency/${code}/active` |
 | `GET` | `/admin/currency/all` |
 | `PUT` | `/admin/currency/bulk-active` |
+| `POST` | `/admin/currency/sync` |
+| `GET` | `/admin/currency/sync-status` |
 | `GET` | `/admin/dashboard/metrics` |
 | `GET` | `/admin/dashboard/recent-orders` |
+| `GET` | `/admin/dashboard/series` |
 | `GET` | `/admin/declaration-groups` |
 | `PUT` | `/admin/declaration-groups/${id}` |
 | `POST` | `/admin/declaration-groups/${id}/approve` |
@@ -388,7 +404,10 @@ son contextos sino capas compartidas, y que por eso se portan antes que nada:
 | `POST` | `/admin/mentors` |
 | `PUT` | `/admin/mentors/${id}` |
 | `DELETE` | `/admin/mentors/${id}` |
+| `GET` | `/admin/newsletter` |
+| `POST` | `/admin/newsletter/send` |
 | `POST` | `/admin/notifications/send` |
+| `GET` | `/admin/orders` |
 | `POST` | `/admin/orders` |
 | `GET` | `/admin/orders/${id}` |
 | `POST` | `/admin/orders/${id}/cancel` |
@@ -404,12 +423,17 @@ son contextos sino capas compartidas, y que por eso se portan antes que nada:
 | `POST` | `/admin/orders/bulk-refund` |
 | `POST` | `/admin/orders/bulk-ship` |
 | `POST` | `/admin/orders/demo` |
+| `POST` | `/admin/orders/import` |
 | `POST` | `/admin/orders/reindex` |
 | `GET` | `/admin/partners/apps` |
 | `GET` | `/admin/partners/oauth-clients` |
+| `POST` | `/admin/partners/oauth-clients` |
+| `POST` | `/admin/partners/oauth-clients/${clientId}/rotate-secret` |
 | `DELETE` | `/admin/partners/oauth-clients/${id}` |
 | `GET` | `/admin/partners/webhooks` |
 | `POST` | `/admin/partners/webhooks/test` |
+| `GET` | `/admin/pricing/moq-rule` |
+| `PUT` | `/admin/pricing/moq-rule` |
 | `GET` | `/admin/pricing/rules` |
 | `POST` | `/admin/pricing/rules` |
 | `PUT` | `/admin/pricing/rules/${id}` |
@@ -421,6 +445,7 @@ son contextos sino capas compartidas, y que por eso se portan antes que nada:
 | `POST` | `/admin/product-groups` |
 | `PUT` | `/admin/product-groups/${id}` |
 | `DELETE` | `/admin/product-groups/${id}` |
+| `GET` | `/admin/product-groups/${id}/members` |
 | `POST` | `/admin/product-groups/${id}/members` |
 | `DELETE` | `/admin/product-groups/${id}/members/${productId}` |
 | `GET` | `/admin/promotions` |
@@ -435,6 +460,7 @@ son contextos sino capas compartidas, y que por eso se portan antes que nada:
 | `GET` | `/admin/tax-rates` |
 | `PUT` | `/admin/tax-rates/${country}` |
 | `DELETE` | `/admin/tax-rates/${country}` |
+| `GET` | `/admin/users` |
 | `PUT` | `/admin/users/${id}` |
 | `DELETE` | `/admin/users/${id}` |
 | `POST` | `/admin/users/${id}/activate` |
@@ -448,6 +474,11 @@ son contextos sino capas compartidas, y que por eso se portan antes que nada:
 | `PUT` | `/admin/users/bulk-role` |
 | `POST` | `/admin/users/bulk-unlock` |
 | `POST` | `/admin/users/invite` |
+| `GET` | `/admin/wallets` |
+| `GET` | `/admin/wallets/${userId}` |
+| `POST` | `/admin/wallets/${userId}/adjust` |
+| `POST` | `/admin/wallets/${userId}/topup` |
+| `GET` | `/admin/wallets/${walletId}/transactions` |
 | `POST` | `/admin/wallets/reindex` |
 | `GET` | `/admin/webhooks/subscriptions` |
 | `POST` | `/admin/webhooks/subscriptions` |
@@ -466,7 +497,7 @@ son contextos sino capas compartidas, y que por eso se portan antes que nada:
 | `PUT` | `/admin/carrier-limits/${encodeURIComponent(channel)}/${encodeURIComponent(country)}` |
 | `DELETE` | `/admin/carrier-limits/${encodeURIComponent(channel)}/${encodeURIComponent(country)}` |
 
-#### `api/compliance.ts` → `admin` (98 líneas, 9 endpoints)
+#### `api/compliance.ts` → `admin` (98 líneas, 10 endpoints)
 
 | Método | Ruta |
 |---|---|
@@ -474,6 +505,7 @@ son contextos sino capas compartidas, y que por eso se portan antes que nada:
 | `PUT` | `/admin/compliance/categories/${categoryId}/warnings` |
 | `GET` | `/admin/compliance/categories/${categoryId}/warnings/effective` |
 | `GET` | `/admin/compliance/operator-roles` |
+| `GET` | `/admin/compliance/products/missing-manufacturer` |
 | `GET` | `/admin/compliance/responsible-person` |
 | `PUT` | `/admin/compliance/responsible-person` |
 | `GET` | `/admin/compliance/status` |
@@ -490,7 +522,7 @@ son contextos sino capas compartidas, y que por eso se portan antes que nada:
 | `POST` | `/admin/operators/reindex` |
 | `GET` | `/admin/operators/report` |
 
-#### `api/purchases.ts` → `admin` (92 líneas, 11 endpoints)
+#### `api/purchases.ts` → `admin` (92 líneas, 12 endpoints)
 
 | Método | Ruta |
 |---|---|
@@ -504,12 +536,14 @@ son contextos sino capas compartidas, y que por eso se portan antes que nada:
 | `GET` | `/admin/purchases/at-risk` |
 | `GET` | `/admin/purchases/order/${orderId}` |
 | `POST` | `/admin/purchases/pack-sheet` |
+| `POST` | `/admin/purchases/pack-sheet/confirm` |
 | `GET` | `/admin/purchases/pack-sheet/preview` |
 
-#### `api/affiliate.ts` → `affiliate` (106 líneas, 10 endpoints)
+#### `api/affiliate.ts` → `affiliate` (106 líneas, 13 endpoints)
 
 | Método | Ruta |
 |---|---|
+| `POST` | `/affiliate/track` |
 | `GET` | `/me/affiliate` |
 | `POST` | `/me/affiliate/bind` |
 | `POST` | `/me/affiliate/codes` |
@@ -517,8 +551,10 @@ son contextos sino capas compartidas, y que por eso se portan antes que nada:
 | `POST` | `/me/affiliate/join` |
 | `GET` | `/me/affiliate/payout-profile` |
 | `PUT` | `/me/affiliate/payout-profile` |
+| `POST` | `/me/affiliate/payout-request` |
 | `GET` | `/me/email-preferences` |
 | `PUT` | `/me/email-preferences` |
+| `POST` | `/newsletter/subscribe` |
 | `POST` | `/newsletter/unsubscribe` |
 
 #### `api/cart.ts` → `cart` (32 líneas, 5 endpoints)
@@ -546,10 +582,12 @@ son contextos sino capas compartidas, y que por eso se portan antes que nada:
 |---|---|
 | `POST` | `/catalog/cart-suggestions` |
 
-#### `api/catalog.ts` → `catalog` (577 líneas, 28 endpoints)
+#### `api/catalog.ts` → `catalog` (577 líneas, 33 endpoints)
 
 | Método | Ruta |
 |---|---|
+| `POST` | `/admin/catalog/imagenes/comprimir-historico` |
+| `GET` | `/admin/catalog/imagenes/comprimir-historico/estado` |
 | `GET` | `/admin/catalog/products` |
 | `DELETE` | `/admin/catalog/products/${productId}/price-tiers/${minQty}` |
 | `PUT` | `/admin/catalog/products/${productId}/source-url?lang=${lang}` |
@@ -560,7 +598,9 @@ son contextos sino capas compartidas, y que por eso se portan antes que nada:
 | `GET` | `/catalog/categories/tree` |
 | `GET` | `/catalog/home/sections` |
 | `GET` | `/catalog/products` |
+| `GET` | `/catalog/products/${id}/attributes` |
 | `GET` | `/catalog/products/${id}/related` |
+| `GET` | `/catalog/products/${id}/specifications` |
 | `GET` | `/catalog/products/${productId}/margin-estimate` |
 | `GET` | `/catalog/products/${productId}/price-history` |
 | `GET` | `/catalog/products/${productId}/reviews` |
@@ -578,6 +618,7 @@ son contextos sino capas compartidas, y que por eso se portan antes que nada:
 | `GET` | `/me/favorites/ids` |
 | `GET` | `/me/product-views` |
 | `POST` | `/me/product-views/${productId}` |
+| `GET` | `/search` |
 
 #### `api/client.ts` → `core` (173 líneas)
 
@@ -605,16 +646,17 @@ No expone endpoints de negocio: es el cliente HTTP compartido. Lo que hace, y qu
 | `POST` | `/shipping/quote` |
 | `GET` | `/shipping/regions` |
 
-#### `api/legal.ts` → `platform` (78 líneas, 4 endpoints)
+#### `api/legal.ts` → `platform` (78 líneas, 5 endpoints)
 
 | Método | Ruta |
 |---|---|
 | `GET` | `/admin/legal` |
 | `GET` | `/admin/legal/${docType}/${lang}` |
 | `PUT` | `/admin/legal/${docType}/${lang}` |
+| `POST` | `/admin/legal/publish` |
 | `GET` | `/legal/${docType}` |
 
-#### `api/platform.ts` → `platform` (165 líneas, 69 endpoints)
+#### `api/platform.ts` → `platform` (165 líneas, 70 endpoints)
 
 | Método | Ruta |
 |---|---|
@@ -658,6 +700,7 @@ No expone endpoints de negocio: es el cliente HTTP compartido. Lo que hace, y qu
 | `GET` | `/me/odm/projects/${id}` |
 | `PUT` | `/me/odm/projects/${id}` |
 | `DELETE` | `/me/odm/projects/${id}` |
+| `POST` | `/me/pod/ai-generate` |
 | `GET` | `/me/pod/designs` |
 | `POST` | `/me/pod/designs` |
 | `PUT` | `/me/pod/designs/${id}` |
@@ -694,7 +737,7 @@ No expone endpoints de negocio: es el cliente HTTP compartido. Lo que hace, y qu
 |---|---|
 | `POST` | `/chat` |
 
-#### `api/wallet.ts` → `wallet` (88 líneas, 6 endpoints)
+#### `api/wallet.ts` → `wallet` (88 líneas, 7 endpoints)
 
 | Método | Ruta |
 |---|---|
@@ -704,6 +747,7 @@ No expone endpoints de negocio: es el cliente HTTP compartido. Lo que hace, y qu
 | `POST` | `/me/wallet/recharge` |
 | `POST` | `/me/wallet/recharge/${paymentId}/confirm` |
 | `GET` | `/me/wallet/recharge/options` |
+| `GET` | `/me/wallet/transactions` |
 
 ### 3.2 Endpoints llamados FUERA de `src/api/` (deuda a recoger en los puertos)
 
@@ -724,6 +768,7 @@ Estas llamadas se escribieron directamente en la página, el componente o el alm
 | `AdminProfilePage` | `GET` | `/me/2fa/status` | `admin` |
 | `AdminProfilePage` | `GET` | `/me/sessions` | `admin` |
 | `AdminProfilePage` | `POST` | `/me/2fa/disable` | `admin` |
+| `AdminProfilePage` | `POST` | `/me/2fa/setup` | `admin` |
 | `AdminProfilePage` | `POST` | `/me/2fa/verify` | `admin` |
 | `AdminProfilePage` | `POST` | `/me/sessions/${id}/revoke` | `admin` |
 | `auth/PasswordResetPage` | `POST` | `/auth/password-reset/confirm` | `auth` |
@@ -742,6 +787,7 @@ Estas llamadas se escribieron directamente en la página, el componente o el alm
 | `profile/ProfilePage` | `GET` | `/me/2fa/status` | `account` |
 | `profile/ProfilePage` | `GET` | `/me/sessions` | `account` |
 | `profile/ProfilePage` | `POST` | `/me/2fa/disable` | `account` |
+| `profile/ProfilePage` | `POST` | `/me/2fa/setup` | `account` |
 | `profile/ProfilePage` | `POST` | `/me/2fa/verify` | `account` |
 | `profile/ProfilePage` | `POST` | `/me/sessions/${id}/revoke` | `account` |
 | `store/auth` | `GET` | `/me` | `auth` |
@@ -749,8 +795,10 @@ Estas llamadas se escribieron directamente en la página, el componente o el alm
 | `store/auth` | `POST` | `/auth/activate/resend` | `auth` |
 | `store/auth` | `POST` | `/auth/login` | `auth` |
 | `store/auth` | `POST` | `/auth/logout` | `auth` |
+| `store/auth` | `POST` | `/auth/register` | `auth` |
 | `store/auth` | `PUT` | `/me` | `auth` |
 | `store/currency` | `GET` | `/currency/rates` | `core` |
+| `store/currency` | `GET` | `/geo` | `core` |
 
 Además, fuera del cliente `api`:
 
@@ -769,7 +817,7 @@ Además, fuera del cliente `api`:
 
 ### 4.1 Almacenes (`src/store/*`) — 10 ficheros (8 con prueba)
 
-Todos son almacenes de **zustand**. En Angular pasan a `signal()` dentro de `application/` del contexto, o a `core/` si son transversales.
+Nueve son almacenes de **zustand**; `preferencias.tsx` es un contexto de React y está aquí porque es de donde salen idioma, divisa y tema al renderizar en servidor. En Angular pasan a `signal()` dentro de `application/` del contexto, o a `core/` si son transversales.
 
 
 | Fichero | Líneas | Qué guarda | ¿Se persiste? | Destino |
@@ -858,6 +906,8 @@ Esta es la tabla del reparto. Cada uno de los **213 ficheros** de `src/` (sin pr
 | 12 | **`affiliate`** | 1 | 1 | 1 | 0 | 3 | **535** | 2 |
 | | **Subtotal** | **75** | **44** | **18** | **10** | **147** | **32009** | **116** |
 
+> **Cómo cuadra.** Las 75 páginas y los 18 módulos de API se reparten enteros entre los doce contextos. De los 64 componentes, 44 son de un contexto y los otros 20 son transversales (18 al `design-system` y 2 al `layout`). De los 19 módulos de API, `client.ts` es el único que va a `core/`. La columna «Estado y hooks» junta `src/store/*` y `src/hooks/*`: 10 de los 19 son de un contexto y los otros 9 son transversales.
+
 ### 6.2 Capas transversales (no son de nadie: se portan primero)
 
 | Capa | Ficheros | Líneas | Pruebas |
@@ -889,7 +939,8 @@ Esta es la tabla del reparto. Cada uno de los **213 ficheros** de `src/` (sin pr
 ### 6.5 Peso relativo de cada contexto
 
 
-Por el motivo anterior, el peso de verdad de cada contexto se lee mejor así:
+Reparto del trabajo de contexto, sobre las 32 009 líneas de los doce (las capas transversales quedan
+fuera porque se portan antes y las usa todo el mundo):
 
 
 | Contexto | Líneas | Peso relativo |
@@ -968,7 +1019,7 @@ El reparto por contexto no dice por dónde empezar. Esto sí:
 1. **Primero, y por una sola persona:** `core/` (el cliente HTTP con sus interceptores, preferencias por petición, testigos, CAPTCHA) y `design-system/` (diálogo, avisos, migas, filtros, buscador, movimiento). Todo lo demás depende de estas dos capas; hasta que no estén, cualquier equipo que arranque va a inventarse la suya.
 2. **`shared/`** se puede mover en paralelo, casi sin pensar: son datos.
 3. **Después, en paralelo:** `auth` → `catalog` → `cart` → `checkout` → `orders`, que es el camino de la compra y el que más se rompe si falta un eslabón.
-4. **`admin` es el contexto más grande** (36 páginas). Se puede repartir entre dos equipos sin solaparse: catálogo y precios por un lado; pedidos, compras, usuarios y billeteras por otro.
+4. **`admin` es el contexto más grande** (35 páginas y 12 865 líneas, el 40 % del trabajo de contexto). Se puede repartir entre dos equipos sin solaparse: catálogo y precios por un lado; pedidos, compras, usuarios y billeteras por otro.
 5. **`platform` y `support` al final**: son los que menos bloquean y los que más van a cambiar.
 
 

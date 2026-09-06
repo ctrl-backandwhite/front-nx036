@@ -5,6 +5,12 @@ const tseslint = require('typescript-eslint');
 const angular = require('angular-eslint');
 const boundaries = require('eslint-plugin-boundaries');
 
+/** Los contextos acotados de la aplicación. Al añadir uno, se añade aquí y las reglas lo cubren solas. */
+const CONTEXTOS = [
+  'account', 'admin', 'affiliate', 'auth', 'cart', 'catalog',
+  'checkout', 'notifications', 'orders', 'platform', 'support', 'wallet',
+];
+
 /**
  * La regla de dependencia de la arquitectura hexagonal se verifica AQUÍ, no en una revisión de código:
  * si una capa importa de otra que tiene prohibida, el lint falla y el build de integración continua
@@ -145,40 +151,85 @@ module.exports = defineConfig([
         {
           default: 'disallow',
           policies: [
-            // El centro del hexágono no depende de nadie: ni de Angular, ni de la red, ni de una
-            // pantalla. Solo de tipos y datos puros.
+            /* Las capas de DENTRO de un contexto solo se ven entre ellas: la plantilla
+             * `{{from.element.capture.contexto}}` exige que el destino sea del MISMO contexto acotado.
+             * Sin ella, «catalog» podría llamar al caso de uso de «cart» y los dos dejarían de poder
+             * evolucionar por separado, que es justo lo que se compra con esta arquitectura. */
             {
               from: { element: { type: 'domain' } },
-              allow: { to: { element: { types: { anyOf: ['domain', 'shared'] } } } },
+              allow: {
+                to: {
+                  element: {
+                    type: 'domain',
+                    capture: { contexto: '{{from.element.capture.contexto}}' },
+                  },
+                },
+              },
             },
             {
               from: { element: { type: 'application' } },
               allow: {
-                to: { element: { types: { anyOf: ['application', 'domain', 'shared', 'core'] } } },
+                to: {
+                  element: {
+                    types: { anyOf: ['application', 'domain'] },
+                    capture: { contexto: '{{from.element.capture.contexto}}' },
+                  },
+                },
               },
             },
-            // Los adaptadores conocen el puerto que implementan y la plataforma a la que traducen.
             {
               from: { element: { type: 'infrastructure' } },
               allow: {
                 to: {
-                  element: { types: { anyOf: ['infrastructure', 'domain', 'shared', 'core'] } },
+                  element: {
+                    types: { anyOf: ['infrastructure', 'domain'] },
+                    capture: { contexto: '{{from.element.capture.contexto}}' },
+                  },
                 },
               },
             },
-            // Una pantalla NO puede importar un adaptador. Pide un caso de uso y ya está. Es la
-            // prohibición que sostiene el diseño entero.
+            /* Una pantalla NO puede importar un adaptador: `infrastructure` no está en esta lista, y esa
+             * ausencia es la que sostiene el diseño entero. Pide un caso de uso y ya está. */
             {
               from: { element: { type: 'presentation' } },
               allow: {
                 to: {
                   element: {
-                    types: {
-                      anyOf: ['presentation', 'application', 'domain', 'ds', 'shared', 'core'],
-                    },
+                    types: { anyOf: ['presentation', 'application', 'domain'] },
+                    capture: { contexto: '{{from.element.capture.contexto}}' },
                   },
                 },
               },
+            },
+
+            /* El DOMINIO de otro contexto sí es visible: los modelos y los puertos son su contrato
+             * público. Lo que queda dentro —casos de uso, adaptadores, pantallas— no lo es. */
+            {
+              from: {
+                element: {
+                  types: { anyOf: ['application', 'infrastructure', 'presentation'] },
+                },
+              },
+              allow: { to: { element: { type: 'domain' } } },
+            },
+
+            // Lo transversal lo puede usar cualquiera, con la escala de siempre: cuanto más adentro del
+            // hexágono, menos cosas se ven.
+            {
+              from: { element: { type: 'domain' } },
+              allow: { to: { element: { type: 'shared' } } },
+            },
+            {
+              from: {
+                element: {
+                  types: { anyOf: ['application', 'infrastructure'] },
+                },
+              },
+              allow: { to: { element: { types: { anyOf: ['shared', 'core'] } } } },
+            },
+            {
+              from: { element: { type: 'presentation' } },
+              allow: { to: { element: { types: { anyOf: ['ds', 'shared', 'core'] } } } },
             },
             {
               from: { element: { type: 'ds' } },
@@ -192,37 +243,60 @@ module.exports = defineConfig([
               from: { element: { type: 'core' } },
               allow: { to: { element: { types: { anyOf: ['core', 'shared'] } } } },
             },
-            // Los marcos de página ensamblan piezas de varios contextos: es su trabajo, igual que el de
-            // la raíz de composición.
+
+            // Los marcos de página y la raíz de composición ven el mapa entero: ensamblar es su trabajo.
             {
               from: { element: { types: { anyOf: ['layout', 'composition'] } } },
               allow: { to: { element: { type: '*' } } },
-            },
-
-            // Un contexto acotado no entra en las TRIPAS de otro. Puede usar su dominio —los modelos y
-            // los puertos son el contrato público—, pero no su aplicación, su infraestructura ni sus
-            // pantallas. Si hace falta algo de eso, es que ese algo era compartido, y su sitio es
-            // `shared`, `core` o el sistema de diseño.
-            {
-              from: {
-                element: {
-                  types: { anyOf: ['domain', 'application', 'infrastructure', 'presentation'] },
-                },
-              },
-              disallow: {
-                to: {
-                  element: {
-                    types: { anyOf: ['application', 'infrastructure', 'presentation'] },
-                    capture: { contexto: '!{{from.element.capture.contexto}}' },
-                  },
-                },
-              },
             },
           ],
         },
       ],
     },
   },
+
+
+  /* ── Aislamiento entre contextos acotados ────────────────────────────────────────────────────
+   *
+   * La regla de CAPAS la vigila `boundaries` (arriba). Lo que no consigue vigilar es que un contexto no
+   * se meta en las tripas de OTRO: se intentó con su selector de capturas y se comprobó que no
+   * restringe —«catalog» podía importar el caso de uso de «cart» y el lint pasaba en verde—, así que la
+   * prohibición se escribe aquí, explícita, contexto por contexto.
+   *
+   * Lo permitido entre contextos es el DOMINIO ajeno: los modelos y los puertos son su contrato
+   * público. Los casos de uso, los adaptadores y las pantallas no lo son. Si hace falta algo de eso, es
+   * que ese algo era compartido y su sitio es `shared`, `core` o el sistema de diseño.
+   */
+  ...CONTEXTOS.map((propio) => ({
+    files: [`src/app/features/${propio}/**/*.ts`],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          patterns: CONTEXTOS.filter((otro) => otro !== propio).flatMap((otro) => [
+            {
+              group: [
+                `@features/${otro}/application/*`,
+                `@features/${otro}/application/**`,
+                `@features/${otro}/infrastructure/*`,
+                `@features/${otro}/infrastructure/**`,
+                `@features/${otro}/presentation/*`,
+                `@features/${otro}/presentation/**`,
+                `@features/${otro}/*.providers`,
+                `**/${otro}/application/**`,
+                `**/${otro}/infrastructure/**`,
+                `**/${otro}/presentation/**`,
+              ],
+              message:
+                `El contexto «${propio}» no puede entrar en las tripas de «${otro}». De otro contexto ` +
+                'solo se ve su dominio (modelos y puertos). Si necesitas más, ese algo era compartido: ' +
+                'su sitio es shared/, core/ o design-system/.',
+            },
+          ]),
+        },
+      ],
+    },
+  })),
 
   {
     // Datos, no código: un diccionario de ocho idiomas mide lo que mide y partirlo no lo mejora.

@@ -9,6 +9,7 @@ import {
 } from '@angular/router';
 import { routes } from './app.routes';
 import { proveeNucleo } from './composition/nucleo.providers';
+import { proveeAuth } from '@features/auth/auth.providers';
 import { authInterceptor } from '@core/http/interceptor/auth.interceptor';
 import { captchaInterceptor } from '@core/http/interceptor/captcha.interceptor';
 import { preferenciasInterceptor } from '@core/http/interceptor/preferencias.interceptor';
@@ -61,5 +62,8 @@ export const appConfig: ApplicationConfig = {
     provideClientHydration(withIncrementalHydration()),
 
     proveeNucleo(),
+
+    // La sesión es transversal: la consultan los guardianes de todas las zonas privadas.
+    proveeAuth(),
   ],
 };
