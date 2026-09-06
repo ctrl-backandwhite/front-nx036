@@ -49,6 +49,22 @@ Detectadas por el lint en trabajo de equipos en marcha. **No se silencian: se ar
 - [ ] `checkout` importa `@features/cart/cart.providers`.
 - [ ] `admin` importa `@features/auth/application/state/sesion.store` → pasa a `@core/auth/sesion-actual`.
 
+## 3 bis. Piezas improvisadas que hay que subir al sistema de diseño
+
+Cada equipo, al no existir aún su equivalente en `@ds`, hizo una versión mínima dentro de su contexto y
+la dejó marcada. Hay que recorrerlas y unificarlas, o acabarán divergiendo:
+
+- [ ] `paginacion` (panel · logística) → `@ds`.
+- [ ] `insignia-estado` (panel · logística y gestión) → una sola, con **un solo** mapa de colores.
+- [ ] `rastro-del-envio` (panel · logística) — la misma pieza que usa la ficha del comprador en
+      `orders`. Está duplicada.
+- [ ] `ventana-modal` (cuenta) contra el `Dialogo` del sistema de diseño.
+
+## 3 ter. Cobertura por debajo del umbral
+
+- [ ] `admin/logistica`: agregado 83,9 % de líneas y 69,3 % de funciones, por debajo del 90 % del
+      proyecto. Lo arrastran `regiones-fiscales.ts` (59 %) y `tarjeta-de-compra.ts` (69 %).
+
 ## 4. Duplicaciones a unificar
 
 - [ ] `ventana-modal` de `account` contra el `Dialogo` del sistema de diseño.
@@ -80,6 +96,19 @@ Durante el porte la máquina llegó a **carga 74 con 50 procesos de prueba simul
 condiciones fallaba un subconjunto distinto en cada pasada, siempre por agotarse el plazo y **nunca por
 una aserción**: es el patrón de inestabilidad por carga que ya está documentado en el proyecto. Por eso
 la pasada que cuenta se hace al final y en solitario.
+
+Con un matiz importante que aportó el equipo de logística, y que conviene no olvidar: **no todo
+timeout es carga**. En su área, los plazos agotados eran la PRIMERA prueba de cada fichero, que carga
+la compilación de la plantilla; se resolvían con un plazo explícito, y detrás había ocho fallos reales
+(nombres accesibles duplicados, consultas ambiguas, un proveedor que faltaba). Atribuirlo todo a la
+carga habría escondido esos ocho. La regla: un timeout se investiga una vez antes de archivarlo como
+ruido.
+
+Y un dato técnico que explica el incidente del fichero compartido: **`ng test --include` filtra qué
+pruebas se ejecutan, pero el constructor compila el proyecto ENTERO**. Con varios equipos escribiendo a
+la vez, eso significa que la pasada de cualquiera aborta por un fichero a medias de otro. No hay forma
+de aislarse sin tocar configuración compartida — por eso la verificación final es de quien coordina, y
+por eso ningún equipo debería intentar rodearlo por su cuenta.
 
 - [ ] `npx ng lint` — sin errores.
 - [ ] `npx ng test` — **mirando el RECUENTO**, no el color. Un verde sin número no prueba nada.
