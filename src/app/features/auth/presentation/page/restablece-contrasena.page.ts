@@ -96,7 +96,9 @@ const ESPERA_ANTES_DEL_ACCESO_MS = 1800;
             }
 
             <div class="mt-5 text-center">
-              <a routerLink="/login" class="link link-primary link-hover text-sm">{{ t('activate.back_login') }}</a>
+              <a routerLink="/login" class="link link-primary link-hover text-sm">
+                {{ t('reset.back_login') }}
+              </a>
             </div>
           </div>
         </div>

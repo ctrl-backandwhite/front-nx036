@@ -25,7 +25,11 @@ import { GestionaElBoletin } from '../../application/use-case/gestiona-el-boleti
     <div class="max-w-md mx-auto py-16 px-4 text-center space-y-4">
       @switch (estado()) {
         @case ('procesando') {
-          <div class="loading loading-spinner loading-lg text-primary"></div>
+          <div
+            class="loading loading-spinner loading-lg text-primary"
+            role="status"
+            [attr.aria-label]="t('newsletter.unsub.processing')"
+          ></div>
         }
         @case ('hecho') {
           <fa-icon [icon]="iconos.hecho" class="text-4xl text-success" />

@@ -34,7 +34,8 @@ const diccionario: Record<string, string> = {
   'reset.subtitle': 'We’ll send you a link to get back in',
   'reset.new_title': 'New password',
   'reset.new_subtitle': 'Choose a new password for your account',
-  'reset.send_link': 'Send the link',
+  'reset.send_link': 'Send link',
+  'reset.back_login': 'Back to sign in',
   'reset.sending': 'Sending…',
   'reset.saving': 'Saving…',
   'reset.request_ok': 'If that address has an account, you’ll get an email with the link',
@@ -2129,6 +2130,7 @@ const diccionario: Record<string, string> = {
   'newsletter.unsub.err_title': 'Link not valid',
   'newsletter.unsub.err_body': 'This unsubscribe link is invalid or has expired.',
   'newsletter.unsub.home': 'Back to home',
+  'newsletter.unsub.processing': 'Processing your unsubscribe…',
   // DROP-650/651 join + payout
   'affiliate.join.how_title': 'How the affiliate program works',
   'affiliate.join.step1': 'Share your unique referral link with your audience.',

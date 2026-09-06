@@ -27,7 +27,20 @@ test.describe('el HTML llega pintado', () => {
        * intento pedía 200 caracteres y marcaba la pantalla de restablecer contraseña, que llega
        * legítimamente con 115 porque es un formulario de un solo campo. Lo que hay que distinguir es
        * «llegó pintada» de «llegó el esqueleto vacío», y un esqueleto no pasa de dos o tres palabras. */
-      expect(texto.length, `${ruta} llega vacía: no se está prerenderizando`).toBeGreaterThan(80);
+      /* La baja del boletín queda fuera del umbral, y conviene explicar por qué en vez de bajarlo.
+       *
+       * Mientras comprueba el testigo del correo enseña UN CÍRCULO GIRANDO y nada más — el front
+       * anterior hace exactamente lo mismo, así que el porte es fiel y no toca inventarle texto—. Su
+       * HTML prerenderizado tiene 53 caracteres y los tendría igual estando todo bien.
+       *
+       * Antes pasaba, pero por el motivo equivocado: contaba el texto de la cabecera y los dos pies,
+       * porque la página salía con el marco de la tienda que NO debía llevar. Al quitarlo quedó a la
+       * vista que esta prueba estaba midiendo el marco, no la página. */
+      const sinTextoPorDiseno = ruta === '/newsletter/unsubscribe';
+      expect(
+        texto.length,
+        `${ruta} llega vacía: no se está prerenderizando`,
+      ).toBeGreaterThan(sinTextoPorDiseno ? 20 : 80);
     });
   }
 
