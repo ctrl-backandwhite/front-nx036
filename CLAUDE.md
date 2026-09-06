@@ -226,6 +226,22 @@ ocho idiomas, y la hoja de estilos de 105 kB a 58 kB al dejar los ficheros de da
 
 ---
 
+### Certificar rendimiento: con optimización, o no vale
+
+La configuración `local` trae `optimization: false` y mapas de origen, porque es la de trabajar. El
+front anterior corre en local con su build de **producción**. Medir bytes de uno contra otro no compara
+dos aplicaciones: compara dos configuraciones de compilación —26 MB contra 7,1 MB— y el resultado no
+significa nada. Para certificar rendimiento hay que construir así:
+
+```
+NEXADROP_API_INTERNA=http://localhost:18082 ng build --configuration local \
+  --optimization --source-map=false --output-hashing=all
+```
+
+Mismo entorno y mismo backend que `local`, pero comprimido como saldría a producción.
+
+---
+
 ## 8. Pruebas
 
 Norma del proyecto: **90 % de cobertura en el front**. Cada desarrollo llega con sus pruebas.

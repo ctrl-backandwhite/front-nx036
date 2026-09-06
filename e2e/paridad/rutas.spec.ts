@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { ANGULAR, REACT } from '../util/comparador';
+import { ANGULAR, REACT, abre } from '../util/comparador';
 import {
   ALIAS_DE_ESCAPARATE,
   ALIAS_DE_PANEL,
@@ -36,7 +36,7 @@ test.describe('paridad de rutas', () => {
    */
   for (const ruta of [...RUTAS_PRIVADAS, ...RUTAS_DE_PANEL].filter(sinParametro)) {
     test(`privada ${ruta} manda a la pantalla de acceso sin sesión`, async ({ page }) => {
-      await page.goto(`${ANGULAR}${ruta}`, { waitUntil: 'networkidle' });
+      await abre(page, `${ANGULAR}${ruta}`);
       expect(page.url(), `${ruta} no protege: deja ver la pantalla sin sesión`).toContain('/login');
     });
   }
@@ -59,7 +59,7 @@ test.describe('paridad de rutas', () => {
        *
        * Lo que sí es un defecto —y es como se encontraron cuatro alias que faltaban— es que el alias
        * muera en la página de «no encontrado». */
-      await page.goto(`${ANGULAR}${alias}`, { waitUntil: 'networkidle' });
+      await abre(page, `${ANGULAR}${alias}`);
       const texto = await page.locator('body').innerText();
       expect(/404|no encontrad|not found/i.test(texto), `el alias ${alias} muere en «no encontrado»`)
         .toBe(false);
@@ -68,10 +68,10 @@ test.describe('paridad de rutas', () => {
 
   test('una dirección que no existe da la misma página en los dos', async ({ page }) => {
     const inventada = '/esto-no-existe-en-ninguna-parte-9f2c';
-    await page.goto(`${REACT}${inventada}`, { waitUntil: 'networkidle' });
+    await abre(page, `${REACT}${inventada}`);
     const textoReact = await page.locator('body').innerText();
 
-    await page.goto(`${ANGULAR}${inventada}`, { waitUntil: 'networkidle' });
+    await abre(page, `${ANGULAR}${inventada}`);
     const textoAngular = await page.locator('body').innerText();
 
     // No se comparan letra a letra: basta con que las dos reconozcan que no hay nada ahí.

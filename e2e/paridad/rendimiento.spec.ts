@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { ANGULAR, REACT } from '../util/comparador';
+import { ANGULAR, REACT, abre } from '../util/comparador';
 
 /**
  * Dimensión E: rendimiento comparado.
@@ -31,7 +31,7 @@ async function mide(page: import('@playwright/test').Page, url: string): Promise
     }
   });
 
-  await page.goto(url, { waitUntil: 'networkidle' });
+  await abre(page, url);
 
   const tiempos = await page.evaluate(() => {
     const pintados = performance.getEntriesByType('paint');
@@ -94,7 +94,7 @@ test.describe('rendimiento comparado', () => {
       }
     });
 
-    await page.goto(`${ANGULAR}/`, { waitUntil: 'networkidle' });
+    await abre(page, `${ANGULAR}/`);
 
     const repetidas = pedidas.filter((p, i) => pedidas.indexOf(p) !== i);
     expect(repetidas, `se repiten tras hidratar: ${[...new Set(repetidas)].join(', ')}`).toEqual([]);

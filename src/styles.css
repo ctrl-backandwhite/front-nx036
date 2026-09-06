@@ -1113,31 +1113,43 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
   }
 }
 
-/* Los bloques de código no empujan la página.
+/* Ninguna pantalla obliga a desplazarse en horizontal.
  *
- * El `<pre>` ya lleva su propio desplazamiento horizontal, que es lo correcto —el código no debe
- * partirse—, pero eso solo funciona si el bloque PUEDE encogerse. Dentro de una caja flexible o de una
- * rejilla, un hijo no baja de la anchura de su contenido salvo que se le diga: es el motivo por el que
- * un `curl` largo empujaba la documentación entera y obligaba a desplazarse en horizontal a la anchura
- * de un móvil. Medido: 115 px de desborde que el front anterior no tiene.
+ * Es la norma mobile first del proyecto, resuelta en UN sitio en vez de en cada pantalla.
  *
- * `min-width: 0` es lo que devuelve al bloque la capacidad de encogerse; el desplazamiento se encarga
- * del resto. */
+ * Se llegó aquí midiendo, y las tres primeras respuestas eran falsas. La documentación para
+ * desarrolladores desbordaba 115 px a 412 px de ancho y el front anterior no. No era el bloque de
+ * código —ese ya se contiene solo—, ni el diálogo de bienvenida, ni la barra inferior de navegación:
+ * los tres MEDÍAN 527 px, que es 412 más el desborde, porque un elemento fijo se estira al ancho
+ * desplazable. Es decir, los tres eran el reflejo del problema, y arreglar cualquiera de ellos dejaba
+ * el número clavado en 115. Lo que desborda es la prosa de la guía, cuyo ancho intrínseco (427 px)
+ * supera el de su columna.
+ *
+ * Se usa `clip` y NO `hidden` a propósito: `hidden` convierte el elemento en un contenedor de
+ * desplazamiento, y eso desactiva `position: sticky` en todo lo que lleve dentro —el índice lateral de
+ * la documentación, sin ir más lejos—. `clip` recorta sin crear ese contenedor.
+ *
+ * No esconde nada: todo bloque ancho de verdad —código, tablas— lleva ya su propio `overflow-x: auto` y
+ * se desplaza por dentro. Comprobado después de aplicarla. */
+main {
+  overflow-x: clip;
+}
+
+/* Los bloques de código se desplazan por dentro, no empujan a su columna.
+ *
+ * El `<pre>` ya lleva su propio desplazamiento —el código no debe partirse—, pero eso solo sirve si el
+ * bloque PUEDE encogerse: dentro de una caja flexible o una rejilla, un hijo no baja del ancho de su
+ * contenido salvo que se le diga. */
 pre {
   max-width: 100%;
   min-width: 0;
 }
 
-/* El código EN LÍNEA se parte si no cabe.
+/* El código EN LÍNEA sí se parte.
  *
- * Un `<code>` dentro de un párrafo no puede desplazarse por su cuenta —no es un bloque— así que una
- * ruta larga de la API empujaba la página entera y obligaba a desplazarse en horizontal. Medido en la
- * documentación para desarrolladores: 115 px de desborde a la anchura de un móvil, que el front
- * anterior no tiene.
- *
- * `overflow-wrap` parte solo cuando hace falta, y `anywhere` permite cortar aunque no haya espacios,
- * que es justo el caso de una ruta o de un identificador largo. Los bloques `<pre>` quedan fuera: ahí
- * el código NO debe partirse —se leería mal— y por eso tienen su propio desplazamiento. */
+ * Un `<code>` dentro de un párrafo no puede desplazarse por su cuenta, porque no es un bloque. Con
+ * `anywhere` una ruta larga de la API corta aunque no tenga espacios, en vez de estirar el párrafo. Los
+ * `<pre>` quedan fuera: ahí partir el código lo haría ilegible, y para eso tienen su desplazamiento. */
 :not(pre) > code {
   overflow-wrap: anywhere;
 }

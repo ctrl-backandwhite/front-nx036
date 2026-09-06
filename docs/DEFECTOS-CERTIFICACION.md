@@ -71,15 +71,12 @@ tiene que ejecutar la aplicación**.
 
 ## B bis. Defectos abiertos del porte
 
-Encontrados por la certificación y **no corregidos todavía**. Se dejan escritos con su medida para que
-se puedan retomar sin repetir el diagnóstico.
-
-| # | Qué pasa | Medida | Notas |
-|---|---|---|---|
-| A-1 | **La documentación para desarrolladores se desplaza en horizontal en el móvil.** El original no. | 115 px de desborde a 412 px de ancho | El primer bloque de código está bien contenido (348 px dentro de 412): el culpable es otro `<code>` de 486 px, probablemente en una pestaña que no se ve. Se descartó ya la cadena de contenedores entera, que tiene `min-width: 0` en todos los niveles |
-| A-2 | **Tres enlaces del pie quedan por debajo del mínimo táctil** en el móvil, y el original los tiene por encima | 18-19 px de alto, mínimo AA 24 px | «Newsletter», «Preferencias de cookies», «Volver al acceso». Es el pie del marco nuevo, más apretado que el heredado |
-| A-3 | **Las peticiones del prerenderizado no viajan en el documento**, así que el navegador las repite al hidratar | 2 peticiones repetidas en la portada | El estado de transferencia existe (`ng-state`) pero no las contiene. Con la dirección interna ya configurada conviene volver a medirlo |
-| A-4 | **`/about`, `/contact` y `/pricing` tardan más que en el original** | Pendiente de medir con la red limitada | Aparece de forma intermitente, así que hace falta una medición aislada antes de darlo por bueno |
+| # | Qué pasa | Estado |
+|---|---|---|
+| A-1 | **La documentación para desarrolladores se desplazaba en horizontal en el móvil**, 115 px a 412 px de ancho, y el original no | **CERRADO.** Las tres primeras respuestas eran falsas: no era el bloque de código, ni el diálogo de bienvenida, ni la barra inferior — los tres **medían** 527 px porque el desborde ya existía, y arreglar cualquiera dejaba el número clavado en 115. Desbordaba la prosa de la guía (427 px de ancho intrínseco en una columna de 369). Resuelto con `main { overflow-x: clip }` en la hoja central; `clip` y no `hidden` para no desactivar `position: sticky` en el índice lateral |
+| A-2 | Tres enlaces del pie por debajo del mínimo táctil que el original no tenía | **ERA FALSO.** Al ir a mirarlos a mano no estaban en ninguna de las dos aplicaciones. El pie va en `@defer (on viewport)`: hasta que no se baja, ese marcado NO EXISTE, y la prueba comparaba una pantalla con pie contra otra sin él según cuál terminara antes. Corregido bajando al fondo en las dos antes de medir |
+| A-3 | Las peticiones del prerenderizado no viajan en el documento y el navegador las repite al hidratar | Abierto. Vuelve a medirse ahora que el prerenderizado sí lleva datos |
+| A-4 | `/about`, `/contact` y `/pricing` medían más lentas que el original | **LA MEDIDA NO VALÍA.** Se estaba sirviendo el build de `local`, que tiene `optimization: false` y mapas de origen: 26 MB contra el React de producción. Reconstruido con optimización (7,1 MB, 285 kB comprimidos de arranque) para que la comparación sea entre iguales |
 
 ## C. Pendiente de decisión del titular
 

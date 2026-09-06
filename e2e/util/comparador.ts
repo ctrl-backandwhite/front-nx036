@@ -48,6 +48,34 @@ const RUIDO: readonly { patron: RegExp; sustituto: string; porque: string }[] = 
   },
 ];
 
+/**
+ * Abre una dirección y espera a que la pantalla se ASIENTE.
+ *
+ * <p>Sustituye a `networkidle`, que es lo que se usaba y que la propia documentación de Playwright
+ * desaconseja. El motivo no es teórico: el front anterior, al rebotar al acceso desde una zona privada,
+ * se queda pidiendo `/login.data` **en bucle**, así que la red no queda en reposo NUNCA. La espera
+ * agotaba sus 60 segundos y seis pruebas se caían por un bucle de la aplicación de referencia, no por
+ * nada del porte. Y al revés: en una pantalla con encuesta periódica, `networkidle` puede no cumplirse
+ * jamás aunque todo esté pintado desde el primer segundo.
+ *
+ * <p>Lo que de verdad se quiere esperar es que **deje de cambiar lo que se ve**. Eso se mide: se lee el
+ * tamaño del texto visible cada cuarto de segundo y se da por asentada cuando repite dos veces seguidas.
+ * Con un tope, porque una página que nunca se estabiliza tiene que dar un resultado, no colgarse.
+ */
+export async function abre(page: Page, url: string) {
+  const respuesta = await page.goto(url, { waitUntil: 'domcontentloaded' });
+  let anterior = -1;
+  let iguales = 0;
+  const limite = Date.now() + 15_000;
+  while (Date.now() < limite && iguales < 2) {
+    await page.waitForTimeout(250);
+    const actual = await page.evaluate(() => document.body?.innerText.length ?? 0).catch(() => -1);
+    iguales = actual === anterior ? iguales + 1 : 0;
+    anterior = actual;
+  }
+  return respuesta;
+}
+
 /** El texto visible de la página, con el ruido normalizado. */
 export async function textoVisible(page: Page): Promise<string> {
   const bruto = await page.locator('body').innerText();
@@ -102,9 +130,9 @@ export function vigilaLaConsola(page: Page): string[] {
 /**
  * Abre la misma dirección en los dos frontends y devuelve lo observado en cada uno.
  *
- * <p>Se espera a `networkidle` y no a `load` porque lo que se compara es la pantalla ya asentada: el
- * React pide sus datos después de montar, y comparar antes mediría quién es más rápido, no quién enseña
- * lo mismo.
+ * <p>Se espera a que la pantalla se ASIENTE y no al final de la carga porque lo que se compara es la
+ * pantalla ya pintada: el front anterior pide sus datos después de montar, y comparar antes mediría
+ * quién es más rápido, no quién enseña lo mismo.
  */
 export async function abreEnAmbos(
   page: Page,
@@ -115,7 +143,7 @@ export async function abreEnAmbos(
 }> {
   const observa = async (base: string) => {
     const errores = vigilaLaConsola(page);
-    const respuesta = await page.goto(`${base}${ruta}`, { waitUntil: 'networkidle' });
+    const respuesta = await abre(page, `${base}${ruta}`);
     return {
       texto: await textoVisible(page),
       importes: await importes(page),
@@ -139,6 +167,24 @@ export async function sinDesplazamientoHorizontal(page: Page): Promise<void> {
     return d.scrollWidth - d.clientWidth;
   });
   expect(desborde, 'la página se desplaza en horizontal').toBeLessThanOrEqual(1);
+}
+
+/**
+ * Baja hasta el fondo y espera a que se monte lo que estaba diferido.
+ *
+ * <p>Hace falta porque el porte difiere todo lo que está por debajo del pliegue —el pie, entre otras
+ * cosas— con `@defer (on viewport)`, y eso significa que hasta que no se baja, ese marcado NO EXISTE.
+ * Comparar sin bajar medía una pantalla con pie contra otra sin él, y el resultado dependía de cuál de
+ * las dos hubiera terminado antes: tres enlaces del pie aparecían como «objetivos que el original no
+ * tenía» en dos rutas, y al ir a mirarlos a mano no estaban en ninguna de las dos.
+ *
+ * <p>Se vuelve arriba al terminar para que la siguiente medida no dependa de dónde quedó la anterior.
+ */
+export async function bajaAlFondo(page: Page): Promise<void> {
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await page.waitForTimeout(1_200);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(300);
 }
 
 /**

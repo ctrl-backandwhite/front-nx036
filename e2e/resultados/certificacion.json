@@ -3126,7 +3126,7 @@
               ],
               "id": "de845cbe14aee7665233-f67031c922c0d44e33bd",
               "file": "paridad/movil.spec.ts",
-              "line": 20,
+              "line": 29,
               "column": 9
             },
             {
@@ -3146,7 +3146,7 @@
               ],
               "id": "de845cbe14aee7665233-12f512a3575024e2019f",
               "file": "paridad/movil.spec.ts",
-              "line": 20,
+              "line": 29,
               "column": 9
             },
             {
@@ -3166,7 +3166,7 @@
               ],
               "id": "de845cbe14aee7665233-4951a2372890c6105666",
               "file": "paridad/movil.spec.ts",
-              "line": 20,
+              "line": 29,
               "column": 9
             },
             {
@@ -3186,7 +3186,7 @@
               ],
               "id": "de845cbe14aee7665233-65e36ea9745c52f3d448",
               "file": "paridad/movil.spec.ts",
-              "line": 20,
+              "line": 29,
               "column": 9
             },
             {
@@ -3206,7 +3206,7 @@
               ],
               "id": "de845cbe14aee7665233-5bf6fb2e089cc37e59b5",
               "file": "paridad/movil.spec.ts",
-              "line": 20,
+              "line": 29,
               "column": 9
             },
             {
@@ -3226,7 +3226,7 @@
               ],
               "id": "de845cbe14aee7665233-7df9289da46ff4ceb2ee",
               "file": "paridad/movil.spec.ts",
-              "line": 20,
+              "line": 29,
               "column": 9
             },
             {
@@ -3246,7 +3246,7 @@
               ],
               "id": "de845cbe14aee7665233-e5564873061d20c54c5f",
               "file": "paridad/movil.spec.ts",
-              "line": 20,
+              "line": 29,
               "column": 9
             },
             {
@@ -3266,7 +3266,7 @@
               ],
               "id": "de845cbe14aee7665233-0dbe6e8bba6219948898",
               "file": "paridad/movil.spec.ts",
-              "line": 20,
+              "line": 29,
               "column": 9
             },
             {
@@ -3286,7 +3286,7 @@
               ],
               "id": "de845cbe14aee7665233-68b4759e7d7bd309ad0c",
               "file": "paridad/movil.spec.ts",
-              "line": 20,
+              "line": 29,
               "column": 9
             },
             {
@@ -3306,11 +3306,11 @@
               ],
               "id": "de845cbe14aee7665233-a49e891cc3d86d53472d",
               "file": "paridad/movil.spec.ts",
-              "line": 20,
+              "line": 29,
               "column": 9
             },
             {
-              "title": "/about se puede usar con el dedo",
+              "title": "/about no empeora lo que se puede pulsar",
               "ok": true,
               "tags": [],
               "tests": [
@@ -3324,13 +3324,13 @@
                   "status": "skipped"
                 }
               ],
-              "id": "de845cbe14aee7665233-7993bd23c21de4225324",
+              "id": "de845cbe14aee7665233-1d8ec496ebcbd495ed89",
               "file": "paridad/movil.spec.ts",
-              "line": 27,
+              "line": 36,
               "column": 9
             },
             {
-              "title": "/activate se puede usar con el dedo",
+              "title": "/activate no empeora lo que se puede pulsar",
               "ok": true,
               "tags": [],
               "tests": [
@@ -3344,13 +3344,13 @@
                   "status": "skipped"
                 }
               ],
-              "id": "de845cbe14aee7665233-a31989dac37bc14f794e",
+              "id": "de845cbe14aee7665233-11dacb2e5d5de551e265",
               "file": "paridad/movil.spec.ts",
-              "line": 27,
+              "line": 36,
               "column": 9
             },
             {
-              "title": "/connect se puede usar con el dedo",
+              "title": "/connect no empeora lo que se puede pulsar",
               "ok": true,
               "tags": [],
               "tests": [
@@ -3364,13 +3364,13 @@
                   "status": "skipped"
                 }
               ],
-              "id": "de845cbe14aee7665233-d337ef98f8b312b88cef",
+              "id": "de845cbe14aee7665233-8c7eed91e8b49d3e0ca9",
               "file": "paridad/movil.spec.ts",
-              "line": 27,
+              "line": 36,
               "column": 9
             },
             {
-              "title": "/contact se puede usar con el dedo",
+              "title": "/contact no empeora lo que se puede pulsar",
               "ok": true,
               "tags": [],
               "tests": [
@@ -3384,13 +3384,13 @@
                   "status": "skipped"
                 }
               ],
-              "id": "de845cbe14aee7665233-acd9221ffdf0bd01d942",
+              "id": "de845cbe14aee7665233-8a1953249c4c07c8308f",
               "file": "paridad/movil.spec.ts",
-              "line": 27,
+              "line": 36,
               "column": 9
             },
             {
-              "title": "/developers se puede usar con el dedo",
+              "title": "/developers no empeora lo que se puede pulsar",
               "ok": true,
               "tags": [],
               "tests": [
@@ -3404,13 +3404,13 @@
                   "status": "skipped"
                 }
               ],
-              "id": "de845cbe14aee7665233-5bd934d2a6cbaf338517",
+              "id": "de845cbe14aee7665233-c9bc32c43060b71ef39e",
               "file": "paridad/movil.spec.ts",
-              "line": 27,
+              "line": 36,
               "column": 9
             },
             {
-              "title": "/login se puede usar con el dedo",
+              "title": "/login no empeora lo que se puede pulsar",
               "ok": true,
               "tags": [],
               "tests": [
@@ -3424,13 +3424,13 @@
                   "status": "skipped"
                 }
               ],
-              "id": "de845cbe14aee7665233-a90505bc3575502de70a",
+              "id": "de845cbe14aee7665233-8e8daeb5ddda5a9fa3fe",
               "file": "paridad/movil.spec.ts",
-              "line": 27,
+              "line": 36,
               "column": 9
             },
             {
-              "title": "/newsletter/unsubscribe se puede usar con el dedo",
+              "title": "/newsletter/unsubscribe no empeora lo que se puede pulsar",
               "ok": true,
               "tags": [],
               "tests": [
@@ -3444,13 +3444,13 @@
                   "status": "skipped"
                 }
               ],
-              "id": "de845cbe14aee7665233-0b00075c9c840742049c",
+              "id": "de845cbe14aee7665233-3006758a8f70d0c861d2",
               "file": "paridad/movil.spec.ts",
-              "line": 27,
+              "line": 36,
               "column": 9
             },
             {
-              "title": "/password-reset se puede usar con el dedo",
+              "title": "/password-reset no empeora lo que se puede pulsar",
               "ok": true,
               "tags": [],
               "tests": [
@@ -3464,13 +3464,13 @@
                   "status": "skipped"
                 }
               ],
-              "id": "de845cbe14aee7665233-cdc32d6255fcf83e560a",
+              "id": "de845cbe14aee7665233-02afafa2c596d168fc5a",
               "file": "paridad/movil.spec.ts",
-              "line": 27,
+              "line": 36,
               "column": 9
             },
             {
-              "title": "/register se puede usar con el dedo",
+              "title": "/register no empeora lo que se puede pulsar",
               "ok": true,
               "tags": [],
               "tests": [
@@ -3484,13 +3484,13 @@
                   "status": "skipped"
                 }
               ],
-              "id": "de845cbe14aee7665233-3d13b77f1def792c158c",
+              "id": "de845cbe14aee7665233-cdbc0b421e3d92063cf5",
               "file": "paridad/movil.spec.ts",
-              "line": 27,
+              "line": 36,
               "column": 9
             },
             {
-              "title": "/status se puede usar con el dedo",
+              "title": "/status no empeora lo que se puede pulsar",
               "ok": true,
               "tags": [],
               "tests": [
@@ -3504,9 +3504,9 @@
                   "status": "skipped"
                 }
               ],
-              "id": "de845cbe14aee7665233-5c5da6c8c4c59d885cd6",
+              "id": "de845cbe14aee7665233-2fdd956cbe7a7428471b",
               "file": "paridad/movil.spec.ts",
-              "line": 27,
+              "line": 36,
               "column": 9
             },
             {
@@ -3526,7 +3526,7 @@
               ],
               "id": "de845cbe14aee7665233-94b131bcd6c68104906e",
               "file": "paridad/movil.spec.ts",
-              "line": 20,
+              "line": 29,
               "column": 9
             },
             {
@@ -3546,7 +3546,7 @@
               ],
               "id": "de845cbe14aee7665233-aad2bd731ec4bdbc7a45",
               "file": "paridad/movil.spec.ts",
-              "line": 20,
+              "line": 29,
               "column": 9
             },
             {
@@ -3566,7 +3566,7 @@
               ],
               "id": "de845cbe14aee7665233-99c7754eb2ec04874eed",
               "file": "paridad/movil.spec.ts",
-              "line": 20,
+              "line": 29,
               "column": 9
             },
             {
@@ -3586,7 +3586,7 @@
               ],
               "id": "de845cbe14aee7665233-cb1b1f9f1abda3051e34",
               "file": "paridad/movil.spec.ts",
-              "line": 20,
+              "line": 29,
               "column": 9
             },
             {
@@ -3606,7 +3606,7 @@
               ],
               "id": "de845cbe14aee7665233-24fd85497a5aea2b4f4c",
               "file": "paridad/movil.spec.ts",
-              "line": 20,
+              "line": 29,
               "column": 9
             },
             {
@@ -3626,7 +3626,7 @@
               ],
               "id": "de845cbe14aee7665233-f07b07fcdacafc48a4a9",
               "file": "paridad/movil.spec.ts",
-              "line": 20,
+              "line": 29,
               "column": 9
             },
             {
@@ -3646,7 +3646,7 @@
               ],
               "id": "de845cbe14aee7665233-b9f7d648fe2c887fc3a5",
               "file": "paridad/movil.spec.ts",
-              "line": 20,
+              "line": 29,
               "column": 9
             },
             {
@@ -3666,7 +3666,7 @@
               ],
               "id": "de845cbe14aee7665233-b979dcafb6dc29575726",
               "file": "paridad/movil.spec.ts",
-              "line": 20,
+              "line": 29,
               "column": 9
             },
             {
@@ -3686,7 +3686,7 @@
               ],
               "id": "de845cbe14aee7665233-288bdfc60ffbc3843253",
               "file": "paridad/movil.spec.ts",
-              "line": 20,
+              "line": 29,
               "column": 9
             },
             {
@@ -3706,11 +3706,11 @@
               ],
               "id": "de845cbe14aee7665233-dbd26b3820804aa385b2",
               "file": "paridad/movil.spec.ts",
-              "line": 20,
+              "line": 29,
               "column": 9
             },
             {
-              "title": "/about se puede usar con el dedo",
+              "title": "/about no empeora lo que se puede pulsar",
               "ok": true,
               "tags": [],
               "tests": [
@@ -3724,13 +3724,13 @@
                   "status": "skipped"
                 }
               ],
-              "id": "de845cbe14aee7665233-e3c9793da2b05d655b6b",
+              "id": "de845cbe14aee7665233-f1466435979e83d972a3",
               "file": "paridad/movil.spec.ts",
-              "line": 27,
+              "line": 36,
               "column": 9
             },
             {
-              "title": "/activate se puede usar con el dedo",
+              "title": "/activate no empeora lo que se puede pulsar",
               "ok": true,
               "tags": [],
               "tests": [
@@ -3744,13 +3744,13 @@
                   "status": "skipped"
                 }
               ],
-              "id": "de845cbe14aee7665233-66df11f84c67356e3a50",
+              "id": "de845cbe14aee7665233-f090571ba2c058d497e7",
               "file": "paridad/movil.spec.ts",
-              "line": 27,
+              "line": 36,
               "column": 9
             },
             {
-              "title": "/connect se puede usar con el dedo",
+              "title": "/connect no empeora lo que se puede pulsar",
               "ok": true,
               "tags": [],
               "tests": [
@@ -3764,13 +3764,13 @@
                   "status": "skipped"
                 }
               ],
-              "id": "de845cbe14aee7665233-a1398f28431c75b67617",
+              "id": "de845cbe14aee7665233-8374bf76502f5d2b14d1",
               "file": "paridad/movil.spec.ts",
-              "line": 27,
+              "line": 36,
               "column": 9
             },
             {
-              "title": "/contact se puede usar con el dedo",
+              "title": "/contact no empeora lo que se puede pulsar",
               "ok": true,
               "tags": [],
               "tests": [
@@ -3784,13 +3784,13 @@
                   "status": "skipped"
                 }
               ],
-              "id": "de845cbe14aee7665233-cfb4476b6ede050ddd01",
+              "id": "de845cbe14aee7665233-eabe742fb1e0de91c08a",
               "file": "paridad/movil.spec.ts",
-              "line": 27,
+              "line": 36,
               "column": 9
             },
             {
-              "title": "/developers se puede usar con el dedo",
+              "title": "/developers no empeora lo que se puede pulsar",
               "ok": true,
               "tags": [],
               "tests": [
@@ -3804,13 +3804,13 @@
                   "status": "skipped"
                 }
               ],
-              "id": "de845cbe14aee7665233-9e5a1671f606de6228b8",
+              "id": "de845cbe14aee7665233-7297f98fb87466a7055c",
               "file": "paridad/movil.spec.ts",
-              "line": 27,
+              "line": 36,
               "column": 9
             },
             {
-              "title": "/login se puede usar con el dedo",
+              "title": "/login no empeora lo que se puede pulsar",
               "ok": true,
               "tags": [],
               "tests": [
@@ -3824,13 +3824,13 @@
                   "status": "skipped"
                 }
               ],
-              "id": "de845cbe14aee7665233-244c942efb9ce561f08e",
+              "id": "de845cbe14aee7665233-aee44c12ea7d234e67e3",
               "file": "paridad/movil.spec.ts",
-              "line": 27,
+              "line": 36,
               "column": 9
             },
             {
-              "title": "/newsletter/unsubscribe se puede usar con el dedo",
+              "title": "/newsletter/unsubscribe no empeora lo que se puede pulsar",
               "ok": true,
               "tags": [],
               "tests": [
@@ -3844,13 +3844,13 @@
                   "status": "skipped"
                 }
               ],
-              "id": "de845cbe14aee7665233-7c177622057bf10bd3c3",
+              "id": "de845cbe14aee7665233-c6cfcd01165068ebe57c",
               "file": "paridad/movil.spec.ts",
-              "line": 27,
+              "line": 36,
               "column": 9
             },
             {
-              "title": "/password-reset se puede usar con el dedo",
+              "title": "/password-reset no empeora lo que se puede pulsar",
               "ok": true,
               "tags": [],
               "tests": [
@@ -3864,13 +3864,13 @@
                   "status": "skipped"
                 }
               ],
-              "id": "de845cbe14aee7665233-eb81e5fdb01b75a84f4a",
+              "id": "de845cbe14aee7665233-153088fed0f91f1d1094",
               "file": "paridad/movil.spec.ts",
-              "line": 27,
+              "line": 36,
               "column": 9
             },
             {
-              "title": "/register se puede usar con el dedo",
+              "title": "/register no empeora lo que se puede pulsar",
               "ok": true,
               "tags": [],
               "tests": [
@@ -3884,13 +3884,13 @@
                   "status": "skipped"
                 }
               ],
-              "id": "de845cbe14aee7665233-2d214035ea30dfa5d716",
+              "id": "de845cbe14aee7665233-c12e5abc6865847c4909",
               "file": "paridad/movil.spec.ts",
-              "line": 27,
+              "line": 36,
               "column": 9
             },
             {
-              "title": "/status se puede usar con el dedo",
+              "title": "/status no empeora lo que se puede pulsar",
               "ok": true,
               "tags": [],
               "tests": [
@@ -3904,9 +3904,9 @@
                   "status": "skipped"
                 }
               ],
-              "id": "de845cbe14aee7665233-6689997b24e35ef9f195",
+              "id": "de845cbe14aee7665233-a341c7bbfdd9bba964bb",
               "file": "paridad/movil.spec.ts",
-              "line": 27,
+              "line": 36,
               "column": 9
             }
           ]
@@ -4163,7 +4163,7 @@
               ],
               "id": "0a017c2f0ff114578de2-b2f6dadf07bb841f6490",
               "file": "paridad/prerenderizado.spec.ts",
-              "line": 56,
+              "line": 59,
               "column": 9
             },
             {
@@ -4183,7 +4183,7 @@
               ],
               "id": "0a017c2f0ff114578de2-f84e5ad6d2918b96b3fe",
               "file": "paridad/prerenderizado.spec.ts",
-              "line": 56,
+              "line": 59,
               "column": 9
             },
             {
@@ -4203,7 +4203,7 @@
               ],
               "id": "0a017c2f0ff114578de2-0e5aefb7ca034da4546b",
               "file": "paridad/prerenderizado.spec.ts",
-              "line": 56,
+              "line": 59,
               "column": 9
             },
             {
@@ -4223,7 +4223,7 @@
               ],
               "id": "0a017c2f0ff114578de2-1e5b323d099bb2d87349",
               "file": "paridad/prerenderizado.spec.ts",
-              "line": 56,
+              "line": 59,
               "column": 9
             },
             {
@@ -4243,7 +4243,7 @@
               ],
               "id": "0a017c2f0ff114578de2-fe1159dc8e946e8e7578",
               "file": "paridad/prerenderizado.spec.ts",
-              "line": 56,
+              "line": 59,
               "column": 9
             },
             {
@@ -4263,7 +4263,7 @@
               ],
               "id": "0a017c2f0ff114578de2-f40b8f7b9831be3e85ff",
               "file": "paridad/prerenderizado.spec.ts",
-              "line": 56,
+              "line": 59,
               "column": 9
             },
             {
@@ -4503,7 +4503,7 @@
               ],
               "id": "0a017c2f0ff114578de2-b9b9b6c1d98a47d8db9f",
               "file": "paridad/prerenderizado.spec.ts",
-              "line": 56,
+              "line": 59,
               "column": 9
             },
             {
@@ -4523,7 +4523,7 @@
               ],
               "id": "0a017c2f0ff114578de2-5c45d06e3b0b212371b7",
               "file": "paridad/prerenderizado.spec.ts",
-              "line": 56,
+              "line": 59,
               "column": 9
             },
             {
@@ -4543,7 +4543,7 @@
               ],
               "id": "0a017c2f0ff114578de2-0c4bfe9334ec40fd0e71",
               "file": "paridad/prerenderizado.spec.ts",
-              "line": 56,
+              "line": 59,
               "column": 9
             },
             {
@@ -4563,7 +4563,7 @@
               ],
               "id": "0a017c2f0ff114578de2-6fac01bf40a101efffc4",
               "file": "paridad/prerenderizado.spec.ts",
-              "line": 56,
+              "line": 59,
               "column": 9
             },
             {
@@ -4583,7 +4583,7 @@
               ],
               "id": "0a017c2f0ff114578de2-af559fbec5e2c0d3695d",
               "file": "paridad/prerenderizado.spec.ts",
-              "line": 56,
+              "line": 59,
               "column": 9
             },
             {
@@ -4603,7 +4603,7 @@
               ],
               "id": "0a017c2f0ff114578de2-26e89c1c48f9377c0032",
               "file": "paridad/prerenderizado.spec.ts",
-              "line": 56,
+              "line": 59,
               "column": 9
             }
           ]
@@ -8327,8 +8327,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-09-06T12:21:12.682Z",
-    "duration": 94.976,
+    "startTime": "2026-09-06T13:26:33.337Z",
+    "duration": 389.65100000000007,
     "expected": 0,
     "skipped": 406,
     "unexpected": 0,

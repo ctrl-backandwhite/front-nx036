@@ -253,7 +253,7 @@ const RUTA_DE_FICHA = /^\/(catalog|admin\/browse)\/[^/]+$/;
 
       <!-- El hueco para la barra de pestañas lo reserva el PIE, que va siempre debajo y en móvil lleva
            «pb-24». Reservarlo también aquí dejaba una franja en blanco entre el contenido y el pie. -->
-      <main class="flex-1 max-w-screen-2xl w-full mx-auto px-4 lg:px-6 py-6 lg:py-10">
+      <main class="flex-1 min-w-0 max-w-screen-2xl w-full mx-auto px-4 lg:px-6 py-6 lg:py-10">
         @if (conMigas()) {
           <nx-migas />
         }

@@ -1,5 +1,5 @@
 import { Page, expect, test } from '@playwright/test';
-import { ANGULAR, REACT } from '../util/comparador';
+import { ANGULAR, REACT, abre } from '../util/comparador';
 
 /**
  * Certificación COSMÉTICA: que se vea igual, no solo que diga lo mismo.
@@ -99,10 +99,10 @@ const PANTALLAS = ['/', '/about', '/contact', '/login', '/register', '/status'];
 
 test.describe('paridad cosmética', () => {
   test('el tema resuelve los mismos valores en las dos aplicaciones', async ({ page }) => {
-    await page.goto(`${REACT}/`, { waitUntil: 'networkidle' });
+    await abre(page, `${REACT}/`);
     const enReact = await tokensDelTema(page);
 
-    await page.goto(`${ANGULAR}/`, { waitUntil: 'networkidle' });
+    await abre(page, `${ANGULAR}/`);
     const enAngular = await tokensDelTema(page);
 
     // Comparación entera y de una vez: así el informe enseña TODAS las diferencias, no solo la primera.
@@ -111,10 +111,10 @@ test.describe('paridad cosmética', () => {
 
   for (const ruta of PANTALLAS) {
     test(`${ruta} se pinta igual`, async ({ page }) => {
-      await page.goto(`${REACT}${ruta}`, { waitUntil: 'networkidle' });
+      await abre(page, `${REACT}${ruta}`);
       const enReact = await aspectoResuelto(page);
 
-      await page.goto(`${ANGULAR}${ruta}`, { waitUntil: 'networkidle' });
+      await abre(page, `${ANGULAR}${ruta}`);
       const enAngular = await aspectoResuelto(page);
 
       /* El criterio es de CONTENCIÓN, no de igualdad: ningún valor que pinte el Angular puede estar
@@ -151,10 +151,10 @@ test.describe('paridad cosmética', () => {
   test('el tema oscuro cambia la paleta en las dos', async ({ page }) => {
     await page.emulateMedia({ colorScheme: 'dark' });
 
-    await page.goto(`${REACT}/`, { waitUntil: 'networkidle' });
+    await abre(page, `${REACT}/`);
     const claroReact = await tokensDelTema(page);
 
-    await page.goto(`${ANGULAR}/`, { waitUntil: 'networkidle' });
+    await abre(page, `${ANGULAR}/`);
     const claroAngular = await tokensDelTema(page);
 
     expect(claroAngular, 'el tema oscuro no resuelve igual').toEqual(claroReact);
@@ -168,7 +168,7 @@ test.describe('paridad cosmética', () => {
     test(`captura de ${ruta}`, async ({ page }, info) => {
       const nombre = ruta === '/' ? 'portada' : ruta.replace(/\//g, '');
       for (const [etiqueta, base] of [['react', REACT], ['angular', ANGULAR]] as const) {
-        await page.goto(`${base}${ruta}`, { waitUntil: 'networkidle' });
+        await abre(page, `${base}${ruta}`);
         await info.attach(`${nombre}-${etiqueta}-${info.project.name}`, {
           body: await page.screenshot({ fullPage: true }),
           contentType: 'image/png',

@@ -37,9 +37,9 @@ test.describe('paridad de contenido', () => {
       const encabezados = async () =>
         (await page.locator('h1, h2').allInnerTexts()).map((s) => s.replace(/\s+/g, ' ').trim()).filter(Boolean).sort();
 
-      await page.goto(`${REACT}${ruta}`, { waitUntil: 'networkidle' });
+      await abre(page, `${REACT}${ruta}`);
       const enReact = await encabezados();
-      await page.goto(`${ANGULAR}${ruta}`, { waitUntil: 'networkidle' });
+      await abre(page, `${ANGULAR}${ruta}`);
       const enAngular = await encabezados();
 
       const faltan = enReact.filter((h) => !enAngular.includes(h));
@@ -86,7 +86,7 @@ test.describe('paridad de contenido', () => {
       ]);
       const encontradas: string[] = [];
       for (const ruta of RUTAS_PUBLICAS.filter(sinParametro)) {
-        await page.goto(`${ANGULAR}${ruta}`, { waitUntil: 'networkidle' });
+        await abre(page, `${ANGULAR}${ruta}`);
         for (const clave of await clavesSinTraducir(page, CLAVES_CONOCIDAS)) {
           encontradas.push(`${ruta} → ${clave}`);
         }
@@ -106,7 +106,7 @@ test.describe('paridad de contenido', () => {
       { name: 'nx036-locale', value: 'es', url: ANGULAR },
       { name: 'nx036-currency', value: 'EUR', url: ANGULAR },
     ]);
-    await page.goto(`${ANGULAR}/pricing`, { waitUntil: 'networkidle' });
+    await abre(page, `${ANGULAR}/pricing`);
 
     for (const importe of await importes(page)) {
       expect(importe, `«${importe}» está escrito a la anglosajona en un idioma que no lo es`)
@@ -116,7 +116,7 @@ test.describe('paridad de contenido', () => {
 
   test('el tema oscuro no deja texto ilegible', async ({ page }) => {
     await page.emulateMedia({ colorScheme: 'dark' });
-    await page.goto(`${ANGULAR}/`, { waitUntil: 'networkidle' });
+    await abre(page, `${ANGULAR}/`);
 
     // Ya hubo dos incidencias de contraste por esto: texto del color del fondo sobre el que se pinta.
     const invisibles = await page.evaluate(() => {

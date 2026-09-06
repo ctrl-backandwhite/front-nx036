@@ -1,5 +1,12 @@
 import { expect, test } from '@playwright/test';
-import { ANGULAR, REACT, objetivosTactilesPequenos, sinDesplazamientoHorizontal } from '../util/comparador';
+import {
+  ANGULAR,
+  REACT,
+  bajaAlFondo,
+  objetivosTactilesPequenos,
+  sinDesplazamientoHorizontal,
+  abre,
+} from '../util/comparador';
 import { RUTAS_PUBLICAS } from '../util/rutas';
 
 /**
@@ -27,7 +34,10 @@ test.describe('la web en el móvil', () => {
 
   for (const ruta of RUTAS_PUBLICAS.filter(sinParametro)) {
     test(`${ruta} cabe en la pantalla sin desplazarse en horizontal`, async ({ page }) => {
-      await page.goto(`${ANGULAR}${ruta}`, { waitUntil: 'networkidle' });
+      await abre(page, `${ANGULAR}${ruta}`);
+      // Se baja antes de medir: lo que está diferido no existe hasta que entra en pantalla, y un
+      // desborde del pie no se vería.
+      await bajaAlFondo(page);
       await sinDesplazamientoHorizontal(page);
     });
   }
@@ -44,10 +54,12 @@ test.describe('la web en el móvil', () => {
       // altura lo convertía en «un objetivo nuevo» y llenaba el informe de falsos positivos.
       const soloElNombre = (x: string) => x.replace(/\s*\(\d+×\d+\)$/, '');
 
-      await page.goto(`${REACT}${ruta}`, { waitUntil: 'networkidle' });
+      await abre(page, `${REACT}${ruta}`);
+      await bajaAlFondo(page);
       const enReact = new Set((await objetivosTactilesPequenos(page)).map(soloElNombre));
 
-      await page.goto(`${ANGULAR}${ruta}`, { waitUntil: 'networkidle' });
+      await abre(page, `${ANGULAR}${ruta}`);
+      await bajaAlFondo(page);
       const nuevos = (await objetivosTactilesPequenos(page)).filter((x) => !enReact.has(soloElNombre(x)));
 
       expect(nuevos, `objetivos difíciles de pulsar que el original no tenía: ${nuevos.slice(0, 4).join(' · ')}`)

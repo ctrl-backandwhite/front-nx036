@@ -1,5 +1,5 @@
 import { Page, expect, test } from '@playwright/test';
-import { ANGULAR, REACT } from '../util/comparador';
+import { ANGULAR, REACT, abre } from '../util/comparador';
 
 /**
  * Certificación con SESIÓN, recorriendo la aplicación como lo haría una persona.
@@ -82,7 +82,7 @@ for (const front of FRONTS) {
 
     test('el catálogo enseña productos de verdad', async ({ page }) => {
       await entra(page, front.base, CLIENTE);
-      await page.goto(`${front.base}/catalog`, { waitUntil: 'networkidle' });
+      await abre(page, `${front.base}/catalog`);
 
       const texto = await page.locator('body').innerText();
       expect(texto.length, 'el catálogo llega vacío').toBeGreaterThan(500);
@@ -100,7 +100,7 @@ for (const front of FRONTS) {
       test.skip(!slug, 'la base local no tiene productos: no se puede certificar la ficha');
 
       await entra(page, front.base, CLIENTE);
-      await page.goto(`${front.base}/catalog/${slug}`, { waitUntil: 'networkidle' });
+      await abre(page, `${front.base}/catalog/${slug}`);
 
       const texto = await page.locator('body').innerText();
       expect(texto.length, 'la ficha llega vacía').toBeGreaterThan(500);
@@ -117,7 +117,7 @@ for (const front of FRONTS) {
         page.on('pageerror', (e) => errores.push(e.message));
 
         await entra(page, front.base, CLIENTE);
-        await page.goto(`${front.base}${ruta}`, { waitUntil: 'networkidle' });
+        await abre(page, `${front.base}${ruta}`);
 
         expect(new URL(page.url()).pathname, `${ruta} rebota a la pantalla de acceso con sesión abierta`)
           .not.toBe('/login');
@@ -128,13 +128,13 @@ for (const front of FRONTS) {
     }
 
     test('sin sesión, la zona de cliente manda a la pantalla de acceso', async ({ page }) => {
-      await page.goto(`${front.base}/orders`, { waitUntil: 'networkidle' });
+      await abre(page, `${front.base}/orders`);
       expect(page.url(), 'deja ver los pedidos sin haber entrado').toContain('/login');
     });
 
     test('el panel abre con la cuenta de administración', async ({ page }) => {
       await entra(page, front.base, ADMIN);
-      await page.goto(`${front.base}/admin`, { waitUntil: 'networkidle' });
+      await abre(page, `${front.base}/admin`);
 
       expect(new URL(page.url()).pathname, 'el panel rebota con una cuenta de administración')
         .not.toBe('/login');
@@ -144,7 +144,7 @@ for (const front of FRONTS) {
 
     test('el panel NO abre con una cuenta de cliente', async ({ page }) => {
       await entra(page, front.base, CLIENTE);
-      await page.goto(`${front.base}/admin`, { waitUntil: 'networkidle' });
+      await abre(page, `${front.base}/admin`);
 
       // Da igual adónde le mande —cada front elige— mientras no le enseñe el panel.
       const texto = await page.locator('body').innerText();
