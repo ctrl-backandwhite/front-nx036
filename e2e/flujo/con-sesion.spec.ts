@@ -1,4 +1,4 @@
-import { Page, expect, test } from '@playwright/test';
+import { BrowserContext, Page, expect, test } from '@playwright/test';
 import { ANGULAR, REACT, abre } from '../util/comparador';
 
 /**
@@ -50,13 +50,56 @@ const FRONTS = [
 ] as const;
 
 /**
+ * Sesiones ya abiertas, guardadas para no volver a pedirlas.
+ *
+ * <p>El backend LIMITA los accesos: a partir del undécimo en poco rato responde 429 y la pantalla se
+ * queda donde está. Es una protección correcta contra la fuerza bruta, pero esta batería entraba por el
+ * formulario en cada una de sus casi treinta pruebas, así que de la mitad en adelante lo que medía era
+ * el limitador. Aparecía como pruebas distintas cada vez, con un tiempo agotado de treinta segundos que
+ * no mencionaba el 429 por ninguna parte, y se venía atribuyendo a «carga de la máquina».
+ *
+ * <p>Ahora se entra UNA vez por cada front y cuenta —cuatro veces en toda la tanda— y las demás pruebas
+ * reciben esa sesión ya hecha. La prueba que certifica el formulario en sí pide expresamente entrar de
+ * verdad, que para eso está.
+ */
+type Cookies = Awaited<ReturnType<BrowserContext['storageState']>>['cookies'];
+
+const sesiones = new Map<string, { cookies: Cookies; almacen: Record<string, string> }>();
+
+/**
  * Abre sesión por la pantalla de acceso, no por la API.
  *
  * <p>Es deliberado y cuesta unos segundos más: entrar por la API certificaría el backend, que no es lo
  * que se está portando. Lo que hay que comprobar es que el formulario recoge las credenciales, las
  * manda, guarda la sesión y lleva a donde toca — que son cuatro cosas que se pueden romper por separado.
+ * Por eso la primera vez SIEMPRE se entra de verdad: lo que se reutiliza después es su resultado.
  */
-async function entra(page: Page, base: string, cuenta: { correo: string; clave: string }): Promise<void> {
+async function entra(
+  page: Page,
+  base: string,
+  cuenta: { correo: string; clave: string },
+  opciones: { siempreDeVerdad?: boolean } = {},
+): Promise<void> {
+  const clave = `${base}|${cuenta.correo}`;
+  const guardada = sesiones.get(clave);
+
+  if (guardada && !opciones.siempreDeVerdad) {
+    await page.context().addCookies(guardada.cookies);
+    // El almacén local se repone ANTES de que arranque la aplicación: si se hiciera después, ya habría
+    // decidido que no hay sesión.
+    await page.addInitScript((entradas: Record<string, string>) => {
+      for (const [k, v] of Object.entries(entradas)) {
+        try {
+          localStorage.setItem(k, v);
+        } catch {
+          /* una ventana privada puede negarse: la prueba lo dirá por otro sitio */
+        }
+      }
+    }, guardada.almacen);
+    await page.goto(`${base}/`, { waitUntil: 'domcontentloaded' });
+    return;
+  }
+
   await page.goto(`${base}/login`, { waitUntil: 'domcontentloaded' });
 
   // Los dos frontends etiquetan igual los campos, pero no comparten marcado: se busca por tipo, que es
@@ -68,12 +111,22 @@ async function entra(page: Page, base: string, cuenta: { correo: string; clave: 
   // La entrada termina cuando la dirección deja de ser la de acceso. Se espera a eso y no a un texto
   // concreto: el destino depende del papel de la cuenta.
   await page.waitForURL((url) => !url.pathname.startsWith('/login'), { timeout: 30_000 });
+
+  const estado = await page.context().storageState();
+  const almacen: Record<string, string> = {};
+  for (const origen of estado.origins) {
+    for (const par of origen.localStorage) {
+      almacen[par.name] = par.value;
+    }
+  }
+  sesiones.set(clave, { cookies: estado.cookies, almacen });
 }
 
 for (const front of FRONTS) {
   test.describe(`${front.nombre} · recorrido con sesión`, () => {
     test('entra con la cuenta de cliente y llega a su zona', async ({ page }) => {
-      await entra(page, front.base, CLIENTE);
+      // Esta es LA prueba del formulario: aquí no vale una sesión reutilizada.
+      await entra(page, front.base, CLIENTE, { siempreDeVerdad: true });
 
       // A quien no es personal interno se le lleva al catálogo, que es su zona de trabajo.
       expect(new URL(page.url()).pathname).not.toBe('/login');
@@ -127,9 +180,26 @@ for (const front of FRONTS) {
       });
     }
 
-    test('sin sesión, la zona de cliente manda a la pantalla de acceso', async ({ page }) => {
+    test('sin sesión, la zona de cliente no enseña nada de nadie', async ({ page }) => {
       await abre(page, `${front.base}/orders`);
-      expect(page.url(), 'deja ver los pedidos sin haber entrado').toContain('/login');
+
+      /* Lo que se exige a los DOS es que no se vean pedidos. Lo que hacen después difiere, y el porte
+       * hace lo correcto:
+       *
+       * el front anterior se queda en /orders enseñando «CARGANDO…» PARA SIEMPRE. No hay fuga —los
+       * datos no llegan, el backend los niega— pero quien entre por un enlace guardado se queda mirando
+       * un cargador eterno sin enterarse de que tiene que identificarse. Pasa igual en /wallet, /profile
+       * y /admin.
+       *
+       * El porte manda a la pantalla de acceso, que es lo que hay que hacer. Exigir aquí paridad
+       * obligaría a copiar el defecto, así que se comprueba lo que importa en ambos y, además, que el
+       * porte rebota. */
+      const texto = await page.locator('body').innerText();
+      expect(texto, 'enseña pedidos sin haber entrado').not.toMatch(/pedido n[.º]|nº de pedido|order #/i);
+
+      if (front.nombre === 'Angular') {
+        expect(page.url(), 'no manda a la pantalla de acceso').toContain('/login');
+      }
     });
 
     test('el panel abre con la cuenta de administración', async ({ page }) => {

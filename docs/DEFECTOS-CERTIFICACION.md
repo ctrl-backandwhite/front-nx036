@@ -89,6 +89,16 @@ tiene que ejecutar la aplicación**.
 
 El porte pasa a descargar menos que el original en las cuatro.
 
+## B ter. Defectos encontrados en el front ACTUAL (no en el porte)
+
+La certificación compara contra la aplicación que se está reemplazando, así que cuando la que falla es
+ella, el hallazgo es sobre lo que hoy está en producción. Aquí no se ha tocado nada: se deja escrito.
+
+| # | Qué pasa | Cómo se vio |
+|---|---|---|
+| R-1 | **Sin sesión, `/orders`, `/wallet`, `/profile` y `/admin` se quedan en «CARGANDO…» para siempre.** No rebotan a la pantalla de acceso. No hay fuga de datos —el backend los niega— pero quien entra por un enlace guardado se queda mirando un cargador eterno sin enterarse de que tiene que identificarse | El porte sí rebota. Se exigía paridad y saltaba en rojo; replicarlo habría sido copiar el defecto |
+| R-2 | **Al rebotar al acceso desde una zona privada, pide `/login.data` en bucle.** La red no queda en reposo nunca | Reventó seis pruebas que esperaban a que la red se calmara, agotando 60 s cada una |
+
 ## C. Pendiente de decisión del titular
 
 1. **H-1**, arriba.

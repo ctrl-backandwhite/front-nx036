@@ -2,11 +2,16 @@ import { TestBed } from '@angular/core/testing';
 import { DOCUMENT } from '@angular/core';
 import { StripeAdapter } from './stripe.adapter';
 
-/** La pasarela real no se carga en una prueba: se sustituye la biblioteca entera. */
 const cargar = vi.fn();
 const confirmar = vi.fn();
 
-vi.mock('@stripe/stripe-js', () => ({
+/* Se dobla `@stripe/stripe-js/pure`, que es de donde el adaptador importa `loadStripe`.
+ *
+ * Doblar el módulo principal —que es lo que había— dejó de interceptar nada en cuanto el adaptador
+ * pasó a la entrada `/pure` para no cargar Stripe en páginas donde no hay nada que pagar. La prueba
+ * llamaba a la biblioteca DE VERDAD, que se ponía a descargar la pasarela y agotaba los cinco segundos
+ * de plazo: ocho pruebas en rojo con un mensaje de tiempo agotado que no mencionaba a Stripe. */
+vi.mock('@stripe/stripe-js/pure', () => ({
   loadStripe: (clave: string) => cargar(clave),
 }));
 
