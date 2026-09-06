@@ -151,6 +151,49 @@ El porte está certificado cuando:
 
 ---
 
+## Resultado de la certificación — 7 de septiembre de 2026
+
+Contra la **pasarela real** (nginx con la configuración que se despliega), con el build optimizado y
+precomprimido. Las dos anchuras. 582 comprobaciones lanzadas.
+
+| | |
+|---|---|
+| **Pasadas** | **561** |
+| Fallidas | **0** |
+| Inestables | 1, del front anterior (su botón de acceso no llega a estar quieto) |
+| Saltadas | 20, justificadas abajo |
+| Duración | 30,8 min |
+
+Y aparte: **2.885 pruebas unitarias** en 321 ficheros, `ng lint` limpio, 32 rutas prerenderizadas.
+
+### Qué cubre ahora que antes no
+
+- **El panel de administración entero**: 40 pantallas × 2 anchuras × 2 aplicaciones. Era la mitad de la
+  aplicación y no la miraba ninguna prueba.
+- **La maqueta**: cuántas piezas de cada tipo hay y cuánto ocupan las grandes. Es lo que la certificación
+  cosmética no miraba, y por eso daba verde con los filtros del catálogo convertidos en desplegables
+  nativos, el panel del acceso a media pantalla y dos secciones ausentes de la portada.
+
+### Rendimiento, medido en frío a 412 px y con todo comprimido
+
+| Ruta | Front anterior | Porte |
+|---|---|---|
+| Portada | 664 ms al primer pintado | **148 ms** |
+| `/about` | 1.504 kB · 336 ms | **583 kB** · **164 ms** |
+| `/pricing` | 1.662 kB · 400 ms | **499 kB** · **108 ms** |
+| `/contact` | 1.545 kB · 660 ms | **498 kB** · **140 ms** |
+
+Gana en las cuatro, en bytes y en tiempo hasta ver algo. Dos cambios explican casi todo: **la pasarela
+no comprimía nada** (la hoja de estilos viajaba entera, 264 kB) y **el porte cargaba Stripe en páginas
+públicas**, más de 1 MB, donde el original no pide nada.
+
+### Las 20 saltadas
+
+| Cuántas | Qué | Por qué |
+|---|---|---|
+| 19 | Comprobaciones de móvil | Solo aplican a esa anchura; en la pasada de escritorio se saltan a propósito |
+| 1 | Ficha de producto con sesión | Se salta solo si la base local no tiene productos |
+
 ## Resultado de la certificación de cierre — 6 de septiembre de 2026
 
 Construido con optimización (`--optimization --source-map=false --output-hashing=all`) contra el mismo
