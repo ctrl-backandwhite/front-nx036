@@ -121,7 +121,7 @@ describe('PerfilPage', () => {
   /** Abre el alta del segundo factor y llega hasta la ventana de los códigos de respaldo. */
   async function hastaLosCodigos(): Promise<void> {
     await userEvent.click(await screen.findByRole('switch'));
-    await userEvent.type(await screen.findByLabelText(/codigo de 6 digitos/), '123456');
+    await userEvent.type(await screen.findByLabelText(/c[oó]digo de 6 d[ií]gitos/), '123456');
     await userEvent.click(screen.getByText('Activar', boton));
   }
 

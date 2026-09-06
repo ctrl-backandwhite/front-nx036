@@ -82,7 +82,7 @@ describe('BarraDeFiltros', () => {
         categorias: [
           { id: 'c1', slug: 'gorros', nombre: 'Gorros', posicion: 0, cuantosProductos: 3, hijas: [] },
         ],
-        proveedores: [{ id: 's1', slug: 'p', nombre: 'Proveedor' }],
+        proveedores: [{ id: 's1', slug: 'p', nombre: 'Textiles del Sur' }],
         esAdministrador,
       },
     });
@@ -92,7 +92,7 @@ describe('BarraDeFiltros', () => {
   it('ofrece las categorías y los proveedores que recibe', async () => {
     await monta();
     expect(screen.getByText('Gorros')).toBeInTheDocument();
-    expect(screen.getByText('Proveedor')).toBeInTheDocument();
+    expect(screen.getByText('Textiles del Sur')).toBeInTheDocument();
   });
 
   /** El backend lo ignora si no es administrador: ofrecerlo sería un control que no hace nada. */
@@ -105,7 +105,7 @@ describe('BarraDeFiltros', () => {
         categorias: [
           { id: 'c1', slug: 'gorros', nombre: 'Gorros', posicion: 0, cuantosProductos: 3, hijas: [] },
         ],
-        proveedores: [{ id: 's1', slug: 'p', nombre: 'Proveedor' }],
+        proveedores: [{ id: 's1', slug: 'p', nombre: 'Textiles del Sur' }],
         esAdministrador: true,
       },
     });

@@ -164,7 +164,7 @@ describe('TablaAtributos', () => {
   /** Mezclarlos con las especificaciones duplicaba filas en dos idiomas. */
   it('los atributos del proveedor son solo el respaldo', async () => {
     await monta(ficha({ atributos: { season: 'all_season' } }), async () => exito([]));
-    expect(screen.getByText(/All seasons|all_season/)).toBeInTheDocument();
+    expect(screen.getByText(/All seasons|Todo el año|all_season/)).toBeInTheDocument();
   });
 
   it('añade los básicos sin pisar lo que ya viene', async () => {

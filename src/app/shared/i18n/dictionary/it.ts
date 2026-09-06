@@ -2809,7 +2809,7 @@ const diccionario: Record<string, string> = {
   'admin.profile.2fa.scan_body': 'Usa Google Authenticator, 1Password o Authy. Se non puoi scansionare, copia il segreto manualmente.',
   'admin.profile.2fa.otp_label': 'Inserisci il codice a 6 cifre della tua app',
   'admin.profile.2fa.backup_title': 'Salva i tuoi codici di backup',
-  'admin.profile.2fa.backup_body': 'Ogni codice puo essere usato una volta in caso di perdita dell\'autenticatore. Conservali in luogo sicuro.',
+  'admin.profile.2fa.backup_body': 'Ogni codice può essere usato una volta in caso di perdita dell\'autenticatore. Conservali in luogo sicuro.',
   'admin.profile.2fa.copy': 'Copia',
   'admin.profile.2fa.disable_title': 'Disattiva autenticazione a due fattori',
   'admin.profile.2fa.disable_body': 'Inserisci la password attuale per confermare.',
@@ -2924,7 +2924,7 @@ const diccionario: Record<string, string> = {
   'checkout.card_holder': 'Intestatario carta',
   'checkout.card_secure_note': 'Form di test — nessun dato di carta inviato in questa anteprima.',
   'sourcing.delete_title': 'Eliminare la richiesta di sourcing?',
-  'sourcing.delete_confirm': 'Eliminare questa richiesta? Questa azione non puo essere annullata.',
+  'sourcing.delete_confirm': 'Eliminare questa richiesta? Questa azione non può essere annullata.',
   'admin.profile.saved_ok': 'Profilo salvato.',
   'admin.profile.save_failed': 'Impossibile salvare il profilo.',
 };
