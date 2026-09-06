@@ -20,16 +20,31 @@ interface Medida {
   contenidoPrincipal: number;
 }
 
+/**
+ * Cuenta lo que de verdad viaja por la red.
+ *
+ * <p>La primera versión sumaba la cabecera `content-length` y descartaba lo que no la trae. Eso no es
+ * un detalle: el front anterior sirve comprimido y en trozos, sin esa cabecera, así que casi ninguna
+ * de sus respuestas se contaba. Salía con 43 kB en una pantalla que descarga 1,5 MB, y el porte
+ * aparecía como si pesara doce veces más. El sesgo iba justo en contra de lo que se está certificando.
+ *
+ * <p>`sizes().responseBodySize` es lo TRANSFERIDO —comprimido, que es lo que paga quien navega— y
+ * existe para todas las respuestas. `body()` no vale aquí: devuelve el contenido ya descomprimido, y
+ * entonces la compresión no se notaría en la medida.
+ */
 async function mide(page: import('@playwright/test').Page, url: string): Promise<Medida> {
   let bytes = 0;
   let peticiones = 0;
-  page.on('response', async (r) => {
+  const cuenta = async (r: import('@playwright/test').Response) => {
     peticiones += 1;
-    const largo = r.headers()['content-length'];
-    if (largo) {
-      bytes += Number(largo);
+    try {
+      const tam = await r.request().sizes();
+      bytes += tam.responseBodySize + tam.responseHeadersSize;
+    } catch {
+      /* una respuesta cancelada no tiene tamaño; no cuenta */
     }
-  });
+  };
+  page.on('response', cuenta);
 
   await abre(page, url);
 
@@ -41,6 +56,10 @@ async function mide(page: import('@playwright/test').Page, url: string): Promise
       .at(-1)?.startTime ?? primero;
     return { primero, principal };
   });
+
+  // Se retira el escuchador. Si se acumulan, la segunda medida de un mismo test sigue alimentando el
+  // contador de la primera y el número deja de significar nada.
+  page.off('response', cuenta);
 
   return {
     bytes,

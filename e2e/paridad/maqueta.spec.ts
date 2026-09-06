@@ -1,5 +1,5 @@
 import { Page, expect, test } from '@playwright/test';
-import { ANGULAR, REACT, abre, bajaAlFondo } from '../util/comparador';
+import { ANGULAR, REACT, abre, bajaAlFondo, descartaElAvisoDeGalletas } from '../util/comparador';
 
 /**
  * Paridad de MAQUETA: que las piezas sean las mismas y ocupen lo mismo.
@@ -42,6 +42,19 @@ async function inventario(page: Page): Promise<Record<string, number>> {
   });
 }
 
+/** Los textos de los titulares visibles, para comprobar que no falta ninguno. */
+async function titulares(page: Page): Promise<string[]> {
+  return page.evaluate(() =>
+    Array.from(document.querySelectorAll('h1, h2, h3'))
+      .filter((e) => {
+        const c = e.getBoundingClientRect();
+        return c.width > 0 && c.height > 0;
+      })
+      .map((e) => (e.textContent ?? '').replace(/\s+/g, ' ').trim())
+      .filter(Boolean),
+  );
+}
+
 /**
  * El ancho de los contenedores grandes, en franjas.
  *
@@ -77,12 +90,16 @@ test.describe('paridad de maqueta', () => {
   for (const ruta of PANTALLAS) {
     test(`${ruta} tiene las mismas piezas`, async ({ page }) => {
       await abre(page, `${REACT}${ruta}`);
+      await descartaElAvisoDeGalletas(page);
       await bajaAlFondo(page);
       const enReact = await inventario(page);
+      const enReactTitulares = await titulares(page);
 
       await abre(page, `${ANGULAR}${ruta}`);
+      await descartaElAvisoDeGalletas(page);
       await bajaAlFondo(page);
       const enAngular = await inventario(page);
+      const enAngularTitulares = await titulares(page);
 
       /* Se admite una diferencia pequeña en las piezas que dependen de los datos —una fila más de
        * catálogo, un enlace más en una lista— pero NO en los controles de formulario: ahí un
@@ -96,7 +113,20 @@ test.describe('paridad de maqueta', () => {
         ).toBe(enReact[pieza]);
       }
 
-      const tolerantes = ['campos de texto', 'botones', 'titulares'];
+      /* En los titulares NO se compara la cantidad, sino que no FALTE ninguno.
+       *
+       * Contar salía mal por los dos lados. La documentación tiene veintitantos titulares y el porte
+       * marca como `h2` alguno que el original marca como `h3`: cinco de diferencia y ni un texto de
+       * menos. Eso es una diferencia de jerarquía —anotada como defecto aparte— pero no es contenido
+       * que falte, que es lo que esta batería vigila. Y al revés: dos aplicaciones podrían tener el
+       * mismo número de titulares diciendo cosas distintas.
+       *
+       * Lo que sí es un defecto es que un titular del original no esté en el porte. */
+      const faltan = enReactTitulares.filter((x) => !enAngularTitulares.includes(x));
+      expect(faltan, `${ruta}: titulares del front anterior que no están: ${faltan.slice(0, 4).join(' · ')}`)
+        .toEqual([]);
+
+      const tolerantes = ['campos de texto', 'botones'];
       for (const pieza of tolerantes) {
         const diferencia = Math.abs(enAngular[pieza] - enReact[pieza]);
         expect(
@@ -110,9 +140,11 @@ test.describe('paridad de maqueta', () => {
   for (const ruta of PANTALLAS) {
     test(`${ruta} reparte el espacio igual`, async ({ page }) => {
       await abre(page, `${REACT}${ruta}`);
+      await descartaElAvisoDeGalletas(page);
       const enReact = await franjas(page);
 
       await abre(page, `${ANGULAR}${ruta}`);
+      await descartaElAvisoDeGalletas(page);
       const enAngular = await franjas(page);
 
       /* Se comparan los CONJUNTOS de franjas, no la lista ordenada: el orden del marcado no coincide

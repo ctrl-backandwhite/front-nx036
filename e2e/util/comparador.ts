@@ -183,6 +183,47 @@ export async function sinDesplazamientoHorizontal(page: Page): Promise<void> {
 }
 
 /**
+ * Descarta el aviso de galletas si está puesto.
+ *
+ * <p>Hace falta para que las dos aplicaciones se cuenten en el mismo estado. El aviso trae TRES
+ * botones —aceptar, rechazar y personalizar— y una capa que tapa la pantalla, y la decisión se guarda
+ * por origen: en cuanto una de las dos lo tiene aceptado y la otra no, el recuento de piezas difiere
+ * en tres y aparece como un defecto de porte que no existe. Además su capa intercepta los clics, así
+ * que sin descartarlo no se puede pulsar nada de la página.
+ *
+ * <p>Se acepta en vez de rechazar porque es lo que hace la mayoría y deja la pantalla en el estado
+ * normal de uso.
+ */
+export async function descartaElAvisoDeGalletas(page: Page): Promise<void> {
+  const boton = page.getByRole('button', { name: /aceptar todas|accept all|aceitar todas/i }).first();
+  if (await boton.count()) {
+    await boton.click({ timeout: 4_000 }).catch(() => undefined);
+    await page.waitForTimeout(400);
+  }
+
+  /* Y si el clic no prospera, se retira por las bravas.
+   *
+   * No es pereza: el aviso puede estar tapado por otra capa, reaparecer al montar, o traer el texto en
+   * un idioma que este patrón no cubra —el front anterior mezcla los dos—. Cuando eso pasa, el aviso
+   * sigue ahí con sus tres botones y el recuento de piezas difiere en tres, que es exactamente la
+   * diferencia que se estaba investigando. Lo que importa aquí es comparar las dos aplicaciones EN EL
+   * MISMO estado, no certificar el aviso, que tiene sus propias pruebas. */
+  await page.evaluate(() => {
+    for (const el of Array.from(document.querySelectorAll('div, section, aside'))) {
+      const texto = (el.textContent ?? '').toLowerCase();
+      const esElAviso =
+        /cookies|galletas/.test(texto) &&
+        /aceptar|accept|rechazar|reject/.test(texto) &&
+        texto.length < 900 &&
+        getComputedStyle(el).position === 'fixed';
+      if (esElAviso) {
+        el.remove();
+      }
+    }
+  });
+}
+
+/**
  * Baja hasta el fondo y espera a que se monte lo que estaba diferido.
  *
  * <p>Hace falta porque el porte difiere todo lo que está por debajo del pliegue —el pie, entre otras

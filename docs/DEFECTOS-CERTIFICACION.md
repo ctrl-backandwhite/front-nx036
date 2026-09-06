@@ -99,6 +99,16 @@ ella, el hallazgo es sobre lo que hoy está en producción. Aquí no se ha tocad
 | R-1 | **Sin sesión, `/orders`, `/wallet`, `/profile` y `/admin` se quedan en «CARGANDO…» para siempre.** No rebotan a la pantalla de acceso. No hay fuga de datos —el backend los niega— pero quien entra por un enlace guardado se queda mirando un cargador eterno sin enterarse de que tiene que identificarse | El porte sí rebota. Se exigía paridad y saltaba en rojo; replicarlo habría sido copiar el defecto |
 | R-2 | **Al rebotar al acceso desde una zona privada, pide `/login.data` en bucle.** La red no queda en reposo nunca | Reventó seis pruebas que esperaban a que la red se calmara, agotando 60 s cada una |
 
+## B quater. Defectos menores abiertos en la documentación
+
+Encontrados por la batería de maqueta, que es nueva. Son de estructura, no de contenido visible: en
+pantalla se lee lo mismo.
+
+| # | Qué pasa | Medida |
+|---|---|---|
+| D-1 | **«Nuestra misión» va como `h2` y en el front anterior es `h3`.** Rompe la jerarquía de encabezados de la página, que es lo que usan los lectores de pantalla para moverse por secciones y los buscadores para entender el esquema | 28 titulares frente a 23, sin que falte ni un texto |
+| D-2 | **Una tabla de referencia se pinta con otro marcado.** El contenido está —los entornos y su estado— pero no como `<table>`, así que no se navega como tabla | 17 tablas frente a 18, solo en escritorio |
+
 ## C. Pendiente de decisión del titular
 
 1. **H-1**, arriba.
