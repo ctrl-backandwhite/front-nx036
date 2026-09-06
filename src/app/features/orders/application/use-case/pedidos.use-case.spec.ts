@@ -14,9 +14,13 @@ import { ConsultaPedido } from './consulta-pedido.use-case';
 import { SiguePedido } from './sigue-pedido.use-case';
 import { CancelaPedido } from './cancela-pedido.use-case';
 import { DescargaFactura } from './descarga-factura.use-case';
+import { APLICACION_DE_PEDIDOS } from '../../orders.providers';
 
 /** Un doble del servicio de traducción: los casos de uso solo le piden el idioma activo. */
-const traduccionEn = (idioma: string) => ({ provide: TraduccionService, useValue: { idioma: () => idioma } });
+const traduccionEn = (idioma: string) => ({
+  provide: TraduccionService,
+  useValue: { idioma: () => idioma },
+});
 
 describe('casos de uso de pedidos', () => {
   const pedidos = { lista: vi.fn(), consulta: vi.fn() };
@@ -28,6 +32,7 @@ describe('casos de uso de pedidos', () => {
     vi.resetAllMocks();
     TestBed.configureTestingModule({
       providers: [
+        ...APLICACION_DE_PEDIDOS,
         { provide: PEDIDOS_PORT, useValue: pedidos },
         { provide: CANCELACION_DE_PEDIDO_PORT, useValue: cancelacion },
         { provide: SEGUIMIENTO_DE_PEDIDO_PORT, useValue: seguimiento },

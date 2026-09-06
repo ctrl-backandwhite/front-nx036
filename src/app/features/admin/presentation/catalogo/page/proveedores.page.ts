@@ -230,9 +230,9 @@ export class ProveedoresPage {
     () => [this.texto(), this.pais(), this.verificado()].filter(Boolean).length,
   );
 
-  protected textoDeMarcados(): string {
-    return this.tCon('admin.bulk.selected', { n: this.marcados().length });
-  }
+  protected readonly textoDeMarcados = computed(() =>
+    this.tCon('admin.bulk.selected', { n: this.marcados().length }),
+  );
 
   protected cambia(fija: (valor: string) => void, valor: string): void {
     fija(valor);

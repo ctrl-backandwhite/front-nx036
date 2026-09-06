@@ -1,4 +1,5 @@
 import { Component, DestroyRef, computed, effect, inject, input, signal } from '@angular/core';
+import { FormField, form, validate } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
@@ -21,7 +22,7 @@ const CADA_MS = 5000;
  */
 @Component({
   selector: 'nx-hilo-de-soporte',
-  imports: [FaIconComponent],
+  imports: [FaIconComponent, FormField],
   template: `
     <div class="flex flex-col h-[420px]">
       <div class="flex-1 overflow-y-auto space-y-2 p-3 bg-base-200/40 rounded-box">
@@ -46,10 +47,10 @@ const CADA_MS = 5000;
         <label class="sr-only" [attr.for]="idCampo()">{{ t('support.thread.placeholder') }}</label>
         <input [id]="idCampo()" class="input input-bordered flex-1"
                [placeholder]="t('support.thread.placeholder')"
-               [value]="borrador()" (input)="borrador.set(valorDe($event))" />
+               [formField]="formulario.borrador" />
         <button type="submit" class="btn btn-primary btn-sm"
                 [attr.aria-label]="t('support.thread.send')"
-                [disabled]="enviando() || !borrador().trim()">
+                [disabled]="!sePuedeEnviar()">
           <fa-icon [icon]="iconoEnviar" />
         </button>
       </form>
@@ -66,9 +67,32 @@ export class HiloDeSoporte {
   readonly comoSoporte = input(false);
 
   protected readonly mensajes = signal<readonly MensajeDelHilo[]>([]);
-  protected readonly borrador = signal('');
   protected readonly enviando = signal(false);
   protected readonly iconoEnviar = faPaperPlane;
+
+  /**
+   * Lo que se está escribiendo. Antes el «no se manda vacío» estaba escrito DOS veces —en el
+   * `[disabled]` del botón y en un `if` del manejador— y con dos formas distintas de recortarlo. Ahora
+   * es una regla del esquema: el botón se apaga solo y el manejador solo pregunta si vale.
+   *
+   * <p>Se envía con Intro porque es un `<form>` con un único campo y su botón de envío: eso lo da el
+   * navegador y no hay que programarlo.
+   */
+  protected readonly modelo = signal({ borrador: '' });
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    // Se mira el texto YA RECORTADO: un mensaje de solo espacios está tan vacío como uno sin nada.
+    validate(ruta.borrador, ({ value }) =>
+      value().trim() === '' ? { kind: 'vacio', message: this.t('dialog.field.required') } : null,
+    );
+  });
+
+  /** El mensaje ya limpio: lo que de verdad viaja, sin los espacios de los lados. */
+  private readonly cuerpo = computed(() => this.modelo().borrador.trim());
+
+  /** Un único sitio al que preguntar si la respuesta se puede mandar. */
+  protected readonly sePuedeEnviar = computed(
+    () => !this.enviando() && !this.formulario().invalid(),
+  );
 
   /** Un identificador propio por instancia: puede haber dos hilos abiertos y las etiquetas colisionan. */
   protected readonly idCampo = computed(() => `hilo-${this.idTicket()}`);
@@ -90,22 +114,18 @@ export class HiloDeSoporte {
     return esMio(mensaje, this.comoSoporte());
   }
 
-  protected valorDe(evento: Event): string {
-    return (evento.target as HTMLInputElement).value;
-  }
-
   protected async envia(evento: Event): Promise<void> {
     evento.preventDefault();
-    const texto = this.borrador().trim();
-    if (!texto || this.enviando()) {
+    if (!this.sePuedeEnviar()) {
       return;
     }
+    const texto = this.cuerpo();
     this.enviando.set(true);
     try {
       const resultado = await this.conversa.responde(this.idTicket(), texto, this.comoSoporte());
       if (resultado.ok) {
         // Se limpia SOLO si se envió. Si falla, lo escrito sigue ahí para poder reintentarlo.
-        this.borrador.set('');
+        this.modelo.set({ borrador: '' });
         await this.recarga();
       }
     } finally {

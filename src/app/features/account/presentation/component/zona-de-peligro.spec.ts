@@ -15,6 +15,7 @@ import {
 import { DESCARGA_PORT } from '../../domain/port/descarga.port';
 import { CuentaStore } from '../../application/state/cuenta.store';
 import { ZonaDePeligro } from './zona-de-peligro';
+import { APLICACION_DE_ACCOUNT } from '../../account.providers';
 
 @Component({ selector: 'nx-vacia', template: '' })
 class Vacia {}
@@ -27,13 +28,16 @@ describe('ZonaDePeligro', () => {
   const termina = vi.fn();
 
   async function monta() {
-    exporta.mockReset().mockResolvedValue(exito({ nombre: 'mis-datos.json', contenido: new Blob(['{}']) }));
+    exporta
+      .mockReset()
+      .mockResolvedValue(exito({ nombre: 'mis-datos.json', contenido: new Blob(['{}']) }));
     entrega.mockReset();
     solicita.mockReset().mockResolvedValue(exito(undefined));
     confirma.mockReset().mockResolvedValue(exito(undefined));
     termina.mockReset().mockResolvedValue(undefined);
     return render(ZonaDePeligro, {
       providers: [
+        ...APLICACION_DE_ACCOUNT,
         provideRouter([{ path: '**', component: Vacia }]),
         { provide: PORTABILIDAD_PORT, useValue: { exporta } },
         { provide: DESCARGA_PORT, useValue: { entrega } },
@@ -52,7 +56,9 @@ describe('ZonaDePeligro', () => {
     await monta();
     const t = TestBed.inject(TraduccionService).t;
 
-    await usuario.click(screen.getByRole('button', { name: new RegExp(t('profile.export.action')) }));
+    await usuario.click(
+      screen.getByRole('button', { name: new RegExp(t('profile.export.action')) }),
+    );
 
     await waitFor(() => expect(entrega).toHaveBeenCalled());
   });
@@ -63,9 +69,13 @@ describe('ZonaDePeligro', () => {
     exporta.mockResolvedValue(fallo(creaError('error-del-servidor', 'No se pudo generar')));
     const t = TestBed.inject(TraduccionService).t;
 
-    await usuario.click(screen.getByRole('button', { name: new RegExp(t('profile.export.action')) }));
+    await usuario.click(
+      screen.getByRole('button', { name: new RegExp(t('profile.export.action')) }),
+    );
 
-    await waitFor(() => expect(TestBed.inject(DialogoStore).actual()?.mensaje).toBe('No se pudo generar'));
+    await waitFor(() =>
+      expect(TestBed.inject(DialogoStore).actual()?.mensaje).toBe('No se pudo generar'),
+    );
     expect(entrega).not.toHaveBeenCalled();
   });
 
@@ -74,7 +84,9 @@ describe('ZonaDePeligro', () => {
     await monta();
     const t = TestBed.inject(TraduccionService).t;
 
-    await usuario.click(screen.getByRole('button', { name: new RegExp(t('profile.delete.button')) }));
+    await usuario.click(
+      screen.getByRole('button', { name: new RegExp(t('profile.delete.button')) }),
+    );
     expect(solicita).not.toHaveBeenCalled();
 
     TestBed.inject(DialogoStore).cierra(false);
@@ -86,7 +98,9 @@ describe('ZonaDePeligro', () => {
     const vista = await monta();
     const t = TestBed.inject(TraduccionService).t;
 
-    await usuario.click(screen.getByRole('button', { name: new RegExp(t('profile.delete.button')) }));
+    await usuario.click(
+      screen.getByRole('button', { name: new RegExp(t('profile.delete.button')) }),
+    );
     TestBed.inject(DialogoStore).cierra(true);
 
     await waitFor(() => {
@@ -105,7 +119,9 @@ describe('ZonaDePeligro', () => {
     const t = TestBed.inject(TraduccionService).t;
     TestBed.inject(CuentaStore).fija(null);
 
-    await usuario.click(screen.getByRole('button', { name: new RegExp(t('profile.delete.button')) }));
+    await usuario.click(
+      screen.getByRole('button', { name: new RegExp(t('profile.delete.button')) }),
+    );
     TestBed.inject(DialogoStore).cierra(true);
     await waitFor(() => {
       vista.fixture.detectChanges();
@@ -113,7 +129,9 @@ describe('ZonaDePeligro', () => {
     });
 
     await usuario.type(screen.getByLabelText(t('profile.delete.code_label')), '123456');
-    await usuario.click(screen.getByRole('button', { name: new RegExp(t('profile.delete.confirm_btn')) }));
+    await usuario.click(
+      screen.getByRole('button', { name: new RegExp(t('profile.delete.confirm_btn')) }),
+    );
 
     await waitFor(() => expect(confirma).toHaveBeenCalledWith('123456'));
     expect(termina).toHaveBeenCalled();
@@ -126,7 +144,9 @@ describe('ZonaDePeligro', () => {
     confirma.mockResolvedValue(fallo(creaError('peticion-invalida', 'Código no válido')));
     const t = TestBed.inject(TraduccionService).t;
 
-    await usuario.click(screen.getByRole('button', { name: new RegExp(t('profile.delete.button')) }));
+    await usuario.click(
+      screen.getByRole('button', { name: new RegExp(t('profile.delete.button')) }),
+    );
     TestBed.inject(DialogoStore).cierra(true);
     await waitFor(() => {
       vista.fixture.detectChanges();
@@ -134,7 +154,9 @@ describe('ZonaDePeligro', () => {
     });
 
     await usuario.type(screen.getByLabelText(t('profile.delete.code_label')), '000000');
-    await usuario.click(screen.getByRole('button', { name: new RegExp(t('profile.delete.confirm_btn')) }));
+    await usuario.click(
+      screen.getByRole('button', { name: new RegExp(t('profile.delete.confirm_btn')) }),
+    );
 
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Código no válido'));
     expect(termina).not.toHaveBeenCalled();

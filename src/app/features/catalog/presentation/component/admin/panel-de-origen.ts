@@ -62,6 +62,10 @@ import { EditaLaFicha } from '../../../application/use-case/edita-la-ficha.use-c
       }
       <p class="text-[11px] opacity-60 leading-snug">{{ t('admin.product.origin_hint') }}</p>
 
+      <!-- Esta casilla NO es un formulario y por eso no pasa por Signal Forms: no guarda ningún estado
+           propio que validar o enviar. Lo que enseña es la ficha que llega, y marcarla es un GESTO que
+           llama al servidor al instante. Darle un modelo local sería crear una segunda verdad sobre un
+           dato que manda el backend, y quedaría desincronizada en cuanto el guardado fallara. -->
       <label class="flex items-center gap-2 pt-2 border-t border-warning/30 cursor-pointer text-[12px]">
         <input
           type="checkbox"

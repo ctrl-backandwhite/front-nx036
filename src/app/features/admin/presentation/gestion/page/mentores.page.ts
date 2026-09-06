@@ -1,17 +1,30 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCheck, faPen, faPlus, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
+import {
+  FormField, email as validaCorreo, form, min, required,
+} from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
 import { DialogoStore } from '@ds/component/dialogo/dialogo.store';
 import {
-  BorradorDeMentor, Mentor, mentorAFormulario, mentorEnBlanco, mentorValido,
+  BorradorDeMentor, Mentor, mentorAFormulario, mentorEnBlanco,
 } from '../../../domain/gestion/model/contenido';
 import {
   BorraElMentor, ConsultaMentores, GuardaElMentor,
 } from '../../../application/gestion/use-case/contenido.use-case';
 import { ImportesStore } from '../../../application/gestion/state/importes.store';
 import { VentanaModal } from '../component/ventana-modal';
+
+/**
+ * El mentor mientras se edita.
+ *
+ * <p>Igual que `BorradorDeMentor` salvo la tarifa, que aquí es número: es lo que escribe un campo
+ * numérico, y al salir se devuelve al texto que espera el dominio.
+ */
+interface MentorEditable extends Omit<BorradorDeMentor, 'id' | 'tarifaUsdHora'> {
+  tarifaUsdHora: number | null;
+}
 
 /**
  * DROP-692: administración de los mentores. Cada mentor va atado a una cuenta por su correo.
@@ -28,7 +41,7 @@ import { VentanaModal } from '../component/ventana-modal';
  */
 @Component({
   selector: 'nx-mentores-admin',
-  imports: [FaIconComponent, VentanaModal],
+  imports: [FaIconComponent, VentanaModal, FormField],
   template: `
     <div class="space-y-4">
       <div class="flex flex-wrap items-center justify-between gap-3">
@@ -113,22 +126,30 @@ import { VentanaModal } from '../component/ventana-modal';
             <div>
               <label for="mentor-email" [class]="rotulo">{{ t('admin.mentors.user_email') }} *</label>
               <input id="mentor-email" type="email" [class]="campo" placeholder="usuario@nx036.local"
-                     [value]="mentor.emailUsuario" (input)="cambia({ emailUsuario: escrito($event) })" />
+                     [formField]="formulario.emailUsuario" />
+              @if (formulario.emailUsuario().touched() && formulario.emailUsuario().errors().length) {
+                <p role="alert" class="text-[11px] text-error mt-0.5">
+                  {{ formulario.emailUsuario().errors()[0].message }}
+                </p>
+              }
             </div>
           }
           <div>
             <label for="mentor-titular" [class]="rotulo">
               {{ t('admin.mentors.col.headline') }} *
             </label>
-            <input id="mentor-titular" [class]="campo" [value]="mentor.titular"
-                   (input)="cambia({ titular: escrito($event) })" />
+            <input id="mentor-titular" [class]="campo" [formField]="formulario.titular" />
+            @if (formulario.titular().touched() && formulario.titular().errors().length) {
+              <p role="alert" class="text-[11px] text-error mt-0.5">
+                {{ formulario.titular().errors()[0].message }}
+              </p>
+            }
           </div>
           <div>
             <label for="mentor-biografia" [class]="rotulo">{{ t('common.description') }}</label>
             <textarea id="mentor-biografia"
                       class="textarea textarea-bordered textarea-sm w-full h-20"
-                      [value]="mentor.biografia"
-                      (input)="cambia({ biografia: escrito($event) })"></textarea>
+                      [formField]="formulario.biografia"></textarea>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
@@ -136,30 +157,32 @@ import { VentanaModal } from '../component/ventana-modal';
                 {{ t('admin.mentors.col.rate') }} (USD/h)
               </label>
               <input id="mentor-tarifa" type="number" step="0.01" [class]="campo"
-                     [value]="mentor.tarifaUsdHora"
-                     (input)="cambia({ tarifaUsdHora: escrito($event) })" />
+                     [formField]="formulario.tarifaUsdHora" />
+              @if (formulario.tarifaUsdHora().touched()
+                   && formulario.tarifaUsdHora().errors().length) {
+                <p role="alert" class="text-[11px] text-error mt-0.5">
+                  {{ formulario.tarifaUsdHora().errors()[0].message }}
+                </p>
+              }
             </div>
             <div>
               <label for="mentor-zona" [class]="rotulo">{{ t('admin.profile.country') }}</label>
               <input id="mentor-zona" [class]="campo" placeholder="Europe/Madrid"
-                     [value]="mentor.zonaHoraria"
-                     (input)="cambia({ zonaHoraria: escrito($event) })" />
+                     [formField]="formulario.zonaHoraria" />
             </div>
           </div>
           <div>
             <label for="mentor-especialidades" [class]="rotulo">{{ t('mentors.book.topic') }}</label>
             <input id="mentor-especialidades" [class]="campo" placeholder="paid-ads, branding"
-                   [value]="mentor.especialidades"
-                   (input)="cambia({ especialidades: escrito($event) })" />
+                   [formField]="formulario.especialidades" />
           </div>
           <div>
             <label for="mentor-idiomas" [class]="rotulo">{{ t('sourcing.agent_languages') }}</label>
             <input id="mentor-idiomas" [class]="campo" placeholder="es, en"
-                   [value]="mentor.idiomas" (input)="cambia({ idiomas: escrito($event) })" />
+                   [formField]="formulario.idiomas" />
           </div>
           <label class="flex items-center gap-2 text-[13px]">
-            <input type="checkbox" class="checkbox checkbox-sm" [checked]="mentor.activo"
-                   (change)="cambia({ activo: marcado($event) })" />
+            <input type="checkbox" class="checkbox checkbox-sm" [formField]="formulario.activo" />
             {{ t('admin.mentors.col.active') }}
           </label>
           <div class="flex justify-end gap-2 pt-1">
@@ -195,17 +218,55 @@ export class MentoresPage {
   protected readonly editando = signal<BorradorDeMentor | null>(null);
   protected readonly guardando = signal(false);
 
+  /**
+   * El mentor que se está editando, como formulario. Se rehace al abrir otro —o el alta— para no
+   * arrastrar lo tecleado en el anterior.
+   *
+   * <p>La tarifa es `number | null` y ya no texto: un campo numérico vacío es nulo, y así el «0» que
+   * salía de `Number('')` deja de poder colarse como una tarifa de cero dólares la hora.
+   */
+  protected readonly modelo = linkedSignal<MentorEditable>(() => {
+    const mentor = this.editando() ?? mentorEnBlanco();
+    return {
+      emailUsuario: mentor.emailUsuario,
+      titular: mentor.titular,
+      biografia: mentor.biografia,
+      zonaHoraria: mentor.zonaHoraria,
+      tarifaUsdHora: mentor.tarifaUsdHora === '' ? null : Number(mentor.tarifaUsdHora),
+      especialidades: mentor.especialidades,
+      idiomas: mentor.idiomas,
+      activo: mentor.activo,
+    };
+  });
+
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    // La regla completa vive en el dominio (`mentorValido`); aquí se DECLARA campo a campo para poder
+    // decir cuál de los dos falta, que es lo que el caso de uso no puede explicar.
+    required(ruta.titular, { message: () => this.t('admin.mentors.required') });
+    required(ruta.emailUsuario, {
+      // Un mentor va atado a una cuenta y cambiarla después sería crear otro mentor: el correo solo se
+      // pide al CREAR, y por eso la regla solo aplica mientras no haya identificador.
+      when: () => !this.editando()?.id,
+      message: () => this.t('admin.mentors.required'),
+    });
+    validaCorreo(ruta.emailUsuario, { message: () => this.t('login.error.bad_data') });
+    // Una tarifa negativa le pagaría al alumno por venir.
+    min(ruta.tarifaUsdHora, 0, { message: () => this.t('dialog.field.min') });
+  });
+
+  /** El mentor tal y como sale de la ventana, con la tarifa de vuelta al texto que espera el dominio. */
+  protected readonly mentorEditado = computed<BorradorDeMentor>(() => {
+    const borrador = this.modelo();
+    return {
+      ...(this.editando() ?? mentorEnBlanco()),
+      ...borrador,
+      tarifaUsdHora: borrador.tarifaUsdHora === null ? '' : String(borrador.tarifaUsdHora),
+    };
+  });
+
   constructor() {
     void this.importes.carga();
     void this.carga();
-  }
-
-  protected escrito(evento: Event): string {
-    return (evento.target as HTMLInputElement | HTMLTextAreaElement).value;
-  }
-
-  protected marcado(evento: Event): boolean {
-    return (evento.target as HTMLInputElement).checked;
   }
 
   /** La tarifa llega en DÓLARES: se escribe con el formateador del panel, que la pasa a la divisa activa. */
@@ -223,23 +284,22 @@ export class MentoresPage {
     this.editando.set(mentorAFormulario(mentor));
   }
 
-  protected cambia(parte: Partial<BorradorDeMentor>): void {
-    this.editando.update((actual) => (actual ? { ...actual, ...parte } : actual));
-  }
-
+  /**
+   * Guarda el mentor.
+   *
+   * <p>El botón sigue ENCENDIDO con el formulario incompleto a propósito: pulsarlo y que no pase nada no
+   * dice qué falta. El motivo lo escribe el esquema y aquí solo se enseña.
+   */
   protected async guarda(): Promise<void> {
-    const borrador = this.editando();
-    if (!borrador) {
+    if (!this.editando()) {
       return;
     }
-    // La regla completa vive en el dominio; aquí solo se dice qué falta, que es lo que el caso de uso
-    // no puede explicar: devolvería «petición inválida» sin decir cuál de los dos campos era.
-    if (!mentorValido(borrador)) {
-      this.avisos.error(this.t('admin.mentors.required'));
+    if (this.formulario().invalid()) {
+      this.avisos.error(this.formulario().errorSummary()[0]?.message ?? this.t('common.error'));
       return;
     }
     this.guardando.set(true);
-    const resultado = await this.guardaElMentor.ejecuta(borrador);
+    const resultado = await this.guardaElMentor.ejecuta(this.mentorEditado());
     this.guardando.set(false);
     if (!resultado.ok) {
       this.avisos.error(resultado.error.mensaje || this.t('common.error'));

@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { FormField, form } from '@angular/forms/signals';
 import {
   faBoxesPacking,
   faCircleCheck,
@@ -39,7 +40,7 @@ import { FormularioDeLimite } from '../component/formulario-de-limite';
  */
 @Component({
   selector: 'nx-limites-de-transportista-page',
-  imports: [FaIconComponent, FormularioDeLimite],
+  imports: [FaIconComponent, FormularioDeLimite, FormField],
   template: `
     <div class="space-y-5">
       <div class="flex items-center justify-between flex-wrap gap-3">
@@ -56,8 +57,7 @@ import { FormularioDeLimite } from '../component/formulario-de-limite';
             <select
               class="select select-bordered select-sm font-mono"
               [attr.aria-label]="t('admin.carrier_limits.filter_channel')"
-              [value]="canal()"
-              (change)="canal.set($any($event.target).value)"
+              [formField]="filtro.canal"
             >
               <option value="">{{ t('admin.carrier_limits.all_channels') }}</option>
               @for (opcion of canales(); track opcion) {
@@ -130,12 +130,12 @@ import { FormularioDeLimite } from '../component/formulario-de-limite';
                       </span>
                     } @else {
                       <span class="font-mono">{{ limite.pais }}</span>
-                      <span class="ml-1 text-ink-500">{{ nombreDePais(limite.pais) }}</span>
+                      <span class="ml-1 text-ink-500">{{ limite.nombreDelPais }}</span>
                     }
                   </td>
                   <td class="px-4 py-2 tabular-nums text-[13px]">
                     @if (limite.pesoMaximoGramos > 0) {
-                      {{ gramos(limite.pesoMaximoGramos) }}
+                      {{ limite.pesoLegible }}
                     } @else {
                       <span class="text-ink-400">
                         {{ t('admin.carrier_limits.no_weight_limit') }}
@@ -152,7 +152,7 @@ import { FormularioDeLimite } from '../component/formulario-de-limite';
                   </td>
                   <td class="px-4 py-2 tabular-nums text-[13px]">
                     @if (limite.minimoFacturableGramos > 0) {
-                      {{ gramos(limite.minimoFacturableGramos) }}
+                      {{ limite.minimoLegible }}
                     } @else {
                       <span class="text-ink-400">
                         {{ t('admin.carrier_limits.no_min_billable') }}
@@ -160,7 +160,7 @@ import { FormularioDeLimite } from '../component/formulario-de-limite';
                     }
                   </td>
                   <td class="px-4 py-2 tabular-nums text-[12px]">
-                    {{ medidas(limite) ?? t('admin.carrier_limits.no_dimensions') }}
+                    {{ limite.medidasLegibles ?? t('admin.carrier_limits.no_dimensions') }}
                   </td>
                   <td class="px-4 py-2 text-[12px]">
                     @if (limite.bultoUnico) {
@@ -252,8 +252,6 @@ import { FormularioDeLimite } from '../component/formulario-de-limite';
 })
 export class LimitesDeTransportistaPage {
   protected readonly comodin = PAIS_COMODIN;
-  protected readonly gramos = formateaGramos;
-  protected readonly medidas = medidasLegibles;
   protected readonly clave = claveDe;
   protected readonly t = inject(TraduccionService).t;
 
@@ -274,16 +272,34 @@ export class LimitesDeTransportistaPage {
   private readonly avisos = inject(AvisosStore);
 
   private readonly limites = signal<readonly LimiteDeTransportista[]>([]);
-  protected readonly canal = signal('');
+
+  /** El filtro de canal también es un formulario: el vacío significa «todos», no «ninguno». */
+  protected readonly seleccionDeCanal = signal({ canal: '' });
+  protected readonly filtro = form(this.seleccionDeCanal);
   protected readonly editando = signal<LimiteDeTransportista | null>(null);
   /** El par canal+país es la CLAVE: al editar se bloquean, o se crearía otra fila en vez de cambiar esta. */
   protected readonly esAlta = signal(false);
   protected readonly guardando = signal(false);
 
   protected readonly canales = computed(() => canalesDe(this.limites()));
+
+  /**
+   * Las filas que se ven, con lo LEGIBLE ya resuelto: nombre del destino, peso y medidas en su unidad.
+   *
+   * <p>Antes cada una de las cuatro conversiones se hacía desde la plantilla, fila a fila y en cada
+   * repintado; el nombre del país además recorría la lista entera de regiones. Todo eso depende solo
+   * de los límites y del canal elegido, así que se calcula una vez por cambio.
+   */
   protected readonly visibles = computed(() => {
-    const filtro = this.canal();
-    return filtro ? this.limites().filter((l) => l.canal === filtro) : this.limites();
+    const canal = this.seleccionDeCanal().canal;
+    const filas = canal ? this.limites().filter((l) => l.canal === canal) : this.limites();
+    return filas.map((limite) => ({
+      ...limite,
+      nombreDelPais: this.nombreDePais(limite.pais),
+      pesoLegible: formateaGramos(limite.pesoMaximoGramos),
+      minimoLegible: formateaGramos(limite.minimoFacturableGramos),
+      medidasLegibles: medidasLegibles(limite),
+    }));
   });
 
   constructor() {

@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { FormField, form } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
@@ -17,7 +18,7 @@ import { iconoDeDocumentacion } from './iconos-de-documentacion';
  */
 @Component({
   selector: 'nx-indice-de-documentacion',
-  imports: [FaIconComponent],
+  imports: [FaIconComponent, FormField],
   template: `
     <aside class="hidden lg:block">
       <nav class="sticky top-20 space-y-4" [attr.aria-label]="t('docs.toc.heading')">
@@ -32,8 +33,7 @@ import { iconoDeDocumentacion } from './iconos-de-documentacion';
             type="search"
             class="input pl-7 h-9 text-[12px]"
             [placeholder]="t('docs.search_placeholder')"
-            [value]="busqueda()"
-            (input)="busqueda.set(valor($event))"
+            [formField]="formulario.busqueda"
           />
         </div>
 
@@ -61,10 +61,16 @@ export class IndiceDeDocumentacion {
   protected readonly t = this.traduccion.t;
   protected readonly iconoLupa = faMagnifyingGlass;
 
-  protected readonly busqueda = signal('');
+  /**
+   * El buscador es un formulario de un solo campo. No valida nada —no hay nada que exigirle a una
+   * búsqueda— pero se ata igual con Signal Forms: el cableado a mano se pierde en cuanto la pantalla
+   * crece, y aquí además deja el estado en un sitio del que se puede preguntar.
+   */
+  protected readonly modelo = signal({ busqueda: '' });
+  protected readonly formulario = form(this.modelo);
 
   protected readonly filtradas = computed(() => {
-    const texto = this.busqueda().trim().toLowerCase();
+    const texto = this.modelo().busqueda.trim().toLowerCase();
     if (!texto) {
       return INDICE;
     }
@@ -85,9 +91,5 @@ export class IndiceDeDocumentacion {
     const comunes =
       'flex items-center gap-2 px-2 py-1.5 rounded text-ink-700 hover:bg-ink-50 hover:text-brand-700 group';
     return sangrada ? `${comunes} pl-6 text-[12px] text-ink-600` : `${comunes} text-[13px]`;
-  }
-
-  protected valor(evento: Event): string {
-    return (evento.target as HTMLInputElement).value;
   }
 }

@@ -85,7 +85,9 @@ describe('DireccionesStore', () => {
   let almacen: DireccionesStore;
 
   beforeEach(() => {
-    almacen = TestBed.configureTestingModule({ providers: [DireccionesStore] }).inject(DireccionesStore);
+    almacen = TestBed.configureTestingModule({ providers: [DireccionesStore] }).inject(
+      DireccionesStore,
+    );
   });
 
   it('mientras no se hayan cargado no se dice que estén vacías', () => {
@@ -137,7 +139,11 @@ describe('CobrosStore', () => {
   });
 
   it('con la pasarela activa expone la clave y el estado de la prueba', () => {
-    almacen.fijaConfiguracion({ clavePublicable: 'pk_test', activo: true, pruebaGratisGastada: true });
+    almacen.fijaConfiguracion({
+      clavePublicable: 'pk_test',
+      activo: true,
+      pruebaGratisGastada: true,
+    });
 
     expect(almacen.conTarjeta()).toBe(true);
     expect(almacen.clavePublicable()).toBe('pk_test');
@@ -190,7 +196,11 @@ describe('PlanesStore', () => {
 
   it('reconoce que la suscripción vigente es una prueba', () => {
     almacen.fijaPlanes([gratis]);
-    almacen.fijaSuscripcion({ idPlan: 'plan-free', estado: 'ACTIVE', periodoDeFacturacion: 'MONTHLY' });
+    almacen.fijaSuscripcion({
+      idPlan: 'plan-free',
+      estado: 'ACTIVE',
+      periodoDeFacturacion: 'MONTHLY',
+    });
 
     expect(almacen.planContratado()).toBe(gratis);
     expect(almacen.enPrueba()).toBe(true);

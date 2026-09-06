@@ -5,11 +5,16 @@ import { TraduccionService } from '@core/i18n/traduccion.service';
 import { DialogoStore } from '@ds/component/dialogo/dialogo.store';
 import { creaError } from '@shared/error/app-error';
 import { exito, fallo } from '@shared/result/result';
-import { CampoDeTarjeta, METODOS_DE_PAGO_PORT, PASARELA_DE_TARJETA_PORT } from '../../domain/port/cobros.port';
+import {
+  CampoDeTarjeta,
+  METODOS_DE_PAGO_PORT,
+  PASARELA_DE_TARJETA_PORT,
+} from '../../domain/port/cobros.port';
 import { AltaDeTarjeta } from './alta-de-tarjeta';
 import { AltaDePaypal } from './alta-de-paypal';
 import { BajaDeMetodo } from './baja-de-metodo';
 import { MetodosDePago } from './metodos-de-pago';
+import { APLICACION_DE_ACCOUNT } from '../../account.providers';
 
 const ACTIVA = { clavePublicable: 'pk_test', activo: true, pruebaGratisGastada: false };
 
@@ -56,6 +61,7 @@ describe('AltaDeTarjeta', () => {
     const vista = await render(AltaDeTarjeta, {
       inputs: { clavePublicable: 'pk_test' },
       providers: [
+        ...APLICACION_DE_ACCOUNT,
         { provide: METODOS_DE_PAGO_PORT, useValue: metodos },
         { provide: PASARELA_DE_TARJETA_PORT, useValue: pasarela },
       ],
@@ -78,7 +84,9 @@ describe('AltaDeTarjeta', () => {
     await monta({ monta: vi.fn().mockResolvedValue(exito(campoDoble())) });
     const t = TestBed.inject(TraduccionService).t;
 
-    expect(screen.getByRole('button', { name: new RegExp(t('profile.billing.save_card')) })).toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: new RegExp(t('profile.billing.save_card')) }),
+    ).toBeDisabled();
   });
 
   it('al escribir el titular y guardar, confirma el alta con el secreto del servidor', async () => {
@@ -87,11 +95,20 @@ describe('AltaDeTarjeta', () => {
     const metodos = metodosDoble();
     const vista = await monta({ monta: vi.fn().mockResolvedValue(exito(campo)) }, metodos);
     const t = TestBed.inject(TraduccionService).t;
-    await waitFor(() => expect(screen.getByRole('button', { name: new RegExp(t('profile.billing.save_card')) })).toBeInTheDocument());
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: new RegExp(t('profile.billing.save_card')) }),
+      ).toBeInTheDocument(),
+    );
 
-    await usuario.type(screen.getByLabelText(new RegExp(t('profile.billing.card_name'))), 'Ana Pérez');
+    await usuario.type(
+      screen.getByLabelText(new RegExp(t('profile.billing.card_name'))),
+      'Ana Pérez',
+    );
     vista.fixture.detectChanges();
-    await usuario.click(screen.getByRole('button', { name: new RegExp(t('profile.billing.save_card')) }));
+    await usuario.click(
+      screen.getByRole('button', { name: new RegExp(t('profile.billing.save_card')) }),
+    );
 
     await waitFor(() => expect(campo.confirmaAlta).toHaveBeenCalledWith('seti_1', 'Ana Pérez'));
     expect(metodos.lista).toHaveBeenCalled();
@@ -109,14 +126,18 @@ describe('AltaDeTarjeta', () => {
 
     await usuario.type(screen.getByLabelText(new RegExp(t('profile.billing.card_name'))), 'Ana');
     vista.fixture.detectChanges();
-    await usuario.click(screen.getByRole('button', { name: new RegExp(t('profile.billing.save_card')) }));
+    await usuario.click(
+      screen.getByRole('button', { name: new RegExp(t('profile.billing.save_card')) }),
+    );
 
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Tarjeta caducada'));
   });
 
   /** Un bloqueador de scripts deja la sección sin campo; el resto del perfil sigue siendo utilizable. */
   it('si el campo no se puede montar, avisa y no rompe la pantalla', async () => {
-    const vista = await monta({ monta: vi.fn().mockResolvedValue(fallo(creaError('sin-conexion'))) });
+    const vista = await monta({
+      monta: vi.fn().mockResolvedValue(fallo(creaError('sin-conexion'))),
+    });
     const t = TestBed.inject(TraduccionService).t;
 
     await waitFor(() => vista.fixture.detectChanges());
@@ -129,32 +150,58 @@ describe('AltaDePaypal', () => {
     const usuario = userEvent.setup({ delay: null });
     const metodos = metodosDoble();
     await render(AltaDePaypal, {
-      providers: [{ provide: METODOS_DE_PAGO_PORT, useValue: metodos }],
+      providers: [...APLICACION_DE_ACCOUNT, { provide: METODOS_DE_PAGO_PORT, useValue: metodos }],
     });
     const t = TestBed.inject(TraduccionService).t;
 
-    const guardar = screen.getByRole('button', { name: new RegExp(t('profile.billing.save_paypal')) });
+    const guardar = screen.getByRole('button', {
+      name: new RegExp(t('profile.billing.save_paypal')),
+    });
     expect(guardar).toBeDisabled();
 
-    await usuario.type(screen.getByLabelText(new RegExp(t('profile.billing.add_paypal'))), 'ana@nx036.test');
+    await usuario.type(
+      screen.getByLabelText(new RegExp(t('profile.billing.add_paypal'))),
+      'ana@nx036.test',
+    );
     expect(guardar).toBeEnabled();
 
     await usuario.click(guardar);
     await waitFor(() => expect(metodos.guardaPaypal).toHaveBeenCalledWith('ana@nx036.test'));
   });
 
+  /** Un correo a medias se rechazaba en el servidor: ahora el botón ni se enciende. */
+  it('un correo mal escrito no deja guardar', async () => {
+    const usuario = userEvent.setup({ delay: null });
+    const metodos = metodosDoble();
+    await render(AltaDePaypal, {
+      providers: [...APLICACION_DE_ACCOUNT, { provide: METODOS_DE_PAGO_PORT, useValue: metodos }],
+    });
+    const t = TestBed.inject(TraduccionService).t;
+
+    await usuario.type(screen.getByLabelText(new RegExp(t('profile.billing.add_paypal'))), 'ana@');
+
+    expect(
+      screen.getByRole('button', { name: new RegExp(t('profile.billing.save_paypal')) }),
+    ).toBeDisabled();
+    expect(metodos.guardaPaypal).not.toHaveBeenCalled();
+  });
+
   it('si el servidor rechaza el correo, se avisa sin vaciar lo escrito', async () => {
     const usuario = userEvent.setup({ delay: null });
     const metodos = metodosDoble({
-      guardaPaypal: vi.fn().mockResolvedValue(fallo(creaError('peticion-invalida', 'Correo no válido'))),
+      guardaPaypal: vi
+        .fn()
+        .mockResolvedValue(fallo(creaError('peticion-invalida', 'Correo no válido'))),
     });
     await render(AltaDePaypal, {
-      providers: [{ provide: METODOS_DE_PAGO_PORT, useValue: metodos }],
+      providers: [...APLICACION_DE_ACCOUNT, { provide: METODOS_DE_PAGO_PORT, useValue: metodos }],
     });
     const t = TestBed.inject(TraduccionService).t;
 
     await usuario.type(screen.getByLabelText(new RegExp(t('profile.billing.add_paypal'))), 'x@y.z');
-    await usuario.click(screen.getByRole('button', { name: new RegExp(t('profile.billing.save_paypal')) }));
+    await usuario.click(
+      screen.getByRole('button', { name: new RegExp(t('profile.billing.save_paypal')) }),
+    );
 
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Correo no válido'));
     expect(screen.getByLabelText(new RegExp(t('profile.billing.add_paypal')))).toHaveValue('x@y.z');
@@ -165,7 +212,7 @@ describe('BajaDeMetodo', () => {
   async function monta(metodos = metodosDoble()) {
     const vista = await render(BajaDeMetodo, {
       inputs: { referencia: 'pm_1' },
-      providers: [{ provide: METODOS_DE_PAGO_PORT, useValue: metodos }],
+      providers: [...APLICACION_DE_ACCOUNT, { provide: METODOS_DE_PAGO_PORT, useValue: metodos }],
     });
     vista.fixture.detectChanges();
     return vista;
@@ -216,8 +263,12 @@ describe('MetodosDePago', () => {
   async function monta(metodos = metodosDoble()) {
     const vista = await render(MetodosDePago, {
       providers: [
+        ...APLICACION_DE_ACCOUNT,
         { provide: METODOS_DE_PAGO_PORT, useValue: metodos },
-        { provide: PASARELA_DE_TARJETA_PORT, useValue: { monta: vi.fn().mockResolvedValue(exito(campoDoble())) } },
+        {
+          provide: PASARELA_DE_TARJETA_PORT,
+          useValue: { monta: vi.fn().mockResolvedValue(exito(campoDoble())) },
+        },
       ],
     });
     await waitFor(() => expect(metodos.configuracion).toHaveBeenCalled());

@@ -1,4 +1,5 @@
-import { Component, computed, inject, input, output, resource, signal } from '@angular/core';
+import { Component, inject, input, linkedSignal, output, resource, signal } from '@angular/core';
+import { form, required, validate } from '@angular/forms/signals';
 import { NgOptimizedImage } from '@angular/common';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
@@ -27,6 +28,27 @@ import {
 } from '../../../domain/catalogo/model/variante-de-producto';
 import { mensajeDeError } from '../etiquetas';
 import { FilasDeVariante } from './ficha/filas-de-variante';
+
+/**
+ * Un importe escrito a mano: vale si está vacío o si es un número que no baja de cero.
+ *
+ * <p>Vacío es legítimo —`desdeBorrador` lo traduce a «sin precio»—, pero un NEGATIVO se guardaba tal
+ * cual y salía al escaparate: un precio por debajo de cero es una venta a pérdida sin que nadie lo vea.
+ */
+function numeroNoNegativo(texto: string): boolean {
+  if (texto.trim() === '') {
+    return true;
+  }
+  const numero = Number(texto);
+  return Number.isFinite(numero) && numero >= 0;
+}
+
+/** Un borrador por variante, indexado por su identificador: es el modelo del formulario del lote. */
+function borradoresDe(
+  variantes: readonly VarianteDeProducto[],
+): Record<string, BorradorDeVariante> {
+  return Object.fromEntries(variantes.map((variante) => [variante.id, aBorrador(variante)]));
+}
 
 /**
  * El gestor de variantes de la pestaña de inventario.
@@ -93,12 +115,12 @@ import { FilasDeVariante } from './ficha/filas-de-variante';
           </thead>
           <tbody>
             @if (creando() && !enLote()) {
-              <nx-filas-de-variante [borrador]="borrador()" (cambia)="cambiaBorrador($event)">
+              <nx-filas-de-variante [campos]="formulario">
                 <td class="px-3 py-2 text-right whitespace-nowrap">
                   <button
                     type="button"
                     class="btn btn-success btn-xs btn-square mr-1"
-                    [disabled]="ocupado() || !borrador().sku.trim()"
+                    [disabled]="ocupado() || formulario().invalid()"
                     [attr.aria-label]="t('actions.save')"
                     (click)="guardaBorrador()"
                   >
@@ -117,21 +139,18 @@ import { FilasDeVariante } from './ficha/filas-de-variante';
             }
             @for (variante of variantes.value(); track variante.id) {
               @if (enLote()) {
-                <nx-filas-de-variante
-                  [borrador]="borradorDe(variante)"
-                  (cambia)="cambiaEnLote(variante.id, $event)"
-                >
+                <nx-filas-de-variante [campos]="formularioDeLote[variante.id]">
                   <td class="px-3 py-2 text-right text-ink-300 text-[11px] font-mono">
                     {{ variante.sku ?? '' }}
                   </td>
                 </nx-filas-de-variante>
               } @else if (editandoId() === variante.id) {
-                <nx-filas-de-variante [borrador]="borrador()" (cambia)="cambiaBorrador($event)">
+                <nx-filas-de-variante [campos]="formulario">
                   <td class="px-3 py-2 text-right whitespace-nowrap">
                     <button
                       type="button"
                       class="btn btn-success btn-xs btn-square mr-1"
-                      [disabled]="ocupado() || !borrador().sku.trim()"
+                      [disabled]="ocupado() || formulario().invalid()"
                       [attr.aria-label]="t('actions.save')"
                       (click)="guardaBorrador(variante.id)"
                     >
@@ -241,10 +260,45 @@ export class GestorDeVariantes {
   protected readonly editandoId = signal<string | null>(null);
   protected readonly enLote = signal(false);
   protected readonly ocupado = signal(false);
-  protected readonly borrador = signal<BorradorDeVariante>(BORRADOR_DE_VARIANTE_VACIO);
-  private readonly borradoresDeLote = signal<Record<string, BorradorDeVariante>>({});
+  /** La variante que se está creando o editando, una sola cada vez. */
+  private readonly borrador = signal<BorradorDeVariante>(BORRADOR_DE_VARIANTE_VACIO);
 
-  protected readonly hayCambios = computed(() => Object.keys(this.borradoresDeLote()).length > 0);
+  /**
+   * Las reglas de una variante.
+   *
+   * <p>El SKU es lo único imprescindible —es lo que la identifica en el almacén— y antes se comprobaba
+   * a mano sobre el botón. El precio y las existencias no pueden ser negativos: se tecleaban en un campo
+   * numérico sin tope por abajo y llegaban al guardado tal cual.
+   */
+  protected readonly formulario = form(this.borrador, (ruta) => {
+    required(ruta.sku);
+    validate(ruta.sku, ({ value }) =>
+      value().trim() === '' ? { kind: 'required' } : undefined,
+    );
+    validate(ruta.precio, ({ value }) =>
+      numeroNoNegativo(value()) ? undefined : { kind: 'min', min: 0 },
+    );
+    validate(ruta.existencias, ({ value }) =>
+      numeroNoNegativo(value()) ? undefined : { kind: 'min', min: 0 },
+    );
+  });
+
+  /**
+   * Los borradores de la edición masiva, uno por variante.
+   *
+   * <p>Se DERIVAN de la lista en vez de rellenarse a mano al entrar en modo lote: así una recarga del
+   * servidor no deja borradores de variantes que ya no existen ni filas nuevas sin borrador. Sigue
+   * siendo escribible, que es lo que hace `linkedSignal`, porque es el modelo del formulario del lote.
+   */
+  private readonly borradoresDeLote = linkedSignal<
+    readonly VarianteDeProducto[],
+    Record<string, BorradorDeVariante>
+  >({
+    source: () => this.variantes.value(),
+    computation: (variantes) => borradoresDe(variantes),
+  });
+
+  protected readonly formularioDeLote = form(this.borradoresDeLote);
 
   protected precioCrudo(variante: VarianteDeProducto): string {
     return variante.precio != null ? `${Number(variante.precio).toFixed(2)} CNY` : '—';
@@ -252,26 +306,6 @@ export class GestorDeVariantes {
 
   protected opciones(variante: VarianteDeProducto): string {
     return opcionesATexto(variante.opciones);
-  }
-
-  protected borradorDe(variante: VarianteDeProducto): BorradorDeVariante {
-    return this.borradoresDeLote()[variante.id] ?? aBorrador(variante);
-  }
-
-  protected cambiaBorrador(parcial: Partial<BorradorDeVariante>): void {
-    this.borrador.update((actual) => ({ ...actual, ...parcial }));
-  }
-
-  protected cambiaEnLote(id: string, parcial: Partial<BorradorDeVariante>): void {
-    this.borradoresDeLote.update((actual) => ({
-      ...actual,
-      [id]: { ...(actual[id] ?? this.borradorDeId(id)), ...parcial },
-    }));
-  }
-
-  private borradorDeId(id: string): BorradorDeVariante {
-    const variante = this.variantes.value().find((v) => v.id === id);
-    return variante ? aBorrador(variante) : BORRADOR_DE_VARIANTE_VACIO;
   }
 
   protected empiezaAlta(): void {
@@ -289,9 +323,8 @@ export class GestorDeVariantes {
   protected empiezaLote(): void {
     this.creando.set(false);
     this.editandoId.set(null);
-    this.borradoresDeLote.set(
-      Object.fromEntries(this.variantes.value().map((v) => [v.id, aBorrador(v)])),
-    );
+    // Se rehacen al entrar: lo tecleado en un lote que se canceló no puede reaparecer en el siguiente.
+    this.borradoresDeLote.set(borradoresDe(this.variantes.value()));
     this.enLote.set(true);
   }
 

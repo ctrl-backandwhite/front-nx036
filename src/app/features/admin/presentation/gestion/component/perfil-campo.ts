@@ -1,4 +1,5 @@
-import { Component, inject, input, model } from '@angular/core';
+import { Component, inject, input, model, output } from '@angular/core';
+import { FormValueControl, ValidationError } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 
 /**
@@ -46,6 +47,12 @@ export class PerfilCampo {
  * <p>La etiqueta es un `<label for>` de verdad. Antes era un `<div>` que solo lo PARECÍA: el campo se
  * quedaba sin nombre accesible —un lector de pantalla anunciaba «cuadro de edición» a secas— y pulsar
  * el texto no enfocaba nada.
+ *
+ * <p>Es un CONTROL de Signal Forms: cumple `FormValueControl<string>` —un `model` llamado `value` y los
+ * estados que la directiva quiera sincronizar— así que la pantalla de al lado lo ata con
+ * `[formField]="formulario.nombre"` igual que ataría un `<input>` normal. Antes se le pasaba un signal
+ * suelto con `[(valor)]`, y con eso el campo quedaba fuera del formulario: ni contaba para la validez
+ * ni sabía si se había tocado.
  */
 @Component({
   selector: 'nx-perfil-campo-editable',
@@ -53,21 +60,32 @@ export class PerfilCampo {
     <div class="text-sm">
       <label [attr.for]="id"
              class="text-[11px] uppercase tracking-wider text-ink-400 mb-0.5 block">{{ etiqueta() }}</label>
-      <input [id]="id" class="input w-full text-[13px]" [value]="valor()" (input)="escribe($event)" />
+      <input [id]="id" class="input w-full text-[13px]" [value]="value()"
+             (input)="escribe($event)" (blur)="touch.emit()" />
+      @if (touched() && errors().length) {
+        <div role="alert" class="text-[10px] text-error mt-0.5">{{ errors()[0].message }}</div>
+      }
       @if (ayuda(); as texto) {
         <div class="text-[10px] text-ink-400 mt-0.5">{{ texto }}</div>
       }
     </div>
   `,
 })
-export class PerfilCampoEditable {
+export class PerfilCampoEditable implements FormValueControl<string> {
   readonly etiqueta = input.required<string>();
   readonly ayuda = input<string>();
-  readonly valor = model.required<string>();
+
+  /** El contrato de Signal Forms exige que se llame `value`: es por ahí por donde entra y sale el dato. */
+  readonly value = model.required<string>();
+  /** Los rellena la directiva cuando el campo está atado a un formulario; vacíos si no lo está. */
+  readonly errors = input<readonly ValidationError.WithOptionalFieldTree[]>([]);
+  readonly touched = input(false);
+  /** Se avisa al SALIR del campo, que es cuando el formulario lo da por tocado. */
+  readonly touch = output<void>();
 
   protected readonly id = `nx-perfil-campo-${++contador}`;
 
   protected escribe(evento: Event): void {
-    this.valor.set((evento.target as HTMLInputElement).value);
+    this.value.set((evento.target as HTMLInputElement).value);
   }
 }

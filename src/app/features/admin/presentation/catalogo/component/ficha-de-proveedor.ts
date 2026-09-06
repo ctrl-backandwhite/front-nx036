@@ -1,4 +1,4 @@
-import { Component, inject, input, output } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { nombreDePais } from '@ds/component/pais/paises';
@@ -86,25 +86,26 @@ export class FichaDeProveedor {
   protected readonly t = inject(TraduccionService).t;
   private readonly traduccion = inject(TraduccionService);
 
-  protected enChino(): boolean {
-    return this.traduccion.idioma() === 'zh';
-  }
+  protected readonly enChino = computed(() => this.traduccion.idioma() === 'zh');
 
-  protected ubicacion(): string {
+  protected readonly ubicacion = computed(() => {
     const proveedor = this.proveedor();
-    return ubicacionDeProveedor(
-      proveedor.ciudad,
-      nombreDePais(proveedor.pais) || proveedor.pais,
-    );
-  }
+    return ubicacionDeProveedor(proveedor.ciudad, nombreDePais(proveedor.pais) || proveedor.pais);
+  });
 
-  protected cuantosProductos(): string {
-    return this.traduccion.tCon('admin.suppliers.detail.products_count', {
+  protected readonly cuantosProductos = computed(() =>
+    this.traduccion.tCon('admin.suppliers.detail.products_count', {
       n: this.proveedor().numeroDeProductos,
-    });
-  }
+    }),
+  );
 
-  protected resumen(): readonly { etiqueta: string; valor: string }[] {
+  /**
+   * Las dos rejillas de datos.
+   *
+   * <p>Van en `computed` y no en métodos: la plantilla las recorre, y devolver una lista NUEVA en cada
+   * repintado obliga a reconstruir todas las filas aunque el proveedor no haya cambiado.
+   */
+  protected readonly resumen = computed<readonly { etiqueta: string; valor: string }[]>(() => {
     const proveedor = this.proveedor();
     const si = this.t('admin.suppliers.yes');
     const no = this.t('admin.suppliers.no');
@@ -122,9 +123,9 @@ export class FichaDeProveedor {
         valor: proveedor.plazoDeEntregaDias ? `${proveedor.plazoDeEntregaDias} d` : '—',
       },
     ];
-  }
+  });
 
-  protected indicadores(): readonly { etiqueta: string; valor: string }[] {
+  protected readonly indicadores = computed<readonly { etiqueta: string; valor: string }[]>(() => {
     const proveedor = this.proveedor();
     return [
       {
@@ -140,5 +141,5 @@ export class FichaDeProveedor {
         valor: proveedor.horasDeRespuesta != null ? `${proveedor.horasDeRespuesta} h` : '—',
       },
     ];
-  }
+  });
 }

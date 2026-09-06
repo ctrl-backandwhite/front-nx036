@@ -1,4 +1,4 @@
-import { Component, inject, input, output } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
   faBoxArchive,
@@ -155,11 +155,11 @@ export class AccionesDeCatalogo {
   };
 
   /** Mientras comprime, el botón enseña cuántas quedan: es la única señal de que sigue avanzando. */
-  protected textoDeCompresion(): string {
+  protected readonly textoDeCompresion = computed(() => {
     if (!this.comprimiendo()) {
       return this.t('admin.catalog.compress.btn');
     }
     const pendientes = this.compresion()?.pendientes;
     return `${this.t('admin.catalog.compress.stop')}${pendientes != null ? ` · ${pendientes}` : ''}`;
-  }
+  });
 }

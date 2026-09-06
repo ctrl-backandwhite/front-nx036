@@ -15,6 +15,7 @@ import {
   DesactivaDobleFactor,
   RevocaSesion,
 } from './seguridad.use-case';
+import { APLICACION_DE_ACCOUNT } from '../../account.providers';
 
 const ALTA = { secreto: 'ABC123', urlOtpauth: 'otpauth://totp/NX036?secret=ABC123' };
 
@@ -45,6 +46,7 @@ describe('casos de uso de seguridad', () => {
     dibuja.mockReset().mockResolvedValue('data:image/png;base64,xxx');
     TestBed.configureTestingModule({
       providers: [
+        ...APLICACION_DE_ACCOUNT,
         { provide: DOBLE_FACTOR_PORT, useValue: { estaActivo, inicia, verifica, desactiva } },
         { provide: SESIONES_ACTIVAS_PORT, useValue: { lista, revoca } },
         { provide: CODIGO_QR_PORT, useValue: { dibuja } },

@@ -3,6 +3,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
   faBan, faCheck, faCircleCheck, faPlus, faTrash, faXmark,
 } from '@fortawesome/free-solid-svg-icons';
+import { FormField, form, maxLength, pattern, required } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { Result } from '@shared/result/result';
 import { AppError } from '@shared/error/app-error';
@@ -29,9 +30,8 @@ const ERRORES_QUE_SE_ENSENAN = 8;
  */
 const CON_DICCIONARIO: readonly string[] = LOCALE_OPTIONS.map((opcion) => opcion.code);
 
-function valorDe(evento: Event): string {
-  return (evento.target as HTMLInputElement).value;
-}
+/** El código de un idioma es el de BCP-47 corto: dos o tres letras, opcionalmente con región. */
+const CODIGO_DE_IDIOMA = /^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})?$/;
 
 /**
  * El registro de idiomas de la tienda, que es ILIMITADO.
@@ -49,7 +49,7 @@ function valorDe(evento: Event): string {
  */
 @Component({
   selector: 'nx-idiomas-admin',
-  imports: [FaIconComponent],
+  imports: [FaIconComponent, FormField],
   template: `
     <div class="space-y-4">
       <div class="flex items-end justify-between gap-3 flex-wrap">
@@ -81,23 +81,34 @@ function valorDe(evento: Event): string {
             {{ t('admin.languages.code') }}
           </label>
           <input id="idioma-codigo" class="input input-bordered input-sm w-24" placeholder="ja"
-                 [value]="codigo()" (input)="codigo.set(lee($event))" />
+                 [formField]="formulario.codigo" />
+          @if (formulario.codigo().touched() && formulario.codigo().errors().length) {
+            <p role="alert" class="text-[11px] text-error mt-0.5">
+              {{ formulario.codigo().errors()[0].message }}
+            </p>
+          }
         </div>
         <div>
           <label for="idioma-etiqueta" class="text-[12px] font-medium text-ink-600 mb-1 block">
             {{ t('admin.languages.label') }}
           </label>
           <input id="idioma-etiqueta" class="input input-bordered input-sm w-48" placeholder="日本語"
-                 [value]="etiqueta()" (input)="etiqueta.set(lee($event))" />
+                 [formField]="formulario.etiqueta" />
+          @if (formulario.etiqueta().touched() && formulario.etiqueta().errors().length) {
+            <p role="alert" class="text-[11px] text-error mt-0.5">
+              {{ formulario.etiqueta().errors()[0].message }}
+            </p>
+          }
         </div>
         <div>
           <label for="idioma-bandera" class="text-[12px] font-medium text-ink-600 mb-1 block">
             {{ t('admin.languages.flag') }}
           </label>
           <input id="idioma-bandera" class="input input-bordered input-sm w-20" placeholder="🇯🇵"
-                 [value]="bandera()" (input)="bandera.set(lee($event))" />
+                 [formField]="formulario.bandera" />
         </div>
-        <button type="button" (click)="anade()" [disabled]="ocupado()" class="btn btn-primary btn-sm">
+        <button type="button" (click)="anade()" [disabled]="ocupado() || formulario().invalid()"
+                class="btn btn-primary btn-sm">
           <fa-icon [icon]="iconos.anadir" /> {{ t('admin.languages.add') }}
         </button>
       </div>
@@ -185,9 +196,23 @@ export class IdiomasPage {
   protected readonly seleccionados = signal<ReadonlySet<string>>(new Set());
   protected readonly ocupado = signal(false);
 
-  protected readonly codigo = signal('');
-  protected readonly etiqueta = signal('');
-  protected readonly bandera = signal('');
+  /**
+   * El alta de un idioma.
+   *
+   * <p>El CÓDIGO es la clave con la que lo guarda el backend y el rótulo del selector de la tienda: sin
+   * él no hay idioma. Antes eso se comprobaba dentro del manejador y se contaba con una ventana de
+   * aviso después de pulsar; ahora lo dice el esquema, el botón se apaga y el campo explica por qué.
+   *
+   * <p>La ETIQUETA no se exige: el caso de uso pone el código en mayúsculas cuando falta, para que el
+   * selector de la tienda nunca aparezca en blanco.
+   */
+  protected readonly modelo = signal({ codigo: '', etiqueta: '', bandera: '' });
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    required(ruta.codigo, { message: () => this.t('dialog.field.required') });
+    pattern(ruta.codigo, CODIGO_DE_IDIOMA, { message: () => this.t('login.error.bad_data') });
+    // La bandera es un emoji: dos o tres símbolos como mucho, no una frase.
+    maxLength(ruta.bandera, 8, { message: () => this.t('login.error.bad_data') });
+  });
 
   protected readonly todosMarcados = computed(() => {
     const lista = this.idiomas();
@@ -197,10 +222,6 @@ export class IdiomasPage {
 
   constructor() {
     void this.carga();
-  }
-
-  protected lee(evento: Event): string {
-    return valorDe(evento);
   }
 
   protected marcado(id: string): boolean {
@@ -229,29 +250,26 @@ export class IdiomasPage {
 
   /** El alta crea el idioma ya ACTIVO: por eso pide permiso igual que el interruptor de la fila. */
   protected async anade(): Promise<void> {
-    const codigo = this.codigo().trim().toLowerCase();
-    if (!codigo) {
-      // Sin código no hay idioma: el backend lo usa de clave y el selector de la tienda, de rótulo.
-      await this.dialogo.alerta(
-        `${this.t('admin.languages.code')}: ${this.t('common.required')}`, undefined, 'error',
-      );
+    if (this.formulario().invalid()) {
       return;
     }
+    const alta = this.modelo();
+    const codigo = alta.codigo.trim().toLowerCase();
     if (!(await this.autorizaActivacion([codigo]))) {
       return;
     }
     await this.conFallo(() =>
       this.guarda.ejecuta({
         codigo,
-        etiqueta: this.etiqueta().trim(),
-        bandera: this.bandera().trim() || undefined,
+        etiqueta: alta.etiqueta.trim(),
+        bandera: alta.bandera.trim() || undefined,
         posicion: this.idiomas().length,
         activo: true,
       }),
     );
-    this.codigo.set('');
-    this.etiqueta.set('');
-    this.bandera.set('');
+    // Se vacía con `reset` para que además quede sin tocar: si no, el alta recién hecha se quedaría en
+    // rojo por «obligatorio» nada más terminar.
+    this.formulario().reset({ codigo: '', etiqueta: '', bandera: '' });
   }
 
   protected async alternaActivo(idioma: IdiomaDeTienda): Promise<void> {

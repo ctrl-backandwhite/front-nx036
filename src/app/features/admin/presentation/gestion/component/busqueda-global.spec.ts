@@ -11,8 +11,20 @@ import { BusquedaGlobal } from './busqueda-global';
  */
 vi.setConfig({ testTimeout: 30_000 });
 
+/**
+ * El idioma sale de la cookie de preferencias, igual que en el resto de las pruebas del área.
+ *
+ * <p>Sin ponerla aquí, estas comprobaciones pasaban solo cuando OTRO fichero de pruebas la había dejado
+ * escrita antes en el mismo entorno: en solitario el panel se pintaba en inglés y el rótulo del
+ * disparador no casaba. Dependía del orden de la pasada, que no es algo que deba decidir si una prueba
+ * pasa.
+ */
+function enEspanol(): void {
+  document.cookie = 'nx036-locale=es';
+}
 
 async function monta() {
+  enEspanol();
   return render(BusquedaGlobal, { providers: [provideRouter([])] });
 }
 

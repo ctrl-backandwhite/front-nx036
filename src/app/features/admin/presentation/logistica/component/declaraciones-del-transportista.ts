@@ -1,4 +1,4 @@
-import { Component, inject, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faFileLines } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
@@ -24,7 +24,8 @@ import {
   template: `
     @if (declaraciones().length > 0) {
       <section class="space-y-2">
-        @for (declaracion of declaraciones(); track declaracion.secuencia) {
+        @for (ficha of fichas(); track ficha.declaracion.secuencia) {
+          @let declaracion = ficha.declaracion;
           <details class="card p-4">
             <summary class="cursor-pointer text-sm font-medium flex flex-wrap items-center gap-2">
               <fa-icon [icon]="iconoFicha" class="text-brand-600" />
@@ -45,7 +46,7 @@ import {
               </div>
               @if (declaracion.destinatario; as destinatario) {
                 <div class="text-sm leading-relaxed">
-                  <div class="font-medium">{{ nombre(declaracion) || '—' }}</div>
+                  <div class="font-medium">{{ ficha.nombre || '—' }}</div>
                   @for (linea of destinatario.lineas; track $index) {
                     <div class="text-ink-700">{{ linea }}</div>
                   }
@@ -55,7 +56,7 @@ import {
                       , {{ destinatario.provincia }}
                     }
                   </div>
-                  <div class="text-ink-700">{{ pais(destinatario.pais) }}</div>
+                  <div class="text-ink-700">{{ ficha.pais }}</div>
                   @if (destinatario.telefono; as telefono) {
                     <div class="text-ink-500 text-[12px] mt-1">{{ telefono }}</div>
                   }
@@ -133,13 +134,19 @@ export class DeclaracionesDelTransportista {
   protected readonly iconoFicha = faFileLines;
   protected readonly t = inject(TraduccionService).t;
 
-  protected nombre(declaracion: DeclaracionDeEnvio): string {
-    return nombreDeclarado(declaracion.destinatario);
-  }
-
-  protected pais(codigo: string | undefined): string {
-    return codigo ? nombreDePais(codigo) : '—';
-  }
+  /**
+   * Cada declaración con su destinatario ya resuelto.
+   *
+   * <p>El nombre y el país se sacaban desde la plantilla, bulto a bulto y en cada repintado; el país
+   * además recorría la lista entera para dar con el rótulo. Aquí se hace una vez por declaración.
+   */
+  protected readonly fichas = computed(() =>
+    this.declaraciones().map((declaracion) => ({
+      declaracion,
+      nombre: nombreDeclarado(declaracion.destinatario),
+      pais: declaracion.destinatario?.pais ? nombreDePais(declaracion.destinatario.pais) : '—',
+    })),
+  );
 
   protected valor = valorDeclarado;
 }

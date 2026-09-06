@@ -1,8 +1,16 @@
-import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { Component, inject, input, output, signal } from '@angular/core';
+import { FormField, form, min, required } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { PeticionDeRecargo } from '../../../domain/catalogo/port/productos-admin.port';
+import { EstadoDeCampo, falloDelCampo } from '../etiquetas';
 import { AmbitoElegido, SelectorDeAmbito } from './selector-de-ambito';
 import { VentanaModal } from './ventana-modal';
+
+/** Lo que se rellena en el diálogo. El importe nace vacío: `null` es «todavía no hay nada escrito». */
+interface FormularioDeRecargo {
+  importe: number | null;
+  ambito: AmbitoElegido;
+}
 
 /**
  * El recargo fijo por producto, en yuanes.
@@ -12,7 +20,7 @@ import { VentanaModal } from './ventana-modal';
  */
 @Component({
   selector: 'nx-dialogo-recargo',
-  imports: [VentanaModal, SelectorDeAmbito],
+  imports: [FormField, VentanaModal, SelectorDeAmbito],
   template: `
     <nx-ventana-modal [titulo]="t('admin.catalog.surcharge.title')" (cierra)="cierra.emit()">
       <p class="text-[12px] text-ink-500 mb-2">{{ t('admin.catalog.surcharge.hint') }}</p>
@@ -23,15 +31,16 @@ import { VentanaModal } from './ventana-modal';
         id="recargo-cny"
         type="number"
         step="0.01"
-        min="0"
         class="input w-full"
         placeholder="0"
-        [value]="importe()"
-        (input)="importe.set($any($event.target).value)"
+        [formField]="formulario.importe"
       />
+      @if (fallo(formulario.importe()); as texto) {
+        <p class="text-[11px] text-error mt-0.5">{{ texto }}</p>
+      }
       <div class="mt-3">
         <nx-selector-de-ambito
-          [(ambito)]="ambito"
+          [campo]="formulario.ambito"
           [seleccionados]="seleccion().length"
           [nombreDeCategoria]="nombreDeCategoria()"
           prefijo="admin.catalog.surcharge"
@@ -44,7 +53,7 @@ import { VentanaModal } from './ventana-modal';
         <button
           type="button"
           class="btn btn-primary text-[12px]"
-          [disabled]="guardando() || !sePuedeGuardar()"
+          [disabled]="guardando() || formulario().invalid()"
           (click)="aplica()"
         >
           {{ guardando() ? t('common.loading') : t('actions.save') }}
@@ -63,16 +72,31 @@ export class DialogoRecargo {
   readonly confirma = output<PeticionDeRecargo>();
 
   protected readonly t = inject(TraduccionService).t;
-  protected readonly importe = signal('');
-  protected readonly ambito = signal<AmbitoElegido>('todo');
 
-  protected readonly sePuedeGuardar = computed(() => this.importe().trim() !== '');
+  protected readonly modelo = signal<FormularioDeRecargo>({ importe: null, ambito: 'todo' });
+
+  /**
+   * Las dos reglas del recargo, declaradas donde se pueden leer de una vez.
+   *
+   * <p>Sin importe no hay nada que aplicar, y un recargo NEGATIVO restaría del precio de venta: dejaría
+   * el producto por debajo del coste sin que la pantalla dijera nada. El campo ya llevaba `min="0"` en
+   * el marcado, pero eso solo lo respeta quien usa las flechas del navegador.
+   */
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    required(ruta.importe);
+    min(ruta.importe, 0);
+  });
+
+  protected fallo(estado: EstadoDeCampo): string {
+    return falloDelCampo(this.t, estado);
+  }
 
   protected aplica(): void {
+    const ambito = this.modelo().ambito;
     this.confirma.emit({
-      recargoCny: parseFloat(this.importe()),
-      productoIds: this.ambito() === 'seleccion' ? this.seleccion() : undefined,
-      categoriaId: this.ambito() === 'categoria' ? (this.categoriaId() ?? undefined) : undefined,
+      recargoCny: this.modelo().importe ?? 0,
+      productoIds: ambito === 'seleccion' ? this.seleccion() : undefined,
+      categoriaId: ambito === 'categoria' ? (this.categoriaId() ?? undefined) : undefined,
     });
   }
 }

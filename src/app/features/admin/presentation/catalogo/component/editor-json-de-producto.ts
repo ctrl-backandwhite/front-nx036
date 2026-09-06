@@ -1,4 +1,5 @@
-import { Component, effect, inject, input, output, resource, signal } from '@angular/core';
+import { Component, computed, inject, input, linkedSignal, output, resource, signal } from '@angular/core';
+import { FormField, form, validate } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
@@ -7,7 +8,7 @@ import {
   ExportaProducto,
   ReemplazaProductoConJson,
 } from '../../../application/catalogo/use-case/reemplaza-producto-con-json.use-case';
-import { mensajeDeError } from '../etiquetas';
+import { falloDelCampo, mensajeDeError } from '../etiquetas';
 import { VentanaModal } from './ventana-modal';
 
 /**
@@ -22,7 +23,7 @@ import { VentanaModal } from './ventana-modal';
  */
 @Component({
   selector: 'nx-editor-json-de-producto',
-  imports: [FaIconComponent, VentanaModal],
+  imports: [FaIconComponent, FormField, VentanaModal],
   template: `
     <nx-ventana-modal [titulo]="t('admin.json.title')" ancho="sm:max-w-4xl" (cierra)="cierra.emit()">
       <p class="text-[12px] text-ink-500">{{ t('admin.json.hint') }}</p>
@@ -37,12 +38,12 @@ import { VentanaModal } from './ventana-modal';
           id="editor-json"
           class="textarea textarea-bordered w-full font-mono text-[11px] leading-snug h-[55vh] whitespace-pre"
           spellcheck="false"
-          [value]="texto()"
-          (input)="escribe($event)"
+          [formField]="formulario.texto"
+          (input)="error.set(null)"
         ></textarea>
       }
 
-      @if (error(); as detalle) {
+      @if (aviso(); as detalle) {
         <pre role="alert" class="text-[11px] text-error whitespace-pre-wrap bg-error/5 rounded p-2 mt-2">{{ detalle }}</pre>
       }
 
@@ -53,7 +54,7 @@ import { VentanaModal } from './ventana-modal';
         <button
           type="button"
           class="btn btn-primary btn-sm"
-          [disabled]="guardando() || ficha.isLoading()"
+          [disabled]="guardando() || ficha.isLoading() || formulario().invalid()"
           (click)="guarda()"
         >
           @if (guardando()) {
@@ -76,7 +77,6 @@ export class EditorJsonDeProducto {
   private readonly reemplaza = inject(ReemplazaProductoConJson);
 
   protected readonly iconoGirando = faSpinner;
-  protected readonly texto = signal('');
   protected readonly error = signal<string | null>(null);
   protected readonly guardando = signal(false);
 
@@ -89,21 +89,41 @@ export class EditorJsonDeProducto {
     defaultValue: '',
   });
 
-  constructor() {
-    // El texto se rellena UNA vez con lo que llega del servidor y a partir de ahí manda lo tecleado:
-    // volver a escribirlo en cada repintado borraría lo que se estuviera editando.
-    effect(() => {
-      const cargado = this.ficha.value();
-      if (cargado && !this.texto()) {
-        this.texto.set(cargado);
+  /**
+   * El texto del editor, atado a lo que llega del servidor.
+   *
+   * <p>Antes esto era un efecto que copiaba el valor del recurso al signal la primera vez. Un valor que
+   * se recalcula desde otro es justo lo que hace `linkedSignal`: se rellena cuando llega la ficha y a
+   * partir de ahí manda lo tecleado, sin un efecto que haya que leer para entender de dónde sale.
+   */
+  private readonly modelo = linkedSignal<string, { texto: string }>({
+    source: () => this.ficha.value(),
+    computation: (cargado) => ({ texto: cargado }),
+  });
+
+  /**
+   * La única regla: lo que se manda tiene que ser JSON.
+   *
+   * <p>Antes se enviaba tal cual y era el backend quien contestaba «JSON no válido» después de subir la
+   * ficha entera. Una coma de más se ve aquí, sin ir y volver.
+   */
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    validate(ruta.texto, ({ value }) => {
+      try {
+        JSON.parse(value());
+        return undefined;
+      } catch {
+        return { kind: 'parse', message: 'admin.json.invalid' };
       }
     });
-  }
+  });
 
-  protected escribe(evento: Event): void {
-    this.texto.set((evento.target as HTMLTextAreaElement).value);
-    this.error.set(null);
-  }
+  protected readonly texto = computed(() => this.modelo().texto);
+
+  /** Lo que se enseña en el aviso: lo que dijo el servidor y, si no, lo que dice el propio campo. */
+  protected readonly aviso = computed(
+    () => this.error() || falloDelCampo(this.t, this.formulario.texto()) || null,
+  );
 
   protected async guarda(): Promise<void> {
     this.guardando.set(true);

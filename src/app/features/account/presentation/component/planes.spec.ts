@@ -14,6 +14,7 @@ import { CobrosStore } from '../../application/state/cobros.store';
 import { PlanesStore } from '../../application/state/planes.store';
 import { SelectorDePlan } from './selector-de-plan';
 import { MiSuscripcion } from './mi-suscripcion';
+import { APLICACION_DE_ACCOUNT } from '../../account.providers';
 
 const GRATIS: Plan = {
   id: 'plan-free',
@@ -37,15 +38,24 @@ const PRO: Plan = {
   limites: {},
 };
 
-const EMPRESA: Plan = { ...PRO, id: 'plan-ent', codigo: 'ENTERPRISE', nombre: 'A medida', posicion: 4 };
+const EMPRESA: Plan = {
+  ...PRO,
+  id: 'plan-ent',
+  codigo: 'ENTERPRISE',
+  nombre: 'A medida',
+  posicion: 4,
+};
 
 describe('SelectorDePlan', () => {
   const contrata = vi.fn();
 
-  async function monta(opciones: { pruebaGastada?: boolean; suscripcion?: unknown; activo?: boolean } = {}) {
+  async function monta(
+    opciones: { pruebaGastada?: boolean; suscripcion?: unknown; activo?: boolean } = {},
+  ) {
     contrata.mockReset().mockResolvedValue(exito('active'));
     const vista = await render(SelectorDePlan, {
       providers: [
+        ...APLICACION_DE_ACCOUNT,
         provideRouter([]),
         {
           provide: PLANES_PORT,
@@ -58,11 +68,18 @@ describe('SelectorDePlan', () => {
             cancela: vi.fn(),
           },
         },
-        { provide: FACTURAS_PORT, useValue: { lista: vi.fn().mockResolvedValue(exito([])), descarga: vi.fn() } },
+        {
+          provide: FACTURAS_PORT,
+          useValue: { lista: vi.fn().mockResolvedValue(exito([])), descarga: vi.fn() },
+        },
         {
           provide: METODOS_DE_PAGO_PORT,
           useValue: {
-            configuracion: vi.fn().mockResolvedValue(exito({ clavePublicable: 'pk_test', activo: true, pruebaGratisGastada: false })),
+            configuracion: vi
+              .fn()
+              .mockResolvedValue(
+                exito({ clavePublicable: 'pk_test', activo: true, pruebaGratisGastada: false }),
+              ),
             lista: vi.fn().mockResolvedValue(exito([])),
             abreAltaDeTarjeta: vi.fn().mockResolvedValue(exito('seti_1')),
           },
@@ -72,9 +89,11 @@ describe('SelectorDePlan', () => {
         {
           provide: PASARELA_DE_TARJETA_PORT,
           useValue: {
-            monta: vi.fn().mockResolvedValue(
-              exito({ confirmaAlta: vi.fn(), limpia: vi.fn(), destruye: vi.fn() }),
-            ),
+            monta: vi
+              .fn()
+              .mockResolvedValue(
+                exito({ confirmaAlta: vi.fn(), limpia: vi.fn(), destruye: vi.fn() }),
+              ),
           },
         },
       ],
@@ -114,7 +133,9 @@ describe('SelectorDePlan', () => {
   });
 
   it('el plan contratado se marca y no se puede volver a elegir', async () => {
-    await monta({ suscripcion: { idPlan: 'plan-pro', estado: 'ACTIVE', periodoDeFacturacion: 'MONTHLY' } });
+    await monta({
+      suscripcion: { idPlan: 'plan-pro', estado: 'ACTIVE', periodoDeFacturacion: 'MONTHLY' },
+    });
     const t = TestBed.inject(TraduccionService).t;
 
     expect(screen.getByRole('button', { name: t('plans.current') })).toBeDisabled();
@@ -132,7 +153,10 @@ describe('SelectorDePlan', () => {
     await monta();
     const t = TestBed.inject(TraduccionService).t;
 
-    expect(screen.getByRole('link', { name: t('plans.contact_sales') })).toHaveAttribute('href', '/connect');
+    expect(screen.getByRole('link', { name: t('plans.contact_sales') })).toHaveAttribute(
+      'href',
+      '/connect',
+    );
   });
 
   it('contratar avisa de que salió bien', async () => {
@@ -174,7 +198,9 @@ describe('SelectorDePlan', () => {
 
     await usuario.click(screen.getAllByRole('button', { name: t('plans.choose') })[0]);
 
-    await waitFor(() => expect(TestBed.inject(DialogoStore).actual()?.mensaje).toBe('Falta el país'));
+    await waitFor(() =>
+      expect(TestBed.inject(DialogoStore).actual()?.mensaje).toBe('Falta el país'),
+    );
     vista.fixture.detectChanges();
     expect(screen.queryByRole('dialog')).toBeNull();
   });
@@ -203,13 +229,16 @@ describe('MiSuscripcion', () => {
   const descarga = vi.fn();
   const entrega = vi.fn();
 
-  async function monta(opciones: { suscripcion?: unknown; facturas?: unknown[]; planes?: Plan[] } = {}) {
+  async function monta(
+    opciones: { suscripcion?: unknown; facturas?: unknown[]; planes?: Plan[] } = {},
+  ) {
     cancela.mockReset().mockResolvedValue(exito(undefined));
     descarga.mockReset().mockResolvedValue(exito({ nombre: 'f.pdf', contenido: new Blob([]) }));
     entrega.mockReset();
     const listaFacturas = vi.fn().mockResolvedValue(exito(opciones.facturas ?? []));
     const vista = await render(MiSuscripcion, {
       providers: [
+        ...APLICACION_DE_ACCOUNT,
         {
           provide: PLANES_PORT,
           useValue: {
@@ -224,7 +253,11 @@ describe('MiSuscripcion', () => {
       ],
     });
     await waitFor(() => expect(listaFacturas).toHaveBeenCalled());
-    TestBed.inject(CobrosStore).fijaConfiguracion({ clavePublicable: 'pk', activo: true, pruebaGratisGastada: false });
+    TestBed.inject(CobrosStore).fijaConfiguracion({
+      clavePublicable: 'pk',
+      activo: true,
+      pruebaGratisGastada: false,
+    });
     const planes = TestBed.inject(PlanesStore);
     planes.fijaPlanes(opciones.planes ?? [PRO, GRATIS]);
     planes.fijaSuscripcion((opciones.suscripcion as never) ?? null);
@@ -281,7 +314,9 @@ describe('MiSuscripcion', () => {
     });
     const t = TestBed.inject(TraduccionService).t;
 
-    expect(screen.getByText(new RegExp(t('profile.subscription.downgrade_pending').split('{')[0]))).toBeInTheDocument();
+    expect(
+      screen.getByText(new RegExp(t('profile.subscription.downgrade_pending').split('{')[0])),
+    ).toBeInTheDocument();
   });
 
   it('cancelar pide confirmación antes de tocar nada', async () => {
@@ -303,7 +338,11 @@ describe('MiSuscripcion', () => {
    * yenes —divisa sin céntimos— cien veces más baratas de lo que se cobró.
    */
   it('pinta el importe formateado por el backend, no el total en crudo', async () => {
-    await monta({ facturas: [{ numero: 'F-1', totalFormateado: '29,00 €', estado: 'paid', creadaEl: 1767225600 }] });
+    await monta({
+      facturas: [
+        { numero: 'F-1', totalFormateado: '29,00 €', estado: 'paid', creadaEl: 1767225600 },
+      ],
+    });
 
     expect(screen.getByText('29,00 €')).toBeInTheDocument();
   });

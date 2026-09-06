@@ -1,8 +1,10 @@
-import { Component, inject, input, linkedSignal, output } from '@angular/core';
+import { Component, computed, inject, input, linkedSignal, output } from '@angular/core';
+import { FormField, form, maxLength } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { FichaDeProducto, normalizaSlug } from '../../../../domain/catalogo/model/ficha-de-producto';
+import { EstadoDeCampo, falloDelCampo } from '../../etiquetas';
 import { FilaDeDato } from './fila-de-dato';
 
 /** Cuánto admite cada campo. Son los topes del backend, y pasarse hace que rechace el guardado entero. */
@@ -18,7 +20,7 @@ const TOPE_DE_DESCRIPCION = 400;
  */
 @Component({
   selector: 'nx-seo-de-ficha',
-  imports: [FaIconComponent, FilaDeDato],
+  imports: [FaIconComponent, FormField, FilaDeDato],
   template: `
     <div class="card p-5 space-y-3 text-sm">
       <nx-fila-de-dato
@@ -33,11 +35,12 @@ const TOPE_DE_DESCRIPCION = 400;
         <input
           id="seo-titulo"
           class="input input-bordered input-sm w-full"
-          [attr.maxlength]="topeDeTitulo"
           [placeholder]="ficha().titulo"
-          [value]="titulo()"
-          (input)="titulo.set($any($event.target).value)"
+          [formField]="formulario.titulo"
         />
+        @if (fallo(formulario.titulo()); as texto) {
+          <div class="text-[11px] text-error mt-0.5">{{ texto }}</div>
+        }
       </div>
       <div>
         <label for="seo-descripcion" class="text-[12px] font-medium text-ink-600 mb-1 block">
@@ -46,20 +49,21 @@ const TOPE_DE_DESCRIPCION = 400;
         <textarea
           id="seo-descripcion"
           class="textarea textarea-bordered textarea-sm w-full h-20"
-          [attr.maxlength]="topeDeDescripcion"
-          [value]="descripcion()"
-          (input)="descripcion.set($any($event.target).value)"
+          [formField]="formulario.descripcion"
         ></textarea>
+        @if (fallo(formulario.descripcion()); as texto) {
+          <div class="text-[11px] text-error mt-0.5">{{ texto }}</div>
+        }
         <div class="text-[11px] text-ink-400 mt-0.5">
-          {{ descripcion().length }}/{{ topeDeDescripcion }}
+          {{ largoDeLaDescripcion() }}/{{ topeDeDescripcion }}
         </div>
       </div>
       <div class="flex justify-end">
         <button
           type="button"
           class="btn btn-primary btn-sm"
-          [disabled]="guardando()"
-          (click)="guarda.emit({ metaTitulo: titulo(), metaDescripcion: descripcion() })"
+          [disabled]="guardando() || formulario().invalid()"
+          (click)="guarda.emit({ metaTitulo: modelo().titulo, metaDescripcion: modelo().descripcion })"
         >
           @if (guardando()) {
             <fa-icon [icon]="iconoGirando" class="fa-spin" />
@@ -79,20 +83,35 @@ export class SeoDeFicha {
 
   protected readonly t = inject(TraduccionService).t;
   protected readonly iconoGirando = faSpinner;
-  protected readonly topeDeTitulo = TOPE_DE_TITULO;
   protected readonly topeDeDescripcion = TOPE_DE_DESCRIPCION;
 
-  protected readonly titulo = linkedSignal<FichaDeProducto, string>({
+  /** Lo tecleado. Se REINICIA con la ficha: al cambiar de idioma llega otra y no se arrastra lo anterior. */
+  protected readonly modelo = linkedSignal<FichaDeProducto, { titulo: string; descripcion: string }>({
     source: () => this.ficha(),
-    computation: (ficha) => ficha.metaTitulo ?? '',
+    computation: (ficha) => ({
+      titulo: ficha.metaTitulo ?? '',
+      descripcion: ficha.metaDescripcion ?? '',
+    }),
   });
 
-  protected readonly descripcion = linkedSignal<FichaDeProducto, string>({
-    source: () => this.ficha(),
-    computation: (ficha) => ficha.metaDescripcion ?? '',
+  /**
+   * Los dos topes, como regla del formulario.
+   *
+   * <p>Antes eran `maxlength` en el marcado, que se limita a impedir que se teclee más: un texto pegado
+   * desde otro sitio pasaba entero y el backend rechazaba el guardado ENTERO sin decir por qué. Ahora se
+   * ve el aviso en el campo y el botón se apaga.
+   */
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    maxLength(ruta.titulo, TOPE_DE_TITULO);
+    maxLength(ruta.descripcion, TOPE_DE_DESCRIPCION);
   });
 
-  protected slug(): string {
-    return normalizaSlug(this.ficha().slug);
+  /** El contador de caracteres: sale de lo tecleado, no se recalcula en la plantilla. */
+  protected readonly largoDeLaDescripcion = computed(() => this.modelo().descripcion.length);
+
+  protected readonly slug = computed(() => normalizaSlug(this.ficha().slug));
+
+  protected fallo(estado: EstadoDeCampo): string {
+    return falloDelCampo(this.t, estado);
   }
 }

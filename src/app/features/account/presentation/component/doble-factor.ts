@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { FieldTree, FormField, form, maxLength, validate } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCopy, faKey, faQrcode } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
@@ -23,10 +24,15 @@ type Paso = 'verificar' | 'codigos' | 'desactivar' | null;
  * <p>El código QR se dibuja EN EL PROPIO NAVEGADOR porque lleva dentro la semilla: quien la tenga puede
  * generar los códigos de esta cuenta para siempre. Enviarla a un servicio externo de códigos QR —que es
  * lo que se hacía— era regalarla.
+ *
+ * <p>Las dos casillas —el código de un solo uso y la contraseña con la que se quita el segundo factor—
+ * viven en UN formulario de Signal Forms, aunque se enseñen en ventanas distintas: son dos pasos del
+ * mismo trámite y así hay un único sitio que sabe si cada paso puede seguir. El largo del código se
+ * declara en el ESQUEMA y no como atributo: la directiva lo proyecta ella misma al elemento.
  */
 @Component({
   selector: 'nx-doble-factor',
-  imports: [FaIconComponent, VentanaModal, EnfocaAlAparecer],
+  imports: [FaIconComponent, VentanaModal, EnfocaAlAparecer, FormField],
   template: `
     <div class="mt-4 flex items-center justify-between gap-3 py-2 border-b border-ink-100">
       <div>
@@ -68,12 +74,15 @@ type Paso = 'verificar' | 'codigos' | 'desactivar' | null;
             </button>
           </div>
           <label for="perfil-2fa-otp" class="text-xs text-ink-500 mt-2 block">{{ t('admin.profile.2fa.otp_label') }}</label>
-          <input id="perfil-2fa-otp" type="text" inputmode="numeric" maxlength="6" nxEnfocaAlAparecer
+          <input id="perfil-2fa-otp" type="text" inputmode="numeric" nxEnfocaAlAparecer
                  class="input font-mono text-center text-lg tracking-widest w-full" placeholder="123456"
-                 [value]="codigo()" (input)="codigo.set(valorDe($event))" />
+                 [formField]="formulario.codigo" />
+          @if (falloDe(formulario.codigo); as fallo) {
+            <span role="alert" class="text-[12px] text-error block">{{ fallo }}</span>
+          }
           <div class="flex justify-end gap-2 pt-1">
             <button type="button" class="btn btn-outline text-[12px]" (click)="cierra()">{{ t('actions.cancel') }}</button>
-            <button type="button" class="btn btn-primary text-[12px]" [disabled]="!codigoCompleto() || ocupado()"
+            <button type="button" class="btn btn-primary text-[12px]" [disabled]="formulario.codigo().invalid() || ocupado()"
                     (click)="verifica()">
               {{ t('admin.profile.2fa.enable') }}
             </button>
@@ -104,10 +113,13 @@ type Paso = 'verificar' | 'codigos' | 'desactivar' | null;
           <p class="text-[12px] text-ink-500">{{ t('admin.profile.2fa.disable_body') }}</p>
           <input type="password" autocomplete="current-password" nxEnfocaAlAparecer class="input w-full"
                  [attr.aria-label]="t('profile.current_password')" [placeholder]="t('profile.current_password')"
-                 [value]="contrasena()" (input)="contrasena.set(valorDe($event))" />
+                 [formField]="formulario.contrasena" />
+          @if (falloDe(formulario.contrasena); as fallo) {
+            <span role="alert" class="text-[12px] text-error block">{{ fallo }}</span>
+          }
           <div class="flex justify-end gap-2">
             <button type="button" class="btn btn-outline text-[12px]" (click)="cierra()">{{ t('actions.cancel') }}</button>
-            <button type="button" class="btn btn-error text-[12px]" [disabled]="!contrasena() || ocupado()"
+            <button type="button" class="btn btn-error text-[12px]" [disabled]="formulario.contrasena().invalid() || ocupado()"
                     (click)="desactiva()">
               {{ t('admin.profile.2fa.disable') }}
             </button>
@@ -131,20 +143,52 @@ export class DobleFactor {
   protected readonly activo = signal(false);
   protected readonly paso = signal<Paso>(null);
   protected readonly alta = signal<AltaDibujada | null>(null);
-  protected readonly codigo = signal('');
-  protected readonly contrasena = signal('');
   protected readonly respaldo = signal<readonly string[]>([]);
   protected readonly ocupado = signal(false);
 
-  protected readonly codigoCompleto = computed(() => codigoTotpCompleto(this.codigo()));
+  protected readonly modelo = signal({ codigo: '', contrasena: '' });
+
+  /**
+   * El esquema de los dos pasos.
+   *
+   * <p>Cada campo se declara en dos tramos porque dicen cosas distintas: vacío es «te lo has dejado» y
+   * tiene texto que enseñar; el código a medias es «sigue escribiendo» y no hay clave con la que decirlo
+   * sin inventarla, así que se deja sin mensaje y basta con que el botón siga apagado. Quien decide
+   * cuántos dígitos hacen un código es el dominio, no esta pantalla.
+   */
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    maxLength(ruta.codigo, 6);
+    validate(ruta.codigo, ({ value }) => {
+      if (value().trim() === '') {
+        return { kind: 'required', message: this.t('dialog.field.required') };
+      }
+      return codigoTotpCompleto(value()) ? undefined : { kind: 'pattern' };
+    });
+    validate(ruta.contrasena, ({ value }) =>
+      value() === '' ? { kind: 'required', message: this.t('dialog.field.required') } : undefined,
+    );
+  });
+
   protected readonly codigosDeRespaldo = computed(() => this.respaldo().join('\n'));
 
   constructor() {
     void this.consulta.ejecuta().then((activo) => this.activo.set(activo));
   }
 
-  protected valorDe(evento: Event): string {
-    return (evento.target as HTMLInputElement).value;
+  /**
+   * El mensaje que toca enseñar bajo un campo, o nulo si no hay nada que decir todavía. Se calla hasta
+   * que el campo se ha TOCADO: pintar de rojo una ventana recién abierta acusa a quien todavía no ha
+   * escrito nada.
+   */
+  protected falloDe<T>(campo: FieldTree<T>): string | null {
+    const estado = campo();
+    return estado.touched() ? (estado.errors()[0]?.message ?? null) : null;
+  }
+
+  /** Vacía las dos casillas y las deja SIN TOCAR: si no, la ventana se reabriría ya en rojo. */
+  private limpiaElFormulario(): void {
+    this.modelo.set({ codigo: '', contrasena: '' });
+    this.formulario().reset();
   }
 
   protected alterna(): void {
@@ -162,14 +206,14 @@ export class DobleFactor {
       return;
     }
     this.alta.set(resultado.valor);
-    this.codigo.set('');
+    this.limpiaElFormulario();
     this.paso.set('verificar');
   }
 
   protected async verifica(): Promise<void> {
     this.ocupado.set(true);
     try {
-      const resultado = await this.confirma.ejecuta(this.codigo());
+      const resultado = await this.confirma.ejecuta(this.modelo().codigo);
       if (!resultado.ok) {
         await this.avisa(resultado.error.mensaje, 'admin.profile.2fa.verify_error');
         return;
@@ -179,7 +223,7 @@ export class DobleFactor {
       this.paso.set('codigos');
       // Ya verificado: el secreto y su dibujo no tienen por qué seguir en memoria.
       this.alta.set(null);
-      this.codigo.set('');
+      this.limpiaElFormulario();
     } finally {
       this.ocupado.set(false);
     }
@@ -188,13 +232,13 @@ export class DobleFactor {
   protected async desactiva(): Promise<void> {
     this.ocupado.set(true);
     try {
-      const resultado = await this.desactivaUso.ejecuta(this.contrasena());
+      const resultado = await this.desactivaUso.ejecuta(this.modelo().contrasena);
       if (!resultado.ok) {
         await this.avisa(resultado.error.mensaje, 'admin.profile.2fa.disable_error');
         return;
       }
       this.activo.set(false);
-      this.contrasena.set('');
+      this.limpiaElFormulario();
       this.paso.set(null);
       await this.dialogo.alerta(this.t('admin.profile.2fa.disabled_ok'), undefined, 'success');
     } finally {
@@ -204,7 +248,7 @@ export class DobleFactor {
 
   protected cierra(): void {
     this.paso.set(null);
-    this.contrasena.set('');
+    this.limpiaElFormulario();
     this.alta.set(null);
   }
 

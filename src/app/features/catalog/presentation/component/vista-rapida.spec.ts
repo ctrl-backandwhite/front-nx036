@@ -9,6 +9,7 @@ import { CATALOGO_PORT } from '../../domain/port/catalogo.port';
 import { CESTA_PORT } from '../../domain/port/cesta.port';
 import { FichaDeProducto } from '../../domain/model/producto';
 import { VistaRapida } from './vista-rapida';
+import { APLICACION_DEL_CATALOGO } from '../../catalog.providers';
 
 function ficha(cambios: Partial<FichaDeProducto> = {}): FichaDeProducto {
   return {
@@ -48,6 +49,7 @@ async function monta(
     inputs: { slug: opciones.slug === undefined ? 'gorro' : opciones.slug },
     on: { cierra },
     providers: [
+      ...APLICACION_DEL_CATALOGO,
       provideRouter([]),
       {
         provide: CATALOGO_PORT,

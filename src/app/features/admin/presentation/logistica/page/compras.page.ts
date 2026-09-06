@@ -18,7 +18,6 @@ import {
   COLUMNAS_DE_COMPRA,
   CompraAProveedor,
   DIAS_HASTA_DESTRUCCION,
-  EstadoDeCompra,
   PasoDeCompra,
   agrupaPorPedido,
   enRiesgo,
@@ -122,19 +121,19 @@ const ICONO: Readonly<Record<string, IconDefinition>> = {
 
       <!-- Móvil primero: una columna; dos a partir de la anchura grande y las cinco en la extra. -->
       <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-5">
-        @for (columna of columnas; track columna) {
+        @for (columna of tablero(); track columna.estado) {
           <section class="rounded-xl border-t-4 border-ink-200 bg-base-100 p-3">
             <h2
               class="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-ink-600"
             >
-              <fa-icon [icon]="icono(columna)" />
-              {{ t('admin.purchases.status.' + columna.toLowerCase()) }}
+              <fa-icon [icon]="columna.icono" />
+              {{ t('admin.purchases.status.' + columna.estado.toLowerCase()) }}
               <span class="ml-auto rounded-full bg-ink-100 px-2 text-xs">
-                {{ deLaColumna(columna).length }}
+                {{ columna.cuantas }}
               </span>
             </h2>
             <div class="space-y-4">
-              @for (grupo of agrupadas(columna); track grupo.pedido) {
+              @for (grupo of columna.grupos; track grupo.pedido) {
                 <div class="rounded-lg border border-ink-200">
                   <div
                     class="flex items-center justify-between gap-2 border-b border-ink-200 px-3 py-2"
@@ -186,7 +185,6 @@ const ICONO: Readonly<Record<string, IconDefinition>> = {
   `,
 })
 export class ComprasPage {
-  protected readonly columnas = COLUMNAS_DE_COMPRA;
   protected readonly diasHastaDestruccion = DIAS_HASTA_DESTRUCCION;
   protected readonly t = inject(TraduccionService).t;
 
@@ -213,6 +211,24 @@ export class ComprasPage {
   protected readonly ocupada = signal<string | null>(null);
   protected readonly descargando = signal(false);
 
+  /**
+   * El tablero entero, calculado UNA vez por cambio de las compras.
+   *
+   * <p>Antes la plantilla llamaba a dos métodos por columna —y el segundo repetía el filtrado del
+   * primero—, así que cada repintado recorría la lista de compras diez veces para dibujar lo mismo.
+   */
+  protected readonly tablero = computed(() =>
+    COLUMNAS_DE_COMPRA.map((estado) => {
+      const deLaColumna = this.compras().filter((compra) => compra.estado === estado);
+      return {
+        estado,
+        icono: ICONO[estado] ?? faCartShopping,
+        cuantas: deLaColumna.length,
+        grupos: agrupaPorPedido(deLaColumna),
+      };
+    }),
+  );
+
   protected readonly exportables = computed(() => this.avance()?.exportables ?? 0);
   protected readonly incidencias = computed(() => this.avance()?.incidencias ?? []);
   protected readonly bloqueados = computed(() => pedidosBloqueados(this.incidencias()));
@@ -220,18 +236,6 @@ export class ComprasPage {
 
   constructor() {
     void this.recarga();
-  }
-
-  protected icono(columna: EstadoDeCompra): IconDefinition {
-    return ICONO[columna] ?? faCartShopping;
-  }
-
-  protected deLaColumna(columna: EstadoDeCompra): readonly CompraAProveedor[] {
-    return this.compras().filter((c) => c.estado === columna);
-  }
-
-  protected agrupadas(columna: EstadoDeCompra) {
-    return agrupaPorPedido(this.deLaColumna(columna));
   }
 
   private async recarga(): Promise<void> {

@@ -12,6 +12,7 @@ import {
   ContrataPlan,
   DescargaFactura,
 } from './planes.use-case';
+import { APLICACION_DE_ACCOUNT } from '../../account.providers';
 
 const PRO: Plan = {
   id: 'plan-pro',
@@ -46,6 +47,7 @@ describe('casos de uso de planes', () => {
     entrega.mockReset();
     TestBed.configureTestingModule({
       providers: [
+        ...APLICACION_DE_ACCOUNT,
         { provide: PLANES_PORT, useValue: { lista, suscripcionActual, contrata, cancela } },
         { provide: FACTURAS_PORT, useValue: { lista: listaFacturas, descarga } },
         { provide: DESCARGA_PORT, useValue: { entrega } },

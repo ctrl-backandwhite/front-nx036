@@ -1,4 +1,5 @@
-import { Component, computed, inject, input, resource, signal } from '@angular/core';
+import { Component, computed, inject, input, linkedSignal, resource, signal } from '@angular/core';
+import { FieldTree, FormField, form, readonly, validate } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { PreferenciasService } from '@core/preferences/preferencias';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
@@ -15,6 +16,22 @@ import { SesionActual } from '@core/auth/sesion-actual';
 const CUANTAS = 50;
 
 /**
+ * Lo que se escribe en el formulario de reseña.
+ *
+ * <p>Todas las claves están SIEMPRE, aunque vayan vacías: Signal Forms construye un campo por cada
+ * clave que existe en el objeto, y una que falte deja la plantilla sin nada a lo que atarse.
+ */
+interface BorradorDeResena {
+  readonly nota: string;
+  readonly autor: string;
+  readonly titulo: string;
+  readonly cuerpo: string;
+}
+
+/** Cinco estrellas de salida, como venía siendo: quien escribe suele hacerlo contento. */
+const BORRADOR_VACIO: BorradorDeResena = { nota: '5', autor: '', titulo: '', cuerpo: '' };
+
+/**
  * Las reseñas del producto: nota media, reparto por estrellas, filtro por idioma y formulario.
  *
  * <p>El catálogo se importó del proveedor con SUS reseñas. Decir de dónde vienen no es cortesía:
@@ -27,6 +44,7 @@ const CUANTAS = 50;
  */
 @Component({
   selector: 'nx-seccion-resenas',
+  imports: [FormField],
   template: `
     <div class="card card-border bg-base-100">
       <div class="card-body">
@@ -84,8 +102,7 @@ const CUANTAS = 50;
               <select
                 id="resena-nota"
                 class="select select-bordered select-sm w-20"
-                [value]="nota()"
-                (change)="nota.set(+$any($event.target).value)"
+                [formField]="formulario.nota"
               >
                 @for (n of [5, 4, 3, 2, 1]; track n) {
                   <option [value]="n">{{ n }} ★</option>
@@ -94,37 +111,42 @@ const CUANTAS = 50;
               <span class="ml-auto badge badge-sm badge-outline">{{ idiomaEnMayusculas() }}</span>
             </div>
             <label class="sr-only" for="resena-autor">{{ t('reviews.name') }}</label>
+            <!-- El bloqueo del nombre ya no va en el marcado: lo declara el esquema del formulario,
+                 que es quien sabe si el campo se puede editar. -->
             <input
               id="resena-autor"
               class="input input-bordered input-sm w-full"
               [class]="nombreDeLaSesion() ? 'bg-base-200 cursor-not-allowed opacity-80' : ''"
               [placeholder]="t('reviews.name')"
-              [value]="nombreDeLaSesion() || autor()"
-              [readOnly]="!!nombreDeLaSesion()"
               [title]="nombreDeLaSesion() ? t('reviews.name_locked') : ''"
-              (input)="autor.set($any($event.target).value)"
+              [formField]="formulario.autor"
             />
             <label class="sr-only" for="resena-titulo">{{ t('reviews.title_field') }}</label>
             <input
               id="resena-titulo"
               class="input input-bordered input-sm w-full"
               [placeholder]="t('reviews.title_field')"
-              [value]="titulo()"
-              (input)="titulo.set($any($event.target).value)"
+              [formField]="formulario.titulo"
             />
             <label class="sr-only" for="resena-cuerpo">{{ t('reviews.body') }}</label>
             <textarea
               id="resena-cuerpo"
               class="textarea textarea-bordered textarea-sm w-full h-20"
               [placeholder]="t('reviews.body')"
-              [value]="cuerpo()"
-              (input)="cuerpo.set($any($event.target).value)"
+              [formField]="formulario.cuerpo"
             ></textarea>
+            @if (falloDe(formulario); as fallo) {
+              <span role="alert" class="text-xs text-error mt-1 block">{{ fallo }}</span>
+            }
             <div class="flex justify-end gap-2">
               <button type="button" (click)="formularioAbierto.set(false)" class="btn btn-ghost btn-sm">
                 {{ t('common.cancel') }}
               </button>
-              <button type="submit" [disabled]="!hayTexto() || enviando()" class="btn btn-primary btn-sm">
+              <button
+                type="submit"
+                [disabled]="formulario().invalid() || enviando()"
+                class="btn btn-primary btn-sm"
+              >
                 {{ t('reviews.submit') }}
               </button>
             </div>
@@ -200,11 +222,44 @@ export class SeccionResenas {
 
   protected readonly formularioAbierto = signal(false);
   protected readonly enviando = signal(false);
-  protected readonly nota = signal(5);
-  protected readonly titulo = signal('');
-  protected readonly cuerpo = signal('');
-  protected readonly autor = signal('');
   protected readonly filtroDeIdioma = signal<string | null>(null);
+
+  /**
+   * El borrador de la reseña.
+   *
+   * <p>La nota va como CADENA porque un desplegable nativo solo habla en cadenas; se convierte a número
+   * al publicar, que es donde importa.
+   *
+   * <p>Se DERIVA del nombre de la sesión: en cuanto hay cuenta abierta, el autor es el suyo y deja de
+   * ser editable. Se conserva lo ya escrito —título y texto— para no borrarle la reseña a quien entra
+   * en su cuenta a mitad de redactarla.
+   */
+  protected readonly borrador = linkedSignal<string, BorradorDeResena>({
+    source: () => this.nombreDeLaSesion(),
+    computation: (nombre, previo) => ({
+      ...(previo?.value ?? BORRADOR_VACIO),
+      autor: nombre || previo?.value.autor || '',
+    }),
+  });
+
+  /**
+   * Las reglas de la reseña, en un solo sitio.
+   *
+   * <p>El nombre lo pone la sesión y no se toca: dejar teclearlo con la cuenta abierta permitiría
+   * firmar con el nombre de otro. Antes era un `readOnly` suelto en el marcado.
+   *
+   * <p>Y una reseña sin título NI texto no dice nada. Es la misma regla que ya decidía si el botón se
+   * podía pulsar, pero ahora está DICHA: antes el botón se quedaba apagado sin explicar por qué.
+   */
+  protected readonly formulario = form(this.borrador, (ruta) => {
+    readonly(ruta.autor, () => !!this.nombreDeLaSesion());
+    validate(ruta, ({ value }) => {
+      const { titulo, cuerpo } = value();
+      return titulo.trim() || cuerpo.trim()
+        ? null
+        : { kind: 'sin-texto', message: this.t('dialog.field.required') };
+    });
+  });
 
   private readonly datos = resource({
     params: () => ({ id: this.idDelProducto() }),
@@ -222,7 +277,8 @@ export class SeccionResenas {
   protected readonly hayImportadas = computed(() => hayResenasDelProveedor(this.visibles()));
   protected readonly nombreDeLaSesion = computed(() => this.sesion.datos()?.nombreVisible ?? '');
   protected readonly idiomaEnMayusculas = computed(() => this.preferencias.idioma().toUpperCase());
-  protected readonly hayTexto = computed(() => !!this.titulo().trim() || !!this.cuerpo().trim());
+  /** El desplegable devuelve cadenas; la reseña viaja con la nota como número. */
+  private readonly notaElegida = computed(() => Number(this.borrador().nota));
 
   protected readonly visibles = computed(() => {
     const filtro = this.filtroDeIdioma();
@@ -233,27 +289,38 @@ export class SeccionResenas {
     return '★'.repeat(valoracion).padEnd(5, '☆');
   }
 
+  /**
+   * El mensaje que toca enseñar, o nulo. Se calla hasta que el campo se ha TOCADO: pintar de rojo un
+   * formulario recién abierto acusa a quien todavía no ha escrito nada.
+   */
+  protected falloDe<T>(campo: FieldTree<T>): string | null {
+    const estado = campo();
+    return estado.touched() ? (estado.errors()[0]?.message ?? null) : null;
+  }
+
   protected async envia(evento: Event): Promise<void> {
     evento.preventDefault();
-    if (!this.hayTexto() || this.enviando()) {
+    // Un único sitio al que preguntar si se puede enviar, en vez de repetir aquí la condición que ya
+    // apaga el botón.
+    if (this.formulario().invalid() || this.enviando()) {
       return;
     }
     this.enviando.set(true);
     try {
+      const borrador = this.borrador();
       const resultado = await this.publica.ejecuta(this.idDelProducto(), {
-        valoracion: this.nota(),
-        titulo: this.titulo(),
-        cuerpo: this.cuerpo(),
-        autor: this.autor(),
+        valoracion: this.notaElegida(),
+        titulo: borrador.titulo,
+        cuerpo: borrador.cuerpo,
+        autor: borrador.autor,
       });
       if (!resultado.ok) {
         this.avisos.error(resultado.error.mensaje || this.t('common.error'));
         return;
       }
       this.formularioAbierto.set(false);
-      this.titulo.set('');
-      this.cuerpo.set('');
-      this.nota.set(5);
+      // El autor se conserva: es el de la sesión, o el que un invitado ya ha escrito una vez.
+      this.borrador.set({ ...BORRADOR_VACIO, autor: borrador.autor });
       this.datos.reload();
     } finally {
       this.enviando.set(false);

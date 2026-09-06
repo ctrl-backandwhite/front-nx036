@@ -1,8 +1,35 @@
 import { Component, computed, inject, input, linkedSignal, output } from '@angular/core';
+import { FormField, form, max, min, required, validate } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { BorradorDePromocion } from '../../../domain/gestion/model/promociones';
 import { OpcionDeAmbito } from '../../../domain/gestion/port/precios.port';
 import { VentanaModal } from './ventana-modal';
+
+/** El descuento se mueve entre el 1 % y el 99 %: ni regalar el producto ni no descontar nada. */
+const DESCUENTO_MINIMO = 1;
+const DESCUENTO_MAXIMO = 99;
+
+/**
+ * La promoción mientras se edita.
+ *
+ * <p>Los identificadores de producto viven aquí como TEXTO de varias líneas, que es como se pegan; la
+ * lista partida se deriva al salir. Antes se partían en cada pulsación y se volvían a juntar para
+ * pintar: dos conversiones por letra tecleada, y el orden lo decidía el ir y venir.
+ */
+interface BorradorEditable {
+  nombre: string;
+  codigo: string;
+  porcentaje: number | null;
+  ambito: string;
+  categorias: readonly string[];
+  productos: string;
+  empiezaEl: string;
+  terminaEl: string;
+  usosMaximos: number | null;
+  usosPorPersona: number | null;
+  activa: boolean;
+  avisaUsuarios: boolean;
+}
 
 /**
  * El editor de una rebaja o de un cupón.
@@ -10,6 +37,15 @@ import { VentanaModal } from './ventana-modal';
  * <p>Sin CÓDIGO es una rebaja automática que se anuncia en la portada; con código es un cupón que hay
  * que teclear en el pago y que no se enseña en el catálogo. Por eso los topes de uso solo aparecen
  * cuando hay código: limitar los usos de una rebaja que se aplica sola no significa nada.
+ *
+ * <p>REGLA DEL NEGOCIO que esta pantalla no toca: entre varias promociones aplicables gana la que MÁS
+ * descuenta, y nunca se suman. Eso lo resuelve el backend al calcular el precio; aquí solo se
+ * administran las reglas.
+ *
+ * <p>Lo que el ESQUEMA impide ahora y antes no comprobaba nadie: un descuento fuera del 1–99 % —los
+ * atributos `min` y `max` estaban en la plantilla y no los miraba nadie, así que un 0 % se guardaba y no
+ * descontaba nada—, un tope de usos por debajo de uno, y una promoción que TERMINA ANTES DE EMPEZAR, que
+ * se guardaba tan campante y no descontaba nunca.
  *
  * <p>Las fechas se teclean en HORA LOCAL, que es lo único que entiende `datetime-local`. Devolverles la
  * zona antes de mandarlas es trabajo del caso de uso: hacerlo aquí dejaría la conversión repetida en el
@@ -23,7 +59,7 @@ import { VentanaModal } from './ventana-modal';
  */
 @Component({
   selector: 'nx-promociones-editor',
-  imports: [VentanaModal],
+  imports: [VentanaModal, FormField],
   template: `
     <nx-ventana-modal
       [titulo]="editando() ? t('admin.promo.edit') : t('admin.promo.new')"
@@ -38,9 +74,13 @@ import { VentanaModal } from './ventana-modal';
           <input
             id="promo-nombre"
             class="input input-bordered input-sm"
-            [value]="borrador().nombre"
-            (input)="cambiaNombre($event)"
+            [formField]="formulario.nombre"
           />
+          @if (formulario.nombre().touched() && formulario.nombre().errors().length) {
+            <p role="alert" class="text-[11px] text-error mt-0.5">
+              {{ formulario.nombre().errors()[0].message }}
+            </p>
+          }
         </div>
 
         <div class="form-control">
@@ -50,8 +90,7 @@ import { VentanaModal } from './ventana-modal';
           <input
             id="promo-codigo"
             class="input input-bordered input-sm"
-            [value]="borrador().codigo ?? ''"
-            (input)="cambiaCodigo($event)"
+            [formField]="formulario.codigo"
           />
         </div>
 
@@ -62,12 +101,14 @@ import { VentanaModal } from './ventana-modal';
           <input
             id="promo-descuento"
             type="number"
-            min="1"
-            max="99"
             class="input input-bordered input-sm"
-            [value]="borrador().porcentaje ?? ''"
-            (input)="cambiaPorcentaje($event)"
+            [formField]="formulario.porcentaje"
           />
+          @if (formulario.porcentaje().touched() && formulario.porcentaje().errors().length) {
+            <p role="alert" class="text-[11px] text-error mt-0.5">
+              {{ formulario.porcentaje().errors()[0].message }}
+            </p>
+          }
         </div>
 
         <div class="form-control">
@@ -77,31 +118,37 @@ import { VentanaModal } from './ventana-modal';
           <select
             id="promo-ambito"
             class="select select-bordered select-sm"
-            [value]="borrador().ambito"
-            (change)="cambiaAmbito($event)"
+            [formField]="formulario.ambito"
           >
-            <option value="ALL" [selected]="borrador().ambito === 'ALL'">
+            <option value="ALL" [selected]="modelo().ambito === 'ALL'">
               {{ t('admin.promo.scope_all') }}
             </option>
-            <option value="CATEGORY" [selected]="borrador().ambito === 'CATEGORY'">
+            <option value="CATEGORY" [selected]="modelo().ambito === 'CATEGORY'">
               {{ t('admin.promo.scope_cat') }}
             </option>
-            <option value="PRODUCT" [selected]="borrador().ambito === 'PRODUCT'">
+            <option value="PRODUCT" [selected]="modelo().ambito === 'PRODUCT'">
               {{ t('admin.promo.scope_prod') }}
             </option>
           </select>
         </div>
 
-        @if (borrador().ambito === 'CATEGORY') {
+        @if (modelo().ambito === 'CATEGORY') {
           <div class="form-control sm:col-span-2">
             <label for="promo-categorias" class="label-text text-xs">
               {{ t('admin.promo.pick_cats') }}
             </label>
+            <!--
+              El único campo que no lleva la directiva del formulario: Signal Forms no sabe leer un
+              desplegable MÚLTIPLE —lee un solo valor del elemento— así que la lectura del DOM se
+              hace a mano. El dato sigue viviendo DENTRO del formulario: se escribe en su campo y se
+              le marca como tocado y sucio, de modo que la validez y el estado del botón siguen
+              saliendo de un único sitio.
+            -->
             <select
               id="promo-categorias"
               multiple
               class="select select-bordered h-32 text-sm"
-              (change)="cambiaCategorias($event)"
+              (change)="eligeCategorias($event)"
             >
               @for (categoria of categorias(); track categoria.id) {
                 <option [value]="categoria.id" [selected]="estaElegida(categoria.id)">
@@ -112,7 +159,7 @@ import { VentanaModal } from './ventana-modal';
           </div>
         }
 
-        @if (borrador().ambito === 'PRODUCT') {
+        @if (modelo().ambito === 'PRODUCT') {
           <div class="form-control sm:col-span-2">
             <label for="promo-productos" class="label-text text-xs">
               {{ t('admin.promo.pick_prods') }}
@@ -120,8 +167,7 @@ import { VentanaModal } from './ventana-modal';
             <textarea
               id="promo-productos"
               class="textarea textarea-bordered h-24 font-mono text-xs"
-              [value]="lineasDeProductos()"
-              (input)="cambiaProductos($event)"
+              [formField]="formulario.productos"
             ></textarea>
           </div>
         }
@@ -134,8 +180,7 @@ import { VentanaModal } from './ventana-modal';
             id="promo-empieza"
             type="datetime-local"
             class="input input-bordered input-sm"
-            [value]="borrador().empiezaEl ?? ''"
-            (input)="cambiaFecha('empiezaEl', $event)"
+            [formField]="formulario.empiezaEl"
           />
         </div>
 
@@ -147,12 +192,16 @@ import { VentanaModal } from './ventana-modal';
             id="promo-termina"
             type="datetime-local"
             class="input input-bordered input-sm"
-            [value]="borrador().terminaEl ?? ''"
-            (input)="cambiaFecha('terminaEl', $event)"
+            [formField]="formulario.terminaEl"
           />
+          @if (formulario.terminaEl().touched() && formulario.terminaEl().errors().length) {
+            <p role="alert" class="text-[11px] text-error mt-0.5">
+              {{ formulario.terminaEl().errors()[0].message }}
+            </p>
+          }
         </div>
 
-        @if (borrador().codigo) {
+        @if (modelo().codigo) {
           <div class="form-control">
             <label for="promo-usos" class="label-text text-xs">
               {{ t('admin.promo.max_uses') }}
@@ -160,11 +209,14 @@ import { VentanaModal } from './ventana-modal';
             <input
               id="promo-usos"
               type="number"
-              min="1"
               class="input input-bordered input-sm"
-              [value]="borrador().usosMaximos ?? ''"
-              (input)="cambiaTope('usosMaximos', $event)"
+              [formField]="formulario.usosMaximos"
             />
+            @if (formulario.usosMaximos().touched() && formulario.usosMaximos().errors().length) {
+              <p role="alert" class="text-[11px] text-error mt-0.5">
+                {{ formulario.usosMaximos().errors()[0].message }}
+              </p>
+            }
           </div>
           <div class="form-control">
             <label for="promo-usos-persona" class="label-text text-xs">
@@ -173,11 +225,16 @@ import { VentanaModal } from './ventana-modal';
             <input
               id="promo-usos-persona"
               type="number"
-              min="1"
               class="input input-bordered input-sm"
-              [value]="borrador().usosPorPersona ?? ''"
-              (input)="cambiaTope('usosPorPersona', $event)"
+              [formField]="formulario.usosPorPersona"
             />
+            @if (
+              formulario.usosPorPersona().touched() && formulario.usosPorPersona().errors().length
+            ) {
+              <p role="alert" class="text-[11px] text-error mt-0.5">
+                {{ formulario.usosPorPersona().errors()[0].message }}
+              </p>
+            }
           </div>
         }
 
@@ -186,8 +243,7 @@ import { VentanaModal } from './ventana-modal';
             id="promo-activa"
             type="checkbox"
             class="checkbox checkbox-sm"
-            [checked]="borrador().activa !== false"
-            (change)="cambiaActiva($event)"
+            [formField]="formulario.activa"
           />
           <span class="label-text text-sm">{{ t('admin.promo.active') }}</span>
         </label>
@@ -198,8 +254,7 @@ import { VentanaModal } from './ventana-modal';
               id="promo-avisa"
               type="checkbox"
               class="checkbox checkbox-sm"
-              [checked]="borrador().avisaUsuarios === true"
-              (change)="cambiaAviso($event)"
+              [formField]="formulario.avisaUsuarios"
             />
             <span class="label-text text-sm">{{ t('admin.promo.notify') }}</span>
           </label>
@@ -217,8 +272,8 @@ import { VentanaModal } from './ventana-modal';
         <button
           type="button"
           class="btn btn-primary btn-sm"
-          [disabled]="!borrador().nombre.trim() || guardando()"
-          (click)="guarda.emit(borrador())"
+          [disabled]="guardando() || formulario().invalid()"
+          (click)="guarda.emit(promocionEditada())"
         >
           {{ t('common.save') }}
         </button>
@@ -239,83 +294,101 @@ export class PromocionesEditor {
   protected readonly t = inject(TraduccionService).t;
 
   /** Copia de trabajo; se rehace cuando entra otra promoción para no arrastrar lo tecleado antes. */
-  protected readonly borrador = linkedSignal<BorradorDePromocion>(() => ({ ...this.inicial() }));
+  protected readonly modelo = linkedSignal<BorradorEditable>(() => ({
+    nombre: this.inicial().nombre,
+    codigo: this.inicial().codigo ?? '',
+    porcentaje: this.inicial().porcentaje ?? null,
+    ambito: this.inicial().ambito,
+    categorias: this.inicial().categorias ?? [],
+    // Los identificadores se pegan uno por línea; el salto de línea es el separador.
+    productos: (this.inicial().productos ?? []).join('\n'),
+    empiezaEl: this.inicial().empiezaEl ?? '',
+    terminaEl: this.inicial().terminaEl ?? '',
+    usosMaximos: this.inicial().usosMaximos ?? null,
+    usosPorPersona: this.inicial().usosPorPersona ?? null,
+    activa: this.inicial().activa !== false,
+    avisaUsuarios: this.inicial().avisaUsuarios === true,
+  }));
 
-  /** Los identificadores de producto se pegan uno por línea; el salto de línea es el separador. */
-  protected readonly lineasDeProductos = computed(() =>
-    (this.borrador().productos ?? []).join('\n'),
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    required(ruta.nombre, { message: () => this.t('dialog.field.required') });
+
+    // Sin porcentaje no hay rebaja, y fuera del 1–99 % no descuenta o regala el producto. Se exige
+    // SALVO que la promoción descuente un importe fijo: esas se administran por otra vía y aquí ni
+    // siquiera se enseña su campo, así que bloquearlas dejaría sin poder editar su nombre o su vigencia.
+    required(ruta.porcentaje, {
+      when: () => !this.inicial().importeCentimos,
+      message: () => this.t('dialog.field.required'),
+    });
+    min(ruta.porcentaje, DESCUENTO_MINIMO, { message: () => this.t('dialog.field.number') });
+    max(ruta.porcentaje, DESCUENTO_MAXIMO, { message: () => this.t('dialog.field.number') });
+
+    // Un tope de cero usos apaga el cupón el día que se crea. Vacío sí vale: es «sin tope».
+    min(ruta.usosMaximos, 1, { message: () => this.t('dialog.field.number') });
+    min(ruta.usosPorPersona, 1, { message: () => this.t('dialog.field.number') });
+
+    // Validación CRUZADA: una promoción que termina antes de empezar no descuenta nunca, y se
+    // guardaba sin una sola queja.
+    validate(ruta.terminaEl, ({ value, valueOf }) => {
+      const termina = value();
+      const empieza = valueOf(ruta.empiezaEl);
+      return termina === '' || empieza === '' || termina >= empieza
+        ? null
+        : { kind: 'vigencia', message: this.t('login.error.bad_data') };
+    });
+  });
+
+  /** Los identificadores ya partidos: una sola conversión, y al salir, no en cada pulsación. */
+  protected readonly productosElegidos = computed(() =>
+    this.modelo()
+      .productos.split('\n')
+      .map((linea) => linea.trim())
+      .filter(Boolean),
   );
 
+  /**
+   * La promoción tal y como sale de la ventana.
+   *
+   * <p>Al cambiar de alcance se olvidan las listas del anterior: si no, quedarían aplicándose a
+   * escondidas. El código va en MAYÚSCULAS porque es lo que se teclea en el pago y no distingue
+   * capitalización.
+   */
+  protected readonly promocionEditada = computed<BorradorDePromocion>(() => {
+    const borrador = this.modelo();
+    return {
+      ...this.inicial(),
+      nombre: borrador.nombre,
+      codigo: borrador.codigo.toUpperCase(),
+      porcentaje: borrador.porcentaje ?? undefined,
+      ambito: borrador.ambito,
+      categorias: borrador.ambito === 'CATEGORY' ? borrador.categorias : [],
+      productos: borrador.ambito === 'PRODUCT' ? this.productosElegidos() : [],
+      empiezaEl: borrador.empiezaEl,
+      terminaEl: borrador.terminaEl,
+      usosMaximos: borrador.usosMaximos ?? undefined,
+      usosPorPersona: borrador.usosPorPersona ?? undefined,
+      activa: borrador.activa,
+      avisaUsuarios: borrador.avisaUsuarios,
+    };
+  });
+
   protected estaElegida(id: string): boolean {
-    return (this.borrador().categorias ?? []).includes(id);
+    return this.modelo().categorias.includes(id);
   }
 
-  protected cambiaNombre(evento: Event): void {
-    const nombre = (evento.target as HTMLInputElement).value;
-    this.borrador.update((promocion) => ({ ...promocion, nombre }));
-  }
-
-  /** El código va siempre en mayúsculas: es lo que se teclea en el pago y no distingue capitalización. */
-  protected cambiaCodigo(evento: Event): void {
-    const codigo = (evento.target as HTMLInputElement).value.toUpperCase();
-    this.borrador.update((promocion) => ({ ...promocion, codigo }));
-  }
-
-  protected cambiaPorcentaje(evento: Event): void {
-    const texto = (evento.target as HTMLInputElement).value;
-    this.borrador.update((promocion) => ({
-      ...promocion,
-      porcentaje: texto ? Number(texto) : undefined,
-    }));
-  }
-
-  /** Al cambiar de alcance se olvidan las listas del anterior: si no, quedarían aplicándose a escondidas. */
-  protected cambiaAmbito(evento: Event): void {
-    const ambito = (evento.target as HTMLSelectElement).value;
-    this.borrador.update((promocion) => ({
-      ...promocion,
-      ambito,
-      categorias: [],
-      productos: [],
-    }));
-  }
-
-  protected cambiaCategorias(evento: Event): void {
+  /**
+   * Las categorías marcadas en el desplegable múltiple.
+   *
+   * <p>Se escribe DENTRO del campo del formulario —no en un signal aparte— y se le marca como tocado y
+   * sucio a mano, que es lo que la directiva haría sola si supiera leer un `select multiple`.
+   */
+  protected eligeCategorias(evento: Event): void {
     const elegidas = Array.from((evento.target as HTMLSelectElement).selectedOptions).map(
       (opcion) => opcion.value,
     );
-    this.borrador.update((promocion) => ({ ...promocion, categorias: elegidas }));
-  }
-
-  protected cambiaProductos(evento: Event): void {
-    const productos = (evento.target as HTMLTextAreaElement).value
-      .split('\n')
-      .map((linea) => linea.trim())
-      .filter(Boolean);
-    this.borrador.update((promocion) => ({ ...promocion, productos }));
-  }
-
-  protected cambiaFecha(campo: 'empiezaEl' | 'terminaEl', evento: Event): void {
-    const valor = (evento.target as HTMLInputElement).value;
-    this.borrador.update((promocion) => ({ ...promocion, [campo]: valor }));
-  }
-
-  /** Un tope vacío NO es cero: es «sin tope», y eso se dice dejando el campo sin valor. */
-  protected cambiaTope(campo: 'usosMaximos' | 'usosPorPersona', evento: Event): void {
-    const texto = (evento.target as HTMLInputElement).value;
-    this.borrador.update((promocion) => ({
-      ...promocion,
-      [campo]: texto ? Number(texto) : undefined,
-    }));
-  }
-
-  protected cambiaActiva(evento: Event): void {
-    const activa = (evento.target as HTMLInputElement).checked;
-    this.borrador.update((promocion) => ({ ...promocion, activa }));
-  }
-
-  protected cambiaAviso(evento: Event): void {
-    const avisaUsuarios = (evento.target as HTMLInputElement).checked;
-    this.borrador.update((promocion) => ({ ...promocion, avisaUsuarios }));
+    const campo = this.formulario.categorias();
+    campo.value.set(elegidas);
+    campo.markAsTouched();
+    campo.markAsDirty();
   }
 }

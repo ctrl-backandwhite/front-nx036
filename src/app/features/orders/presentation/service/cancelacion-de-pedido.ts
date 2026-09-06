@@ -20,7 +20,12 @@ import { CancelaPedido } from '../../application/use-case/cancela-pedido.use-cas
  * como un sí/no, así que se entiende, pero está anotado para cuando el atajo del almacén acepte
  * etiquetas.
  */
-@Injectable({ providedIn: 'root' })
+/*
+ * NO lleva `providedIn: 'root'`: se registra en `orders.providers.ts`, con la ruta. Un servicio de la
+ * raíz solo ve los proveedores de la raíz, y este inyecta `CancelaPedido`, que vive en el inyector de la
+ * ruta de pedidos: marcado como de raíz, abrir /orders moría con «NG0201: No provider found».
+ */
+@Injectable()
 export class CancelacionDePedido {
   private readonly traduccion = inject(TraduccionService);
   private readonly dialogo = inject(DialogoStore);

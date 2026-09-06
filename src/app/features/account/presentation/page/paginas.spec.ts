@@ -32,6 +32,7 @@ import { CuentaStore } from '../../application/state/cuenta.store';
 import { PerfilPage } from './perfil.page';
 import { DireccionesPage } from './direcciones.page';
 import { PlanesPage } from './planes.page';
+import { APLICACION_DE_ACCOUNT } from '../../account.providers';
 
 @Component({ selector: 'nx-vacia', template: '' })
 class Vacia {}
@@ -87,7 +88,11 @@ function puertos(sobrescribe: Record<string, unknown> = {}) {
       formatoPostal: vi.fn().mockResolvedValue(fallo(creaError('no-encontrado'))),
     },
     metodos: {
-      configuracion: vi.fn().mockResolvedValue(exito({ clavePublicable: '', activo: false, pruebaGratisGastada: false })),
+      configuracion: vi
+        .fn()
+        .mockResolvedValue(
+          exito({ clavePublicable: '', activo: false, pruebaGratisGastada: false }),
+        ),
       lista: vi.fn().mockResolvedValue(exito([])),
       marcaPorDefecto: vi.fn(),
       guardaPaypal: vi.fn(),
@@ -115,9 +120,13 @@ function puertos(sobrescribe: Record<string, unknown> = {}) {
   return {
     doble,
     providers: [
+      ...APLICACION_DE_ACCOUNT,
       { provide: ALMACEN_LOCAL, useClass: AlmacenMemoriaAdapter },
       { provide: PERFIL_PORT, useValue: doble.perfil },
-      { provide: USUARIO_ACTUAL_PORT, useValue: { consulta: vi.fn().mockResolvedValue(exito(TITULAR)), actualiza: vi.fn() } },
+      {
+        provide: USUARIO_ACTUAL_PORT,
+        useValue: { consulta: vi.fn().mockResolvedValue(exito(TITULAR)), actualiza: vi.fn() },
+      },
       { provide: BAJA_DE_CUENTA_PORT, useValue: { solicita: vi.fn(), confirma: vi.fn() } },
       { provide: PORTABILIDAD_PORT, useValue: { exporta: vi.fn() } },
       { provide: FIN_DE_SESION_PORT, useValue: { termina: vi.fn() } },
@@ -139,7 +148,11 @@ describe('PerfilPage', () => {
   async function monta(seccion?: string) {
     const { providers } = puertos();
     const vista = await render(PerfilPage, {
-      providers: [provideRouter([{ path: '**', component: Vacia }]), ...providers],
+      providers: [
+        ...APLICACION_DE_ACCOUNT,
+        provideRouter([{ path: '**', component: Vacia }]),
+        ...providers,
+      ],
       inputs: seccion ? { section: seccion } : {},
     });
     TestBed.inject(CuentaStore).fija(TITULAR);
@@ -151,7 +164,11 @@ describe('PerfilPage', () => {
   it('mientras no se sabe quién mira, solo se anuncia que está cargando', async () => {
     const { providers } = puertos();
     const vista = await render(PerfilPage, {
-      providers: [provideRouter([{ path: '**', component: Vacia }]), ...providers],
+      providers: [
+        ...APLICACION_DE_ACCOUNT,
+        provideRouter([{ path: '**', component: Vacia }]),
+        ...providers,
+      ],
     });
     const t = TestBed.inject(TraduccionService).t;
     vista.fixture.detectChanges();
@@ -171,7 +188,9 @@ describe('PerfilPage', () => {
     await monta('addresses');
     const t = TestBed.inject(TraduccionService).t;
 
-    expect(screen.getByRole('button', { name: new RegExp(t('profile.addresses.add')) })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: new RegExp(t('profile.addresses.add')) }),
+    ).toBeInTheDocument();
   });
 
   it('una sección inventada cae en la primera, no en una pantalla en blanco', async () => {
@@ -186,7 +205,9 @@ describe('PerfilPage', () => {
     await monta();
     const t = TestBed.inject(TraduccionService).t;
 
-    await usuario.click(screen.getByRole('button', { name: new RegExp(t('profile.section.security')) }));
+    await usuario.click(
+      screen.getByRole('button', { name: new RegExp(t('profile.section.security')) }),
+    );
 
     await waitFor(() => expect(TestBed.inject(Router).url).toContain('section=security'));
   });
@@ -203,7 +224,11 @@ describe('DireccionesPage', () => {
   async function monta(sobrescribe: Record<string, unknown> = {}) {
     const { doble, providers } = puertos(sobrescribe);
     const vista = await render(DireccionesPage, {
-      providers: [provideRouter([{ path: '**', component: Vacia }]), ...providers],
+      providers: [
+        ...APLICACION_DE_ACCOUNT,
+        provideRouter([{ path: '**', component: Vacia }]),
+        ...providers,
+      ],
     });
     await waitFor(() => expect(doble.direcciones.lista).toHaveBeenCalled());
     vista.fixture.detectChanges();
@@ -228,7 +253,9 @@ describe('DireccionesPage', () => {
     const t = TestBed.inject(TraduccionService).t;
 
     expect(screen.getByText(t('addresses.empty_title'))).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: new RegExp(t('addresses.add_first')) })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: new RegExp(t('addresses.add_first')) }),
+    ).toBeInTheDocument();
   });
 
   it('abrir el formulario esconde la lista y el botón de añadir', async () => {
@@ -257,13 +284,17 @@ describe('DireccionesPage', () => {
   it('si el servidor rechaza, el formulario sigue abierto con lo tecleado', async () => {
     const usuario = userEvent.setup({ delay: null });
     const { doble } = await monta();
-    doble.direcciones.actualiza.mockResolvedValue(fallo(creaError('peticion-invalida', 'Falta el código postal')));
+    doble.direcciones.actualiza.mockResolvedValue(
+      fallo(creaError('peticion-invalida', 'Falta el código postal')),
+    );
     const t = TestBed.inject(TraduccionService).t;
 
     await usuario.click(screen.getByRole('button', { name: new RegExp(t('common.edit')) }));
     await usuario.click(screen.getByRole('button', { name: t('profile.update') }));
 
-    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Falta el código postal'));
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent('Falta el código postal'),
+    );
     expect(screen.getByRole('textbox', { name: t('checkout.full_name') })).toHaveValue('Ana Pérez');
   });
 
@@ -292,6 +323,7 @@ describe('PlanesPage', () => {
     };
     const vista = await render(PlanesPage, {
       providers: [
+        ...APLICACION_DE_ACCOUNT,
         provideRouter([{ path: '**', component: Vacia }]),
         ...providers,
         { provide: ALMACEN_LOCAL, useValue: almacen },
@@ -315,14 +347,20 @@ describe('PlanesPage', () => {
     const t = TestBed.inject(TraduccionService).t;
 
     expect(doble.planes.suscripcionActual).not.toHaveBeenCalled();
-    expect(screen.getByRole('link', { name: t('plans.login_to_subscribe') })).toHaveAttribute('href', '/login');
+    expect(screen.getByRole('link', { name: t('plans.login_to_subscribe') })).toHaveAttribute(
+      'href',
+      '/login',
+    );
   });
 
   it('con sesión lleva al perfil, que es donde se contrata', async () => {
     await monta(true);
     const t = TestBed.inject(TraduccionService).t;
 
-    expect(screen.getByRole('link', { name: t('plans.go_contract') })).toHaveAttribute('href', '/profile');
+    expect(screen.getByRole('link', { name: t('plans.go_contract') })).toHaveAttribute(
+      'href',
+      '/profile',
+    );
   });
 
   it('enseña los límites del plan', async () => {

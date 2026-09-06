@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCopy, faKey } from '@fortawesome/free-solid-svg-icons';
 import QRCode from 'qrcode';
+import { FormField, form, maxLength, minLength, pattern, required } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { DialogoStore } from '@ds/component/dialogo/dialogo.store';
 import {
@@ -12,6 +13,9 @@ import { VentanaModal } from './ventana-modal';
 
 /** Cuántas cifras tiene el código de un autenticador. Por debajo, ni se intenta enviar. */
 const LARGO_DEL_CODIGO = 6;
+
+/** Las seis cifras del autenticador, y nada más: ni letras ni espacios. */
+const SOLO_CIFRAS = new RegExp(`^[0-9]{${LARGO_DEL_CODIGO}}$`);
 
 /** Identificadores únicos por montaje: dos campos con el mismo `id` rompen su etiqueta. */
 let contador = 0;
@@ -34,7 +38,7 @@ type Paso = 'verifica' | 'codigos' | 'desactiva' | null;
  */
 @Component({
   selector: 'nx-perfil-segundo-factor',
-  imports: [FaIconComponent, VentanaModal],
+  imports: [FaIconComponent, VentanaModal, FormField],
   template: `
     <div class="flex items-center justify-between gap-3 py-2 border-b border-ink-100">
       <div>
@@ -76,15 +80,15 @@ type Paso = 'verifica' | 'codigos' | 'desactiva' | null;
         <!-- Sin autofocus: robar el foco al abrir desorienta a quien navega con lector de pantalla
              o con el teclado, y el proyecto lo prohíbe. Llevar el foco DENTRO de la ventana es tarea de
              la propia ventana modal, que es donde se resuelve una vez para todas las pantallas. -->
-        <input [id]="idDelCodigo" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
+        <input [id]="idDelCodigo" type="text" inputmode="numeric"
                autocomplete="one-time-code" placeholder="123456"
                class="input font-mono text-center text-lg tracking-widest"
-               [value]="codigo()" (input)="escribeCodigo($event)" />
+               [formField]="formularioDelCodigo.codigo" />
         <div class="flex justify-end gap-2 pt-1">
           <button type="button" class="btn btn-outline text-[12px]"
                   (click)="cierra()">{{ t('actions.cancel') }}</button>
           <button type="button" class="btn btn-primary text-[12px]"
-                  [disabled]="codigo().length !== largoDelCodigo || ocupado()"
+                  [disabled]="formularioDelCodigo().invalid() || ocupado()"
                   (click)="verifica()">{{ t('admin.profile.2fa.enable') }}</button>
         </div>
       </nx-ventana-modal>
@@ -114,12 +118,12 @@ type Paso = 'verifica' | 'codigos' | 'desactiva' | null;
                class="text-xs text-ink-500 block">{{ t('admin.profile.pw.current') }}</label>
         <input [id]="idDeLaContrasena" type="password" class="input" autocomplete="current-password"
                [placeholder]="t('admin.profile.pw.current')"
-               [value]="contrasena()" (input)="escribeContrasena($event)" />
+               [formField]="formularioDeLaClave.contrasena" />
         <div class="flex justify-end gap-2">
           <button type="button" class="btn btn-outline text-[12px]"
                   (click)="cierra()">{{ t('actions.cancel') }}</button>
           <button type="button" class="btn btn-error text-[12px]"
-                  [disabled]="!contrasena() || ocupado()"
+                  [disabled]="formularioDeLaClave().invalid() || ocupado()"
                   (click)="desactiva()">{{ t('admin.profile.2fa.disable') }}</button>
         </div>
       </nx-ventana-modal>
@@ -136,7 +140,6 @@ export class PerfilSegundoFactor {
 
   protected readonly t = this.traduccion.t;
   protected readonly iconos = { copiar: faCopy, llave: faKey };
-  protected readonly largoDelCodigo = LARGO_DEL_CODIGO;
   protected readonly idDelCodigo = `nx-perfil-2fa-codigo-${++contador}`;
   protected readonly idDeLaContrasena = `nx-perfil-2fa-clave-${contador}`;
 
@@ -145,8 +148,29 @@ export class PerfilSegundoFactor {
   protected readonly ocupado = signal(false);
   protected readonly secreto = signal('');
   protected readonly qr = signal('');
-  protected readonly codigo = signal('');
-  protected readonly contrasena = signal('');
+  /**
+   * Dos formularios y no uno: el código y la contraseña pertenecen a PASOS distintos —dar de alta el
+   * segundo factor y quitarlo— y nunca se enseñan a la vez. Unirlos haría que el estado de validez de
+   * uno apagase el botón del otro.
+   *
+   * <p>El largo y las cifras del código se declaran en el esquema, no como atributos del campo: así el
+   * `maxlength` que ve el navegador y la regla que apaga el botón salen del MISMO sitio y no pueden
+   * decir cosas distintas.
+   */
+  protected readonly codigo = signal({ codigo: '' });
+  protected readonly formularioDelCodigo = form(this.codigo, (ruta) => {
+    required(ruta.codigo, { message: () => this.t('dialog.field.required') });
+    minLength(ruta.codigo, LARGO_DEL_CODIGO, { message: () => this.t('login.error.otp_invalid') });
+    maxLength(ruta.codigo, LARGO_DEL_CODIGO, { message: () => this.t('login.error.otp_invalid') });
+    pattern(ruta.codigo, SOLO_CIFRAS, { message: () => this.t('login.error.otp_invalid') });
+  });
+
+  protected readonly contrasena = signal({ contrasena: '' });
+  protected readonly formularioDeLaClave = form(this.contrasena, (ruta) => {
+    // Quitar el segundo factor EXIGE la contraseña: si no, una sesión robada bastaría para desarmarlo.
+    required(ruta.contrasena, { message: () => this.t('dialog.field.required') });
+  });
+
   protected readonly codigosEnTexto = signal('');
 
   constructor() {
@@ -163,7 +187,7 @@ export class PerfilSegundoFactor {
   protected alterna(evento: Event): void {
     (evento.target as HTMLInputElement).checked = this.activo();
     if (this.activo()) {
-      this.contrasena.set('');
+      this.contrasena.set({ contrasena: '' });
       this.paso.set('desactiva');
       return;
     }
@@ -178,17 +202,9 @@ export class PerfilSegundoFactor {
    */
   protected cierra(): void {
     this.paso.set(null);
-    this.contrasena.set('');
+    this.contrasena.set({ contrasena: '' });
     this.codigosEnTexto.set('');
     this.olvidaElSecreto();
-  }
-
-  protected escribeCodigo(evento: Event): void {
-    this.codigo.set((evento.target as HTMLInputElement).value);
-  }
-
-  protected escribeContrasena(evento: Event): void {
-    this.contrasena.set((evento.target as HTMLInputElement).value);
   }
 
   private async empiezaElAlta(): Promise<void> {
@@ -201,14 +217,14 @@ export class PerfilSegundoFactor {
     // El QR se dibuja AQUÍ, en el navegador. La dirección `otpauth` lleva la semilla dentro y no sale
     // del dispositivo: antes se mandaba a un generador de imágenes público, que es filtrarla.
     this.qr.set(await QRCode.toDataURL(resultado.valor.urlOtpauth, { width: 240, margin: 2 }));
-    this.codigo.set('');
+    this.codigo.set({ codigo: '' });
     this.paso.set('verifica');
   }
 
   protected async verifica(): Promise<void> {
     this.ocupado.set(true);
     try {
-      const resultado = await this.verificaUso.ejecuta(this.codigo());
+      const resultado = await this.verificaUso.ejecuta(this.codigo().codigo);
       if (!resultado.ok) {
         await this.avisa(resultado.error.mensaje, 'admin.profile.2fa.verify_error');
         return;
@@ -226,13 +242,13 @@ export class PerfilSegundoFactor {
   protected async desactiva(): Promise<void> {
     this.ocupado.set(true);
     try {
-      const resultado = await this.desactivaUso.ejecuta(this.contrasena());
+      const resultado = await this.desactivaUso.ejecuta(this.contrasena().contrasena);
       if (!resultado.ok) {
         await this.avisa(resultado.error.mensaje, 'admin.profile.2fa.disable_error');
         return;
       }
       this.activo.set(false);
-      this.contrasena.set('');
+      this.contrasena.set({ contrasena: '' });
       this.paso.set(null);
       await this.dialogo.alerta(this.t('admin.profile.2fa.disabled_ok'), undefined, 'success');
     } finally {
@@ -258,7 +274,7 @@ export class PerfilSegundoFactor {
   private olvidaElSecreto(): void {
     this.secreto.set('');
     this.qr.set('');
-    this.codigo.set('');
+    this.codigo.set({ codigo: '' });
   }
 
   /** El motivo lo escribe el backend, ya traducido; si no vino ninguno, el texto propio del paso. */

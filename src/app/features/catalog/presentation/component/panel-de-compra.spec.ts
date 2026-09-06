@@ -6,6 +6,7 @@ import { EDICION_DE_FICHA_PORT } from '../../domain/port/edicion-de-ficha.port';
 import { EjeDeVariante, FichaDeProducto } from '../../domain/model/producto';
 import { SeleccionDeLaFicha } from '../seleccion-de-la-ficha';
 import { PanelDeCompra } from './panel-de-compra';
+import { APLICACION_DEL_CATALOGO } from '../../catalog.providers';
 
 function eje(nombre: string, valores: string[]): EjeDeVariante {
   return {
@@ -13,7 +14,12 @@ function eje(nombre: string, valores: string[]): EjeDeVariante {
     nombreZh: nombre,
     nombre,
     posicion: 0,
-    valores: valores.map((valor, i) => ({ id: `${nombre}-${i}`, valorZh: valor, valor, posicion: i })),
+    valores: valores.map((valor, i) => ({
+      id: `${nombre}-${i}`,
+      valorZh: valor,
+      valor,
+      posicion: i,
+    })),
   };
 }
 
@@ -48,7 +54,11 @@ async function monta(entrada: FichaDeProducto, esAdministrador = false) {
   const vista = await render(PanelDeCompra, {
     inputs: { ficha: entrada },
     on: { anade, marcaFavorito },
-    providers: [SeleccionDeLaFicha, { provide: EDICION_DE_FICHA_PORT, useValue: {} }],
+    providers: [
+      ...APLICACION_DEL_CATALOGO,
+      SeleccionDeLaFicha,
+      { provide: EDICION_DE_FICHA_PORT, useValue: {} },
+    ],
   });
   const seleccion = vista.fixture.debugElement.injector.get(SeleccionDeLaFicha);
   seleccion.empieza(entrada);
@@ -95,9 +105,7 @@ describe('PanelDeCompra', () => {
   it('con tallas enseña la tabla en vez del selector simple', async () => {
     const conTallas = ficha({
       ejesDeVariante: [eje('Talla', ['S', 'M'])],
-      variantes: [
-        { id: 'v1', existencias: 2, opciones: { Talla: 'S' }, activa: true },
-      ],
+      variantes: [{ id: 'v1', existencias: 2, opciones: { Talla: 'S' }, activa: true }],
     });
     const { vista } = await monta(conTallas);
     expect(vista.container.querySelectorAll('input[type=number]').length).toBeGreaterThan(0);
@@ -115,7 +123,11 @@ describe('PanelDeCompra', () => {
     const vista = await render(PanelDeCompra, {
       inputs: { ficha: entrada },
       on: { compraAhora },
-      providers: [SeleccionDeLaFicha, { provide: EDICION_DE_FICHA_PORT, useValue: {} }],
+      providers: [
+        ...APLICACION_DEL_CATALOGO,
+        SeleccionDeLaFicha,
+        { provide: EDICION_DE_FICHA_PORT, useValue: {} },
+      ],
     });
     vista.fixture.debugElement.injector.get(SeleccionDeLaFicha).empieza(entrada);
     vista.fixture.detectChanges();
@@ -129,7 +141,11 @@ describe('PanelDeCompra', () => {
     const vista = await render(PanelDeCompra, {
       inputs: { ficha: entrada },
       on: { marcaFavorito },
-      providers: [SeleccionDeLaFicha, { provide: EDICION_DE_FICHA_PORT, useValue: {} }],
+      providers: [
+        ...APLICACION_DEL_CATALOGO,
+        SeleccionDeLaFicha,
+        { provide: EDICION_DE_FICHA_PORT, useValue: {} },
+      ],
     });
     vista.fixture.debugElement.injector.get(SeleccionDeLaFicha).empieza(entrada);
     vista.fixture.debugElement.injector
@@ -149,7 +165,11 @@ describe('PanelDeCompra', () => {
     const vista = await render(PanelDeCompra, {
       inputs: { ficha: entrada },
       on: { filtraPorGrupo },
-      providers: [SeleccionDeLaFicha, { provide: EDICION_DE_FICHA_PORT, useValue: {} }],
+      providers: [
+        ...APLICACION_DEL_CATALOGO,
+        SeleccionDeLaFicha,
+        { provide: EDICION_DE_FICHA_PORT, useValue: {} },
+      ],
     });
     vista.fixture.debugElement.injector.get(SeleccionDeLaFicha).empieza(entrada);
     vista.fixture.detectChanges();
@@ -173,7 +193,11 @@ describe('PanelDeCompra', () => {
     const vista = await render(PanelDeCompra, {
       inputs: { ficha: entrada },
       on: { eligeColor, cambia },
-      providers: [SeleccionDeLaFicha, { provide: EDICION_DE_FICHA_PORT, useValue: {} }],
+      providers: [
+        ...APLICACION_DEL_CATALOGO,
+        SeleccionDeLaFicha,
+        { provide: EDICION_DE_FICHA_PORT, useValue: {} },
+      ],
     });
     vista.fixture.debugElement.injector.get(SeleccionDeLaFicha).empieza(entrada);
     vista.fixture.detectChanges();

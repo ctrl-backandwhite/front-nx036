@@ -1,11 +1,11 @@
-import { Component, inject, input, output } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faLocationDot, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { Provincia } from '@ds/component/provincia/selector-provincia';
 import { DireccionDeEnvio, DireccionGuardada } from '../../domain/model/pedido';
-import { CamposDeDireccion } from './campos-de-direccion';
+import { CamposDeDireccion, DireccionEditable } from './campos-de-direccion';
 
 /** El valor con el que se elige «escribir una dirección nueva» en el grupo de opciones. */
 export const OPCION_NUEVA = 'NUEVA';
@@ -101,7 +101,7 @@ export const OPCION_NUEVA = 'NUEVA';
       @if (esNueva()) {
         <div class="pt-2 space-y-3">
           <nx-campos-de-direccion
-            [valor]="direccionNueva()"
+            [valor]="direccionEditable()"
             [provincias]="provincias()"
             (valorChange)="escribe.emit($event)"
           />
@@ -137,6 +137,28 @@ export class SeccionDeEnvio {
   readonly cambiaGuardado = output<boolean>();
 
   protected readonly t = inject(TraduccionService).t;
+
+  /**
+   * La misma dirección, pero con las claves opcionales presentes aunque vayan vacías. El formulario las
+   * necesita para poder crear su campo: sin la clave no hay campo que atar. Es un valor DERIVADO, así
+   * que se calcula una vez por cambio y no se copia a mano.
+   */
+  protected readonly direccionEditable = computed<DireccionEditable>(() => {
+    const direccion = this.direccionNueva();
+    // Explícito y no por propagación: una clave presente PERO a `undefined` se colaría igual y volvería
+    // a dejar el campo sin valor con el que pintar.
+    return {
+      nombreCompleto: direccion.nombreCompleto,
+      linea1: direccion.linea1,
+      linea2: direccion.linea2 ?? '',
+      ciudad: direccion.ciudad,
+      provincia: direccion.provincia ?? '',
+      codigoPostal: direccion.codigoPostal ?? '',
+      pais: direccion.pais,
+      telefono: direccion.telefono ?? '',
+    };
+  });
+
   protected readonly opcionNueva = OPCION_NUEVA;
   protected readonly iconoUbicacion = faLocationDot;
   protected readonly iconoNueva = faPlus;

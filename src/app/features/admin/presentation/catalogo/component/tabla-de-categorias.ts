@@ -1,4 +1,4 @@
-import { Component, inject, input, output } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
@@ -183,10 +183,10 @@ export class TablaDeCategorias {
     return categoria.nombres[idioma] || '—';
   }
 
-  protected todasMarcadas(): boolean {
+  protected readonly todasMarcadas = computed(() => {
     const ids = this.categorias().map((categoria) => categoria.id);
     return ids.length > 0 && ids.every((id) => this.marcadas().has(id));
-  }
+  });
 
   protected vaciaYActiva(categoria: CategoriaAdmin): boolean {
     return estaVaciaYActiva(categoria);

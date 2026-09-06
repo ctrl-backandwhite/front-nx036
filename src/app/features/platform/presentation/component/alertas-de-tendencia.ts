@@ -1,4 +1,5 @@
-import { Component, inject, input, output, signal } from '@angular/core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { FieldTree, FormField, form, max, min, required } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faPlus, faTrashCan } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
@@ -15,6 +16,10 @@ export interface PeticionDeAlerta {
   readonly canal: string;
 }
 
+/** El umbral se pide en la escala de la tabla de anuncios, que es la que se ve. */
+const UMBRAL_MINIMO = 0;
+const UMBRAL_MAXIMO = 100;
+
 /**
  * Las alertas de tendencia: crearlas, verlas y borrarlas.
  *
@@ -22,12 +27,16 @@ export interface PeticionDeAlerta {
  * anuncios. El backend lo guarda de 0 a 1, y esa conversión la hace el caso de uso: pedirlo en una
  * escala y enseñarlo en otra era la forma segura de que nadie entendiera qué había configurado.
  *
+ * <p>Los límites de la escala eran `min` y `max` escritos a mano en el HTML: el navegador los respetaba
+ * con las flechas y los ignoraba al teclear, así que un 400 llegaba al backend. Ahora son reglas del
+ * esquema —que además devuelven los atributos al campo—, así que el botón se apaga solo.
+ *
  * <p>MOBILE FIRST: el formulario envuelve en varias líneas y cada campo tiene su ancho mínimo; en
  * pantalla ancha queda en una sola fila.
  */
 @Component({
   selector: 'nx-alertas-de-tendencia',
-  imports: [FaIconComponent],
+  imports: [FaIconComponent, FormField],
   template: `
     <div class="space-y-4">
       <form class="card p-4 flex flex-wrap gap-2 items-end" (submit)="envia($event)">
@@ -35,12 +44,7 @@ export interface PeticionDeAlerta {
           <label for="alerta-palabra" class="text-xs text-ink-500">
             {{ t('intel.alert.keyword') }}
           </label>
-          <input
-            id="alerta-palabra"
-            class="input mt-1"
-            [value]="palabra()"
-            (input)="palabra.set(valor($event))"
-          />
+          <input id="alerta-palabra" class="input mt-1" [formField]="formulario.palabra" />
         </div>
 
         <div class="w-28">
@@ -51,31 +55,26 @@ export interface PeticionDeAlerta {
             id="alerta-umbral"
             type="number"
             step="5"
-            min="0"
-            max="100"
             class="input mt-1"
-            [value]="umbral()"
-            (input)="umbral.set(valor($event))"
+            [formField]="formulario.umbral"
           />
+          @if (falloDe(formulario.umbral); as fallo) {
+            <span role="alert" class="text-xs text-error mt-1 block">{{ fallo }}</span>
+          }
         </div>
 
         <div class="w-32">
           <label for="alerta-canal" class="text-xs text-ink-500">
             {{ t('intel.alert.channel') }}
           </label>
-          <select
-            id="alerta-canal"
-            class="input mt-1"
-            [value]="canal()"
-            (change)="canal.set(valor($event))"
-          >
+          <select id="alerta-canal" class="input mt-1" [formField]="formulario.canal">
             @for (opcion of canales; track opcion) {
               <option [value]="opcion">{{ t('intel.channel.' + opcion) }}</option>
             }
           </select>
         </div>
 
-        <button type="submit" class="btn btn-primary" [disabled]="creando()">
+        <button type="submit" class="btn btn-primary" [disabled]="!sePuedeCrear()">
           <fa-icon [icon]="iconos.mas" /> {{ t('intel.add_alert') }}
         </button>
       </form>
@@ -118,26 +117,57 @@ export class AlertasDeTendencia {
   protected readonly canales = CANALES_DE_ALERTA;
   protected readonly iconos = { mas: faPlus, papelera: faTrashCan };
 
-  protected readonly palabra = signal('');
-  protected readonly umbral = signal('75');
   /** El canal es elegible; antes estaba fijado a correo y no había forma de saberlo desde la pantalla. */
-  protected readonly canal = signal<string>('EMAIL');
+  protected readonly modelo = signal<{ palabra: string; umbral: number | null; canal: string }>({
+    palabra: '',
+    umbral: 75,
+    canal: 'EMAIL',
+  });
+
+  /**
+   * La palabra clave NO es obligatoria: una alerta sin ella vigila todas las tendencias, que es un uso
+   * legítimo y el que trae el backend por defecto.
+   *
+   * <p>El tope de 100 se declara sin mensaje a propósito: no hay ninguna cadena traducida a los ocho
+   * idiomas que diga «como mucho 100», y escribir una a medias en español sería peor que el atributo
+   * `max` que la propia regla devuelve al campo. Queda anotado.
+   */
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    required(ruta.umbral, { message: () => this.t('dialog.field.required') });
+    min(ruta.umbral, UMBRAL_MINIMO, { message: () => this.t('dialog.field.min') });
+    max(ruta.umbral, UMBRAL_MAXIMO);
+  });
+
+  protected readonly sePuedeCrear = computed(
+    () => !this.creando() && !this.formulario().invalid(),
+  );
 
   protected envia(evento: Event): void {
     evento.preventDefault();
+    if (!this.sePuedeCrear()) {
+      return;
+    }
+    const datos = this.modelo();
     this.crea.emit({
-      palabraClave: this.palabra(),
-      umbralSobreCien: this.umbral(),
-      canal: this.canal(),
+      palabraClave: datos.palabra,
+      // El umbral viaja en texto porque así lo espera el caso de uso, que es quien cambia de escala.
+      umbralSobreCien: datos.umbral === null ? '' : String(datos.umbral),
+      canal: datos.canal,
     });
-    this.palabra.set('');
+    // Solo la palabra: el umbral y el canal recién elegidos suelen valer para la siguiente alerta.
+    this.formulario.palabra().value.set('');
   }
 
   protected sobreCien(alerta: AlertaDeTendencia): number {
     return puntuacionSobreCien(alerta.umbral);
   }
 
-  protected valor(evento: Event): string {
-    return (evento.target as HTMLInputElement | HTMLSelectElement).value;
+  /**
+   * El mensaje que toca enseñar bajo un campo, o nulo. Se calla hasta que el campo se ha TOCADO:
+   * pintar de rojo un formulario recién abierto acusa a quien todavía no ha escrito nada.
+   */
+  protected falloDe<T>(campo: FieldTree<T>): string | null {
+    const estado = campo();
+    return estado.touched() ? (estado.errors()[0]?.message ?? null) : null;
   }
 }

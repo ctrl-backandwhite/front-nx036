@@ -1,6 +1,13 @@
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
+import {
+  BORRADOR_DE_CATEGORIA_VACIO,
+  BorradorDeCategoria,
+} from '../../../domain/catalogo/model/categoria-admin';
+import { BORRADOR_DE_PROVEEDOR_VACIO } from '../../../domain/catalogo/model/proveedor-admin';
 import { PeticionDeRecargo, PeticionDeSubvencion } from '../../../domain/catalogo/port/productos-admin.port';
+import { DialogoCategoria } from './dialogo-categoria';
+import { DialogoProveedor } from './dialogo-proveedor';
 import { DialogoRecargo } from './dialogo-recargo';
 import { DialogoSubvencion } from './dialogo-subvencion';
 import { Paginacion } from './paginacion';
@@ -106,6 +113,80 @@ describe('DialogoSubvencion', () => {
   it('sin categoría en el filtro, ese ámbito queda apagado', async () => {
     await pinta([]);
     expect(screen.getByText(t('admin.catalog.subsidy.scope_category_disabled'))).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(t('admin.catalog.subsidy.scope_category_disabled')),
+    ).toBeDisabled();
+  });
+});
+
+describe('DialogoCategoria', () => {
+  async function pinta(guardados: BorradorDeCategoria[] = []) {
+    return render(DialogoCategoria, {
+      inputs: { inicial: BORRADOR_DE_CATEGORIA_VACIO, editandoId: null, todas: [] },
+      on: { guarda: (borrador: BorradorDeCategoria) => guardados.push(borrador) },
+    });
+  }
+
+  /** El slug es parte de la dirección pública: se corrige al teclear, no se rechaza al guardar. */
+  it('el slug se sanea mientras se escribe', async () => {
+    await pinta();
+
+    const slug = screen.getByLabelText(t('admin.categories.col.slug')) as HTMLInputElement;
+    await userEvent.type(slug, 'Ropa Mujer');
+
+    expect(slug.value).toBe('ropa-mujer');
+  });
+
+  /** El español y el inglés son los idiomas con los que se opera: sin ellos la categoría sale vacía. */
+  it('no deja crear hasta que hay slug y nombre en español e inglés', async () => {
+    await pinta();
+    const crear = screen.getByRole('button', { name: t('admin.categories.create') });
+
+    await userEvent.type(screen.getByLabelText(t('admin.categories.col.slug')), 'ropa');
+    expect(crear).toBeDisabled();
+
+    await userEvent.type(screen.getByLabelText(t('admin.categories.col.es')), 'Ropa');
+    expect(crear).toBeDisabled();
+
+    await userEvent.type(screen.getByLabelText(t('admin.categories.col.en')), 'Clothing');
+    expect(crear).toBeEnabled();
+  });
+
+  /** Un guion delante no lo arregla el saneado, así que el aviso tiene que decir qué pasa. */
+  it('un slug con formato inválido se avisa en el propio campo', async () => {
+    await pinta();
+
+    await userEvent.type(screen.getByLabelText(t('admin.categories.col.slug')), '-ropa');
+    await userEvent.tab();
+
+    expect(
+      await screen.findByText(t('admin.categories.error.slug_format')),
+    ).toBeInTheDocument();
+  });
+});
+
+describe('DialogoProveedor', () => {
+  async function pinta() {
+    return render(DialogoProveedor, {
+      inputs: { inicial: BORRADOR_DE_PROVEEDOR_VACIO, editando: false },
+    });
+  }
+
+  it('sin nombre no se puede guardar', async () => {
+    await pinta();
+    expect(screen.getByRole('button', { name: t('admin.suppliers.save') })).toBeDisabled();
+  });
+
+  /** La valoración va de 0 a 5: antes el tope vivía en un atributo que solo limitaba las flechas. */
+  it('una valoración por encima de cinco bloquea el guardado', async () => {
+    await pinta();
+    const guardar = screen.getByRole('button', { name: t('admin.suppliers.save') });
+
+    await userEvent.type(screen.getByLabelText(rx('admin.suppliers.col.name')), 'Acme');
+    expect(guardar).toBeEnabled();
+
+    await userEvent.type(screen.getByLabelText(t('admin.suppliers.col.rating')), '9');
+    expect(guardar).toBeDisabled();
   });
 });
 

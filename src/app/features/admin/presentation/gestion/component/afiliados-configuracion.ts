@@ -1,4 +1,5 @@
 import { Component, inject, input, linkedSignal, output, signal } from '@angular/core';
+import { FormField, form, max, min, pattern, required } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
 import { ConfiguracionDeAfiliados } from '../../../domain/gestion/model/afiliados';
@@ -7,6 +8,9 @@ import {
 } from '../../../application/gestion/use-case/afiliados.use-case';
 import { VentanaModal } from './ventana-modal';
 
+/** El código de divisa del programa: tres letras, como manda ISO-4217. */
+const DIVISA_ISO = /^[A-Za-z]{3}$/;
+
 /**
  * La configuración del programa de afiliados.
  *
@@ -14,15 +18,19 @@ import { VentanaModal } from './ventana-modal';
  * y como se comparan con el mínimo de pago. Convertirlos aquí a unidades obligaría a redondear dos veces
  * —al pintar y al guardar— y el mínimo dejaría de coincidir con el que aplica el servidor.
  *
- * <p>Los campos son texto y no números: un `input[type=number]` vacío devuelve cadena vacía y, si se
- * guarda tal cual, `Number('')` es 0 — se ha visto poner la comisión a cero sin querer. Aquí lo que se
- * guarda pasa siempre por `Number(...)` de forma explícita y con el valor de partida a la vista.
+ * <p>Un campo VACÍO ya no vale cero. Antes se guardaban como texto y se convertían con `Number(...)`, que
+ * para la cadena vacía da cero: se ha visto poner la comisión a cero sin querer. Ahora el campo vacío es
+ * nulo, el esquema lo declara obligatorio y el botón de guardar se apaga hasta que haya un número.
+ *
+ * <p>Los rangos también son del esquema y no de la plantilla: el porcentaje va de 0 a 100 —un 300 % de
+ * comisión pagaría el triple de lo vendido—, los plazos y los importes nunca son negativos, y la divisa
+ * son exactamente tres letras porque es lo que el backend compara con ISO-4217.
  *
  * <p>MOBILE FIRST: una columna en el móvil, dos desde `sm`.
  */
 @Component({
   selector: 'nx-afiliados-configuracion',
-  imports: [VentanaModal],
+  imports: [VentanaModal, FormField],
   template: `
     <nx-ventana-modal [titulo]="t('admin.affiliates.config')" (cierra)="cierra.emit()">
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -32,7 +40,12 @@ import { VentanaModal } from './ventana-modal';
           </label>
           <input id="afiliados-cfg-porcentaje" type="number"
                  class="input input-bordered input-sm w-full"
-                 [value]="porcentaje()" (input)="porcentaje.set(escrito($event))" />
+                 [formField]="formulario.porcentaje" />
+          @if (formulario.porcentaje().touched() && formulario.porcentaje().errors().length) {
+            <p role="alert" class="text-[11px] text-error mt-0.5">
+              {{ formulario.porcentaje().errors()[0].message }}
+            </p>
+          }
         </div>
         <div>
           <label class="text-xs text-ink-500" for="afiliados-cfg-divisa">
@@ -40,7 +53,12 @@ import { VentanaModal } from './ventana-modal';
           </label>
           <input id="afiliados-cfg-divisa" type="text"
                  class="input input-bordered input-sm w-full"
-                 [value]="divisa()" (input)="divisa.set(escrito($event))" />
+                 [formField]="formulario.divisa" />
+          @if (formulario.divisa().touched() && formulario.divisa().errors().length) {
+            <p role="alert" class="text-[11px] text-error mt-0.5">
+              {{ formulario.divisa().errors()[0].message }}
+            </p>
+          }
         </div>
         <div>
           <label class="text-xs text-ink-500" for="afiliados-cfg-ventana">
@@ -48,7 +66,12 @@ import { VentanaModal } from './ventana-modal';
           </label>
           <input id="afiliados-cfg-ventana" type="number"
                  class="input input-bordered input-sm w-full"
-                 [value]="ventana()" (input)="ventana.set(escrito($event))" />
+                 [formField]="formulario.ventana" />
+          @if (formulario.ventana().touched() && formulario.ventana().errors().length) {
+            <p role="alert" class="text-[11px] text-error mt-0.5">
+              {{ formulario.ventana().errors()[0].message }}
+            </p>
+          }
         </div>
         <div>
           <label class="text-xs text-ink-500" for="afiliados-cfg-devolucion">
@@ -56,7 +79,12 @@ import { VentanaModal } from './ventana-modal';
           </label>
           <input id="afiliados-cfg-devolucion" type="number"
                  class="input input-bordered input-sm w-full"
-                 [value]="devolucion()" (input)="devolucion.set(escrito($event))" />
+                 [formField]="formulario.devolucion" />
+          @if (formulario.devolucion().touched() && formulario.devolucion().errors().length) {
+            <p role="alert" class="text-[11px] text-error mt-0.5">
+              {{ formulario.devolucion().errors()[0].message }}
+            </p>
+          }
         </div>
         <div>
           <label class="text-xs text-ink-500" for="afiliados-cfg-minimo">
@@ -64,7 +92,12 @@ import { VentanaModal } from './ventana-modal';
           </label>
           <input id="afiliados-cfg-minimo" type="number"
                  class="input input-bordered input-sm w-full"
-                 [value]="minimo()" (input)="minimo.set(escrito($event))" />
+                 [formField]="formulario.minimo" />
+          @if (formulario.minimo().touched() && formulario.minimo().errors().length) {
+            <p role="alert" class="text-[11px] text-error mt-0.5">
+              {{ formulario.minimo().errors()[0].message }}
+            </p>
+          }
         </div>
         <div>
           <label class="text-xs text-ink-500" for="afiliados-cfg-maximo">
@@ -72,14 +105,20 @@ import { VentanaModal } from './ventana-modal';
           </label>
           <input id="afiliados-cfg-maximo" type="number"
                  class="input input-bordered input-sm w-full"
-                 [value]="maximo()" (input)="maximo.set(escrito($event))" />
+                 [formField]="formulario.maximo" />
+          @if (formulario.maximo().touched() && formulario.maximo().errors().length) {
+            <p role="alert" class="text-[11px] text-error mt-0.5">
+              {{ formulario.maximo().errors()[0].message }}
+            </p>
+          }
         </div>
       </div>
       <div class="flex justify-end gap-2 pt-2">
         <button type="button" class="btn btn-ghost btn-sm" (click)="cierra.emit()">
           {{ t('common.cancel') }}
         </button>
-        <button type="button" class="btn btn-primary btn-sm" [disabled]="guardando()"
+        <button type="button" class="btn btn-primary btn-sm"
+                [disabled]="guardando() || formulario().invalid()"
                 (click)="guarda()">
           {{ t('common.save') }}
         </button>
@@ -98,28 +137,55 @@ export class AfiliadosConfiguracion {
 
   // `linkedSignal` y no `signal`: si la configuración se recarga mientras la ventana está abierta, el
   // formulario se pone al día en vez de quedarse enseñando los valores viejos.
-  protected readonly porcentaje = linkedSignal(() => String(this.config().porcentajePorDefecto));
-  protected readonly divisa = linkedSignal(() => this.config().divisa);
-  protected readonly ventana = linkedSignal(() => String(this.config().ventanaDeAtribucionDias));
-  protected readonly devolucion = linkedSignal(() => String(this.config().periodoDeDevolucionDias));
-  protected readonly minimo = linkedSignal(() => String(this.config().minimoDePagoCentimos));
-  protected readonly maximo = linkedSignal(() => String(this.config().maximoPorPeriodoCentimos));
+  protected readonly modelo = linkedSignal(() => ({
+    porcentaje: this.config().porcentajePorDefecto as number | null,
+    divisa: this.config().divisa,
+    ventana: this.config().ventanaDeAtribucionDias as number | null,
+    devolucion: this.config().periodoDeDevolucionDias as number | null,
+    minimo: this.config().minimoDePagoCentimos as number | null,
+    maximo: this.config().maximoPorPeriodoCentimos as number | null,
+  }));
+
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    const obligatorio = { message: () => this.t('dialog.field.required') };
+    const noNegativo = { message: () => this.t('dialog.field.min') };
+
+    required(ruta.porcentaje, obligatorio);
+    min(ruta.porcentaje, 0, noNegativo);
+    max(ruta.porcentaje, 100, { message: () => this.t('dialog.field.number') });
+
+    required(ruta.divisa, obligatorio);
+    // Con `pattern` basta: `maxLength` además IMPEDIRÍA teclear la cuarta letra, y un campo que se
+    // niega a recibir lo que se escribe se lee como un fallo, no como una corrección.
+    pattern(ruta.divisa, DIVISA_ISO, { message: () => this.t('login.error.bad_data') });
+
+    required(ruta.ventana, obligatorio);
+    min(ruta.ventana, 0, noNegativo);
+
+    required(ruta.devolucion, obligatorio);
+    min(ruta.devolucion, 0, noNegativo);
+
+    required(ruta.minimo, obligatorio);
+    min(ruta.minimo, 0, noNegativo);
+
+    required(ruta.maximo, obligatorio);
+    min(ruta.maximo, 0, noNegativo);
+  });
 
   protected readonly guardando = signal(false);
 
-  protected escrito(evento: Event): string {
-    return (evento.target as HTMLInputElement).value;
-  }
-
   protected async guarda(): Promise<void> {
+    const datos = this.modelo();
     this.guardando.set(true);
     const resultado = await this.guardaLaConfiguracion.ejecuta({
-      porcentajePorDefecto: Number(this.porcentaje()),
-      ventanaDeAtribucionDias: Number(this.ventana()),
-      periodoDeDevolucionDias: Number(this.devolucion()),
-      minimoDePagoCentimos: Number(this.minimo()),
-      divisa: this.divisa().trim().toUpperCase(),
-      maximoPorPeriodoCentimos: Number(this.maximo()),
+      // El botón está apagado mientras alguno sea nulo; el respaldo es para quien lea esto sin
+      // reconstruir esa cadena de razonamiento.
+      porcentajePorDefecto: datos.porcentaje ?? 0,
+      ventanaDeAtribucionDias: datos.ventana ?? 0,
+      periodoDeDevolucionDias: datos.devolucion ?? 0,
+      minimoDePagoCentimos: datos.minimo ?? 0,
+      divisa: datos.divisa.trim().toUpperCase(),
+      maximoPorPeriodoCentimos: datos.maximo ?? 0,
     });
     this.guardando.set(false);
     if (!resultado.ok) {

@@ -14,6 +14,7 @@ import { Recomendados } from './recomendados';
 import { VisorGaleria } from './visor-galeria';
 import { BloqueEnvio } from './bloque-envio';
 import { TarjetaVendedor } from './tarjeta-vendedor';
+import { APLICACION_DEL_CATALOGO } from '../../catalog.providers';
 
 function ficha(cambios: Partial<FichaDeProducto> = {}): FichaDeProducto {
   return {
@@ -43,7 +44,10 @@ describe('SeccionResenas', () => {
   async function monta(lista: () => Promise<unknown>, publica = vi.fn()) {
     const vista = await render(SeccionResenas, {
       inputs: { idDelProducto: 'p1' },
-      providers: [{ provide: RESENAS_PORT, useValue: { lista, publica } }],
+      providers: [
+        ...APLICACION_DEL_CATALOGO,
+        { provide: RESENAS_PORT, useValue: { lista, publica } },
+      ],
     });
     await vista.fixture.whenStable();
     vista.fixture.detectChanges();
@@ -100,6 +104,45 @@ describe('SeccionResenas', () => {
     expect(publica).toHaveBeenCalled();
   });
 
+  /**
+   * Una reseña sin título NI texto no dice nada. La regla es la de siempre, pero antes solo apagaba el
+   * botón: quien no entendía por qué se marchaba.
+   */
+  it('sin título ni texto no se puede enviar, y ahora lo dice', async () => {
+    const { vista } = await monta(async () =>
+      exito({ items: [], total: 0, media: 0, reparto: {} }),
+    );
+    await userEvent.click(vista.container.querySelector<HTMLElement>('button.btn-outline')!);
+    vista.fixture.detectChanges();
+    expect(vista.container.querySelector<HTMLButtonElement>('button[type=submit]')).toBeDisabled();
+
+    const cuerpo = vista.container.querySelector<HTMLTextAreaElement>('textarea')!;
+    cuerpo.dispatchEvent(new Event('blur'));
+    vista.fixture.detectChanges();
+    expect(vista.container.querySelector('[role=alert]')).not.toBeNull();
+
+    await userEvent.type(cuerpo, 'Muy buena calidad');
+    vista.fixture.detectChanges();
+    expect(
+      vista.container.querySelector<HTMLButtonElement>('button[type=submit]'),
+    ).not.toBeDisabled();
+  });
+
+  /** El nombre lo pone la sesión: dejarlo teclear con la cuenta abierta permitiría firmar por otro. */
+  it('con la sesión abierta el nombre queda bloqueado', async () => {
+    const { vista } = await monta(async () =>
+      exito({ items: [], total: 0, media: 0, reparto: {} }),
+    );
+    vista.fixture.debugElement.injector
+      .get(SesionActual)
+      .publica({ id: 'u1', rol: 'USER', nombreVisible: 'Ana', pais: 'ES' });
+    await userEvent.click(vista.container.querySelector<HTMLElement>('button.btn-outline')!);
+    vista.fixture.detectChanges();
+    const autor = vista.container.querySelector<HTMLInputElement>('#resena-autor')!;
+    expect(autor.value).toBe('Ana');
+    expect(autor.readOnly).toBe(true);
+  });
+
   /** Se enseñan por defecto las del idioma de quien mira; el filtro deja ver todas. */
   it('con reseñas en varios idiomas ofrece filtrarlas', async () => {
     const { vista } = await monta(async () =>
@@ -149,7 +192,10 @@ describe('TablaAtributos', () => {
   async function monta(entrada: FichaDeProducto, especificaciones: () => Promise<unknown>) {
     const vista = await render(TablaAtributos, {
       inputs: { ficha: entrada },
-      providers: [{ provide: CATALOGO_PORT, useValue: { especificaciones } }],
+      providers: [
+        ...APLICACION_DEL_CATALOGO,
+        { provide: CATALOGO_PORT, useValue: { especificaciones } },
+      ],
     });
     await vista.fixture.whenStable();
     vista.fixture.detectChanges();
@@ -184,6 +230,7 @@ describe('Recomendados', () => {
     const vista = await render(Recomendados, {
       inputs: { idDelProducto: 'p1' },
       providers: [
+        ...APLICACION_DEL_CATALOGO,
         provideRouter([]),
         {
           provide: CATALOGO_PORT,
@@ -216,6 +263,7 @@ describe('Recomendados', () => {
     const vista = await render(Recomendados, {
       inputs: { idDelProducto: 'p1' },
       providers: [
+        ...APLICACION_DEL_CATALOGO,
         provideRouter([]),
         {
           provide: CATALOGO_PORT,
@@ -260,7 +308,7 @@ describe('piezas fijas de la ficha', () => {
 
   /** El cliente compra a la plataforma: los datos del proveedor de origen NO se enseñan. */
   it('la tarjeta de vendedor habla de NX036, no del proveedor', async () => {
-    await render(TarjetaVendedor, { providers: [provideRouter([])] });
+    await render(TarjetaVendedor, { providers: [...APLICACION_DEL_CATALOGO, provideRouter([])] });
     expect(screen.getByText('NX036')).toBeInTheDocument();
   });
 });
@@ -270,6 +318,7 @@ describe('Recomendados, desplazamiento', () => {
     const vista = await render(Recomendados, {
       inputs: { idDelProducto: 'p1' },
       providers: [
+        ...APLICACION_DEL_CATALOGO,
         provideRouter([]),
         { provide: CATALOGO_PORT, useValue: { relacionados: async () => exito([]) } },
       ],

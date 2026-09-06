@@ -13,6 +13,7 @@ import { ResumenDeProducto } from '../../domain/model/producto';
 import { SeccionesPortada } from './secciones-portada';
 import { FondoHero } from './fondo-hero';
 import { CartelPromociones } from './cartel-promociones';
+import { APLICACION_DEL_CATALOGO } from '../../catalog.providers';
 
 function producto(id: string): ResumenDeProducto {
   return {
@@ -38,6 +39,7 @@ describe('SeccionesPortada', () => {
   async function monta(secciones: () => Promise<unknown>) {
     return render(SeccionesPortada, {
       providers: [
+        ...APLICACION_DEL_CATALOGO,
         ...PROVEEDORES_DE_TARJETA,
         { provide: PORTADA_PORT, useValue: { secciones } },
       ],
@@ -79,6 +81,7 @@ describe('FondoHero', () => {
   it('con pocas fotos no pinta cintas', async () => {
     const vista = await render(FondoHero, {
       providers: [
+        ...APLICACION_DEL_CATALOGO,
         {
           provide: PORTADA_PORT,
           useValue: {
@@ -103,6 +106,7 @@ describe('FondoHero', () => {
     }));
     const vista = await render(FondoHero, {
       providers: [
+        ...APLICACION_DEL_CATALOGO,
         {
           provide: PORTADA_PORT,
           useValue: {
@@ -125,7 +129,11 @@ describe('FondoHero', () => {
 describe('CartelPromociones', () => {
   async function monta(vivas: () => Promise<unknown>) {
     const vista = await render(CartelPromociones, {
-      providers: [provideRouter([]), { provide: PROMOCIONES_PORT, useValue: { vivas } }],
+      providers: [
+        ...APLICACION_DEL_CATALOGO,
+        provideRouter([]),
+        { provide: PROMOCIONES_PORT, useValue: { vivas } },
+      ],
     });
     await vista.fixture.whenStable();
     vista.fixture.detectChanges();
@@ -203,6 +211,7 @@ describe('SeccionesPortada, más a fondo', () => {
   it('las categorías destacadas llevan al listado con su filtro puesto', async () => {
     const vista = await render(SeccionesPortada, {
       providers: [
+        ...APLICACION_DEL_CATALOGO,
         ...PROVEEDORES_DE_TARJETA,
         {
           provide: PORTADA_PORT,
@@ -211,7 +220,14 @@ describe('SeccionesPortada, más a fondo', () => {
               exito({
                 secciones: [],
                 categoriasDestacadas: [
-                  { id: 'c1', slug: 'gorros', nombre: 'Gorros', posicion: 0, cuantosProductos: 4, hijas: [] },
+                  {
+                    id: 'c1',
+                    slug: 'gorros',
+                    nombre: 'Gorros',
+                    posicion: 0,
+                    cuantosProductos: 4,
+                    hijas: [],
+                  },
                 ],
                 totalDeProductos: 4,
               }),
@@ -230,6 +246,7 @@ describe('SeccionesPortada, más a fondo', () => {
   it('«ver todos» lleva al orden que representa cada hilera', async () => {
     const vista = await render(SeccionesPortada, {
       providers: [
+        ...APLICACION_DEL_CATALOGO,
         ...PROVEEDORES_DE_TARJETA,
         {
           provide: PORTADA_PORT,

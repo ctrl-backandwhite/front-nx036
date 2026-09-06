@@ -1,4 +1,5 @@
 import { Component, computed, inject, input, resource, signal } from '@angular/core';
+import { FieldTree, FormField, form, min, required } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faChartLine, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
@@ -20,7 +21,7 @@ const PAISES = ['ES', 'US', 'MX', 'BR', 'GB', 'DE', 'FR', 'IT'];
  */
 @Component({
   selector: 'nx-estimacion-de-margen',
-  imports: [FaIconComponent, GuiaPuntos],
+  imports: [FaIconComponent, FormField, GuiaPuntos],
   template: `
     <div class="card p-5">
       <h3 class="m-0! flex items-center gap-2">
@@ -32,12 +33,7 @@ const PAISES = ['ES', 'US', 'MX', 'BR', 'GB', 'DE', 'FR', 'IT'];
         <label for="margen-pais">
           <span class="text-ink-500 mr-1">{{ t('catalog.detail.margin.country') }}:</span>
         </label>
-        <select
-          id="margen-pais"
-          class="select select-bordered select-sm"
-          [value]="pais()"
-          (change)="pais.set($any($event.target).value)"
-        >
+        <select id="margen-pais" class="select select-bordered select-sm" [formField]="formulario.pais">
           @for (codigo of paises; track codigo) {
             <option [value]="codigo">{{ codigo }}</option>
           }
@@ -45,14 +41,17 @@ const PAISES = ['ES', 'US', 'MX', 'BR', 'GB', 'DE', 'FR', 'IT'];
         <label for="margen-cantidad">
           <span class="text-ink-500 mr-1">{{ t('product.qty') }}:</span>
         </label>
+        <!-- El mínimo ya no va como atributo del marcado: lo declara el esquema del formulario, que
+             además es quien lo dice. El atributo solo limitaba las flechas del navegador. -->
         <input
           id="margen-cantidad"
           type="number"
-          min="1"
           class="input input-bordered input-sm w-20"
-          [value]="cantidad()"
-          (change)="cambiaCantidad($event)"
+          [formField]="formulario.cantidad"
         />
+        @if (falloDe(formulario.cantidad); as fallo) {
+          <span role="alert" class="text-xs text-error">{{ fallo }}</span>
+        }
       </div>
 
       @if (datos.isLoading() || !datos.value()) {
@@ -142,11 +141,43 @@ export class EstimacionDeMargen {
   protected readonly paises = PAISES;
   protected readonly margenBajo = MARGEN_BAJO;
 
-  protected readonly pais = signal('ES');
-  protected readonly cantidad = signal(1);
+  /**
+   * Lo que se simula. El país es SOLO un destino de simulación: no cambia el precio de nadie —eso lo
+   * fija el país de registro de la cuenta—, y aquí no se calcula ningún importe: los pone el backend.
+   */
+  private readonly simulacion = signal<{ pais: string; cantidad: number | null }>({
+    pais: 'ES',
+    cantidad: 1,
+  });
+
+  /**
+   * Las dos reglas de la simulación, ahora dichas en vez de corregidas por lo callado.
+   *
+   * <p>Antes el campo de cantidad se recortaba solo: quien escribía un cero veía saltar el número a
+   * uno sin explicación, y el atributo `min` del marcado únicamente frenaba las flechas. Ahora el
+   * formulario lo señala y el desglose sigue mostrándose con la última cantidad válida.
+   */
+  protected readonly formulario = form(this.simulacion, (ruta) => {
+    required(ruta.pais, { message: () => this.t('dialog.field.required') });
+    required(ruta.cantidad, { message: () => this.t('dialog.field.required') });
+    min(ruta.cantidad, 1, { message: () => this.t('dialog.field.number') });
+  });
+
+  /**
+   * Lo que de verdad se le pregunta al servidor. Pedir «cero unidades» solo gastaría una llamada para
+   * devolver un desglose sin sentido, así que por debajo del mínimo se consulta con una unidad.
+   */
+  private readonly cantidadConsultada = computed(() => {
+    const cantidad = this.simulacion().cantidad;
+    return cantidad !== null && Number.isFinite(cantidad) && cantidad >= 1 ? cantidad : 1;
+  });
 
   protected readonly datos = resource({
-    params: () => ({ id: this.idDelProducto(), pais: this.pais(), cantidad: this.cantidad() }),
+    params: () => ({
+      id: this.idDelProducto(),
+      pais: this.simulacion().pais,
+      cantidad: this.cantidadConsultada(),
+    }),
     loader: async ({ params }) => {
       const resultado = await this.puerto.estimacionDeMargen(params.id, params.pais, params.cantidad);
       return resultado.ok ? resultado.valor : null;
@@ -163,8 +194,12 @@ export class EstimacionDeMargen {
     return margen < 0 ? 'text-red-700' : 'text-emerald-700';
   }
 
-  protected cambiaCantidad(evento: Event): void {
-    const tecleado = Number((evento.target as HTMLInputElement).value);
-    this.cantidad.set(Math.max(1, Number.isFinite(tecleado) ? tecleado : 1));
+  /**
+   * El mensaje que toca enseñar bajo un campo, o nulo. Se calla hasta que el campo se ha TOCADO: el
+   * panel se abre con una unidad puesta y no tiene nada que reprochar a quien acaba de llegar.
+   */
+  protected falloDe<T>(campo: FieldTree<T>): string | null {
+    const estado = campo();
+    return estado.touched() ? (estado.errors()[0]?.message ?? null) : null;
   }
 }

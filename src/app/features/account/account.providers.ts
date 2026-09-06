@@ -1,4 +1,4 @@
-import { EnvironmentProviders, inject, makeEnvironmentProviders } from '@angular/core';
+import { EnvironmentProviders, Provider, inject, makeEnvironmentProviders } from '@angular/core';
 import {
   BAJA_DE_CUENTA_PORT,
   FIN_DE_SESION_PORT,
@@ -64,6 +64,51 @@ import {
 } from './application/use-case/seguridad.use-case';
 
 /**
+ * Los casos de uso y el estado de «account».
+ *
+ * <p>Se listan aparte de los adaptadores para poder montarlos en una prueba EXACTAMENTE como los monta
+ * la ruta. Es la lección del fallo que arregló esta lista: mientras cada clase se declaraba a sí misma
+ * `providedIn: 'root'`, el banco de pruebas las tenía siempre a mano y la aplicación de verdad no, así
+ * que 2.800 pruebas en verde convivían con pantallas que reventaban al abrirlas. Con una sola lista,
+ * añadir un caso de uso lo mete a la vez en la ruta y en las pruebas, y no hay forma de que diverjan.
+ */
+export const APLICACION_DE_ACCOUNT: Provider[] = [
+  CobrosStore,
+  CuentaStore,
+  DireccionesStore,
+  PlanesStore,
+  SolicitaBajaDeCuenta,
+  ConfirmaBajaDeCuenta,
+  CambiaContrasena,
+  CargaCobros,
+  AnadeTarjeta,
+  AnadePaypal,
+  MarcaMetodoPorDefecto,
+  PideCodigoDeBajaDeMetodo,
+  EliminaMetodoDePago,
+  DescargaMisDatos,
+  CargaDirecciones,
+  GuardaDireccion,
+  EliminaDireccion,
+  GuardaPerfil,
+  CargaPlanes,
+  CargaFacturas,
+  ContrataPlan,
+  CancelaSuscripcion,
+  DescargaFactura,
+  /* `RecuperaCuenta` no depende de ningún puerto de «account» —pide el usuario por el puerto de «auth»,
+   * que sí está en la raíz—, pero escribe en `CuentaStore`, que vive aquí: donde está el estado tiene
+   * que estar quien lo escribe, o serían dos almacenes distintos. */
+  RecuperaCuenta,
+  ConsultaDobleFactor,
+  ActivaDobleFactor,
+  ConfirmaDobleFactor,
+  DesactivaDobleFactor,
+  CargaSesionesActivas,
+  RevocaSesion,
+];
+
+/**
  * Ata los puertos de «account» con sus adaptadores.
  *
  * <p>Es el único sitio del contexto donde aparece una clase de infraestructura —y el único donde se
@@ -115,43 +160,6 @@ export function proveeAccount(): EnvironmentProviders {
     DescargaNavegadorAdapter,
     { provide: DESCARGA_PORT, useFactory: () => inject(DescargaNavegadorAdapter) },
 
-    /* El estado de las pantallas de la cuenta. Va con los puertos y no en la raíz porque quien lo
-     * escribe son los casos de uso de aquí: repartirlos entre dos inyectores daría dos estados, y el
-     * formulario del perfil leería uno distinto del que acaba de rellenar el caso de uso. */
-    CobrosStore,
-    CuentaStore,
-    DireccionesStore,
-    PlanesStore,
-
-    // Los casos de uso, junto a los puertos de los que dependen: mismo inyector, misma vida.
-    SolicitaBajaDeCuenta,
-    ConfirmaBajaDeCuenta,
-    CambiaContrasena,
-    CargaCobros,
-    AnadeTarjeta,
-    AnadePaypal,
-    MarcaMetodoPorDefecto,
-    PideCodigoDeBajaDeMetodo,
-    EliminaMetodoDePago,
-    DescargaMisDatos,
-    CargaDirecciones,
-    GuardaDireccion,
-    EliminaDireccion,
-    GuardaPerfil,
-    CargaPlanes,
-    CargaFacturas,
-    ContrataPlan,
-    CancelaSuscripcion,
-    DescargaFactura,
-    /* `RecuperaCuenta` no depende de ningún puerto de «account» —pide el usuario por el puerto de
-     * «auth», que sí está en la raíz—, pero escribe en `CuentaStore`, que vive aquí. Dejarlo en la raíz
-     * le dejaría sin ese almacén: donde está el estado tiene que estar quien lo escribe. */
-    RecuperaCuenta,
-    ConsultaDobleFactor,
-    ActivaDobleFactor,
-    ConfirmaDobleFactor,
-    DesactivaDobleFactor,
-    CargaSesionesActivas,
-    RevocaSesion,
+    ...APLICACION_DE_ACCOUNT,
   ]);
 }

@@ -1,7 +1,11 @@
-import { Component, inject, input, output, signal } from '@angular/core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { FieldTree, FormField, form, pattern, required } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { NuevaSolicitud } from '../../domain/model/aprovisionamiento';
 import { VentanaModal } from './ventana-modal';
+
+/** Solo http(s): un `ftp://` o un `javascript:` no son un enlace a una ficha de producto. */
+const ENLACE_HTTP = /^https?:\/\/\S+$/i;
 
 /**
  * El formulario para abrir una solicitud de aprovisionamiento.
@@ -10,10 +14,14 @@ import { VentanaModal } from './ventana-modal';
  * quien lo lee tiene que poder corregirlo sin buscar dónde estaba. El campo queda marcado con
  * `aria-invalid` y el mensaje asociado por `aria-describedby`, para que un lector de pantalla lo lea al
  * llegar al campo y no solo al aparecer.
+ *
+ * <p>Hay DOS orígenes de error para el mismo campo —lo que se ve al escribir y lo que responde el
+ * servidor— y se pintan en el MISMO sitio: dos avisos a la vez sobre un único campo se leen como dos
+ * problemas distintos. Manda el del servidor, que es el que acaba de pasar.
  */
 @Component({
   selector: 'nx-dialogo-nueva-solicitud',
-  imports: [VentanaModal],
+  imports: [FormField, VentanaModal],
   template: `
     <nx-ventana-modal [titulo]="t('sourcing.new')" (cierra)="cancela.emit()">
       <form class="space-y-3 mt-3" (submit)="envia($event)">
@@ -22,16 +30,15 @@ import { VentanaModal } from './ventana-modal';
           <input
             id="aprov-url"
             type="url"
-            required
             class="input mt-1"
-            [class.border-red-300]="!!error()"
-            [attr.aria-invalid]="!!error()"
-            [attr.aria-describedby]="error() ? 'aprov-url-error' : null"
+            [class.border-red-300]="!!avisoDelEnlace()"
+            [attr.aria-invalid]="!!avisoDelEnlace()"
+            [attr.aria-describedby]="avisoDelEnlace() ? 'aprov-url-error' : null"
             [placeholder]="t('sourcing.url.placeholder')"
-            [value]="url()"
-            (input)="escribeUrl($event)"
+            [formField]="formulario.url"
+            (input)="olvidaElRechazo()"
           />
-          @if (error(); as mensaje) {
+          @if (avisoDelEnlace(); as mensaje) {
             <div id="aprov-url-error" role="alert" class="text-[11px] text-red-600 mt-1">
               {{ mensaje }}
             </div>
@@ -40,12 +47,7 @@ import { VentanaModal } from './ventana-modal';
 
         <div>
           <label for="aprov-titulo" class="text-xs text-ink-500">{{ t('sourcing.title_hint') }}</label>
-          <input
-            id="aprov-titulo"
-            class="input mt-1"
-            [value]="titulo()"
-            (input)="titulo.set(valor($event))"
-          />
+          <input id="aprov-titulo" class="input mt-1" [formField]="formulario.titulo" />
         </div>
 
         <div>
@@ -54,8 +56,7 @@ import { VentanaModal } from './ventana-modal';
             id="aprov-notas"
             class="input mt-1"
             rows="3"
-            [value]="notas()"
-            (input)="notas.set(valor($event))"
+            [formField]="formulario.notas"
           ></textarea>
         </div>
 
@@ -63,7 +64,7 @@ import { VentanaModal } from './ventana-modal';
           <button type="button" class="btn btn-ghost" (click)="cancela.emit()">
             {{ t('common.cancel') }}
           </button>
-          <button type="submit" class="btn btn-primary" [disabled]="enviando()">
+          <button type="submit" class="btn btn-primary" [disabled]="!sePuedeEnviar()">
             {{ enviando() ? t('common.saving') : t('sourcing.new') }}
           </button>
         </div>
@@ -83,12 +84,27 @@ export class DialogoNuevaSolicitud {
 
   protected readonly t = inject(TraduccionService).t;
 
-  protected readonly url = signal('');
-  protected readonly titulo = signal('');
-  protected readonly notas = signal('');
+  protected readonly modelo = signal({ url: '', titulo: '', notas: '' });
 
-  protected escribeUrl(evento: Event): void {
-    this.url.set(this.valor(evento));
+  /**
+   * Lo que se comprueba antes de gastar una llamada. Qué mercados se aceptan lo decide el dominio; aquí
+   * solo se ataja lo que ni siquiera es un enlace, que antes viajaba al backend para volver rechazado.
+   */
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    required(ruta.url, { message: () => this.t('dialog.field.required') });
+    pattern(ruta.url, ENLACE_HTTP, { message: () => this.t('sourcing.url.invalid') });
+  });
+
+  /** El rechazo del servidor manda sobre el del formulario: es lo último que ha pasado. */
+  protected readonly avisoDelEnlace = computed(
+    () => this.error() ?? this.falloDe(this.formulario.url),
+  );
+
+  protected readonly sePuedeEnviar = computed(
+    () => !this.enviando() && !this.formulario().invalid(),
+  );
+
+  protected olvidaElRechazo(): void {
     if (this.error()) {
       this.limpiaError.emit();
     }
@@ -96,14 +112,23 @@ export class DialogoNuevaSolicitud {
 
   protected envia(evento: Event): void {
     evento.preventDefault();
+    if (!this.sePuedeEnviar()) {
+      return;
+    }
+    const datos = this.modelo();
     this.crea.emit({
-      url: this.url(),
-      tituloOrientativo: this.titulo().trim() || undefined,
-      notas: this.notas().trim() || undefined,
+      url: datos.url,
+      tituloOrientativo: datos.titulo.trim() || undefined,
+      notas: datos.notas.trim() || undefined,
     });
   }
 
-  protected valor(evento: Event): string {
-    return (evento.target as HTMLInputElement | HTMLTextAreaElement).value;
+  /**
+   * El mensaje que toca enseñar bajo un campo, o nulo. Se calla hasta que el campo se ha TOCADO:
+   * pintar de rojo un formulario recién abierto acusa a quien todavía no ha escrito nada.
+   */
+  protected falloDe<T>(campo: FieldTree<T>): string | null {
+    const estado = campo();
+    return estado.touched() ? (estado.errors()[0]?.message ?? null) : null;
   }
 }

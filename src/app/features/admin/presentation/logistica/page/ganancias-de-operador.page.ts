@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, linkedSignal, signal } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
   faBoxesPacking,
@@ -6,6 +6,7 @@ import {
   faRotateRight,
   faSackDollar,
 } from '@fortawesome/free-solid-svg-icons';
+import { FormField, form } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
 import { QuienMiraStore } from '../../../application/logistica/state/quien-mira.store';
@@ -36,7 +37,7 @@ const POR_PAGINA = 20;
  */
 @Component({
   selector: 'nx-ganancias-de-operador-page',
-  imports: [FaIconComponent, Paginacion],
+  imports: [FaIconComponent, Paginacion, FormField],
   template: `
     <div class="space-y-5">
       <div class="flex items-end justify-between gap-3 flex-wrap">
@@ -74,8 +75,7 @@ const POR_PAGINA = 20;
             id="ganancias-desde"
             type="date"
             class="input input-bordered input-sm block mt-1"
-            [value]="desde()"
-            (change)="cambiaDesde($any($event.target).value)"
+            [formField]="formulario.desde"
           />
         </div>
         <div>
@@ -84,8 +84,7 @@ const POR_PAGINA = 20;
             id="ganancias-hasta"
             type="date"
             class="input input-bordered input-sm block mt-1"
-            [value]="hasta()"
-            (change)="cambiaHasta($any($event.target).value)"
+            [formField]="formulario.hasta"
           />
         </div>
       </div>
@@ -170,11 +169,22 @@ export class GananciasDeOperadorPage {
   private readonly quienMira = inject(QuienMiraStore);
   private readonly avisos = inject(AvisosStore);
 
-  private readonly rangoInicial = ultimoMes(new Date());
+  /** El intervalo es UNA cosa: las dos fechas viven en el mismo modelo y en el mismo formulario. */
+  protected readonly rango = signal(ultimoMes(new Date()));
+  protected readonly formulario = form(this.rango);
 
-  protected readonly desde = signal(this.rangoInicial.desde);
-  protected readonly hasta = signal(this.rangoInicial.hasta);
-  protected readonly pagina = signal(0);
+  /**
+   * Cambiar el rango vuelve a la PRIMERA página: la tercera del rango anterior no significa nada.
+   *
+   * <p>Va como `linkedSignal` y no como dos manejadores que ponían el cero a mano. Escritos a mano,
+   * cada camino nuevo que tocara el rango tenía que acordarse de reponer la página, y el que se
+   * olvidara dejaba la tabla pidiendo una página que ya no existe.
+   */
+  protected readonly pagina = linkedSignal<{ desde: string; hasta: string }, number>({
+    source: () => this.rango(),
+    computation: () => 0,
+  });
+
   protected readonly reindexando = signal(false);
   protected readonly fallo = signal(false);
 
@@ -197,9 +207,7 @@ export class GananciasDeOperadorPage {
 
   constructor() {
     effect(() => {
-      const rango = { desde: this.desde(), hasta: this.hasta() };
-      const pagina = this.pagina();
-      void this.carga(rango, pagina);
+      void this.carga(this.rango(), this.pagina());
     });
   }
 
@@ -216,19 +224,8 @@ export class GananciasDeOperadorPage {
     this.historico.set(resultado.valor.historico);
   }
 
-  /** Cambiar el rango vuelve a la primera página: la tercera del rango anterior no significa nada. */
-  protected cambiaDesde(valor: string): void {
-    this.desde.set(valor);
-    this.pagina.set(0);
-  }
-
-  protected cambiaHasta(valor: string): void {
-    this.hasta.set(valor);
-    this.pagina.set(0);
-  }
-
   protected reintenta(): void {
-    void this.carga({ desde: this.desde(), hasta: this.hasta() }, this.pagina());
+    void this.carga(this.rango(), this.pagina());
   }
 
   protected async reindexa(): Promise<void> {

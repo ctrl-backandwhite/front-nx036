@@ -1,4 +1,5 @@
 import { Component, effect, inject, signal } from '@angular/core';
+import { FormField, form } from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCookieBite } from '@fortawesome/free-solid-svg-icons';
@@ -23,7 +24,7 @@ import { DecideSobreCookies } from '../../application/use-case/decide-sobre-cook
  */
 @Component({
   selector: 'nx-consentimiento-de-cookies',
-  imports: [RouterLink, FaIconComponent],
+  imports: [RouterLink, FaIconComponent, FormField],
   template: `
     @if (estado.visible()) {
       @if (!estado.panelAbierto()) {
@@ -105,8 +106,7 @@ import { DecideSobreCookies } from '../../application/use-case/decide-sobre-cook
                   id="nx-cookies-analitica"
                   type="checkbox"
                   class="toggle toggle-primary toggle-sm mt-1"
-                  [checked]="analitica()"
-                  (change)="analitica.set(marcado($event))"
+                  [formField]="formulario.analitica"
                 />
               </div>
 
@@ -123,8 +123,7 @@ import { DecideSobreCookies } from '../../application/use-case/decide-sobre-cook
                   id="nx-cookies-publicidad"
                   type="checkbox"
                   class="toggle toggle-primary toggle-sm mt-1"
-                  [checked]="publicidad()"
-                  (change)="publicidad.set(marcado($event))"
+                  [formField]="formulario.publicidad"
                 />
               </div>
             </div>
@@ -162,9 +161,15 @@ export class ConsentimientoDeCookies {
 
   protected readonly iconoGalleta = faCookieBite;
 
-  /** Lo que se está marcando en el panel, todavía sin guardar. */
-  protected readonly analitica = signal(false);
-  protected readonly publicidad = signal(false);
+  /**
+   * Lo que se está marcando en el panel, todavía sin guardar.
+   *
+   * <p>Sin reglas de validación: aquí no hay nada que exigir —cualquier combinación de las dos casillas
+   * es una decisión válida, incluida ninguna—. Va por Signal Forms igual que el resto para que las dos
+   * casillas tengan un único sitio del que salir y al que volver al abrir el panel.
+   */
+  protected readonly modelo = signal({ analitica: false, publicidad: false });
+  protected readonly formulario = form(this.modelo);
 
   constructor() {
     // El régimen se recalcula si aparece el país del perfil: quien entra a mitad de visita nos dice
@@ -182,16 +187,12 @@ export class ConsentimientoDeCookies {
    * admite.
    */
   protected personaliza(): void {
-    this.analitica.set(false);
-    this.publicidad.set(false);
+    this.modelo.set({ analitica: false, publicidad: false });
     this.estado.abrePanel();
   }
 
   protected guarda(): void {
-    this.decide.guarda({ analitica: this.analitica(), publicidad: this.publicidad() });
-  }
-
-  protected marcado(evento: Event): boolean {
-    return (evento.target as HTMLInputElement).checked;
+    const elegido = this.modelo();
+    this.decide.guarda({ analitica: elegido.analitica, publicidad: elegido.publicidad });
   }
 }

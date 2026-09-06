@@ -16,6 +16,7 @@ import { ANALITICA_DE_PRODUCTO_PORT } from '../../domain/port/analitica-de-produ
 import { EDICION_DE_FICHA_PORT } from '../../domain/port/edicion-de-ficha.port';
 import { FichaDeProducto } from '../../domain/model/producto';
 import { FichaPage } from './ficha.page';
+import { APLICACION_DEL_CATALOGO } from '../../catalog.providers';
 
 function ficha(cambios: Partial<FichaDeProducto> = {}): FichaDeProducto {
   return {
@@ -52,6 +53,7 @@ async function monta(
   const vista = await render(FichaPage, {
     inputs: { slug: 'gorro' },
     providers: [
+      ...APLICACION_DEL_CATALOGO,
       provideRouter([{ path: '**', children: [] }]),
       { provide: RECUPERADOR_DE_SESION, useValue: { asegura: async () => undefined } },
       {
@@ -167,6 +169,7 @@ describe('FichaPage', () => {
     const vista = await render(FichaPage, {
       inputs: { slug: 'gorro' },
       providers: [
+        ...APLICACION_DEL_CATALOGO,
         provideRouter([{ path: '**', children: [] }]),
         { provide: RECUPERADOR_DE_SESION, useValue: { asegura: async () => undefined } },
         {
@@ -209,7 +212,9 @@ describe('FichaPage', () => {
       .publica({ id: 'u1', rol: 'USER', nombreVisible: 'Ana', pais: 'ES' });
     await vista.fixture.whenStable();
     vista.fixture.detectChanges();
-    const corazon = [...vista.container.querySelectorAll<HTMLElement>('button.btn-outline.btn-sm')].at(-1)!;
+    const corazon = [
+      ...vista.container.querySelectorAll<HTMLElement>('button.btn-outline.btn-sm'),
+    ].at(-1)!;
     await userEvent.click(corazon);
     await vista.fixture.whenStable();
     expect(anadeFavorito).toHaveBeenCalledWith('p1');
@@ -276,6 +281,7 @@ describe('FichaPage', () => {
     const vista = await render(FichaPage, {
       inputs: { slug: 'gorro' },
       providers: [
+        ...APLICACION_DEL_CATALOGO,
         provideRouter([{ path: '**', children: [] }]),
         { provide: RECUPERADOR_DE_SESION, useValue: { asegura: async () => undefined } },
         {
@@ -333,7 +339,9 @@ describe('FichaPage', () => {
   it('el distintivo de arancel lleva al filtro de su grupo', async () => {
     const { vista } = await monta({
       devuelve: exito(
-        ficha({ arancel: { centimosExtra: 300, formateado: '3,00 €', cubierto: false, grupo: 'g1' } }),
+        ficha({
+          arancel: { centimosExtra: 300, formateado: '3,00 €', cubierto: false, grupo: 'g1' },
+        }),
       ),
     });
     const enlace = [...vista.container.querySelectorAll<HTMLElement>('button')].find((b) =>

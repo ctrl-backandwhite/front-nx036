@@ -1,4 +1,4 @@
-import { Component, inject, input, output } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
   faCheckCircle,
@@ -183,16 +183,14 @@ export class TablaDeProveedores {
   };
 
   /** El nombre chino solo se pinta en chino: en los demás idiomas es ruido en la fila. */
-  protected enChino(): boolean {
-    return this.traduccion.idioma() === 'zh';
-  }
+  protected readonly enChino = computed(() => this.traduccion.idioma() === 'zh');
 
   protected ubicacion(proveedor: ProveedorAdmin): string {
     return ubicacionDeProveedor(proveedor.ciudad, nombreDePais(proveedor.pais) || proveedor.pais);
   }
 
-  protected todosMarcados(): boolean {
+  protected readonly todosMarcados = computed(() => {
     const ids = this.proveedores().map((proveedor) => proveedor.id);
     return ids.length > 0 && ids.every((id) => this.marcados().has(id));
-  }
+  });
 }

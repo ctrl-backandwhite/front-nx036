@@ -10,6 +10,7 @@ import { exito, fallo } from '@shared/result/result';
 import { Direccion } from '../../domain/model/direccion';
 import { AYUDA_DE_DIRECCION_PORT, DIRECCIONES_PORT } from '../../domain/port/direcciones.port';
 import { DireccionesDelPerfil } from './direcciones-del-perfil';
+import { APLICACION_DE_ACCOUNT } from '../../account.providers';
 
 @Component({ selector: 'nx-vacia', template: '' })
 class Vacia {}
@@ -36,6 +37,7 @@ describe('DireccionesDelPerfil', () => {
     elimina.mockReset().mockResolvedValue(exito(undefined));
     const vista = await render(DireccionesDelPerfil, {
       providers: [
+        ...APLICACION_DE_ACCOUNT,
         provideRouter([{ path: '**', component: Vacia }]),
         {
           provide: DIRECCIONES_PORT,
@@ -69,10 +71,9 @@ describe('DireccionesDelPerfil', () => {
 
     expect(screen.getByText('Etiqueta d')).toBeInTheDocument();
     expect(screen.queryByText('Etiqueta e')).toBeNull();
-    expect(screen.getByRole('link', { name: new RegExp(`\\+2 ${t('common.more')}`) })).toHaveAttribute(
-      'href',
-      '/addresses',
-    );
+    expect(
+      screen.getByRole('link', { name: new RegExp(`\\+2 ${t('common.more')}`) }),
+    ).toHaveAttribute('href', '/addresses');
   });
 
   it('abrir el alta enseña la ventana con el formulario vacío', async () => {
@@ -80,7 +81,9 @@ describe('DireccionesDelPerfil', () => {
     const vista = await monta([]);
     const t = TestBed.inject(TraduccionService).t;
 
-    await usuario.click(screen.getByRole('button', { name: new RegExp(t('profile.addresses.add')) }));
+    await usuario.click(
+      screen.getByRole('button', { name: new RegExp(t('profile.addresses.add')) }),
+    );
     vista.fixture.detectChanges();
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();

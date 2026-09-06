@@ -1,7 +1,9 @@
 import {
   conRespaldo,
   etiquetaDeEstado,
+  falloDelCampo,
   mensajeDeError,
+  textoDelErrorDeCampo,
   textoDelFalloDeAlta,
   textoDelFalloDeCategoria,
   textoDelProblema,
@@ -9,8 +11,12 @@ import {
 
 /** Un `t()` de mentira que solo conoce dos claves: lo demás devuelve la clave, como el de verdad. */
 const t = (clave: string) =>
-  ({ 'admin.catalog.status.ACTIVE': 'Publicado', 'comun.repuesto': 'Algo salió mal' })[clave] ??
-  clave;
+  ({
+    'admin.catalog.status.ACTIVE': 'Publicado',
+    'comun.repuesto': 'Algo salió mal',
+    'dialog.field.required': 'Este campo es obligatorio.',
+    'admin.categories.error.slug_format': 'Los slugs usan minúsculas, dígitos y guiones.',
+  })[clave] ?? clave;
 const tCon = (clave: string, valores: Record<string, string | number>) =>
   `${clave}:${Object.values(valores).join(',')}`;
 
@@ -59,6 +65,56 @@ describe('etiquetas de la presentación del catálogo', () => {
       expect(textoDelProblema(t, tCon, { fila: 0, clave: 'admin.catalog.bulk.empty' })).toBe(
         'admin.catalog.bulk.empty',
       );
+    });
+  });
+
+  describe('textoDelErrorDeCampo', () => {
+    it('usa la entrada del diccionario del motivo cuando existe', () => {
+      expect(textoDelErrorDeCampo(t, { kind: 'required' })).toBe('Este campo es obligatorio.');
+    });
+
+    /** Un validador puede traer su propia clave: dice qué pasa en ESE campo, no un genérico. */
+    it('la clave que trae el validador gana a la del motivo', () => {
+      expect(
+        textoDelErrorDeCampo(t, {
+          kind: 'pattern',
+          message: 'admin.categories.error.slug_format',
+        }),
+      ).toBe('Los slugs usan minúsculas, dígitos y guiones.');
+    });
+
+    /** Mientras la clave no esté en los ocho idiomas manda el respaldo, con el límite escrito. */
+    it('sin clave en el diccionario, el respaldo incluye el límite', () => {
+      expect(textoDelErrorDeCampo(t, { kind: 'max', max: 5 })).toBe('El valor máximo es 5.');
+      expect(textoDelErrorDeCampo(t, { kind: 'maxLength', maxLength: 200 })).toBe(
+        'No caben más de 200 caracteres.',
+      );
+    });
+
+    it('un motivo desconocido cae al error genérico', () => {
+      expect(textoDelErrorDeCampo(t, { kind: 'lo-que-sea' })).toBe('common.error');
+    });
+  });
+
+  describe('falloDelCampo', () => {
+    /** Un formulario que nace gritando «obligatorio» en todos los campos no informa de nada. */
+    it('un campo sin tocar no avisa aunque tenga errores', () => {
+      expect(falloDelCampo(t, { touched: () => false, errors: () => [{ kind: 'required' }] })).toBe(
+        '',
+      );
+    });
+
+    it('tocado y con errores, enseña el primero', () => {
+      expect(
+        falloDelCampo(t, {
+          touched: () => true,
+          errors: () => [{ kind: 'required' }, { kind: 'max', max: 5 }],
+        }),
+      ).toBe('Este campo es obligatorio.');
+    });
+
+    it('sin errores devuelve la cadena vacía, que en la plantilla es «no pintes nada»', () => {
+      expect(falloDelCampo(t, { touched: () => true, errors: () => [] })).toBe('');
     });
   });
 

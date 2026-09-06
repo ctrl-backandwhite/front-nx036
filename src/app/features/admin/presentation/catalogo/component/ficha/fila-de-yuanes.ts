@@ -1,4 +1,5 @@
 import { Component, inject, input, output, signal } from '@angular/core';
+import { FormField, form, min, required } from '@angular/forms/signals';
 import { GuiaPuntos } from '@ds/component/guia-puntos/guia-puntos';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { ImporteEnYuanes } from '../../../../domain/catalogo/model/ficha-de-producto';
@@ -15,7 +16,7 @@ import { ImporteEnYuanes } from '../../../../domain/catalogo/model/ficha-de-prod
  */
 @Component({
   selector: 'nx-fila-de-yuanes',
-  imports: [GuiaPuntos],
+  imports: [FormField, GuiaPuntos],
   template: `
     @if (editando()) {
       <div class="flex items-baseline text-[13px]">
@@ -24,11 +25,9 @@ import { ImporteEnYuanes } from '../../../../domain/catalogo/model/ficha-de-prod
         <input
           type="number"
           step="0.01"
-          min="0"
           class="input input-sm w-28 text-right"
           [attr.aria-label]="etiquetaDelCampo()"
-          [value]="borrador()"
-          (input)="borrador.set($any($event.target).value)"
+          [formField]="formulario.importe"
           (keydown.enter)="guarda()"
           (keydown.escape)="editando.set(false)"
           (blur)="editando.set(false)"
@@ -61,17 +60,29 @@ export class FilaDeYuanes {
 
   protected readonly t = inject(TraduccionService).t;
   protected readonly editando = signal(false);
-  protected readonly borrador = signal('0');
+
+  protected readonly modelo = signal<{ importe: number | null }>({ importe: 0 });
+
+  /**
+   * Las dos reglas del importe, que antes vivían repartidas entre un atributo `min="0"` y una
+   * comprobación al guardar. Un importe vacío o negativo no se manda: el `min` del marcado solo limitaba
+   * las flechas del navegador, así que un −5 tecleado llegaba a la comprobación y se descartaba en
+   * silencio; ahora es el formulario el que lo sabe.
+   */
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    required(ruta.importe);
+    min(ruta.importe, 0);
+  });
 
   protected empieza(): void {
-    this.borrador.set(this.crudo() != null ? String(this.crudo()) : '0');
+    this.modelo.set({ importe: this.crudo() ?? 0 });
     this.editando.set(true);
   }
 
   protected guarda(): void {
-    const importe = parseFloat(this.borrador());
     this.editando.set(false);
-    if (Number.isNaN(importe) || importe < 0) {
+    const importe = this.modelo().importe;
+    if (this.formulario().invalid() || importe === null) {
       return;
     }
     this.guardado.emit({ campo: this.campo(), importe });

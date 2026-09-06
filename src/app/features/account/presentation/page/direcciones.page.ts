@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { FormField, form } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
   faCheck,
@@ -33,11 +34,16 @@ import { TarjetaDeDireccion } from '../component/tarjeta-de-direccion';
  * ninguna guardada. Aquí el formulario va EN LÍNEA y no en ventana emergente: es la pantalla entera para
  * eso, y una ventana encima de una página vacía sobra.
  *
+ * <p>La etiqueta y la casilla de «por defecto» las lleva Signal Forms sobre la MISMA señal que los
+ * campos de la dirección, así que no hay copia que sincronizar. Los campos de la dirección los valida
+ * `nx-campos-de-direccion`; que la dirección esté completa lo sigue decidiendo el DOMINIO
+ * —`direccionCompleta()`—, que es quien manda y quien usan por igual esta página y la ventana del perfil.
+ *
  * <p>Mobile first: una columna de tarjetas, dos desde `sm`; la cabecera se apila y pasa a fila desde `sm`.
  */
 @Component({
   selector: 'nx-direcciones',
-  imports: [RouterLink, FaIconComponent, CamposDeDireccion, TarjetaDeDireccion],
+  imports: [RouterLink, FaIconComponent, CamposDeDireccion, TarjetaDeDireccion, FormField],
   template: `
     <div class="max-w-4xl mx-auto space-y-5">
       <header class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -107,13 +113,12 @@ import { TarjetaDeDireccion } from '../component/tarjeta-de-direccion';
           <input class="input w-full"
                  [attr.aria-label]="t('profile.label_placeholder')"
                  [placeholder]="t('profile.label_placeholder')"
-                 [value]="datos().etiqueta"
-                 (input)="cambiaEtiqueta($event)" />
+                 [formField]="formulario.etiqueta" />
 
           <nx-campos-de-direccion [(datos)]="datos" />
 
           <label class="text-xs text-ink-600 flex items-center gap-2">
-            <input type="checkbox" [checked]="datos().porDefecto" (change)="cambiaPorDefecto($event)" />
+            <input type="checkbox" [formField]="formulario.porDefecto" />
             {{ t('profile.set_default') }}
           </label>
 
@@ -146,6 +151,16 @@ export class DireccionesPage {
   };
 
   protected readonly datos = signal<DatosDeDireccion>(DIRECCION_VACIA);
+
+  /**
+   * La etiqueta y la casilla de «por defecto», atadas al formulario.
+   *
+   * <p>No llevan reglas y es deliberado: la etiqueta es OPCIONAL —«Casa», «Oficina» o nada— y acusarla
+   * de obligatoria sería mentir; la casilla siempre tiene un valor. Lo que se gana es que el valor lo
+   * lleve la directiva y no un manejador de eventos por campo.
+   */
+  protected readonly formulario = form(this.datos);
+
   protected readonly enEdicion = signal<Direccion | null>(null);
   protected readonly formularioAbierto = signal(false);
   protected readonly guardando = signal(false);
@@ -161,6 +176,9 @@ export class DireccionesPage {
   protected abreAlta(): void {
     this.enEdicion.set(null);
     this.datos.set({ ...DIRECCION_VACIA, porDefecto: this.almacen.seraLaPrimera() });
+    // Con los datos se reinicia el «tocado»: un formulario recién abierto no puede heredar los avisos
+    // en rojo de la dirección que se estuviera editando antes.
+    this.formulario().reset();
     this.error.set(null);
     this.formularioAbierto.set(true);
   }
@@ -168,6 +186,7 @@ export class DireccionesPage {
   protected abreEdicion(direccion: Direccion): void {
     this.enEdicion.set(direccion);
     this.datos.set(aDatosDeDireccion(direccion));
+    this.formulario().reset();
     this.error.set(null);
     this.formularioAbierto.set(true);
   }
@@ -175,16 +194,6 @@ export class DireccionesPage {
   protected cierra(): void {
     this.formularioAbierto.set(false);
     this.enEdicion.set(null);
-  }
-
-  protected cambiaEtiqueta(evento: Event): void {
-    const etiqueta = (evento.target as HTMLInputElement).value;
-    this.datos.update((actual) => ({ ...actual, etiqueta }));
-  }
-
-  protected cambiaPorDefecto(evento: Event): void {
-    const porDefecto = (evento.target as HTMLInputElement).checked;
-    this.datos.update((actual) => ({ ...actual, porDefecto }));
   }
 
   protected async envia(evento: Event): Promise<void> {

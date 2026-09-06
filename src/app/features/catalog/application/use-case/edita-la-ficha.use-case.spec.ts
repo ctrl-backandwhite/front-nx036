@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { exito } from '@shared/result/result';
 import { EDICION_DE_FICHA_PORT } from '../../domain/port/edicion-de-ficha.port';
 import { EditaLaFicha } from './edita-la-ficha.use-case';
+import { APLICACION_DEL_CATALOGO } from '../../catalog.providers';
 
 /**
  * El editor reenvía al puerto, pero es la ÚNICA puerta por la que se escribe una ficha: si mañana hay
@@ -27,7 +28,7 @@ describe('EditaLaFicha', () => {
   beforeEach(() => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
-      providers: [{ provide: EDICION_DE_FICHA_PORT, useValue: puerto }],
+      providers: [...APLICACION_DEL_CATALOGO, { provide: EDICION_DE_FICHA_PORT, useValue: puerto }],
     });
     editor = TestBed.inject(EditaLaFicha);
   });

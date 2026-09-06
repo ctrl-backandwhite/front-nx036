@@ -1,4 +1,5 @@
 import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { FormField, form, min, required, validate } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { ajusteValido, depositoValido } from '../../../domain/gestion/model/carteras';
 import { VentanaModal } from './ventana-modal';
@@ -20,6 +21,10 @@ export interface ImporteConMotivo {
  * le falta dinero. Ninguna de las dos admite el cero: no mueve saldo y solo ensucia el libro con un
  * apunte mudo.
  *
+ * <p>Las dos reglas viven en el ESQUEMA del formulario y se aplican con `when` según la clase de
+ * movimiento, así que el mínimo del depósito y la obligatoriedad del motivo dejan de estar repartidos
+ * entre un atributo de la plantilla y un `computed`: hay UN sitio que dice cuándo se puede enviar.
+ *
  * <p>El botón deshabilitado NO es la regla: las mismas comprobaciones están en el caso de uso, que es
  * quien de verdad impide el envío. Aquí solo evitan el viaje inútil.
  *
@@ -29,7 +34,7 @@ export interface ImporteConMotivo {
  */
 @Component({
   selector: 'nx-carteras-modal-saldo',
-  imports: [VentanaModal],
+  imports: [VentanaModal, FormField],
   template: `
     <nx-ventana-modal [titulo]="titulo()" (cierra)="cierra.emit()">
       @if (clase() === 'deposito') {
@@ -45,12 +50,15 @@ export interface ImporteConMotivo {
         id="cartera-importe"
         type="number"
         step="0.01"
-        [attr.min]="clase() === 'deposito' ? 0.01 : null"
         class="input"
         [placeholder]="clase() === 'deposito' ? '25.00' : '-10.00'"
-        [value]="importe()"
-        (input)="escribeImporte($event)"
+        [formField]="formulario.importe"
       />
+      @if (formulario.importe().touched() && formulario.importe().errors().length) {
+        <p role="alert" class="text-[11px] text-error">
+          {{ formulario.importe().errors()[0].message }}
+        </p>
+      }
 
       <label for="cartera-motivo" class="text-xs text-ink-500">{{ etiquetaDelMotivo() }}</label>
       <input
@@ -58,9 +66,13 @@ export interface ImporteConMotivo {
         type="text"
         class="input"
         [placeholder]="marcadorDelMotivo()"
-        [value]="motivo()"
-        (input)="escribeMotivo($event)"
+        [formField]="formulario.motivo"
       />
+      @if (formulario.motivo().touched() && formulario.motivo().errors().length) {
+        <p role="alert" class="text-[11px] text-error">
+          {{ formulario.motivo().errors()[0].message }}
+        </p>
+      }
 
       <div class="flex justify-end gap-2 pt-1">
         <button type="button" (click)="cierra.emit()" class="btn btn-outline text-[12px]">
@@ -69,7 +81,7 @@ export interface ImporteConMotivo {
         <button
           type="button"
           class="btn btn-primary text-[12px]"
-          [disabled]="!valido() || enviando()"
+          [disabled]="formulario().invalid() || enviando()"
           (click)="envia()"
         >
           {{
@@ -94,8 +106,39 @@ export class CarterasModalSaldo {
   private readonly traduccion = inject(TraduccionService);
   protected readonly t = this.traduccion.t;
 
-  protected readonly importe = signal('');
-  protected readonly motivo = signal('');
+  /**
+   * El importe se teclea en unidades y viaja en céntimos.
+   *
+   * <p>Vacío es `null` y no cero: son cosas distintas —«todavía no ha escrito nada» frente a «quiere
+   * mover cero»— y con la cadena vacía de antes las dos acababan valiendo `NaN` en el mismo sitio.
+   */
+  protected readonly modelo = signal<{ importe: number | null; motivo: string }>({
+    importe: null,
+    motivo: '',
+  });
+
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    required(ruta.importe, { message: () => this.t('dialog.field.required') });
+    // El depósito SOLO suma: el mínimo lo pone el esquema y la directiva lo proyecta al campo, que es
+    // como el atributo del navegador y la regla dejan de poder decir cosas distintas.
+    min(ruta.importe, () => (this.clase() === 'deposito' ? 0.01 : undefined), {
+      message: () => this.t('dialog.field.min'),
+    });
+    // Las dos reglas de negocio salen del dominio, no se reescriben aquí: el cero nunca vale, y el
+    // ajuste además exige motivo porque el apunte queda en el libro mayor.
+    validate(ruta.importe, ({ value, valueOf }) => {
+      const centimos = aCentimos(value());
+      const valido =
+        this.clase() === 'deposito'
+          ? depositoValido(centimos)
+          : ajusteValido(centimos, valueOf(ruta.motivo));
+      return valido ? null : { kind: 'importe', message: this.t('dialog.field.number') };
+    });
+    required(ruta.motivo, {
+      when: () => this.clase() === 'ajuste',
+      message: () => this.t('dialog.field.required'),
+    });
+  });
 
   protected readonly titulo = computed(() =>
     this.clase() === 'deposito'
@@ -126,26 +169,17 @@ export class CarterasModalSaldo {
    * Los céntimos se calculan redondeando: `12.34 * 100` da 1233,9999… en coma flotante, y truncar ahí
    * habría cobrado un céntimo de menos en cada apunte.
    */
-  protected readonly centimos = computed(() => {
-    const leido = Number.parseFloat(this.importe());
-    return Number.isFinite(leido) ? Math.round(leido * 100) : Number.NaN;
-  });
-
-  protected readonly valido = computed(() =>
-    this.clase() === 'deposito'
-      ? depositoValido(this.centimos())
-      : ajusteValido(this.centimos(), this.motivo()),
-  );
-
-  protected escribeImporte(evento: Event): void {
-    this.importe.set((evento.target as HTMLInputElement).value);
-  }
-
-  protected escribeMotivo(evento: Event): void {
-    this.motivo.set((evento.target as HTMLInputElement).value);
-  }
+  protected readonly centimos = computed(() => aCentimos(this.modelo().importe));
 
   protected envia(): void {
-    this.confirma.emit({ importeCentimos: this.centimos(), descripcion: this.motivo().trim() });
+    this.confirma.emit({
+      importeCentimos: this.centimos(),
+      descripcion: this.modelo().motivo.trim(),
+    });
   }
+}
+
+/** Unidades a céntimos, redondeando; sin importe todavía, no hay número que mover. */
+function aCentimos(importe: number | null): number {
+  return importe === null || !Number.isFinite(importe) ? Number.NaN : Math.round(importe * 100);
 }

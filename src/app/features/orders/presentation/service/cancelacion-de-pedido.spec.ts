@@ -17,6 +17,7 @@ describe('CancelacionDePedido', () => {
     dialogo.alerta.mockResolvedValue(true);
     TestBed.configureTestingModule({
       providers: [
+        CancelacionDePedido,
         { provide: DialogoStore, useValue: dialogo },
         { provide: CancelaPedido, useValue: cancela },
         {

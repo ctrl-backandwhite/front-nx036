@@ -22,6 +22,7 @@ import {
 } from './cambia-contrasena.use-case';
 import { DescargaMisDatos } from './descarga-mis-datos.use-case';
 import { ConfirmaBajaDeCuenta, SolicitaBajaDeCuenta } from './baja-de-cuenta.use-case';
+import { APLICACION_DE_ACCOUNT } from '../../account.providers';
 
 const TITULAR = {
   id: 'u-1',
@@ -49,6 +50,7 @@ describe('RecuperaCuenta', () => {
     consulta.mockReset();
     TestBed.configureTestingModule({
       providers: [
+        ...APLICACION_DE_ACCOUNT,
         { provide: ALMACEN_LOCAL, useClass: AlmacenMemoriaAdapter },
         { provide: USUARIO_ACTUAL_PORT, useValue: { consulta, actualiza: vi.fn() } },
       ],
@@ -96,6 +98,7 @@ describe('GuardaPerfil', () => {
     consulta.mockReset().mockResolvedValue(exito(TITULAR));
     TestBed.configureTestingModule({
       providers: [
+        ...APLICACION_DE_ACCOUNT,
         { provide: ALMACEN_LOCAL, useClass: AlmacenMemoriaAdapter },
         { provide: PERFIL_PORT, useValue: { actualiza, cambiaContrasena: vi.fn() } },
         { provide: USUARIO_ACTUAL_PORT, useValue: { consulta, actualiza: vi.fn() } },
@@ -134,12 +137,19 @@ describe('CambiaContrasena', () => {
   beforeEach(() => {
     cambiaContrasena.mockReset().mockResolvedValue(exito(undefined));
     TestBed.configureTestingModule({
-      providers: [{ provide: PERFIL_PORT, useValue: { actualiza: vi.fn(), cambiaContrasena } }],
+      providers: [
+        ...APLICACION_DE_ACCOUNT,
+        { provide: PERFIL_PORT, useValue: { actualiza: vi.fn(), cambiaContrasena } },
+      ],
     });
   });
 
   it('manda al backend la contraseña que cumple y coincide', async () => {
-    const resultado = await TestBed.inject(CambiaContrasena).ejecuta('vieja', 'Abcdef1!', 'Abcdef1!');
+    const resultado = await TestBed.inject(CambiaContrasena).ejecuta(
+      'vieja',
+      'Abcdef1!',
+      'Abcdef1!',
+    );
 
     expect(resultado.ok).toBe(true);
     expect(cambiaContrasena).toHaveBeenCalledWith({ actual: 'vieja', nueva: 'Abcdef1!' });
@@ -155,7 +165,11 @@ describe('CambiaContrasena', () => {
   });
 
   it('no llega a salir si la repetición no coincide', async () => {
-    const resultado = await TestBed.inject(CambiaContrasena).ejecuta('vieja', 'Abcdef1!', 'Abcdef2!');
+    const resultado = await TestBed.inject(CambiaContrasena).ejecuta(
+      'vieja',
+      'Abcdef1!',
+      'Abcdef2!',
+    );
 
     expect(resultado.ok).toBe(false);
     expect(resultado.ok ? null : resultado.error.codigo).toBe(CONTRASENAS_DISTINTAS);
@@ -174,6 +188,7 @@ describe('DescargaMisDatos', () => {
     entrega.mockReset();
     TestBed.configureTestingModule({
       providers: [
+        ...APLICACION_DE_ACCOUNT,
         { provide: PORTABILIDAD_PORT, useValue: { exporta } },
         { provide: DESCARGA_PORT, useValue: { entrega } },
       ],
@@ -210,6 +225,7 @@ describe('baja de cuenta', () => {
     termina.mockReset().mockResolvedValue(undefined);
     TestBed.configureTestingModule({
       providers: [
+        ...APLICACION_DE_ACCOUNT,
         { provide: BAJA_DE_CUENTA_PORT, useValue: { solicita, confirma } },
         { provide: FIN_DE_SESION_PORT, useValue: { termina } },
       ],

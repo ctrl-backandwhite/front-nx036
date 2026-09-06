@@ -1,4 +1,5 @@
 import { Component, computed, inject, resource, signal } from '@angular/core';
+import { FormField, form, required } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
   faBan,
@@ -43,6 +44,7 @@ const TAMANOS = [25, 50, 100, 200];
   selector: 'nx-admin-categorias',
   imports: [
     FaIconComponent,
+    FormField,
     CampoBusqueda,
     Paginacion,
     HerramientasDeCarga,
@@ -116,10 +118,14 @@ const TAMANOS = [25, 50, 100, 200];
         />
         <label class="text-[12px] text-ink-500">
           <span class="sr-only">{{ t('admin.categories.filter.all') }}</span>
+          <!--
+            El cambio de filtro devuelve a la primera página. Es un efecto de la NAVEGACIÓN, no del
+            valor, así que va como manejador del evento y no dentro del formulario.
+          -->
           <select
             class="select select-bordered select-sm text-[12px]"
-            [value]="conProductos()"
-            (change)="cambiaFiltro($any($event.target).value)"
+            [formField]="formulario.conProductos"
+            (change)="pagina.set(0)"
           >
             <option value="">{{ t('admin.categories.filter.all') }}</option>
             <option value="true">{{ t('admin.categories.filter.with_products') }}</option>
@@ -130,8 +136,8 @@ const TAMANOS = [25, 50, 100, 200];
           <span class="sr-only">{{ t('pagination.page') }}</span>
           <select
             class="input input-sm w-auto"
-            [value]="tamano()"
-            (change)="cambiaTamano(+$any($event.target).value)"
+            [formField]="formulario.tamano"
+            (change)="pagina.set(0)"
           >
             @for (opcion of tamanos; track opcion) {
               <option [value]="opcion">{{ opcion }} / {{ t('pagination.page') }}</option>
@@ -145,7 +151,7 @@ const TAMANOS = [25, 50, 100, 200];
 
       <nx-tabla-de-categorias
         [categorias]="filas()"
-        [marcadas]="marcadasComoConjunto()"
+        [marcadas]="seleccion()"
         [cargando]="categorias.isLoading()"
         (alternaUna)="alterna($event)"
         (alternaTodas)="alternaTodas()"
@@ -191,19 +197,29 @@ export class CategoriasPage {
   protected readonly tamanos = TAMANOS;
 
   protected readonly texto = signal('');
-  protected readonly conProductos = signal('');
   protected readonly pagina = signal(0);
-  protected readonly tamano = signal(50);
   protected readonly formularioAbierto = signal(false);
   protected readonly editandoId = signal<string | null>(null);
   protected readonly borrador = signal<BorradorDeCategoria>(BORRADOR_DE_CATEGORIA_VACIO);
-  private readonly seleccion = signal<ReadonlySet<string>>(new Set());
+  protected readonly seleccion = signal<ReadonlySet<string>>(new Set());
+
+  /**
+   * Los dos desplegables de la barra. El tamaño se guarda como TEXTO porque eso es lo que devuelve un
+   * `select`; el número lo pone el criterio, que es quien lo necesita.
+   */
+  private readonly filtros = signal({ conProductos: '', tamano: '50' });
+
+  /** El tamaño de página no puede quedarse vacío: sin él no habría cuántas filas pedir. */
+  protected readonly formulario = form(this.filtros, (ruta) => {
+    required(ruta.tamano);
+  });
 
   private readonly criterio = computed<CriterioDeCategorias>(() => ({
     texto: this.texto() || undefined,
-    conProductos: this.conProductos() === '' ? undefined : this.conProductos() === 'true',
+    conProductos:
+      this.filtros().conProductos === '' ? undefined : this.filtros().conProductos === 'true',
     pagina: this.pagina(),
-    tamano: this.tamano(),
+    tamano: Number(this.filtros().tamano),
   }));
 
   protected readonly categorias = resource({
@@ -226,20 +242,9 @@ export class CategoriasPage {
   protected readonly total = computed(() => this.categorias.value().total);
   protected readonly paginas = computed(() => Math.max(1, this.categorias.value().paginas));
   protected readonly marcadas = computed(() => [...this.seleccion()]);
-  protected readonly marcadasComoConjunto = computed(() => this.seleccion());
 
   protected cambiaTexto(valor: string): void {
     this.texto.set(valor);
-    this.pagina.set(0);
-  }
-
-  protected cambiaFiltro(valor: string): void {
-    this.conProductos.set(valor);
-    this.pagina.set(0);
-  }
-
-  protected cambiaTamano(valor: number): void {
-    this.tamano.set(valor);
     this.pagina.set(0);
   }
 

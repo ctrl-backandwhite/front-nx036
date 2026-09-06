@@ -1,4 +1,5 @@
-import { Component, inject, input, output } from '@angular/core';
+import { Component, inject, input, model, output } from '@angular/core';
+import { FormField, form } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faTrashCan } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
@@ -21,7 +22,7 @@ import { VistaDeValoracion } from '../../application/use-case/valora-la-compra.u
  */
 @Component({
   selector: 'nx-lineas-de-la-compra',
-  imports: [FaIconComponent, ImagenSegura],
+  imports: [FaIconComponent, FormField, ImagenSegura],
   template: `
     <section class="card p-5 space-y-3">
       <h3>{{ t('checkout.products') }} ({{ lineas().length }})</h3>
@@ -99,8 +100,7 @@ import { VistaDeValoracion } from '../../application/use-case/valora-la-compra.u
           class="input mt-1 w-full text-sm"
           rows="2"
           [placeholder]="t('checkout.notes_placeholder')"
-          [value]="notas()"
-          (input)="escribeNotas.emit($any($event.target).value)"
+          [formField]="formulario"
         ></textarea>
       </div>
     </section>
@@ -109,7 +109,12 @@ import { VistaDeValoracion } from '../../application/use-case/valora-la-compra.u
 export class LineasDeLaCompra {
   readonly lineas = input.required<readonly LineaDeCarrito[]>();
   readonly valoracion = input.required<VistaDeValoracion>();
-  readonly notas = input.required<string>();
+  /**
+   * Las notas del pedido. Es un `model()` porque el texto lo lleva el estado de la compra, no esta
+   * pieza: la señal es a la vez la entrada que pinta y la salida que avisa, y Signal Forms puede
+   * escribir directamente en ella sin copia intermedia que sincronizar.
+   */
+  readonly notas = model.required<string>();
   readonly aviso = input<string | null>(null);
   /** Decide el DOMINIO de la cesta (pedido mínimo); aquí solo se pinta apagado. */
   readonly sePuedeBajar = input.required<(linea: LineaDeCarrito) => boolean>();
@@ -117,8 +122,10 @@ export class LineasDeLaCompra {
   readonly baja = output<LineaDeCarrito>();
   readonly sube = output<LineaDeCarrito>();
   readonly quita = output<LineaDeCarrito>();
-  readonly escribeNotas = output<string>();
   readonly descartaAviso = output<void>();
+
+  /** Un solo campo, pero con el mismo mecanismo que el resto: nada de cablearlo a mano. */
+  protected readonly formulario = form(this.notas);
 
   protected readonly t = inject(TraduccionService).t;
   protected readonly iconoBorrar = faTrashCan;

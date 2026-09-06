@@ -1,4 +1,5 @@
-import { Component, inject, input, model, output } from '@angular/core';
+import { Component, computed, inject, input, linkedSignal, model, output } from '@angular/core';
+import { FormField, form } from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
@@ -35,7 +36,7 @@ export type AccionDeFicha = 'publicar' | 'pausar' | 'archivar' | 'duplicar' | 'e
  */
 @Component({
   selector: 'nx-cabecera-de-ficha',
-  imports: [RouterLink, FaIconComponent],
+  imports: [RouterLink, FormField, FaIconComponent],
   template: `
     <div class="flex items-center justify-between gap-2 flex-wrap">
       <a routerLink="/admin/catalog" class="text-brand-700 text-[12px]">
@@ -106,12 +107,7 @@ export type AccionDeFicha = 'publicar' | 'pausar' | 'archivar' | 'duplicar' | 'e
       }
       <div class="ml-auto flex items-center gap-1 pb-1 shrink-0">
         <label for="ficha-idioma" class="text-[11px] text-ink-400">{{ t('picker.language') }}:</label>
-        <select
-          id="ficha-idioma"
-          class="select select-bordered select-xs"
-          [value]="idioma()"
-          (change)="idioma.set($any($event.target).value)"
-        >
+        <select id="ficha-idioma" class="select select-bordered select-xs" [formField]="formulario.idioma">
           @for (opcion of idiomas(); track opcion.codigo) {
             <option [value]="opcion.codigo">
               {{ opcion.etiqueta }} ({{ opcion.codigo.toUpperCase() }})
@@ -144,7 +140,23 @@ export class CabeceraDeFicha {
     editar: faPen,
   };
 
-  protected titulo(): string {
-    return tituloEnIdioma(this.ficha(), this.idioma());
-  }
+  /**
+   * El idioma que se previsualiza, gestionado como campo de formulario.
+   *
+   * <p>Sigue siendo un `model` de dos direcciones hacia la página —que lo usa para volver a pedir la
+   * ficha—, y el `set` del modelo es lo que lo publica: así el desplegable lo lleva el formulario sin
+   * que haga falta un efecto que copie un signal en otro.
+   */
+  private readonly modelo = linkedSignal<string, { idioma: string }>({
+    source: () => this.idioma(),
+    computation: (idioma) => ({ idioma }),
+    set: (nuevo, escribe) => {
+      escribe(nuevo);
+      this.idioma.set(nuevo.idioma);
+    },
+  });
+
+  protected readonly formulario = form(this.modelo);
+
+  protected readonly titulo = computed(() => tituloEnIdioma(this.ficha(), this.idioma()));
 }

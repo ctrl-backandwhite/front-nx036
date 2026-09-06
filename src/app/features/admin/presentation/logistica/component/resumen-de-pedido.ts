@@ -1,4 +1,4 @@
-import { Component, inject, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { nombreDePais } from '@ds/component/pais/paises';
 import { FichaDePedido } from '../../../domain/logistica/model/pedido';
@@ -89,7 +89,7 @@ import { FichaDePedido } from '../../../domain/logistica/model/pedido';
                 , {{ direccion.provincia }}
               }
             </span>
-            <span class="text-ink-700 block">{{ pais(direccion.pais) }}</span>
+            <span class="text-ink-700 block">{{ paisDelEnvio() }}</span>
             @if (direccion.telefono) {
               <span class="text-ink-500 text-[12px] block mt-1">{{ direccion.telefono }}</span>
             }
@@ -106,7 +106,8 @@ export class ResumenDePedido {
 
   protected readonly t = inject(TraduccionService).t;
 
-  protected pais(codigo: string): string {
-    return nombreDePais(codigo);
-  }
+  /** El nombre del país sale de recorrer la lista entera: se resuelve una vez, no en cada repintado. */
+  protected readonly paisDelEnvio = computed(() =>
+    nombreDePais(this.pedido().direccionDeEnvio?.pais),
+  );
 }

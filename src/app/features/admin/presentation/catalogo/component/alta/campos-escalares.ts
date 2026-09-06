@@ -1,14 +1,9 @@
-import { Component, inject, input, output } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
+import { FieldTree, FormField } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
-import { CamposDeAlta } from '../../../../domain/catalogo/model/alta-de-producto';
+import { FilaTecleada } from '../../../../domain/catalogo/model/alta-de-producto';
 import { conRespaldo } from '../../etiquetas';
 import { CampoDelAlta } from './campos-del-alta';
-
-/** Lo que cambia: qué campo y con qué valor. */
-export interface CambioDeCampo {
-  readonly clave: string;
-  readonly valor: string;
-}
 
 /** Contador de instancias: dos grupos pintados a la vez no pueden repetir identificadores. */
 let siguienteGrupo = 0;
@@ -16,11 +11,17 @@ let siguienteGrupo = 0;
 /**
  * Un grupo de campos escalares del alta, pintado a partir de su definición.
  *
+ * <p>Recibe el TROZO DE FORMULARIO al que pertenecen —el mapa de campos escalares o una fila de una de
+ * las seis listas— y ata cada control a su campo por la clave. Antes publicaba cada tecla hacia arriba y
+ * el diálogo la volvía a mezclar en su borrador: ese rodeo era lo que hacía falta cuando el estado del
+ * formulario no existía como tal.
+ *
  * <p>MOBILE FIRST: en el móvil todos ocupan la fila entera —escribir en medio campo con el pulgar es
  * incómodo— y a partir de `sm` se reparten en dos o tres columnas según lo que pida cada uno.
  */
 @Component({
   selector: 'nx-campos-escalares',
+  imports: [FormField],
   template: `
     <div class="grid grid-cols-1 sm:grid-cols-6 gap-3">
       @for (campo of campos(); track campo.clave) {
@@ -39,16 +40,14 @@ let siguienteGrupo = 0;
                 [id]="identificador(campo)"
                 class="textarea textarea-bordered textarea-sm w-full h-16 font-mono text-[11px]"
                 [placeholder]="campo.marcador ?? ''"
-                [value]="valorDe(campo)"
-                (input)="emite(campo.clave, $event)"
+                [formField]="valores()[campo.clave]"
               ></textarea>
             }
             @case ('seleccion') {
               <select
                 [id]="identificador(campo)"
                 class="select select-bordered select-sm w-full"
-                [value]="valorDe(campo)"
-                (change)="emite(campo.clave, $event)"
+                [formField]="valores()[campo.clave]"
               >
                 @for (opcion of campo.opciones ?? []; track opcion.valor) {
                   <option [value]="opcion.valor">
@@ -64,8 +63,7 @@ let siguienteGrupo = 0;
                 [type]="campo.clase === 'texto' ? 'text' : 'number'"
                 [attr.step]="campo.clase === 'numero' ? '0.01' : null"
                 [placeholder]="campo.marcador ?? ''"
-                [value]="valorDe(campo)"
-                (input)="emite(campo.clave, $event)"
+                [formField]="valores()[campo.clave]"
               />
             }
           }
@@ -78,21 +76,10 @@ export class CamposEscalares {
   private readonly prefijo = `alta-${++siguienteGrupo}`;
 
   readonly campos = input.required<readonly CampoDelAlta[]>();
-  readonly valores = input.required<CamposDeAlta>();
-  readonly cambia = output<CambioDeCampo>();
+  /** El trozo de formulario con los campos de este grupo: el mapa escalar o una fila de una lista. */
+  readonly valores = input.required<FieldTree<FilaTecleada>>();
 
   private readonly traduccion = inject(TraduccionService);
-
-  /**
-   * El valor tecleado del campo.
-   *
-   * <p>Va por método y no con un `??` en la plantilla porque el tipo del mapa promete una cadena
-   * siempre, pero en tiempo de ejecución una clave que aún no se ha tocado no está: sin esto, el campo
-   * nacería con «undefined» escrito dentro.
-   */
-  protected valorDe(campo: CampoDelAlta): string {
-    return this.valores()[campo.clave] ?? '';
-  }
 
   protected identificador(campo: CampoDelAlta): string {
     return `${this.prefijo}-${campo.clave}`;
@@ -112,9 +99,5 @@ export class CamposEscalares {
       return 'sm:col-span-3';
     }
     return campo.ancho === 'tercio' ? 'sm:col-span-2' : 'sm:col-span-6';
-  }
-
-  protected emite(clave: string, evento: Event): void {
-    this.cambia.emit({ clave, valor: (evento.target as HTMLInputElement).value });
   }
 }

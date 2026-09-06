@@ -1,23 +1,33 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { FieldTree, FormField, form, minLength, required, validate } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCircle, faCircleCheck, faKey } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
-import { requisitosDeContrasena } from '../../domain/model/perfil';
+import { contrasenaCumpleLaPolitica, requisitosDeContrasena } from '../../domain/model/perfil';
 import {
   CONTRASENAS_DISTINTAS,
   CONTRASENA_DEBIL,
   CambiaContrasena,
 } from '../../application/use-case/cambia-contrasena.use-case';
 
+/** Los ocho caracteres que exige la política. El mismo número que aplica el backend. */
+const LARGO_MINIMO = 8;
+
 /**
  * Cambiar la contraseña.
  *
  * <p>Los requisitos se pintan en vivo mientras se escribe: son los MISMOS que aplica el backend, y
  * verlos cumplirse uno a uno evita el rechazo con la contraseña ya escrita dos veces.
+ *
+ * <p>Las tres casillas las lleva Signal Forms. Lo obligatorio, el largo mínimo, la política y el hecho
+ * de que las dos nuevas tengan que coincidir se declaran en el ESQUEMA, no como atributos del campo ni
+ * como comprobaciones sueltas repartidas por la clase: la directiva `formField` proyecta ella misma
+ * `required` y `minlength` al elemento, y hay UN solo sitio —`formulario().invalid()`— que decide si se
+ * puede enviar.
  */
 @Component({
   selector: 'nx-cambio-de-contrasena',
-  imports: [FaIconComponent],
+  imports: [FaIconComponent, FormField],
   template: `
     <h4 class="mt-6 mb-1 text-sm font-medium flex items-center gap-2">
       <fa-icon [icon]="iconos.llave" class="text-brand-600" /> {{ t('profile.change_password') }}
@@ -25,18 +35,24 @@ import {
     <form class="mt-2 space-y-3 max-w-md mx-auto" (submit)="envia($event)">
       <div>
         <label for="perfil-pw-actual" class="text-xs text-ink-500">{{ t('profile.current_password') }}</label>
-        <input id="perfil-pw-actual" type="password" autocomplete="current-password" required class="input mt-1"
-               [value]="actual()" (input)="actual.set(valorDe($event))" />
+        <input id="perfil-pw-actual" type="password" autocomplete="current-password" class="input mt-1"
+               [formField]="formulario.actual" />
+        @if (falloDe(formulario.actual); as fallo) {
+          <span role="alert" class="text-xs text-red-700 mt-1 block">{{ fallo }}</span>
+        }
       </div>
       <div>
         <label for="perfil-pw-nueva" class="text-xs text-ink-500">{{ t('profile.new_password') }}</label>
-        <input id="perfil-pw-nueva" type="password" autocomplete="new-password" required minlength="8" class="input mt-1"
-               [value]="nueva()" (input)="nueva.set(valorDe($event))" />
+        <input id="perfil-pw-nueva" type="password" autocomplete="new-password" class="input mt-1"
+               [formField]="formulario.nueva" />
+        @if (falloDe(formulario.nueva); as fallo) {
+          <span role="alert" class="text-xs text-red-700 mt-1 block">{{ fallo }}</span>
+        }
       </div>
       <div>
         <label for="perfil-pw-confirmar" class="text-xs text-ink-500">{{ t('profile.confirm_password') }}</label>
-        <input id="perfil-pw-confirmar" type="password" autocomplete="new-password" required minlength="8" class="input mt-1"
-               [value]="repetida()" (input)="repetida.set(valorDe($event))" />
+        <input id="perfil-pw-confirmar" type="password" autocomplete="new-password" class="input mt-1"
+               [formField]="formulario.repetida" />
         @if (noCoinciden()) {
           <span role="alert" class="text-xs text-red-700 mt-1 block">{{ t('profile.passwords_mismatch') }}</span>
         }
@@ -73,23 +89,64 @@ export class CambioDeContrasena {
   protected readonly t = this.traduccion.t;
   protected readonly iconos = { llave: faKey, hecho: faCircleCheck, pendiente: faCircle };
 
-  protected readonly actual = signal('');
-  protected readonly nueva = signal('');
-  protected readonly repetida = signal('');
+  protected readonly modelo = signal({ actual: '', nueva: '', repetida: '' });
+
+  /**
+   * El esquema del cambio de contraseña.
+   *
+   * <p>La política vive en el dominio y se declara aquí con `validate()` sin mensaje a propósito: la
+   * lista de requisitos de abajo ya dice cuál falta, uno por uno y en vivo. Repetirlo bajo el campo
+   * sería decir dos veces lo mismo con menos detalle.
+   *
+   * <p>Que las dos nuevas coincidan es una validación CRUZADA y por eso cuelga de la repetición: es ahí
+   * donde se ve el aviso, que es donde estaba antes.
+   */
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    required(ruta.actual, { message: () => this.t('dialog.field.required') });
+
+    required(ruta.nueva, { message: () => this.t('dialog.field.required') });
+    minLength(ruta.nueva, LARGO_MINIMO);
+    validate(ruta.nueva, ({ value }) =>
+      contrasenaCumpleLaPolitica(value()) ? undefined : { kind: 'pattern' },
+    );
+
+    required(ruta.repetida, { message: () => this.t('dialog.field.required') });
+    minLength(ruta.repetida, LARGO_MINIMO);
+    validate(ruta.repetida, ({ value, valueOf }) =>
+      value() !== '' && value() !== valueOf(ruta.nueva)
+        ? { kind: 'mismatch', message: this.t('profile.passwords_mismatch') }
+        : undefined,
+    );
+  });
+
   protected readonly guardando = signal(false);
   protected readonly aviso = signal<string | null>(null);
   protected readonly correcto = signal(false);
 
-  protected readonly requisitos = computed(() => requisitosDeContrasena(this.nueva()));
+  protected readonly requisitos = computed(() => requisitosDeContrasena(this.modelo().nueva));
+
+  /**
+   * El aviso de que la repetición no coincide.
+   *
+   * <p>Este NO espera a que el campo se haya tocado, y es deliberado: no acusa de vacío a nadie —solo
+   * salta cuando ya hay algo escrito—, y verlo mientras se teclea es justo lo que evita descubrir la
+   * errata después de pulsar «cambiar».
+   */
   protected readonly noCoinciden = computed(
-    () => this.repetida().length > 0 && this.nueva() !== this.repetida(),
-  );
-  protected readonly sePuedeEnviar = computed(
-    () => this.requisitos().every((r) => r.cumple) && this.nueva() === this.repetida(),
+    () => this.formulario.repetida().getError('mismatch') !== undefined,
   );
 
-  protected valorDe(evento: Event): string {
-    return (evento.target as HTMLInputElement).value;
+  /** Un único sitio al que preguntar si hay algo que mandar. */
+  protected readonly sePuedeEnviar = computed(() => !this.formulario().invalid());
+
+  /**
+   * El mensaje que toca enseñar bajo un campo, o nulo si no hay nada que decir todavía. Se calla hasta
+   * que el campo se ha TOCADO: pintar de rojo un formulario recién abierto acusa a quien todavía no ha
+   * escrito nada.
+   */
+  protected falloDe<T>(campo: FieldTree<T>): string | null {
+    const estado = campo();
+    return estado.touched() ? (estado.errors()[0]?.message ?? null) : null;
   }
 
   /**
@@ -107,16 +164,21 @@ export class CambioDeContrasena {
 
   protected async envia(evento: Event): Promise<void> {
     evento.preventDefault();
+    if (!this.sePuedeEnviar()) {
+      return;
+    }
     this.aviso.set(null);
     this.guardando.set(true);
     try {
-      const resultado = await this.cambia.ejecuta(this.actual(), this.nueva(), this.repetida());
+      const datos = this.modelo();
+      const resultado = await this.cambia.ejecuta(datos.actual, datos.nueva, datos.repetida);
       this.correcto.set(resultado.ok);
       if (resultado.ok) {
         this.aviso.set(this.t('profile.password_updated'));
-        this.actual.set('');
-        this.nueva.set('');
-        this.repetida.set('');
+        this.modelo.set({ actual: '', nueva: '', repetida: '' });
+        // Las casillas vuelven a estar sin tocar: si no, las tres recién vaciadas se pintarían en rojo
+        // acusando de vacío a quien acaba de cambiar la contraseña bien.
+        this.formulario().reset();
         return;
       }
       this.aviso.set(this.textoDelFallo(resultado.error.codigo, resultado.error.mensaje));

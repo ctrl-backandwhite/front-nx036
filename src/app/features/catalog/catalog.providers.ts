@@ -1,4 +1,4 @@
-import { EnvironmentProviders, inject, makeEnvironmentProviders } from '@angular/core';
+import { EnvironmentProviders, Provider, inject, makeEnvironmentProviders } from '@angular/core';
 import {
   CATALOGO_PORT,
   PORTADA_PORT,
@@ -29,6 +29,28 @@ import { BuscaProductos } from './application/use-case/busca-productos.use-case'
 import { EditaLaFicha } from './application/use-case/edita-la-ficha.use-case';
 import { ListaFavoritos, ListaHistorial } from './application/use-case/lista-guardados.use-case';
 import { PublicaResena } from './application/use-case/publica-resena.use-case';
+
+/**
+ * Los casos de uso y el estado de «catalog».
+ *
+ * <p>Se listan aparte de los adaptadores para poder montarlos en una prueba EXACTAMENTE como los monta
+ * la ruta. Es la lección del fallo que arregló esta lista: mientras cada clase se declaraba a sí misma
+ * `providedIn: 'root'`, el banco de pruebas las tenía siempre a mano y la aplicación de verdad no, así
+ * que 2.800 pruebas en verde convivían con pantallas que reventaban al abrirlas. Con una sola lista,
+ * añadir un caso de uso lo mete a la vez en la ruta y en las pruebas, y no hay forma de que diverjan.
+ */
+export const APLICACION_DEL_CATALOGO: Provider[] = [
+  FavoritosStore,
+  ReferenciaDeCestaStore,
+  AbreLaFicha,
+  AlternaFavorito,
+  AnadeALaCesta,
+  BuscaProductos,
+  EditaLaFicha,
+  ListaFavoritos,
+  ListaHistorial,
+  PublicaResena,
+];
 
 /**
  * Ata los puertos de «catalog» con sus adaptadores.
@@ -78,19 +100,6 @@ export function proveeCatalogo(): EnvironmentProviders {
     GuiaDeBienvenidaHttpAdapter,
     { provide: GUIA_DE_BIENVENIDA_PORT, useFactory: () => inject(GuiaDeBienvenidaHttpAdapter) },
 
-    // El estado compartido de las pantallas del catálogo. Va con los puertos —y no en la raíz— porque
-    // los casos de uso que lo escriben viven aquí: repartirlos entre dos inyectores daría dos estados.
-    FavoritosStore,
-    ReferenciaDeCestaStore,
-
-    // Los casos de uso. Dependen de los puertos de arriba, así que su sitio es este inyector.
-    AbreLaFicha,
-    AlternaFavorito,
-    AnadeALaCesta,
-    BuscaProductos,
-    EditaLaFicha,
-    ListaFavoritos,
-    ListaHistorial,
-    PublicaResena,
+    ...APLICACION_DEL_CATALOGO,
   ]);
 }

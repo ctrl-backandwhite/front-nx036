@@ -1,4 +1,4 @@
-import { Component, inject, input, output } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
@@ -59,11 +59,13 @@ export class AvisoAnunciosBus {
   protected readonly t = inject(TraduccionService).t;
   private readonly tCon = inject(TraduccionService).tCon;
 
-  protected titulo(): string {
-    return this.tCon('admin.catalog.bus.failed_title', { n: this.fallidos().length });
-  }
+  protected readonly titulo = computed(() =>
+    this.tCon('admin.catalog.bus.failed_title', { n: this.fallidos().length }),
+  );
 
-  protected visibles(): readonly AnuncioFallido[] {
-    return this.fallidos().slice(0, FALLOS_QUE_SE_ENUMERAN);
-  }
+  /**
+   * Los que se enumeran. Va en un `computed` y no en un método: la plantilla los recorre, y devolver
+   * una lista NUEVA en cada repintado obliga a reconstruir todas las entradas aunque no cambie nada.
+   */
+  protected readonly visibles = computed(() => this.fallidos().slice(0, FALLOS_QUE_SE_ENUMERAN));
 }

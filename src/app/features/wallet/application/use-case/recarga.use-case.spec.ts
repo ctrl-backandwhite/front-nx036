@@ -9,6 +9,7 @@ import { IniciaRecarga } from './inicia-recarga.use-case';
 import { ConfirmaRecarga } from './confirma-recarga.use-case';
 import { ConsultaCartera } from './consulta-cartera.use-case';
 import { ConsultaComisionesPendientes } from './consulta-comisiones-pendientes.use-case';
+import { APLICACION_DE_LA_CARTERA } from '../../wallet.providers';
 
 describe('casos de uso de la cartera', () => {
   const cartera = { consulta: vi.fn(), movimientos: vi.fn() };
@@ -25,6 +26,7 @@ describe('casos de uso de la cartera', () => {
     vi.resetAllMocks();
     TestBed.configureTestingModule({
       providers: [
+        ...APLICACION_DE_LA_CARTERA,
         { provide: CARTERA_PORT, useValue: cartera },
         { provide: RECARGA_PORT, useValue: recarga },
         { provide: COMISIONES_PENDIENTES_PORT, useValue: comisiones },
@@ -45,7 +47,9 @@ describe('casos de uso de la cartera', () => {
   });
 
   it('ConsultaComisionesPendientes entrega lo que devuelve su puerto', async () => {
-    comisiones.consulta.mockResolvedValue(exito({ esAfiliado: false, totalFormateado: '', comisiones: [] }));
+    comisiones.consulta.mockResolvedValue(
+      exito({ esAfiliado: false, totalFormateado: '', comisiones: [] }),
+    );
     expect((await TestBed.inject(ConsultaComisionesPendientes).ejecuta()).ok).toBe(true);
   });
 

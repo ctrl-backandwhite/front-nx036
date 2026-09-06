@@ -1,12 +1,16 @@
-import { Component, inject, output, signal } from '@angular/core';
+import { Component, computed, inject, output, signal } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { FormField, form, required, validate } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
 import { DialogoStore } from '@ds/component/dialogo/dialogo.store';
 import { CONCESIONES, separaPermisos } from '../../../domain/gestion/model/socios';
 import { CreaElCliente } from '../../../application/gestion/use-case/socios.use-case';
 import { VentanaModal } from './ventana-modal';
+
+/** El webhook del socio: solo se admite http(s), que es lo único que el backend sabe llamar. */
+const URL_HTTP = /^https?:\/\/\S+$/;
 
 /**
  * El alta de un cliente de integración.
@@ -20,10 +24,15 @@ import { VentanaModal } from './ventana-modal';
  * del webhook se piden porque el socio los necesita acordados, pero el puerto (`AltaDeClienteOauth`) no
  * los lleva y el servidor los fija por su cuenta. Está anotado como carencia del contrato, no es un
  * descuido del porte.
+ *
+ * <p>Lo que exige el alta —nombre y al menos un permiso— vive en el ESQUEMA del formulario. Antes el
+ * nombre se comprobaba dentro del manejador y el botón seguía encendido: se pulsaba y no pasaba nada,
+ * sin decir por qué. Y los permisos no se comprobaban en absoluto: un cliente sin ninguno se creaba
+ * igual y luego no podía llamar a nada.
  */
 @Component({
   selector: 'nx-socios-alta',
-  imports: [FaIconComponent, VentanaModal],
+  imports: [FaIconComponent, VentanaModal, FormField],
   template: `
     <nx-ventana-modal [titulo]="t('admin.partners.actions.create')" (cierra)="cierra.emit()">
       <div class="space-y-2 text-sm">
@@ -32,14 +41,19 @@ import { VentanaModal } from './ventana-modal';
             {{ t('admin.partners.col.name') }}
           </label>
           <input id="socios-nombre" class="input" placeholder="Acme Inc."
-                 [value]="nombre()" (input)="nombre.set(escrito($event))" />
+                 [formField]="formulario.nombre" />
+          @if (formulario.nombre().touched() && formulario.nombre().errors().length) {
+            <div role="alert" class="text-[11px] text-error mt-0.5">
+              {{ formulario.nombre().errors()[0].message }}
+            </div>
+          }
         </div>
         <div>
           <label class="text-xs text-ink-500" for="socios-alias">
             {{ t('admin.partners.col.alias') }}
           </label>
           <input id="socios-alias" class="input font-mono" placeholder="acme-prod"
-                 [value]="alias()" (input)="alias.set(escrito($event))" />
+                 [formField]="formulario.alias" />
         </div>
         <div>
           <span class="text-xs text-ink-500">{{ t('admin.partners.col.grants') }}</span>
@@ -59,8 +73,13 @@ import { VentanaModal } from './ventana-modal';
           </label>
           <input id="socios-permisos" class="input font-mono text-[12px]"
                  placeholder="catalog.read, orders.write"
-                 [value]="permisos()" (input)="permisos.set(escrito($event))" />
+                 [formField]="formulario.permisos" />
           <div class="text-[11px] text-ink-400 mt-0.5">{{ t('admin.partners.scopes_hint') }}</div>
+          @if (formulario.permisos().touched() && formulario.permisos().errors().length) {
+            <div role="alert" class="text-[11px] text-error mt-0.5">
+              {{ formulario.permisos().errors()[0].message }}
+            </div>
+          }
         </div>
         <div>
           <label class="text-xs text-ink-500" for="socios-webhook">
@@ -68,14 +87,20 @@ import { VentanaModal } from './ventana-modal';
           </label>
           <input id="socios-webhook" class="input font-mono text-[12px]"
                  [placeholder]="t('admin.partners.webhook_placeholder')"
-                 [value]="webhook()" (input)="webhook.set(escrito($event))" />
+                 [formField]="formulario.webhook" />
+          @if (formulario.webhook().touched() && formulario.webhook().errors().length) {
+            <div role="alert" class="text-[11px] text-error mt-0.5">
+              {{ formulario.webhook().errors()[0].message }}
+            </div>
+          }
         </div>
       </div>
       <div class="flex justify-end gap-2">
         <button type="button" class="btn btn-outline text-[12px]" (click)="cierra.emit()">
           {{ t('actions.cancel') }}
         </button>
-        <button type="button" class="btn btn-primary text-[12px]" [disabled]="creando()"
+        <button type="button" class="btn btn-primary text-[12px]"
+                [disabled]="creando() || formulario().invalid()"
                 (click)="crea()">
           <fa-icon [icon]="iconoMas" /> {{ t('admin.partners.actions.create') }}
         </button>
@@ -97,16 +122,36 @@ export class SociosAlta {
   protected readonly iconoMas = faPlus;
   protected readonly concesiones = CONCESIONES;
 
-  protected readonly nombre = signal('');
-  protected readonly alias = signal('');
-  protected readonly permisos = signal('catalog.read,orders.write');
-  protected readonly webhook = signal('');
+  protected readonly modelo = signal({
+    nombre: '',
+    alias: '',
+    permisos: 'catalog.read,orders.write',
+    webhook: '',
+  });
+
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    // Sin nombre no se crea nada: es lo único que distingue un cliente de otro en la tabla.
+    required(ruta.nombre, { message: () => this.t('dialog.field.required') });
+    // Un cliente sin ningún permiso se autentica y no puede llamar a nada: es un alta inútil.
+    validate(ruta.permisos, ({ value }) =>
+      separaPermisos(value()).length > 0
+        ? null
+        : { kind: 'permisos', message: this.t('dialog.field.required') },
+    );
+    // El webhook es opcional, pero si se escribe tiene que ser una dirección que se pueda llamar.
+    validate(ruta.webhook, ({ value }) => {
+      const escrito = value().trim();
+      return escrito === '' || URL_HTTP.test(escrito)
+        ? null
+        : { kind: 'webhook', message: this.t('sourcing.url.invalid') };
+    });
+  });
+
   protected readonly elegidas = signal<readonly string[]>(['client_credentials']);
   protected readonly creando = signal(false);
 
-  protected escrito(evento: Event): string {
-    return (evento.target as HTMLInputElement).value;
-  }
+  /** Los permisos ya partidos: se usan al crear y para saber si el formulario vale. */
+  protected readonly permisosSeparados = computed(() => separaPermisos(this.modelo().permisos));
 
   protected alterna(concesion: string, evento: Event): void {
     const marcada = (evento.target as HTMLInputElement).checked;
@@ -116,14 +161,13 @@ export class SociosAlta {
   }
 
   protected async crea(): Promise<void> {
-    // Sin nombre no se crea nada: es lo único que distingue un cliente de otro en la tabla.
-    if (!this.nombre().trim()) {
+    if (this.formulario().invalid()) {
       return;
     }
     this.creando.set(true);
     const resultado = await this.creaElCliente.ejecuta({
-      nombre: this.nombre().trim(),
-      permisos: separaPermisos(this.permisos()),
+      nombre: this.modelo().nombre.trim(),
+      permisos: this.permisosSeparados(),
     });
     this.creando.set(false);
     if (!resultado.ok) {

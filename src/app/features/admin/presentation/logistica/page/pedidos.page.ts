@@ -120,8 +120,7 @@ const POR_PAGINA = 25;
           [(anio)]="anio"
           [(mes)]="mes"
           [(dia)]="dia"
-          [(desde)]="desde"
-          [(hasta)]="hasta"
+          [(rango)]="rango"
           [estados]="estados"
           [anios]="anios()"
         />
@@ -166,8 +165,7 @@ export class PedidosPage {
 
   protected readonly estado = signal<string | null>(null);
   protected readonly texto = signal('');
-  protected readonly desde = signal('');
-  protected readonly hasta = signal('');
+  protected readonly rango = signal({ desde: '', hasta: '' });
   protected readonly anio = signal<string | null>(null);
   protected readonly mes = signal<string | null>(null);
   protected readonly dia = signal<string | null>(null);
@@ -187,8 +185,8 @@ export class PedidosPage {
   /** El filtro de fechas se aplica sobre lo traído: afina la página que se está mirando. */
   protected readonly visibles = computed(() =>
     filtraPorFecha(this.pedidos(), {
-      desde: this.desde(),
-      hasta: this.hasta(),
+      desde: this.rango().desde,
+      hasta: this.rango().hasta,
       anio: this.anio() ?? undefined,
       mes: this.mes() ?? undefined,
       dia: this.dia() ?? undefined,
@@ -200,8 +198,8 @@ export class PedidosPage {
       [
         this.estado(),
         this.texto(),
-        this.desde(),
-        this.hasta(),
+        this.rango().desde,
+        this.rango().hasta,
         this.anio(),
         this.mes(),
         this.dia(),
@@ -250,8 +248,7 @@ export class PedidosPage {
   protected limpiaFiltros(): void {
     this.estado.set(null);
     this.texto.set('');
-    this.desde.set('');
-    this.hasta.set('');
+    this.rango.set({ desde: '', hasta: '' });
     this.anio.set(null);
     this.mes.set(null);
     this.dia.set(null);

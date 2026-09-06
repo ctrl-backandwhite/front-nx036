@@ -20,6 +20,7 @@ import { DatosPersonales } from './datos-personales';
 import { CambioDeContrasena } from './cambio-de-contrasena';
 import { DobleFactor } from './doble-factor';
 import { SesionesActivas } from './sesiones-activas';
+import { APLICACION_DE_ACCOUNT } from '../../account.providers';
 
 function titular(cambios: Partial<Usuario> = {}): Usuario {
   return {
@@ -53,6 +54,7 @@ describe('DatosPersonales', () => {
     };
     const vista = await render(DatosPersonales, {
       providers: [
+        ...APLICACION_DE_ACCOUNT,
         provideRouter([]),
         { provide: ALMACEN_LOCAL, useValue: almacen },
         { provide: PERFIL_PORT, useValue: { actualiza, cambiaContrasena: vi.fn() } },
@@ -70,6 +72,30 @@ describe('DatosPersonales', () => {
 
     expect(screen.getByLabelText(t('profile.first_name'))).toHaveValue('Ana');
     expect(screen.getByLabelText(t('profile.email'))).toHaveValue('ana@nx036.test');
+  });
+
+  /**
+   * La opción marcada la pone la directiva del formulario a partir del valor del campo. Antes se
+   * repetía con un `[selected]` por opción: dos sitios diciendo lo mismo y uno de ellos podía mentir.
+   */
+  it('el desplegable de idioma parte del idioma de la cuenta', async () => {
+    await monta(titular({ idioma: 'fr' }));
+    const t = TestBed.inject(TraduccionService).t;
+
+    expect(screen.getByLabelText(t('profile.language'))).toHaveValue('fr');
+  });
+
+  /** Sin nombre no hay destinatario en el albarán ni titular en la factura. */
+  it('sin nombre no se puede guardar, y se dice cuál falta', async () => {
+    const usuario = userEvent.setup({ delay: null });
+    await monta(titular());
+    const t = TestBed.inject(TraduccionService).t;
+
+    await usuario.clear(screen.getByLabelText(t('profile.first_name')));
+    await usuario.tab();
+
+    expect(screen.getByRole('button', { name: t('profile.save') })).toBeDisabled();
+    expect(screen.getByRole('alert')).toHaveTextContent(t('dialog.field.required'));
   });
 
   it('el correo no se edita: cambiarlo es cambiar de identidad', async () => {
@@ -130,7 +156,10 @@ describe('CambioDeContrasena', () => {
   async function monta() {
     cambiaContrasena.mockReset().mockResolvedValue(exito(undefined));
     return render(CambioDeContrasena, {
-      providers: [{ provide: PERFIL_PORT, useValue: { actualiza: vi.fn(), cambiaContrasena } }],
+      providers: [
+        ...APLICACION_DE_ACCOUNT,
+        { provide: PERFIL_PORT, useValue: { actualiza: vi.fn(), cambiaContrasena } },
+      ],
     });
   }
 
@@ -160,6 +189,20 @@ describe('CambioDeContrasena', () => {
     expect(screen.getByRole('alert')).toHaveTextContent(t('profile.passwords_mismatch'));
   });
 
+  /** El aviso llega al salir del campo, no antes: acusar de vacío a quien aún no ha escrito es mentir. */
+  it('la contraseña actual es obligatoria y lo dice al salir del campo', async () => {
+    const usuario = userEvent.setup({ delay: null });
+    await monta();
+    const t = TestBed.inject(TraduccionService).t;
+
+    expect(screen.queryByRole('alert')).toBeNull();
+
+    await usuario.click(screen.getByLabelText(t('profile.current_password')));
+    await usuario.tab();
+
+    expect(screen.getByRole('alert')).toHaveTextContent(t('dialog.field.required'));
+  });
+
   it('al cambiarla, lo confirma y vacía los tres campos', async () => {
     const usuario = userEvent.setup({ delay: null });
     await monta();
@@ -170,14 +213,18 @@ describe('CambioDeContrasena', () => {
     await usuario.type(screen.getByLabelText(t('profile.confirm_password')), 'Abcdef1!');
     await usuario.click(screen.getByRole('button', { name: t('profile.change_password') }));
 
-    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent(t('profile.password_updated')));
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent(t('profile.password_updated')),
+    );
     expect(screen.getByLabelText(t('profile.new_password'))).toHaveValue('');
   });
 
   it('si el servidor rechaza la contraseña actual, se enseña su motivo', async () => {
     const usuario = userEvent.setup({ delay: null });
     await monta();
-    cambiaContrasena.mockResolvedValue(fallo(creaError('peticion-invalida', 'La actual no es correcta')));
+    cambiaContrasena.mockResolvedValue(
+      fallo(creaError('peticion-invalida', 'La actual no es correcta')),
+    );
     const t = TestBed.inject(TraduccionService).t;
 
     await usuario.type(screen.getByLabelText(t('profile.current_password')), 'mala');
@@ -185,7 +232,9 @@ describe('CambioDeContrasena', () => {
     await usuario.type(screen.getByLabelText(t('profile.confirm_password')), 'Abcdef1!');
     await usuario.click(screen.getByRole('button', { name: t('profile.change_password') }));
 
-    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('La actual no es correcta'));
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent('La actual no es correcta'),
+    );
   });
 });
 
@@ -204,6 +253,7 @@ describe('DobleFactor', () => {
     dibuja.mockReset().mockResolvedValue('data:image/png;base64,xx');
     const vista = await render(DobleFactor, {
       providers: [
+        ...APLICACION_DE_ACCOUNT,
         { provide: DOBLE_FACTOR_PORT, useValue: { estaActivo, inicia, verifica, desactiva } },
         { provide: SESIONES_ACTIVAS_PORT, useValue: { lista: vi.fn(), revoca: vi.fn() } },
         { provide: CODIGO_QR_PORT, useValue: { dibuja } },
@@ -298,7 +348,10 @@ describe('SesionesActivas', () => {
     lista.mockReset().mockResolvedValue(exito(sesiones));
     revoca.mockReset().mockResolvedValue(exito(undefined));
     const vista = await render(SesionesActivas, {
-      providers: [{ provide: SESIONES_ACTIVAS_PORT, useValue: { lista, revoca } }],
+      providers: [
+        ...APLICACION_DE_ACCOUNT,
+        { provide: SESIONES_ACTIVAS_PORT, useValue: { lista, revoca } },
+      ],
     });
     await waitFor(() => expect(lista).toHaveBeenCalled());
     vista.fixture.detectChanges();
@@ -320,17 +373,27 @@ describe('SesionesActivas', () => {
     const t = TestBed.inject(TraduccionService).t;
 
     expect(screen.getByText(t('admin.profile.sessions.current'))).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: new RegExp(t('admin.profile.sessions.revoke')) })).toBeNull();
+    expect(
+      screen.queryByRole('button', { name: new RegExp(t('admin.profile.sessions.revoke')) }),
+    ).toBeNull();
   });
 
   it('las demás se pueden echar y la lista se vuelve a leer', async () => {
     const usuario = userEvent.setup({ delay: null });
     await monta([
-      { id: 's-2', dispositivo: 'Chrome en Windows', creadaEl: AHORA, ultimoUsoEl: AHORA, actual: false },
+      {
+        id: 's-2',
+        dispositivo: 'Chrome en Windows',
+        creadaEl: AHORA,
+        ultimoUsoEl: AHORA,
+        actual: false,
+      },
     ]);
     const t = TestBed.inject(TraduccionService).t;
 
-    await usuario.click(screen.getByRole('button', { name: new RegExp(t('admin.profile.sessions.revoke')) }));
+    await usuario.click(
+      screen.getByRole('button', { name: new RegExp(t('admin.profile.sessions.revoke')) }),
+    );
 
     await waitFor(() => expect(revoca).toHaveBeenCalledWith('s-2'));
     expect(lista).toHaveBeenCalledTimes(2);

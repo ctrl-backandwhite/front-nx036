@@ -5,6 +5,7 @@ import { creaError } from '@shared/error/app-error';
 import { COBRO_DE_AFILIADO_PORT, PANEL_DE_AFILIADO_PORT } from '../../domain/port/afiliado.port';
 import { ConsultaPanelDeAfiliado } from './consulta-panel-de-afiliado.use-case';
 import { GestionaCobro } from './gestiona-cobro.use-case';
+import { APLICACION_DEL_AFILIADO } from '../../affiliate.providers';
 
 describe('casos de uso del afiliado', () => {
   const panel = { consulta: vi.fn(), inscribe: vi.fn(), creaCodigo: vi.fn() };
@@ -14,6 +15,7 @@ describe('casos de uso del afiliado', () => {
     vi.resetAllMocks();
     TestBed.configureTestingModule({
       providers: [
+        ...APLICACION_DEL_AFILIADO,
         { provide: PANEL_DE_AFILIADO_PORT, useValue: panel },
         { provide: COBRO_DE_AFILIADO_PORT, useValue: cobro },
       ],

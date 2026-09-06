@@ -1,4 +1,5 @@
-import { Component, inject, output, resource, signal } from '@angular/core';
+import { Component, computed, inject, linkedSignal, output, resource, signal } from '@angular/core';
+import { FieldTree, FormField, form, validateTree } from '@angular/forms/signals';
 import { Router } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faPlus, faSpinner } from '@fortawesome/free-solid-svg-icons';
@@ -10,8 +11,12 @@ import { CreaProducto } from '../../../application/catalogo/use-case/crea-produc
 import {
   BORRADOR_DE_ALTA_VACIO,
   BorradorDeAlta,
+  ContenidoDeIdioma,
   FalloDeAlta,
+  FilaTecleada,
+  validaAlta,
 } from '../../../domain/catalogo/model/alta-de-producto';
+import { IdiomaDeTienda } from '../../../domain/catalogo/port/catalogo-comun.port';
 import { nombreDeCategoria } from '../../../domain/catalogo/model/categoria-admin';
 import { conRespaldo, textoDelFalloDeAlta } from '../etiquetas';
 import {
@@ -22,7 +27,7 @@ import {
   CAMPOS_DE_PRECIO,
   CAMPOS_DE_PROVEEDOR,
 } from './alta/campos-del-alta';
-import { CambioDeCampo, CamposEscalares } from './alta/campos-escalares';
+import { CamposEscalares } from './alta/campos-escalares';
 import {
   LISTA_DE_ATRIBUTOS,
   LISTA_DE_EJES,
@@ -32,13 +37,16 @@ import {
   LISTA_DE_VARIANTES,
   ListaDelAlta,
 } from './alta/filas-del-alta';
-import { CambioEnFila, ListaEditable } from './alta/lista-editable';
+import { ListaEditable } from './alta/lista-editable';
 import { SeccionIdiomas } from './alta/seccion-idiomas';
 import { SeccionPlegable } from './alta/seccion-plegable';
 import { VentanaModal } from './ventana-modal';
 
 /** Qué lista del borrador corresponde a cada definición. */
 type ClaveDeLista = 'tramos' | 'ejes' | 'variantes' | 'atributos' | 'especificaciones' | 'resenas';
+
+/** Un idioma sin nada escrito: el hueco con el que nace cada pestaña. */
+const CONTENIDO_VACIO: ContenidoDeIdioma = { titulo: '', descripcion: '' };
 
 /**
  * Contador de filas: cada una nace con una clave estable.
@@ -61,6 +69,7 @@ let siguienteFila = 0;
   selector: 'nx-dialogo-alta-de-producto',
   imports: [
     FaIconComponent,
+    FormField,
     VentanaModal,
     SeccionPlegable,
     CamposEscalares,
@@ -81,8 +90,7 @@ let siguienteFila = 0;
             </span>
             <select
               class="select select-bordered select-sm w-full"
-              [value]="borrador().campos['categorySlug']"
-              (change)="cambiaCampo({ clave: 'categorySlug', valor: $any($event.target).value })"
+              [formField]="formulario.campos['categorySlug']"
             >
               <option value="">{{ t('admin.catalog.fields.category_none') }}</option>
               @for (categoria of categorias.value(); track categoria.slug) {
@@ -90,62 +98,38 @@ let siguienteFila = 0;
               }
             </select>
           </label>
-          <nx-campos-escalares
-            [campos]="camposDeOrigen"
-            [valores]="borrador().campos"
-            (cambia)="cambiaCampo($event)"
-          />
+          <nx-campos-escalares [campos]="camposDeOrigen" [valores]="formulario.campos" />
         </nx-seccion-plegable>
 
         <nx-seccion-plegable
           [titulo]="'2 · ' + t('admin.create_product.title_field')"
           [abierta]="true"
         >
-          <nx-seccion-idiomas
-            [idiomas]="idiomas.value()"
-            [contenido]="borrador().contenido"
-            (cambia)="cambiaContenido($event.idioma, $event.contenido)"
-          />
+          <nx-seccion-idiomas [idiomas]="idiomas.value()" [contenido]="formulario.contenido" />
         </nx-seccion-plegable>
 
         <nx-seccion-plegable
           [titulo]="'3 · ' + conRespaldo('admin.create_product.section.pricing', 'Precio, marca y estado')"
           [abierta]="true"
         >
-          <nx-campos-escalares
-            [campos]="camposDePrecio"
-            [valores]="borrador().campos"
-            (cambia)="cambiaCampo($event)"
-          />
+          <nx-campos-escalares [campos]="camposDePrecio" [valores]="formulario.campos" />
         </nx-seccion-plegable>
 
         <nx-seccion-plegable [titulo]="'4 · ' + t('admin.suppliers.title')">
-          <nx-campos-escalares
-            [campos]="camposDeProveedor"
-            [valores]="borrador().campos"
-            (cambia)="cambiaCampo($event)"
-          />
+          <nx-campos-escalares [campos]="camposDeProveedor" [valores]="formulario.campos" />
         </nx-seccion-plegable>
 
         <nx-seccion-plegable
           [titulo]="'5 · ' + t('admin.catalog.detail.images')"
           [abierta]="true"
         >
-          <nx-campos-escalares
-            [campos]="camposDeMedios"
-            [valores]="borrador().campos"
-            (cambia)="cambiaCampo($event)"
-          />
+          <nx-campos-escalares [campos]="camposDeMedios" [valores]="formulario.campos" />
         </nx-seccion-plegable>
 
         <nx-seccion-plegable
           [titulo]="'6 · ' + conRespaldo('admin.create_product.section.logistics', 'Logística y dimensiones')"
         >
-          <nx-campos-escalares
-            [campos]="camposDeLogistica"
-            [valores]="borrador().campos"
-            (cambia)="cambiaCampo($event)"
-          />
+          <nx-campos-escalares [campos]="camposDeLogistica" [valores]="formulario.campos" />
         </nx-seccion-plegable>
 
         @for (lista of listas; track lista.clave) {
@@ -153,7 +137,6 @@ let siguienteFila = 0;
             <nx-lista-editable
               [definicion]="lista.definicion"
               [filas]="filasDe(lista.clave)"
-              (cambia)="cambiaFila(lista.clave, $event)"
               (anade)="anadeFila(lista.clave, lista.definicion)"
               (quita)="quitaFila(lista.clave, $event)"
             />
@@ -163,22 +146,25 @@ let siguienteFila = 0;
         <nx-seccion-plegable
           [titulo]="'13 · ' + conRespaldo('admin.create_product.section.advanced', 'Valoración y datos avanzados')"
         >
-          <nx-campos-escalares
-            [campos]="camposAvanzados"
-            [valores]="borrador().campos"
-            (cambia)="cambiaCampo($event)"
-          />
+          <nx-campos-escalares [campos]="camposAvanzados" [valores]="formulario.campos" />
         </nx-seccion-plegable>
       </div>
 
       <ng-container pie>
+        <!--
+          Con trece secciones plegadas, un botón apagado sin más deja buscando a ciegas: aquí se dice
+          cuál de los tres mínimos falta. Solo aparece cuando de verdad falta algo.
+        -->
+        @if (queFalta(); as fallo) {
+          <span class="text-[11px] text-error mr-auto self-center">{{ t(textoDelFallo(fallo)) }}</span>
+        }
         <button type="button" class="btn btn-ghost btn-sm" (click)="cierra.emit()">
           {{ t('common.cancel') }}
         </button>
         <button
           type="button"
           class="btn btn-primary btn-sm"
-          [disabled]="guardando()"
+          [disabled]="guardando() || formulario().invalid()"
           (click)="crea()"
         >
           <fa-icon [icon]="guardando() ? iconos.girando : iconos.mas" [class.fa-spin]="guardando()" />
@@ -216,7 +202,6 @@ export class DialogoAltaDeProducto {
     { clave: 'resenas', definicion: LISTA_DE_RESENAS },
   ];
 
-  protected readonly borrador = signal<BorradorDeAlta>(BORRADOR_DE_ALTA_VACIO);
   protected readonly guardando = signal(false);
 
   protected readonly idiomas = resource({
@@ -240,39 +225,66 @@ export class DialogoAltaDeProducto {
     defaultValue: [],
   });
 
+  /**
+   * El borrador, con una entrada de contenido por cada idioma del registro.
+   *
+   * <p>Nacía vacío y las entradas se creaban al teclear. Ahora los campos se atan al formulario por su
+   * ruta, así que la entrada tiene que existir ANTES de pintarla: se deriva del registro de idiomas —que
+   * llega por red— conservando lo ya escrito. El español se garantiza siempre porque es la pestaña que
+   * está activa mientras el registro no ha llegado, y al mandar solo viajan los idiomas con título.
+   */
+  protected readonly borrador = linkedSignal<readonly IdiomaDeTienda[], BorradorDeAlta>({
+    source: () => this.idiomas.value(),
+    computation: (idiomas, previo) => {
+      const anterior = previo?.value ?? BORRADOR_DE_ALTA_VACIO;
+      const codigos = [...new Set(['es', ...idiomas.map((idioma) => idioma.codigo)])];
+      return {
+        ...anterior,
+        contenido: Object.fromEntries(
+          codigos.map((codigo) => [codigo, anterior.contenido[codigo] ?? CONTENIDO_VACIO]),
+        ),
+      };
+    },
+  });
+
+  /** Qué le falta al alta para poder mandarse, o nada. La regla entera es del dominio. */
+  protected readonly queFalta = computed(() => validaAlta(this.borrador()));
+
+  /**
+   * Lo mínimo para que un producto exista, como regla del formulario.
+   *
+   * <p>Va sobre el ÁRBOL y no sobre un campo porque ninguna de las tres mira uno solo: la categoría vale
+   * por slug o por la de origen, el título vale en cualquier idioma y el precio puede estar en el campo
+   * o en un tramo. Antes esto se descubría cuando el servidor rechazaba el alta.
+   */
+  protected readonly formulario = form(this.borrador, (ruta) => {
+    validateTree(ruta, () => {
+      const fallo = this.queFalta();
+      return fallo ? { kind: fallo, message: textoDelFalloDeAlta(fallo) } : undefined;
+    });
+  });
+
   protected conRespaldo(clave: string, respaldo: string): string {
     return conRespaldo(this.t, clave, respaldo);
+  }
+
+  protected textoDelFallo(fallo: FalloDeAlta): string {
+    return textoDelFalloDeAlta(fallo);
   }
 
   protected tituloDeLista(indice: number, definicion: ListaDelAlta): string {
     return `${indice + 7} · ${conRespaldo(this.t, definicion.titulo, definicion.respaldo)}`;
   }
 
-  protected filasDe(clave: ClaveDeLista): readonly Readonly<Record<string, string>>[] {
-    return this.borrador()[clave];
-  }
-
-  protected cambiaCampo(cambio: CambioDeCampo): void {
-    this.borrador.update((actual) => ({
-      ...actual,
-      campos: { ...actual.campos, [cambio.clave]: cambio.valor },
-    }));
-  }
-
-  protected cambiaContenido(idioma: string, contenido: { titulo: string; descripcion: string }): void {
-    this.borrador.update((actual) => ({
-      ...actual,
-      contenido: { ...actual.contenido, [idioma]: contenido },
-    }));
-  }
-
-  protected cambiaFila(clave: ClaveDeLista, cambio: CambioEnFila): void {
-    this.borrador.update((actual) => ({
-      ...actual,
-      [clave]: actual[clave].map((fila, indice) =>
-        indice === cambio.indice ? { ...fila, [cambio.clave]: cambio.valor } : fila,
-      ),
-    }));
+  /**
+   * El trozo de formulario de una de las seis listas.
+   *
+   * <p>La conversión es necesaria y está acotada aquí: las seis listas tienen tipos de fila distintos
+   * —`TramoTecleado`, `EjeTecleado`…— pero todas son mapas de texto, y el componente que las pinta
+   * admite uno solo. Se convierte a la forma común en vez de escribir seis plantillas iguales.
+   */
+  protected filasDe(clave: ClaveDeLista): FieldTree<readonly FilaTecleada[]> {
+    return this.formulario[clave] as FieldTree<readonly FilaTecleada[]>;
   }
 
   protected anadeFila(clave: ClaveDeLista, definicion: ListaDelAlta): void {

@@ -1,5 +1,7 @@
+import { TestBed } from '@angular/core/testing';
 import { fireEvent, render, screen } from '@testing-library/angular';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { TraduccionService } from '@core/i18n/traduccion.service';
 import { exito, fallo } from '@shared/result/result';
 import { creaError } from '@shared/error/app-error';
 import { CONTACTO_PORT, ContactoPort } from '../../domain/port/contacto.port';
@@ -94,5 +96,44 @@ describe('ContactoPage', () => {
 
     const nombre = vista.container.querySelector('#contacto-nombre') as HTMLInputElement;
     expect(nombre.readOnly).toBe(false);
+  });
+
+  /**
+   * Lo que aporta Signal Forms aquí: antes, quien se dejaba el correo veía el botón apagado y ninguna
+   * explicación. El mensaje se calla hasta que el campo se ha TOCADO, para no acusar de vacío a quien
+   * todavía no ha llegado a él.
+   */
+  it('un campo obligatorio que se deja vacío lo DICE debajo, en vez de callarse', async () => {
+    const vista = await monta();
+    await vista.fixture.whenStable();
+    // El texto se pide al servicio de traducción y no se escribe a mano: el idioma con el que arranca
+    // la aplicación en las pruebas no tiene por qué ser el mismo siempre.
+    const obligatorio = TestBed.inject(TraduccionService).t('dialog.field.required');
+    expect(screen.queryByText(obligatorio)).toBeNull();
+
+    fireEvent.blur(vista.container.querySelector('#contacto-email') as HTMLInputElement);
+    await vista.fixture.whenStable();
+    vista.fixture.detectChanges();
+
+    expect(screen.getByText(obligatorio)).toBeInTheDocument();
+    expect(screen.getByRole('button')).toBeDisabled();
+  });
+
+  /** Un correo mal escrito ya no viaja al servidor para volver rechazado. */
+  it('con un correo sin forma de correo no se puede enviar', async () => {
+    const vista = await monta();
+    await vista.fixture.whenStable();
+
+    fireEvent.input(vista.container.querySelector('#contacto-email') as HTMLInputElement, {
+      target: { value: 'esto-no-es-un-correo' },
+    });
+    fireEvent.input(vista.container.querySelector('#contacto-mensaje') as HTMLTextAreaElement, {
+      target: { value: 'Hola' },
+    });
+    await vista.fixture.whenStable();
+    vista.fixture.detectChanges();
+
+    expect(screen.getByRole('button')).toBeDisabled();
+    expect(contacto.envia).not.toHaveBeenCalled();
   });
 });

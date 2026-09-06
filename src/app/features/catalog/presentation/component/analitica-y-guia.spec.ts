@@ -113,6 +113,23 @@ describe('EstimacionDeMargen', () => {
     expect(vista.container.querySelector('[role=alert]')).not.toBeNull();
   });
 
+  /**
+   * Antes el número saltaba a uno sin explicación y el atributo `min` solo frenaba las flechas. Ahora
+   * el campo lo dice, y al servidor no se le pide un desglose de cero unidades.
+   */
+  it('una cantidad por debajo de una unidad se señala y no se consulta', async () => {
+    const { vista, estimacionDeMargen } = await monta(30);
+    const campo = vista.container.querySelector<HTMLInputElement>('input[type=number]')!;
+    campo.value = '0';
+    campo.dispatchEvent(new Event('input'));
+    campo.dispatchEvent(new Event('blur'));
+    vista.fixture.detectChanges();
+    await vista.fixture.whenStable();
+    vista.fixture.detectChanges();
+    expect(vista.container.querySelector('[role=alert]')).not.toBeNull();
+    expect(estimacionDeMargen).toHaveBeenLastCalledWith('p1', 'ES', 1);
+  });
+
   it('cambiar el destino vuelve a pedir el cálculo', async () => {
     const { vista, estimacionDeMargen } = await monta(30);
     await userEvent.selectOptions(vista.container.querySelector('select')!, 'DE');

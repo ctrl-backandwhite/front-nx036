@@ -1,5 +1,6 @@
 import { Component, computed, inject, input, linkedSignal, output, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
+import { FormField, form } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faImage, faMagnifyingGlassPlus, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
@@ -34,7 +35,7 @@ const LADO_DE_LA_MINIATURA = 400;
  */
 @Component({
   selector: 'nx-galeria-de-ficha',
-  imports: [FaIconComponent, NgOptimizedImage],
+  imports: [FaIconComponent, FormField, NgOptimizedImage],
   template: `
     <div class="card p-4 lg:col-span-2">
       <h3 class="font-medium mb-2 text-sm">{{ t('admin.catalog.detail.images') }}</h3>
@@ -169,8 +170,7 @@ const LADO_DE_LA_MINIATURA = 400;
           rows="3"
           class="textarea textarea-bordered w-full text-[12px] leading-snug"
           [placeholder]="t('admin.catalog.images.url_ph')"
-          [value]="direcciones()"
-          (input)="direcciones.set($any($event.target).value)"
+          [formField]="formulario.direcciones"
         ></textarea>
         <div class="flex items-center justify-between mt-2 gap-2 flex-wrap">
           <span class="text-[11px] text-ink-400">{{ t('admin.catalog.images.multi_hint') }}</span>
@@ -231,9 +231,12 @@ export class GaleriaDeFicha {
   protected readonly indiceArrastrado = signal<number | null>(null);
   protected readonly soltandoVariante = signal(false);
   private readonly urlArrastrada = signal<string | null>(null);
-  protected readonly direcciones = signal('');
 
-  protected readonly nuevas = computed(() => extraeDirecciones(this.direcciones()));
+  /** Las direcciones que se pegan de golpe, una por línea. Sin reglas: el filtro lo hace el dominio. */
+  private readonly modelo = signal({ direcciones: '' });
+  protected readonly formulario = form(this.modelo);
+
+  protected readonly nuevas = computed(() => extraeDirecciones(this.modelo().direcciones));
 
   /** Las fotos de color que todavía no están en la galería, sin repetidas por identificador `O1CN`. */
   protected readonly fotosDeVariante = computed<readonly FotoDeVariante[]>(() => {
@@ -261,9 +264,9 @@ export class GaleriaDeFicha {
     return new Set<string>();
   }
 
-  protected textoDeMarcadas(): string {
-    return this.tCon('admin.catalog.images.selected', { n: this.marcadas().size });
-  }
+  protected readonly textoDeMarcadas = computed(() =>
+    this.tCon('admin.catalog.images.selected', { n: this.marcadas().size }),
+  );
 
   protected alterna(id: string): void {
     this.marcadas.update((actual) => {
@@ -321,6 +324,6 @@ export class GaleriaDeFicha {
 
   protected anadeNuevas(): void {
     this.anade.emit(this.nuevas());
-    this.direcciones.set('');
+    this.modelo.set({ direcciones: '' });
   }
 }

@@ -1,6 +1,7 @@
-import { Component, inject, output, signal } from '@angular/core';
+import { Component, computed, inject, output, signal } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faXmark } from '@fortawesome/free-solid-svg-icons';
+import { FormField, form, required } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
 import { ResultadoDeImportacion } from '../../../domain/logistica/model/pedido';
@@ -39,7 +40,7 @@ const EJEMPLO = JSON.stringify(
  */
 @Component({
   selector: 'nx-modal-importa-pedidos',
-  imports: [FaIconComponent],
+  imports: [FaIconComponent, FormField],
   template: `
     <div
       class="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -68,13 +69,12 @@ const EJEMPLO = JSON.stringify(
         <textarea
           [attr.aria-label]="t('admin.orders.import.title')"
           class="textarea textarea-bordered textarea-sm w-full flex-1 min-h-0 resize-none overflow-auto font-mono text-[11px]"
-          [value]="texto()"
           [placeholder]="ejemplo"
-          (input)="texto.set($any($event.target).value)"
+          [formField]="formulario.texto"
         ></textarea>
         <button
           type="button"
-          (click)="texto.set(ejemplo)"
+          (click)="cargaElEjemplo()"
           class="btn btn-ghost btn-xs shrink-0 self-start"
         >
           {{ t('admin.orders.import.load_example') }}
@@ -129,9 +129,28 @@ export class ModalImportaPedidos {
   private readonly importador = inject(ImportaPedidos);
   private readonly avisos = inject(AvisosStore);
 
-  protected readonly texto = signal('');
+  protected readonly modelo = signal({ texto: '' });
+
+  /**
+   * El volcado es obligatorio, y así se declara: el campo lo anuncia como tal a quien navega con
+   * lector de pantalla.
+   *
+   * <p>El botón NO se apaga con esto a propósito. Quien decide si un volcado sirve es el lector
+   * —vacío y mal formado son dos rechazos distintos, con su mensaje cada uno—, y apagar el botón
+   * dejaría a quien pega un JSON roto sin saber por qué no pasa nada.
+   */
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    required(ruta.texto);
+  });
+
+  protected readonly texto = computed(() => this.modelo().texto);
   protected readonly importando = signal(false);
   protected readonly parte = signal<ResultadoDeImportacion | null>(null);
+
+  /** El ejemplo se escribe en el campo como si se hubiera pegado: a partir de ahí se edita igual. */
+  protected cargaElEjemplo(): void {
+    this.modelo.set({ texto: EJEMPLO });
+  }
 
   protected async importa(): Promise<void> {
     const leido = this.lector.ejecuta(this.texto());

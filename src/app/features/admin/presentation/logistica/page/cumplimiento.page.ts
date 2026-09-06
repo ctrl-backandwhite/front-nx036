@@ -1,6 +1,7 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { FormField, apply, disabled, form, maxLength } from '@angular/forms/signals';
 import {
   faBoxOpen,
   faCircleCheck,
@@ -22,6 +23,10 @@ import {
   ConsultaCumplimiento,
   GuardaOperadorEconomico,
 } from '../../../application/logistica/use-case/gestiona-cumplimiento.use-case';
+import { TEXTO_CON_CONTENIDO, claveDeError } from '../form/reglas-de-formulario';
+
+/** Los campos de TEXTO del operador. El papel va en su propio selector y «publicado» es una casilla. */
+type CampoDeTexto = Exclude<keyof OperadorEconomico, 'papel' | 'publicado'>;
 
 /**
  * Los campos de texto del formulario, con su clave de traducción y su tope de longitud.
@@ -31,23 +36,22 @@ import {
  * lo herede el orden en que se escribieron.
  */
 interface CampoDelOperador {
-  readonly clave: keyof OperadorEconomico;
+  readonly clave: CampoDeTexto;
   readonly etiqueta: string;
-  readonly maximo: number;
   readonly obligatorio: boolean;
   /** Ocupa las dos columnas: la dirección no cabe en media línea. */
   readonly ancho: boolean;
 }
 
 const CAMPOS: readonly CampoDelOperador[] = [
-  { clave: 'nombre', etiqueta: 'compliance.field.name', maximo: 200, obligatorio: true, ancho: false },
-  { clave: 'direccion', etiqueta: 'compliance.field.address', maximo: 300, obligatorio: true, ancho: true },
-  { clave: 'codigoPostal', etiqueta: 'compliance.field.postal_code', maximo: 20, obligatorio: true, ancho: false },
-  { clave: 'ciudad', etiqueta: 'compliance.field.city', maximo: 120, obligatorio: true, ancho: false },
-  { clave: 'provincia', etiqueta: 'compliance.field.region', maximo: 120, obligatorio: false, ancho: false },
-  { clave: 'pais', etiqueta: 'compliance.field.country', maximo: 2, obligatorio: true, ancho: false },
-  { clave: 'email', etiqueta: 'compliance.field.email', maximo: 200, obligatorio: true, ancho: false },
-  { clave: 'telefono', etiqueta: 'compliance.field.phone', maximo: 40, obligatorio: false, ancho: false },
+  { clave: 'nombre', etiqueta: 'compliance.field.name', obligatorio: true, ancho: false },
+  { clave: 'direccion', etiqueta: 'compliance.field.address', obligatorio: true, ancho: true },
+  { clave: 'codigoPostal', etiqueta: 'compliance.field.postal_code', obligatorio: true, ancho: false },
+  { clave: 'ciudad', etiqueta: 'compliance.field.city', obligatorio: true, ancho: false },
+  { clave: 'provincia', etiqueta: 'compliance.field.region', obligatorio: false, ancho: false },
+  { clave: 'pais', etiqueta: 'compliance.field.country', obligatorio: true, ancho: false },
+  { clave: 'email', etiqueta: 'compliance.field.email', obligatorio: true, ancho: false },
+  { clave: 'telefono', etiqueta: 'compliance.field.phone', obligatorio: false, ancho: false },
 ];
 
 /**
@@ -61,7 +65,7 @@ const CAMPOS: readonly CampoDelOperador[] = [
  */
 @Component({
   selector: 'nx-cumplimiento-page',
-  imports: [FaIconComponent, RouterLink],
+  imports: [FaIconComponent, RouterLink, FormField],
   template: `
     <div class="space-y-6">
       <header>
@@ -149,10 +153,15 @@ const CAMPOS: readonly CampoDelOperador[] = [
                     class="input input-bordered input-sm w-full"
                     [class.uppercase]="campo.clave === 'pais'"
                     [type]="campo.clave === 'email' ? 'email' : 'text'"
-                    [attr.maxlength]="campo.maximo"
-                    [value]="valorDe(campo.clave)"
-                    (input)="cambia(campo.clave, $any($event.target).value)"
+                    [formField]="formulario[campo.clave]"
                   />
+                  @if (
+                    formulario[campo.clave]().touched() &&
+                      errorDe(formulario[campo.clave]().errors());
+                    as clave
+                  ) {
+                    <p class="text-[11px] text-error mt-1" role="alert">{{ t(clave) }}</p>
+                  }
                 </div>
               }
               <div>
@@ -162,8 +171,7 @@ const CAMPOS: readonly CampoDelOperador[] = [
                 <select
                   id="cumpl-papel"
                   class="select select-bordered select-sm w-full"
-                  [value]="operador().papel"
-                  (change)="cambia('papel', $any($event.target).value)"
+                  [formField]="formulario.papel"
                 >
                   @for (papel of papeles(); track papel.codigo) {
                     <option [value]="papel.codigo">{{ papel.etiqueta }}</option>
@@ -186,9 +194,7 @@ const CAMPOS: readonly CampoDelOperador[] = [
               <input
                 type="checkbox"
                 class="toggle toggle-primary toggle-sm"
-                [checked]="operador().publicado"
-                [disabled]="faltan().length > 0"
-                (change)="marcaPublicado($any($event.target).checked)"
+                [formField]="formulario.publicado"
               />
               <span class="label-text text-sm">{{ t('admin.compliance.publish') }}</span>
             </label>
@@ -226,18 +232,47 @@ export class CumplimientoPage {
   private readonly preferencias = inject(PreferenciasService);
   private readonly avisos = inject(AvisosStore);
 
-  protected readonly operador = signal<OperadorEconomico>(operadorEnBlanco());
+  protected readonly errorDe = claveDeError;
+
   protected readonly papeles = signal<readonly PapelDeOperador[]>([]);
   protected readonly estado = signal<EstadoDeCumplimiento | null>(null);
   protected readonly cargando = signal(true);
   protected readonly guardando = signal(false);
 
+  protected readonly operador = signal<OperadorEconomico>(operadorEnBlanco());
+
+  /** Lo que falta para poder publicar, según la regla del art. 16.3 que vive en el dominio. */
   protected readonly faltan = computed(() => camposQueFaltan(this.operador()));
   protected readonly nombresQueFaltan = computed(() =>
     this.faltan()
       .map((clave) => this.t(clave))
       .join(', '),
   );
+
+  /**
+   * El bloque del art. 16.3, declarado.
+   *
+   * <p>Guardar a medias SÍ se permite —se rellena en dos ratos—, pero PUBLICAR no: publicar un bloque
+   * incompleto incumple el art. 19, así que la casilla se bloquea sola mientras falte algo. Los topes
+   * de longitud son los que acepta el backend; escribirlos aquí evita mandar un texto que rebota.
+   */
+  protected readonly formulario = form(this.operador, (ruta) => {
+    apply(ruta.nombre, TEXTO_CON_CONTENIDO);
+    maxLength(ruta.nombre, 200);
+    apply(ruta.direccion, TEXTO_CON_CONTENIDO);
+    maxLength(ruta.direccion, 300);
+    apply(ruta.codigoPostal, TEXTO_CON_CONTENIDO);
+    maxLength(ruta.codigoPostal, 20);
+    apply(ruta.ciudad, TEXTO_CON_CONTENIDO);
+    maxLength(ruta.ciudad, 120);
+    maxLength(ruta.provincia, 120);
+    apply(ruta.pais, TEXTO_CON_CONTENIDO);
+    maxLength(ruta.pais, 2);
+    apply(ruta.email, TEXTO_CON_CONTENIDO);
+    maxLength(ruta.email, 200);
+    maxLength(ruta.telefono, 40);
+    disabled(ruta.publicado, { when: () => this.faltan().length > 0 });
+  });
 
   constructor() {
     // El IDIOMA está en la dependencia: el backend traduce la figura del art. 4.2, así que cambiar de
@@ -258,24 +293,13 @@ export class CumplimientoPage {
       }
       // El formulario arranca con lo GUARDADO, no con lo que se tecleó: al recargar tras guardar se
       // tiene que ver lo que hay en la base de datos.
-      this.operador.set(resultado.valor.operador);
+      // `reset` además limpia el «tocado»: tras recargar, lo guardado no puede aparecer en rojo.
+      this.formulario().reset(resultado.valor.operador);
       this.papeles.set(resultado.valor.papeles);
       this.estado.set(resultado.valor.estado);
     } finally {
       this.cargando.set(false);
     }
-  }
-
-  protected valorDe(clave: keyof OperadorEconomico): string {
-    return String(this.operador()[clave] ?? '');
-  }
-
-  protected cambia(clave: keyof OperadorEconomico, valor: string): void {
-    this.operador.update((actual) => ({ ...actual, [clave]: valor }));
-  }
-
-  protected marcaPublicado(publicado: boolean): void {
-    this.operador.update((actual) => ({ ...actual, publicado }));
   }
 
   protected async guarda(): Promise<void> {

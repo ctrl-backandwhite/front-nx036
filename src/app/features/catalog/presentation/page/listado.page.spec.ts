@@ -12,6 +12,7 @@ import { CESTA_PORT } from '../../domain/port/cesta.port';
 import { FAVORITOS_PORT } from '../../domain/port/favoritos.port';
 import { PaginaDeProductos } from '../../domain/model/producto';
 import { ListadoPage } from './listado.page';
+import { APLICACION_DEL_CATALOGO } from '../../catalog.providers';
 
 function pagina(cuantos: number, totalDePaginas = 1): PaginaDeProductos {
   return {
@@ -36,6 +37,7 @@ async function monta(busca = vi.fn().mockResolvedValue(exito(pagina(2, 2)))) {
   const memoria = new Map<string, string>();
   const vista = await render(ListadoPage, {
     providers: [
+      ...APLICACION_DEL_CATALOGO,
       provideRouter([{ path: '**', children: [] }]),
       { provide: RECUPERADOR_DE_SESION, useValue: { asegura: async () => undefined } },
       {
@@ -52,7 +54,14 @@ async function monta(busca = vi.fn().mockResolvedValue(exito(pagina(2, 2)))) {
         useValue: {
           arbolDeCategorias: async () =>
             exito([
-              { id: 'c1', slug: 'gorros', nombre: 'Gorros', posicion: 0, cuantosProductos: 5, hijas: [] },
+              {
+                id: 'c1',
+                slug: 'gorros',
+                nombre: 'Gorros',
+                posicion: 0,
+                cuantosProductos: 5,
+                hijas: [],
+              },
             ]),
           proveedores: async () => exito([]),
           categoriasRaiz: vi.fn(),
@@ -108,7 +117,9 @@ describe('ListadoPage', () => {
   });
 
   it('un fallo deja la lista vacía en vez de a medias', async () => {
-    const { vista } = await monta(vi.fn().mockResolvedValue(fallo(creaError('error-del-servidor'))));
+    const { vista } = await monta(
+      vi.fn().mockResolvedValue(fallo(creaError('error-del-servidor'))),
+    );
     await vista.fixture.whenStable();
     vista.fixture.detectChanges();
     expect(screen.queryByText('Producto 0')).toBeNull();

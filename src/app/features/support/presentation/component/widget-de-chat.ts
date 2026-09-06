@@ -1,4 +1,5 @@
-import { Component, ElementRef, effect, inject, output, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, computed, effect, inject, output, signal, viewChild } from '@angular/core';
+import { FormField, form, maxLength, validate } from '@angular/forms/signals';
 import { NgOptimizedImage } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
@@ -14,6 +15,9 @@ import { esNavegador } from '@core/platform/plataforma';
 import { ConversacionStore } from '../../application/state/conversacion.store';
 import { PreguntaAlAsistente } from '../../application/use-case/pregunta-al-asistente.use-case';
 
+/** Lo que acepta el motor por pregunta. Estaba escrito en el `maxlength` del HTML. */
+const TOPE_DEL_MENSAJE = 1000;
+
 /**
  * El chat del escaparate.
  *
@@ -28,7 +32,7 @@ import { PreguntaAlAsistente } from '../../application/use-case/pregunta-al-asis
  */
 @Component({
   selector: 'nx-widget-de-chat',
-  imports: [RouterLink, FaIconComponent, NgOptimizedImage],
+  imports: [RouterLink, FaIconComponent, FormField, NgOptimizedImage],
   template: `
     @if (!abierto()) {
       <button type="button" [attr.aria-label]="t('chat.open')" (click)="abre()"
@@ -117,11 +121,11 @@ import { PreguntaAlAsistente } from '../../application/use-case/pregunta-al-asis
 
         <form class="flex items-center gap-2 border-t border-base-300 px-3 py-2" (submit)="envia($event)">
           <label for="chat-campo" class="sr-only">{{ t('chat.placeholder') }}</label>
-          <input id="chat-campo" maxlength="1000" class="input input-sm input-bordered flex-1"
+          <input id="chat-campo" class="input input-sm input-bordered flex-1"
                  [placeholder]="t('chat.placeholder')"
-                 [value]="borrador()" (input)="borrador.set(valorDe($event))" />
+                 [formField]="formulario.borrador" />
           <button type="submit" class="btn btn-sm btn-primary" [attr.aria-label]="t('chat.send')"
-                  [disabled]="conversacion.enviando() || !borrador().trim()">
+                  [disabled]="!sePuedeEnviar()">
             <fa-icon [icon]="iconos.enviar" />
           </button>
         </form>
@@ -148,7 +152,30 @@ export class WidgetDeChat {
   readonly abreFichaRapida = output<string>();
 
   protected readonly abierto = signal(false);
-  protected readonly borrador = signal('');
+
+  /**
+   * Lo que se está escribiendo. Va por Signal Forms como el resto de formularios del proyecto: el tope
+   * de mil caracteres y el «no se manda vacío» eran un atributo del HTML y una comprobación repetida en
+   * el botón; ahora son DOS reglas declaradas juntas, y la del tope devuelve el `maxlength` al campo,
+   * así que el navegador sigue impidiendo teclear de más igual que antes.
+   *
+   * <p>Se envía con Intro porque es un `<form>` con un único campo y su botón de envío: eso lo da el
+   * navegador y no hay que programarlo.
+   */
+  protected readonly modelo = signal({ borrador: '' });
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    maxLength(ruta.borrador, TOPE_DEL_MENSAJE);
+    // Se mira el texto YA RECORTADO: un mensaje de solo espacios está tan vacío como uno sin nada.
+    validate(ruta.borrador, ({ value }) =>
+      value().trim() === '' ? { kind: 'vacio', message: this.t('dialog.field.required') } : null,
+    );
+  });
+
+  /** Un único sitio al que preguntar si la pregunta se puede mandar. */
+  protected readonly sePuedeEnviar = computed(
+    () => !this.conversacion.enviando() && !this.formulario().invalid(),
+  );
+
   protected readonly iconos = {
     chat: faComments,
     cerrar: faXmark,
@@ -169,10 +196,6 @@ export class WidgetDeChat {
     });
   }
 
-  protected valorDe(evento: Event): string {
-    return (evento.target as HTMLInputElement).value;
-  }
-
   protected abre(): void {
     this.abierto.set(true);
     // Lo guardado se lee DESPUÉS del primer pintado, nunca durante: en navegación privada el
@@ -189,8 +212,11 @@ export class WidgetDeChat {
 
   protected async envia(evento: Event): Promise<void> {
     evento.preventDefault();
-    const mensaje = this.borrador();
-    this.borrador.set('');
+    if (!this.sePuedeEnviar()) {
+      return;
+    }
+    const mensaje = this.modelo().borrador;
+    this.modelo.set({ borrador: '' });
     const { busqueda } = await this.pregunta.ejecuta(
       mensaje,
       String(this.preferencias.idioma()),

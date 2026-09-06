@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { FormField, apply, disabled, form, max, maxLength, min, required } from '@angular/forms/signals';
 import {
   faCircleCheck,
   faCircleXmark,
@@ -18,7 +19,6 @@ import {
   ImpuestoDePais,
   datosDeImpuesto,
   impuestoEnBlanco,
-  impuestoGuardable,
 } from '../../../domain/logistica/model/impuesto';
 import {
   AlternaImpuestoDePais,
@@ -27,6 +27,19 @@ import {
   GuardaImpuestoDePais,
 } from '../../../application/logistica/use-case/gestiona-impuestos.use-case';
 import { RegionesFiscales } from '../component/regiones-fiscales';
+import { TASA_MAXIMA, TEXTO_CON_CONTENIDO, claveDeError } from '../form/reglas-de-formulario';
+
+/**
+ * Lo que se teclea. La tasa admite el VACÍO mientras se escribe —un campo numérico en blanco vale
+ * `null`, no cero— y el formulario lo rechaza: un país «al 0 %» y un país «sin tasa puesta» no son lo
+ * mismo, y guardar el segundo como si fuera el primero deja de cobrar el IVA sin que nadie lo pida.
+ */
+interface BorradorDeImpuesto {
+  pais: string;
+  etiqueta: string;
+  porcentaje: number | null;
+  activo: boolean;
+}
 
 /**
  * Los impuestos indirectos por destino.
@@ -40,7 +53,7 @@ import { RegionesFiscales } from '../component/regiones-fiscales';
  */
 @Component({
   selector: 'nx-impuestos-page',
-  imports: [FaIconComponent, RegionesFiscales],
+  imports: [FaIconComponent, RegionesFiscales, FormField],
   template: `
     <div class="max-w-4xl mx-auto space-y-5">
       <header>
@@ -64,9 +77,7 @@ import { RegionesFiscales } from '../component/regiones-fiscales';
             <select
               id="impuesto-pais"
               class="select select-bordered select-sm w-full"
-              [disabled]="editando()"
-              [value]="borrador().pais"
-              (change)="cambia('pais', $any($event.target).value)"
+              [formField]="formulario.pais"
             >
               <option value="">{{ t('admin.taxes.country') }}…</option>
               @for (region of regiones; track region.countryCode) {
@@ -75,6 +86,9 @@ import { RegionesFiscales } from '../component/regiones-fiscales';
                 </option>
               }
             </select>
+            @if (formulario.pais().touched() && errorDe(formulario.pais().errors()); as clave) {
+              <p class="text-[11px] text-error mt-1" role="alert">{{ t(clave) }}</p>
+            }
           </div>
           <div>
             <label for="impuesto-etiqueta" class="text-xs text-ink-500 block mb-1">
@@ -84,8 +98,7 @@ import { RegionesFiscales } from '../component/regiones-fiscales';
               id="impuesto-etiqueta"
               class="input input-bordered input-sm w-full"
               placeholder="IVA"
-              [value]="borrador().etiqueta"
-              (input)="cambia('etiqueta', $any($event.target).value)"
+              [formField]="formulario.etiqueta"
             />
           </div>
           <div>
@@ -96,27 +109,27 @@ import { RegionesFiscales } from '../component/regiones-fiscales';
               id="impuesto-tasa"
               type="number"
               step="0.01"
-              min="0"
               class="input input-bordered input-sm w-full"
               placeholder="21"
-              [value]="borrador().porcentaje"
-              (input)="cambiaPorcentaje($any($event.target).valueAsNumber)"
+              [formField]="formulario.porcentaje"
             />
+            @if (errorDe(formulario.porcentaje().errors()); as clave) {
+              <p class="text-[11px] text-error mt-1" role="alert">{{ t(clave) }}</p>
+            }
           </div>
           <div class="flex items-center gap-2">
             <label class="flex items-center gap-2 text-xs text-ink-500 flex-1">
               <input
                 type="checkbox"
                 class="toggle toggle-sm toggle-success"
-                [checked]="borrador().activo"
-                (change)="marcaActivo($any($event.target).checked)"
+                [formField]="formulario.activo"
               />
               {{ t('admin.taxes.active') }}
             </label>
             <button
               type="button"
               (click)="guarda()"
-              [disabled]="!completo() || guardando()"
+              [disabled]="formulario().invalid() || guardando()"
               class="btn btn-primary btn-sm"
             >
               <fa-icon [icon]="iconos.mas" /> {{ t('common.save') }}
@@ -142,11 +155,11 @@ import { RegionesFiscales } from '../component/regiones-fiscales';
             </tr>
           </thead>
           <tbody>
-            @for (fila of impuestos(); track fila.pais) {
+            @for (fila of filas(); track fila.pais) {
               <tr [class.bg-primary]="paisAbierto() === fila.pais">
                 <td class="font-medium">
-                  {{ bandera(fila.pais) }} <span class="font-mono">{{ fila.pais }}</span>
-                  <span class="text-ink-500 font-normal">{{ nombreDePais(fila.pais) }}</span>
+                  {{ fila.bandera }} <span class="font-mono">{{ fila.pais }}</span>
+                  <span class="text-ink-500 font-normal">{{ fila.nombreDelPais }}</span>
                 </td>
                 <td class="text-ink-600">{{ fila.etiqueta || '—' }}</td>
                 <td class="text-right tabular-nums">{{ fila.porcentaje }}%</td>
@@ -235,13 +248,48 @@ export class ImpuestosPage {
   private readonly dialogo = inject(DialogoStore);
   private readonly avisos = inject(AvisosStore);
 
+  protected readonly errorDe = claveDeError;
+
   protected readonly impuestos = signal<readonly ImpuestoDePais[]>([]);
-  protected readonly borrador = signal<DatosDeImpuesto>(impuestoEnBlanco());
   protected readonly editando = signal(false);
   protected readonly guardando = signal(false);
   protected readonly paisAbierto = signal<string | null>(null);
 
-  protected readonly completo = computed(() => impuestoGuardable(this.borrador()));
+  /**
+   * Las filas con su bandera y su nombre ya resueltos.
+   *
+   * <p>Antes la plantilla recorría la lista de países DOS veces por fila y en cada repintado, solo
+   * para pintar un emoji y un rótulo que no cambian mientras no cambien los impuestos.
+   */
+  protected readonly filas = computed(() =>
+    this.impuestos().map((fila) => ({
+      ...fila,
+      bandera: this.bandera(fila.pais),
+      nombreDelPais: this.nombreDePais(fila.pais),
+    })),
+  );
+
+  protected readonly modelo = signal<BorradorDeImpuesto>(impuestoEnBlanco());
+
+  /**
+   * Aquí se decide lo que el backend COBRA en el checkout de ese país. Las reglas van declaradas: sin
+   * país no hay clave que guardar, y una tasa negativa o por encima del 100 % no es una configuración
+   * exótica, es un error de tecleo que se descubriría en la liquidación.
+   */
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    apply(ruta.pais, TEXTO_CON_CONTENIDO);
+    disabled(ruta.pais, { when: () => this.editando() });
+    maxLength(ruta.etiqueta, 40);
+    required(ruta.porcentaje);
+    min(ruta.porcentaje, 0);
+    max(ruta.porcentaje, TASA_MAXIMA);
+  });
+
+  /** Lo tecleado en la forma que espera el dominio: la tasa en blanco no llega nunca aquí. */
+  private loEditado(): DatosDeImpuesto {
+    const borrador = this.modelo();
+    return { ...borrador, porcentaje: borrador.porcentaje ?? 0 };
+  }
 
   constructor() {
     void this.recarga();
@@ -268,35 +316,22 @@ export class ImpuestosPage {
     return REGIONS.find((r) => r.countryCode === codigo)?.flag ?? '';
   }
 
-  protected cambia(clave: 'pais' | 'etiqueta', valor: string): void {
-    this.borrador.update((actual) => ({ ...actual, [clave]: valor }));
-  }
-
-  protected cambiaPorcentaje(valor: number): void {
-    this.borrador.update((actual) => ({
-      ...actual,
-      porcentaje: Number.isFinite(valor) ? valor : 0,
-    }));
-  }
-
-  protected marcaActivo(activo: boolean): void {
-    this.borrador.update((actual) => ({ ...actual, activo }));
-  }
-
   protected edita(fila: ImpuestoDePais): void {
-    this.borrador.set(datosDeImpuesto(fila));
+    // `reset` además LIMPIA el «tocado»: sin eso, la fila que se acaba de abrir para editar aparecería
+    // ya con los avisos en rojo de lo que se estuvo tecleando antes.
+    this.formulario().reset(datosDeImpuesto(fila));
     this.editando.set(true);
   }
 
   protected cancela(): void {
-    this.borrador.set(impuestoEnBlanco());
+    this.formulario().reset(impuestoEnBlanco());
     this.editando.set(false);
   }
 
   protected async guarda(): Promise<void> {
     this.guardando.set(true);
     try {
-      const resultado = await this.guardador.ejecuta(this.borrador());
+      const resultado = await this.guardador.ejecuta(this.loEditado());
       if (!resultado.ok) {
         this.avisos.error(this.mensajeDeFallo(resultado.error));
         return;

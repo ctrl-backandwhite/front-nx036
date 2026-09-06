@@ -53,8 +53,13 @@ export const BORRADOR_DE_CATEGORIA_VACIO: BorradorDeCategoria = {
 /** Los motivos por los que un borrador no vale. Quien pinta decide con qué texto se dicen. */
 export type FalloDeCategoria = 'slug_obligatorio' | 'slug_formato' | 'nombre_obligatorio';
 
-/** Un slug de categoría: minúsculas, dígitos y guiones interiores. Es parte de la dirección pública. */
-const SLUG_VALIDO = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
+/**
+ * Un slug de categoría: minúsculas, dígitos y guiones interiores. Es parte de la dirección pública.
+ *
+ * <p>Se exporta para que el formulario pueda declararlo como su regla de formato en vez de reescribir
+ * la expresión: la regla es una y vive aquí.
+ */
+export const SLUG_DE_CATEGORIA = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
 
 /**
  * Valida el borrador y devuelve el motivo por campo.
@@ -68,7 +73,7 @@ export function validaCategoria(
   const fallos: Record<string, FalloDeCategoria> = {};
   if (!borrador.slug) {
     fallos['slug'] = 'slug_obligatorio';
-  } else if (!SLUG_VALIDO.test(borrador.slug)) {
+  } else if (!SLUG_DE_CATEGORIA.test(borrador.slug)) {
     fallos['slug'] = 'slug_formato';
   }
   if (!borrador.nombreEs) {

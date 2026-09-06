@@ -9,6 +9,7 @@ import { USUARIO_ACTUAL_PORT } from '@features/auth/domain/port/autenticacion.po
 import { creaError } from '@shared/error/app-error';
 import { exito, fallo } from '@shared/result/result';
 import { exigeSesion } from './sesion-de-cuenta.guard';
+import { APLICACION_DE_ACCOUNT } from '../../account.providers';
 
 @Component({ selector: 'nx-privada', template: '<p>Zona privada</p>' })
 class Privada {}
@@ -28,6 +29,7 @@ const TITULAR = {
 async function navega(a: string, consulta: ReturnType<typeof vi.fn>, conTestigo: boolean) {
   const vista = await render(Privada, {
     providers: [
+      ...APLICACION_DE_ACCOUNT,
       provideRouter([
         { path: 'login', component: Acceso },
         { path: 'profile', component: Privada, canActivate: [exigeSesion] },

@@ -11,6 +11,7 @@ import { AYUDA_DE_DIRECCION_PORT, DIRECCIONES_PORT } from '../../domain/port/dir
 import { TarjetaDeDireccion } from './tarjeta-de-direccion';
 import { CamposDeDireccion } from './campos-de-direccion';
 import { FormularioDeDireccion } from './formulario-de-direccion';
+import { APLICACION_DE_ACCOUNT } from '../../account.providers';
 
 const CASA: Direccion = {
   id: 'dir-1',
@@ -31,7 +32,9 @@ const CASA: Direccion = {
 function ayudaDoble(provincias: unknown[] = [], formato: unknown = null) {
   return {
     provincias: vi.fn().mockResolvedValue(exito(provincias)),
-    formatoPostal: vi.fn().mockResolvedValue(formato ? exito(formato) : fallo(creaError('no-encontrado'))),
+    formatoPostal: vi
+      .fn()
+      .mockResolvedValue(formato ? exito(formato) : fallo(creaError('no-encontrado'))),
   };
 }
 
@@ -116,7 +119,7 @@ describe('CamposDeDireccion', () => {
     const ayuda = ayudaDoble();
     await render(CamposDeDireccion, {
       inputs: { datos: VACIA },
-      providers: [{ provide: AYUDA_DE_DIRECCION_PORT, useValue: ayuda }],
+      providers: [...APLICACION_DE_ACCOUNT, { provide: AYUDA_DE_DIRECCION_PORT, useValue: ayuda }],
     });
 
     expect(ayuda.provincias).not.toHaveBeenCalled();
@@ -130,7 +133,7 @@ describe('CamposDeDireccion', () => {
     });
     await render(CamposDeDireccion, {
       inputs: { datos: { ...VACIA, pais: 'US' } },
-      providers: [{ provide: AYUDA_DE_DIRECCION_PORT, useValue: ayuda }],
+      providers: [...APLICACION_DE_ACCOUNT, { provide: AYUDA_DE_DIRECCION_PORT, useValue: ayuda }],
     });
 
     await waitFor(() => expect(ayuda.provincias).toHaveBeenCalledWith('US'));
@@ -142,7 +145,7 @@ describe('CamposDeDireccion', () => {
     const ayuda = ayudaDoble([], { requerido: true, patron: '\\d{5}', ejemplo: '28001' });
     const vista = await render(CamposDeDireccion, {
       inputs: { datos: { ...VACIA, pais: 'ES' } },
-      providers: [{ provide: AYUDA_DE_DIRECCION_PORT, useValue: ayuda }],
+      providers: [...APLICACION_DE_ACCOUNT, { provide: AYUDA_DE_DIRECCION_PORT, useValue: ayuda }],
     });
     const t = TestBed.inject(TraduccionService).t;
 
@@ -151,7 +154,32 @@ describe('CamposDeDireccion', () => {
 
     vista.fixture.componentRef.setInput('datos', { ...VACIA, pais: 'ES', codigoPostal: '28' });
     vista.fixture.detectChanges();
-    expect(screen.getByRole('alert').textContent).toContain(t('address.postal_invalid').replace('{example}', '28001'));
+    expect(screen.getByRole('alert').textContent).toContain(
+      t('address.postal_invalid').replace('{example}', '28001'),
+    );
+  });
+
+  /**
+   * Antes el formulario no decía nada: quien se dejaba la ciudad veía el botón de guardar apagado sin
+   * saber por qué. Ahora lo dice el campo, y solo cuando ya se ha pasado por él.
+   */
+  it('dice qué campo obligatorio falta en cuanto se sale de él', async () => {
+    const usuario = userEvent.setup({ delay: null });
+    await render(CamposDeDireccion, {
+      inputs: { datos: VACIA },
+      providers: [
+        ...APLICACION_DE_ACCOUNT,
+        { provide: AYUDA_DE_DIRECCION_PORT, useValue: ayudaDoble() },
+      ],
+    });
+    const t = TestBed.inject(TraduccionService).t;
+
+    expect(screen.queryByRole('alert')).toBeNull();
+
+    await usuario.click(screen.getByRole('textbox', { name: t('checkout.city') }));
+    await usuario.tab();
+
+    expect(screen.getByRole('alert')).toHaveTextContent(t('dialog.field.required'));
   });
 
   /** Arrastrar el texto libre del país anterior como si fuera código dejaría el impuesto mal calculado. */
@@ -160,13 +188,19 @@ describe('CamposDeDireccion', () => {
     const cambios: DatosDeDireccion[] = [];
     const vista = await render(CamposDeDireccion, {
       inputs: { datos: { ...VACIA, pais: 'ES', provincia: 'Madrid' } },
-      providers: [{ provide: AYUDA_DE_DIRECCION_PORT, useValue: ayudaDoble() }],
+      providers: [
+        ...APLICACION_DE_ACCOUNT,
+        { provide: AYUDA_DE_DIRECCION_PORT, useValue: ayudaDoble() },
+      ],
     });
     // «datos» es un modelo: se escucha por su propia referencia, no por una salida con otro nombre.
     vista.fixture.componentRef.instance.datos.subscribe((d) => cambios.push(d));
     const t = TestBed.inject(TraduccionService).t;
 
-    await usuario.selectOptions(screen.getByRole('combobox', { name: t('checkout.country_iso') }), 'FR');
+    await usuario.selectOptions(
+      screen.getByRole('combobox', { name: t('checkout.country_iso') }),
+      'FR',
+    );
 
     expect(cambios.at(-1)).toMatchObject({ pais: 'FR', provincia: '' });
   });
@@ -181,6 +215,7 @@ describe('FormularioDeDireccion', () => {
     return render(FormularioDeDireccion, {
       inputs: { direccion },
       providers: [
+        ...APLICACION_DE_ACCOUNT,
         provideRouter([]),
         { provide: DIRECCIONES_PORT, useValue: { lista, crea, actualiza, elimina: vi.fn() } },
         { provide: AYUDA_DE_DIRECCION_PORT, useValue: ayudaDoble() },
@@ -205,7 +240,10 @@ describe('FormularioDeDireccion', () => {
     await usuario.type(screen.getByRole('textbox', { name: t('checkout.full_name') }), 'Ana');
     await usuario.type(screen.getByRole('textbox', { name: t('checkout.line1') }), 'Calle');
     await usuario.type(screen.getByRole('textbox', { name: t('checkout.city') }), 'Madrid');
-    await usuario.selectOptions(screen.getByRole('combobox', { name: t('checkout.country_iso') }), 'ES');
+    await usuario.selectOptions(
+      screen.getByRole('combobox', { name: t('checkout.country_iso') }),
+      'ES',
+    );
 
     expect(guardar).toBeEnabled();
   });
@@ -219,7 +257,12 @@ describe('FormularioDeDireccion', () => {
 
     await usuario.click(screen.getByRole('button', { name: t('profile.update') }));
 
-    await waitFor(() => expect(actualiza).toHaveBeenCalledWith('dir-1', expect.objectContaining({ etiqueta: 'Casa' })));
+    await waitFor(() =>
+      expect(actualiza).toHaveBeenCalledWith(
+        'dir-1',
+        expect.objectContaining({ etiqueta: 'Casa' }),
+      ),
+    );
     expect(crea).not.toHaveBeenCalled();
   });
 
@@ -237,7 +280,9 @@ describe('FormularioDeDireccion', () => {
 
     await usuario.click(screen.getByRole('button', { name: t('profile.update') }));
 
-    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Código postal no válido'));
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent('Código postal no válido'),
+    );
     expect(cerrado).toEqual([]);
   });
 });

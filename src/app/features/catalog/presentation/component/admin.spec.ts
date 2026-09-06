@@ -12,6 +12,7 @@ import { AccionesDeAdmin } from '../acciones-de-admin';
 import { PanelDeOrigen } from './admin/panel-de-origen';
 import { DesgloseEditable } from './admin/desglose-editable';
 import { FotosDeVariante } from './admin/fotos-de-variante';
+import { APLICACION_DEL_CATALOGO } from '../../catalog.providers';
 
 function ficha(cambios: Partial<FichaDeProducto> = {}): FichaDeProducto {
   return {
@@ -44,7 +45,7 @@ describe('PanelDeOrigen', () => {
     const vista = await render(PanelDeOrigen, {
       inputs: { ficha: entrada },
       on: { cambiada, borrada },
-      providers: [{ provide: EDICION_DE_FICHA_PORT, useValue: puerto }],
+      providers: [...APLICACION_DEL_CATALOGO, { provide: EDICION_DE_FICHA_PORT, useValue: puerto }],
     });
     return { vista, cambiada, borrada };
   }
@@ -140,7 +141,10 @@ describe('DesgloseEditable', () => {
         },
       },
       on: { cambiado },
-      providers: [{ provide: EDICION_DE_FICHA_PORT, useValue: { guardaImporteEnYuanes: guarda } }],
+      providers: [
+        ...APLICACION_DEL_CATALOGO,
+        { provide: EDICION_DE_FICHA_PORT, useValue: { guardaImporteEnYuanes: guarda } },
+      ],
     });
     return { vista, guarda, cambiado };
   }
@@ -189,8 +193,20 @@ describe('FotosDeVariante', () => {
         nombre: 'Color',
         posicion: 0,
         valores: [
-          { id: 'v1', valorZh: '黑色', valor: 'Negro', imagen: 'https://cdn/O1CN01aaa.cib.jpg', posicion: 0 },
-          { id: 'v2', valorZh: '红色', valor: 'Rojo', imagen: 'https://cdn/O1CN01bbb.jpg', posicion: 1 },
+          {
+            id: 'v1',
+            valorZh: '黑色',
+            valor: 'Negro',
+            imagen: 'https://cdn/O1CN01aaa.cib.jpg',
+            posicion: 0,
+          },
+          {
+            id: 'v2',
+            valorZh: '红色',
+            valor: 'Rojo',
+            imagen: 'https://cdn/O1CN01bbb.jpg',
+            posicion: 1,
+          },
         ],
       },
     ],
@@ -215,7 +231,11 @@ describe('AccionesDeAdmin', () => {
   it('sin confirmar no se borra nada', async () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
-      providers: [AccionesDeAdmin, { provide: EDICION_DE_FICHA_PORT, useValue: {} }],
+      providers: [
+        ...APLICACION_DEL_CATALOGO,
+        AccionesDeAdmin,
+        { provide: EDICION_DE_FICHA_PORT, useValue: {} },
+      ],
     });
     const acciones = TestBed.inject(AccionesDeAdmin);
     const alTerminar = vi.fn();
@@ -230,7 +250,11 @@ describe('AccionesDeAdmin', () => {
     const borraImagen = vi.fn().mockResolvedValue(exito(undefined));
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
-      providers: [AccionesDeAdmin, { provide: EDICION_DE_FICHA_PORT, useValue: { borraImagen } }],
+      providers: [
+        ...APLICACION_DEL_CATALOGO,
+        AccionesDeAdmin,
+        { provide: EDICION_DE_FICHA_PORT, useValue: { borraImagen } },
+      ],
     });
     const acciones = TestBed.inject(AccionesDeAdmin);
     const alTerminar = vi.fn();
@@ -247,6 +271,7 @@ describe('AccionesDeAdmin', () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
+        ...APLICACION_DEL_CATALOGO,
         AccionesDeAdmin,
         { provide: EDICION_DE_FICHA_PORT, useValue: { reordenaImagenes } },
       ],
@@ -261,7 +286,11 @@ describe('AccionesDeAdmin', () => {
     const anadeImagen = vi.fn().mockResolvedValue(fallo(creaError('conflicto', 'ya está')));
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
-      providers: [AccionesDeAdmin, { provide: EDICION_DE_FICHA_PORT, useValue: { anadeImagen } }],
+      providers: [
+        ...APLICACION_DEL_CATALOGO,
+        AccionesDeAdmin,
+        { provide: EDICION_DE_FICHA_PORT, useValue: { anadeImagen } },
+      ],
     });
     const alTerminar = vi.fn();
     await TestBed.inject(AccionesDeAdmin).copiaFotoDeVariante('p1', 'foto.jpg', alTerminar);
@@ -275,6 +304,7 @@ describe('AccionesDeAdmin', () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
+        ...APLICACION_DEL_CATALOGO,
         AccionesDeAdmin,
         { provide: EDICION_DE_FICHA_PORT, useValue: { borraVideo, borraValorDeVariante } },
       ],

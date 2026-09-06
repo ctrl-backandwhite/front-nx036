@@ -64,10 +64,11 @@ export interface PeticionSobrePedido {
             </tr>
           </thead>
           <tbody>
-            @for (pedido of pedidos(); track pedido.id) {
+            @for (fila of filas(); track fila.pedido.id) {
+              @let pedido = fila.pedido;
               <tr
                 class="border-t border-ink-100 hover:bg-ink-50/50"
-                [class.bg-brand-50]="destacado(pedido) || seleccion().tiene(pedido.id)"
+                [class.bg-brand-50]="fila.destacado || seleccion().tiene(pedido.id)"
               >
                 <td class="px-3 py-2 w-8">
                   <input
@@ -104,7 +105,7 @@ export interface PeticionSobrePedido {
                     >
                       <fa-icon [icon]="iconos.ver" />
                     </a>
-                    @for (accion of acciones(pedido); track accion) {
+                    @for (accion of fila.acciones; track accion) {
                       <button
                         type="button"
                         (click)="pide.emit({ pedido, accion })"
@@ -152,17 +153,23 @@ export class TablaDePedidos {
   };
 
   protected readonly identificadores = computed(() => this.pedidos().map((p) => p.id));
+
+  /**
+   * Las filas con lo que se deduce de cada pedido ya resuelto.
+   *
+   * <p>Se resalta tanto por identificador como por número: quien enlaza aquí usa uno u otro. Antes
+   * las dos cosas se preguntaban desde la plantilla, fila a fila y en cada repintado.
+   */
+  protected readonly filas = computed(() => {
+    const buscado = this.resaltado();
+    return this.pedidos().map((pedido) => ({
+      pedido,
+      acciones: accionesPermitidas(pedido.estado),
+      destacado: !!buscado && (buscado === pedido.id || buscado === pedido.numero),
+    }));
+  });
   protected readonly todosMarcados = computed(() =>
     this.seleccion().todosMarcados(this.identificadores()),
   );
 
-  protected acciones(pedido: Pedido): readonly AccionSobrePedido[] {
-    return accionesPermitidas(pedido.estado);
-  }
-
-  /** Se resalta tanto por identificador como por número: quien enlaza aquí usa uno u otro. */
-  protected destacado(pedido: Pedido): boolean {
-    const buscado = this.resaltado();
-    return !!buscado && (buscado === pedido.id || buscado === pedido.numero);
-  }
 }

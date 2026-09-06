@@ -1,4 +1,4 @@
-import { Component, inject, input, output } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { CatalogoAdminStore } from '../../../../application/catalogo/state/catalogo-admin.store';
 import {
@@ -85,8 +85,13 @@ export class ResumenDeFicha {
   private readonly almacen = inject(CatalogoAdminStore);
   protected readonly String = String;
 
+  protected readonly coste = computed(() => {
+    const ficha = this.ficha();
+    return ficha.coste != null ? this.almacen.formatea(Number(ficha.coste), ficha.divisa) : '—';
+  });
+
   /** El precio de VENTA, ya calculado por el backend. Si no viene, se cae al coste como referencia. */
-  protected precioDeVenta(): string {
+  protected readonly precioDeVenta = computed(() => {
     const ficha = this.ficha();
     if (ficha.precioDeVenta != null) {
       return this.almacen.formatea(
@@ -95,26 +100,19 @@ export class ResumenDeFicha {
       );
     }
     return this.coste();
-  }
+  });
 
-  protected coste(): string {
-    const ficha = this.ficha();
-    return ficha.coste != null ? this.almacen.formatea(Number(ficha.coste), ficha.divisa) : '—';
-  }
-
-  protected tendencia(): string {
-    return tendenciaSobreCien(this.ficha().tendencia);
-  }
+  protected readonly tendencia = computed(() => tendenciaSobreCien(this.ficha().tendencia));
 
   /**
    * El fabricante lo exige el artículo 19 del Reglamento (UE) 2023/988 y 1688 no lo entrega, así que
    * hay que completarlo a mano. Sin él, la oferta en línea no cumple.
    */
-  protected avisoDeFabricante(): string {
-    return conRespaldo(
+  protected readonly avisoDeFabricante = computed(() =>
+    conRespaldo(
       this.t,
       'admin.catalog.detail.manufacturer_missing',
       'Faltan datos del fabricante exigidos por el Reglamento (UE) 2023/988.',
-    );
-  }
+    ),
+  );
 }

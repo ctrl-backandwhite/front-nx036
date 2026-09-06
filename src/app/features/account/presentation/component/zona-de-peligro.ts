@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { FieldTree, FormField, form, maxLength, validate } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faDownload, faTrashCan, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
@@ -20,10 +21,14 @@ import {
  * <p>Y una precisión que importa: cerrar la cuenta NO borra nada. El servidor anonimiza los datos
  * personales y apunta la fecha; pedidos, facturas y apuntes contables siguen ahí porque hay que
  * conservarlos por ley. Lo que desaparece es la persona, no el rastro.
+ *
+ * <p>El código de confirmación lo lleva Signal Forms. El largo máximo se declara en el ESQUEMA y no como
+ * atributo del campo: la directiva lo proyecta ella misma al elemento, así la pantalla y la regla no
+ * pueden acabar diciendo cosas distintas.
  */
 @Component({
   selector: 'nx-zona-de-peligro',
-  imports: [FaIconComponent],
+  imports: [FaIconComponent, FormField],
   template: `
     <section class="card p-5 mb-4">
       <h3 class="flex items-center gap-2">
@@ -51,11 +56,14 @@ import {
           <label for="perfil-borrado-codigo" class="text-xs text-ink-500 block">
             {{ t('profile.delete.code_label') }}
           </label>
-          <input id="perfil-borrado-codigo" inputmode="numeric" maxlength="6" placeholder="••••••"
+          <input id="perfil-borrado-codigo" inputmode="numeric" placeholder="••••••"
                  class="input input-bordered w-full tracking-[0.4em] text-center"
-                 [value]="codigo()" (input)="codigo.set(valorDe($event))" />
+                 [formField]="formulario" />
+          @if (falloDe(formulario); as fallo) {
+            <span role="alert" class="text-xs text-red-700 block">{{ fallo }}</span>
+          }
           <div class="flex flex-wrap items-center gap-2">
-            <button type="button" class="btn btn-error btn-sm" [disabled]="ocupado() || !codigoSuficiente()"
+            <button type="button" class="btn btn-error btn-sm" [disabled]="ocupado() || formulario().invalid()"
                     (click)="confirma()">
               <fa-icon [icon]="iconos.borrar" />
               {{ ocupado() ? t('common.saving') : t('profile.delete.confirm_btn') }}
@@ -94,14 +102,40 @@ export class ZonaDePeligro {
   protected readonly descargando = signal(false);
   protected readonly ocupado = signal(false);
   protected readonly codigoPedido = signal(false);
-  protected readonly codigo = signal('');
+  protected readonly escrito = signal('');
   protected readonly aviso = signal<string | null>(null);
   protected readonly correcto = signal(false);
 
-  protected readonly codigoSuficiente = computed(() => codigoDeBajaSuficiente(this.codigo()));
+  /**
+   * El código que llega por correo.
+   *
+   * <p>Se declara en dos tramos porque dicen cosas distintas: vacío es «te lo has dejado» y tiene texto
+   * que enseñar; corto es «sigue escribiendo» y no hay clave con la que decirlo sin inventarla, así que
+   * se deja sin mensaje y basta con que el botón siga apagado. Quien decide cuántos caracteres bastan es
+   * el dominio: el original aceptaba a partir de cuatro y estrecharlo aquí bloquearía a quien recibió un
+   * código más corto.
+   */
+  protected readonly formulario = form(this.escrito, (ruta) => {
+    maxLength(ruta, 6);
+    validate(ruta, ({ value }) => {
+      if (value().trim() === '') {
+        return { kind: 'required', message: this.t('dialog.field.required') };
+      }
+      return codigoDeBajaSuficiente(value()) ? undefined : { kind: 'minLength' };
+    });
+  });
 
-  protected valorDe(evento: Event): string {
-    return (evento.target as HTMLInputElement).value;
+  /** El código tal como va a viajar. Derivado, no recalculado en cada sitio que lo usa. */
+  protected readonly codigo = computed(() => this.escrito());
+
+  /**
+   * El mensaje que toca enseñar bajo el campo, o nulo si no hay nada que decir todavía. Se calla hasta
+   * que el campo se ha TOCADO: pintar de rojo un campo recién abierto acusa a quien todavía no ha
+   * escrito nada.
+   */
+  protected falloDe<T>(campo: FieldTree<T>): string | null {
+    const estado = campo();
+    return estado.touched() ? (estado.errors()[0]?.message ?? null) : null;
   }
 
   protected async descarga(): Promise<void> {
@@ -151,7 +185,9 @@ export class ZonaDePeligro {
 
   protected cancela(): void {
     this.codigoPedido.set(false);
-    this.codigo.set('');
+    this.escrito.set('');
+    // Se deja también sin tocar: si no, al volver a pedir el código el campo aparecería ya en rojo.
+    this.formulario().reset();
     this.aviso.set(null);
   }
 

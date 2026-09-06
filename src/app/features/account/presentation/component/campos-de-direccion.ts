@@ -1,4 +1,12 @@
 import { Component, computed, effect, inject, input, model, signal } from '@angular/core';
+import {
+  FieldTree,
+  FormField,
+  form,
+  maxLength,
+  required,
+  validate,
+} from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { SelectorPais } from '@ds/component/pais/selector-pais';
 import { SelectorProvincia } from '@ds/component/provincia/selector-provincia';
@@ -10,6 +18,11 @@ import {
 } from '../../domain/model/direccion';
 import { AYUDA_DE_DIRECCION_PORT, Provincia } from '../../domain/port/direcciones.port';
 
+/** Los largos que acepta el backend. Sin ellos, el rechazo llega después de pulsar «guardar». */
+const LARGO_DEL_NOMBRE = 120;
+const LARGO_DE_LA_LINEA = 200;
+const LARGO_DE_LA_CIUDAD = 120;
+
 /**
  * El formulario de una dirección, sin el botón de guardar.
  *
@@ -20,22 +33,36 @@ import { AYUDA_DE_DIRECCION_PORT, Provincia } from '../../domain/port/direccione
  * rellenarse: no orquesta nada ni cambia el estado de nadie. En cuanto tuviera que decidir algo, ese
  * algo sería un caso de uso.
  *
+ * <p>El estado lo lleva Signal Forms sobre el propio `model()`: la señal del modelo ES la que viaja al
+ * padre, así que la dirección sigue subiendo en cada pulsación igual que antes, pero ahora hay un sitio
+ * que sabe qué campo falta y puede decirlo debajo del campo. Antes el padre repetía la comprobación por
+ * su cuenta y el formulario no decía nada: quien se dejaba la ciudad veía el botón apagado sin saber
+ * por qué.
+ *
+ * <p>Los mensajes se enseñan solo cuando el campo se ha TOCADO. La excepción es el código postal, que
+ * conserva su aviso de siempre: no acusa de vacío a nadie —solo salta cuando lo escrito contradice el
+ * formato del país—, y esperar al `blur` sería descubrir el fallo más tarde sin ganar nada.
+ *
  * <p>Mobile first: una columna, y dos a partir de `sm`. El teléfono y las líneas de la dirección ocupan
  * la fila entera incluso en pantalla ancha, porque en media columna el número se queda tan estrecho que
  * ni cabe el texto de ejemplo.
  */
 @Component({
   selector: 'nx-campos-de-direccion',
-  imports: [SelectorPais, SelectorProvincia, Telefono],
+  imports: [SelectorPais, SelectorProvincia, Telefono, FormField],
   template: `
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      <input
-        [class]="claseCampo() + ' sm:col-span-2'"
-        [placeholder]="t('checkout.full_name') + ' *'"
-        [attr.aria-label]="t('checkout.full_name')"
-        [value]="datos().nombreCompleto"
-        (input)="escribe('nombreCompleto', $event)"
-      />
+      <div class="sm:col-span-2">
+        <input
+          [class]="claseCampo()"
+          [placeholder]="t('checkout.full_name') + ' *'"
+          [attr.aria-label]="t('checkout.full_name')"
+          [formField]="formulario.nombreCompleto"
+        />
+        @if (falloDe(formulario.nombreCompleto); as fallo) {
+          <span role="alert" class="text-[12px] text-error mt-1 block">{{ fallo }}</span>
+        }
+      </div>
 
       <div class="sm:col-span-2">
         <!-- Prefijo internacional con bandera más el número: se guarda entero, en E.164. -->
@@ -43,10 +70,13 @@ import { AYUDA_DE_DIRECCION_PORT, Provincia } from '../../domain/port/direccione
           El rótulo del PREFIJO se deja en el que trae el sistema de diseño: si aquí se le pusiera el
           mismo nombre que al país de la dirección, quien navega con lector de pantalla oiría dos
           desplegables llamados igual y no sabría cuál está cambiando.
+
+          El teléfono es una pieza del sistema de diseño y no habla el protocolo de Signal Forms, así
+          que se ata al VALOR del campo en vez de con la directiva; el estado sigue en el formulario.
         -->
         <nx-telefono
-          [valor]="datos().telefono"
-          (valorChange)="cambia('telefono', $event)"
+          [valor]="formulario.telefono().value()"
+          (valorChange)="formulario.telefono().value.set($event)"
           [etiquetaNumero]="t('checkout.phone')"
         />
       </div>
@@ -56,41 +86,48 @@ import { AYUDA_DE_DIRECCION_PORT, Provincia } from '../../domain/port/direccione
         toca desde los datos personales. Cambiar aquí de país cambia adónde se envía, nunca el precio.
       -->
       <nx-selector-pais
-        [valor]="datos().pais"
+        [valor]="formulario.pais().value()"
         (valorChange)="cambiaPais($event)"
         [clase]="claseSelect() + ' sm:col-span-2'"
         [marcador]="t('checkout.country_iso') + ' *'"
         [etiqueta]="t('checkout.country_iso')"
       />
 
-      <input
-        [class]="claseCampo() + ' sm:col-span-2'"
-        [placeholder]="t('checkout.line1') + ' *'"
-        [attr.aria-label]="t('checkout.line1')"
-        [value]="datos().linea1"
-        (input)="escribe('linea1', $event)"
-      />
+      <div class="sm:col-span-2">
+        <input
+          [class]="claseCampo()"
+          [placeholder]="t('checkout.line1') + ' *'"
+          [attr.aria-label]="t('checkout.line1')"
+          [formField]="formulario.linea1"
+        />
+        @if (falloDe(formulario.linea1); as fallo) {
+          <span role="alert" class="text-[12px] text-error mt-1 block">{{ fallo }}</span>
+        }
+      </div>
 
       <input
         [class]="claseCampo() + ' sm:col-span-2'"
         [placeholder]="t('checkout.line2')"
         [attr.aria-label]="t('checkout.line2')"
-        [value]="datos().linea2"
-        (input)="escribe('linea2', $event)"
+        [formField]="formulario.linea2"
       />
 
-      <input
-        [class]="claseCampo()"
-        [placeholder]="t('checkout.city') + ' *'"
-        [attr.aria-label]="t('checkout.city')"
-        [value]="datos().ciudad"
-        (input)="escribe('ciudad', $event)"
-      />
+      <div>
+        <input
+          [class]="claseCampo()"
+          [placeholder]="t('checkout.city') + ' *'"
+          [attr.aria-label]="t('checkout.city')"
+          [formField]="formulario.ciudad"
+        />
+        @if (falloDe(formulario.ciudad); as fallo) {
+          <span role="alert" class="text-[12px] text-error mt-1 block">{{ fallo }}</span>
+        }
+      </div>
 
       <!-- Con provincias sembradas es un desplegable; sin ellas, texto libre. El código alimenta el impuesto. -->
       <nx-selector-provincia
-        [valor]="datos().provincia"
-        (valorChange)="cambia('provincia', $event)"
+        [valor]="formulario.provincia().value()"
+        (valorChange)="formulario.provincia().value.set($event)"
         [provincias]="provinciasDelSelector()"
         [claseSelect]="claseSelect()"
         [claseInput]="claseCampo()"
@@ -103,8 +140,7 @@ import { AYUDA_DE_DIRECCION_PORT, Provincia } from '../../domain/port/direccione
           [placeholder]="marcadorPostal()"
           [attr.aria-label]="t('checkout.postal_code')"
           [attr.aria-invalid]="postalInvalido()"
-          [value]="datos().codigoPostal"
-          (input)="escribe('codigoPostal', $event)"
+          [formField]="formulario.codigoPostal"
         />
         @if (postalInvalido()) {
           <p role="alert" class="text-[12px] text-error mt-1">{{ avisoPostal() }}</p>
@@ -143,8 +179,44 @@ export class CamposDeDireccion {
     this.compacto() ? 'select select-sm w-full' : 'select w-full',
   );
 
-  protected readonly postalInvalido = computed(() =>
-    codigoPostalInvalido(this.datos().codigoPostal, this.formatoPostal()),
+  protected readonly avisoPostal = computed(() =>
+    this.t('address.postal_invalid').replace('{example}', this.formatoPostal()?.ejemplo ?? ''),
+  );
+
+  /**
+   * Lo que hace falta para poder enviar. Es la MISMA regla que `direccionCompleta()` del dominio, que
+   * sigue siendo quien manda; aquí solo se declara campo a campo para poder decir cuál falta mientras
+   * se escribe.
+   *
+   * <p>El código postal se declara con `validate()` porque su regla depende del país: la trae el
+   * servidor y es la del dominio, no una copia de su tabla de formatos. Vacío nunca se regaña —aún se
+   * está escribiendo— y que sea obligatorio donde toca lo comprueba el servidor al guardar.
+   */
+  protected readonly formulario = form(this.datos, (ruta) => {
+    required(ruta.nombreCompleto, { message: () => this.t('dialog.field.required') });
+    maxLength(ruta.nombreCompleto, LARGO_DEL_NOMBRE);
+    required(ruta.linea1, { message: () => this.t('dialog.field.required') });
+    maxLength(ruta.linea1, LARGO_DE_LA_LINEA);
+    maxLength(ruta.linea2, LARGO_DE_LA_LINEA);
+    required(ruta.ciudad, { message: () => this.t('dialog.field.required') });
+    maxLength(ruta.ciudad, LARGO_DE_LA_CIUDAD);
+    required(ruta.pais, { message: () => this.t('dialog.field.required') });
+    validate(ruta.codigoPostal, ({ value }) =>
+      codigoPostalInvalido(value(), this.formatoPostal())
+        ? { kind: 'pattern', message: this.avisoPostal() }
+        : undefined,
+    );
+  });
+
+  /**
+   * El código postal contradice el formato del país.
+   *
+   * <p>Sale del propio formulario para que la regla viva en UN sitio, y se enseña sin esperar al `blur`
+   * a propósito: nunca acusa de vacío —con el campo en blanco no hay error—, así que callarlo hasta que
+   * el campo se toque solo serviría para descubrir el fallo más tarde.
+   */
+  protected readonly postalInvalido = computed(
+    () => this.formulario.codigoPostal().errors().length > 0,
   );
 
   protected readonly marcadorPostal = computed(() => {
@@ -152,10 +224,6 @@ export class CamposDeDireccion {
     const rotulo = this.t('checkout.postal_code');
     return ejemplo ? `${rotulo} (${ejemplo})` : rotulo;
   });
-
-  protected readonly avisoPostal = computed(() =>
-    this.t('address.postal_invalid').replace('{example}', this.formatoPostal()?.ejemplo ?? ''),
-  );
 
   /**
    * El país elegido, aislado del resto del formulario.
@@ -189,12 +257,14 @@ export class CamposDeDireccion {
     this.formatoPostal.set(formato.ok ? formato.valor : null);
   }
 
-  protected escribe(campo: 'nombreCompleto' | 'linea1' | 'linea2' | 'ciudad' | 'codigoPostal', evento: Event): void {
-    this.cambia(campo, (evento.target as HTMLInputElement).value);
-  }
-
-  protected cambia(campo: keyof DatosDeDireccion, valor: string): void {
-    this.datos.update((actual) => ({ ...actual, [campo]: valor }));
+  /**
+   * El mensaje que toca enseñar bajo un campo, o nulo si no hay nada que decir todavía. Se calla hasta
+   * que el campo se ha TOCADO: pintar de rojo una dirección recién abierta, con los campos vacíos,
+   * acusa a quien todavía no ha escrito nada.
+   */
+  protected falloDe<T>(campo: FieldTree<T>): string | null {
+    const estado = campo();
+    return estado.touched() ? (estado.errors()[0]?.message ?? null) : null;
   }
 
   /**
@@ -202,8 +272,12 @@ export class CamposDeDireccion {
    *
    * <p>Si no, se arrastraría el texto libre del país anterior haciéndose pasar por código de región y el
    * impuesto por estado saldría del sitio equivocado.
+   *
+   * <p>El país lo elige un desplegable de fuera del formulario, así que además se marca el campo a mano:
+   * sin ello nunca se daría por tocado y su estado no llegaría a contar.
    */
   protected cambiaPais(pais: string): void {
     this.datos.update((actual) => ({ ...actual, pais, provincia: '' }));
+    this.formulario.pais().markAsTouched();
   }
 }

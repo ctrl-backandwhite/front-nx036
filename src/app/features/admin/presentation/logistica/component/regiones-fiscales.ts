@@ -1,5 +1,6 @@
-import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
+import { Component, effect, inject, input, output, signal } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { FormField, apply, disabled, form, maxLength, validate } from '@angular/forms/signals';
 import {
   faCircleCheck,
   faCircleXmark,
@@ -16,7 +17,6 @@ import {
   RegionFiscal,
   datosDeRegion,
   regionEnBlanco,
-  regionGuardable,
 } from '../../../domain/logistica/model/impuesto';
 import {
   AlternaRegionFiscal,
@@ -24,6 +24,11 @@ import {
   ConsultaImpuestos,
   GuardaRegionFiscal,
 } from '../../../application/logistica/use-case/gestiona-impuestos.use-case';
+import {
+  TEXTO_CON_CONTENIDO,
+  claveDeError,
+  tasaFueraDeRango,
+} from '../form/reglas-de-formulario';
 
 /**
  * Las regiones (estado o provincia) de un país, con su tasa propia.
@@ -36,7 +41,7 @@ import {
  */
 @Component({
   selector: 'nx-regiones-fiscales',
-  imports: [FaIconComponent],
+  imports: [FaIconComponent, FormField],
   template: `
     <div class="card p-4 border-2 border-primary">
       <div class="flex items-center justify-between mb-3">
@@ -61,10 +66,11 @@ import {
             id="region-codigo"
             class="input input-bordered input-sm w-full font-mono"
             placeholder="CA"
-            [disabled]="editando()"
-            [value]="borrador().codigo"
-            (input)="cambia('codigo', $any($event.target).value)"
+            [formField]="formulario.codigo"
           />
+          @if (formulario.codigo().touched() && errorDe(formulario.codigo().errors()); as clave) {
+            <p class="text-[11px] text-error mt-1" role="alert">{{ t(clave) }}</p>
+          }
         </div>
         <div>
           <label for="region-nombre" class="text-xs text-ink-500 block mb-1">
@@ -74,39 +80,44 @@ import {
             id="region-nombre"
             class="input input-bordered input-sm w-full"
             placeholder="California"
-            [value]="borrador().nombre"
-            (input)="cambia('nombre', $any($event.target).value)"
+            [formField]="formulario.nombre"
           />
+          @if (formulario.nombre().touched() && errorDe(formulario.nombre().errors()); as clave) {
+            <p class="text-[11px] text-error mt-1" role="alert">{{ t(clave) }}</p>
+          }
         </div>
         <div>
           <label for="region-tasa" class="text-xs text-ink-500 block mb-1">
             {{ t('admin.taxes.region_rate') }}
           </label>
+          <!-- El valor viaja como TEXTO aunque el campo sea numérico: el vacío significa «usa la tasa
+               nacional» y un número no sabe distinguirlo del cero, que sería «exenta» —otra
+               configuración, y válida—. El mínimo ya no se escribe aquí: lo pone el esquema. -->
           <input
             id="region-tasa"
             type="number"
             step="0.01"
-            min="0"
             class="input input-bordered input-sm w-full"
             [placeholder]="t('admin.taxes.region_national')"
-            [value]="borrador().porcentaje"
-            (input)="cambia('porcentaje', $any($event.target).value)"
+            [formField]="formulario.porcentaje"
           />
+          @if (errorDe(formulario.porcentaje().errors()); as clave) {
+            <p class="text-[11px] text-error mt-1" role="alert">{{ t(clave) }}</p>
+          }
         </div>
         <div class="flex items-center gap-2">
           <label class="flex items-center gap-2 text-xs text-ink-500 flex-1">
             <input
               type="checkbox"
               class="toggle toggle-sm toggle-success"
-              [checked]="borrador().activo"
-              (change)="marcaActivo($any($event.target).checked)"
+              [formField]="formulario.activo"
             />
             {{ t('admin.taxes.active') }}
           </label>
           <button
             type="button"
             (click)="guarda()"
-            [disabled]="!completo() || guardando()"
+            [disabled]="formulario().invalid() || guardando()"
             class="btn btn-primary btn-sm"
           >
             <fa-icon [icon]="iconos.mas" /> {{ t('common.save') }}
@@ -214,12 +225,27 @@ export class RegionesFiscales {
   private readonly dialogo = inject(DialogoStore);
   private readonly avisos = inject(AvisosStore);
 
+  protected readonly errorDe = claveDeError;
+
   protected readonly regiones = signal<readonly RegionFiscal[]>([]);
-  protected readonly borrador = signal<DatosDeRegion>(regionEnBlanco());
   protected readonly editando = signal(false);
   protected readonly guardando = signal(false);
 
-  protected readonly completo = computed(() => regionGuardable(this.borrador()));
+  protected readonly modelo = signal<DatosDeRegion>(regionEnBlanco());
+
+  /**
+   * El código es la CLAVE de la región y el nombre es lo que se lee en la tabla: sin los dos no se
+   * puede guardar. La tasa se comprueba a mano porque su vacío es un valor —«usa la nacional»— y solo
+   * se rechaza lo que no es un número o se sale del rango en el que un impuesto tiene sentido.
+   */
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    apply(ruta.codigo, TEXTO_CON_CONTENIDO);
+    maxLength(ruta.codigo, 8);
+    disabled(ruta.codigo, { when: () => this.editando() });
+    apply(ruta.nombre, TEXTO_CON_CONTENIDO);
+    maxLength(ruta.nombre, 120);
+    validate(ruta.porcentaje, ({ value }) => tasaFueraDeRango(value()));
+  });
 
   constructor() {
     // Al cambiar de país se vuelve a pedir y se limpia el formulario: dejar escrito lo del país
@@ -240,28 +266,22 @@ export class RegionesFiscales {
     }
   }
 
-  protected cambia(clave: 'codigo' | 'nombre' | 'porcentaje', valor: string): void {
-    this.borrador.update((actual) => ({ ...actual, [clave]: valor }));
-  }
-
-  protected marcaActivo(activo: boolean): void {
-    this.borrador.update((actual) => ({ ...actual, activo }));
-  }
-
   protected edita(fila: RegionFiscal): void {
-    this.borrador.set(datosDeRegion(fila));
+    // `reset` además LIMPIA el «tocado»: sin eso, la fila que se acaba de abrir para editar aparecería
+    // ya con los avisos en rojo de lo que se estuvo tecleando antes.
+    this.formulario().reset(datosDeRegion(fila));
     this.editando.set(true);
   }
 
   protected cancela(): void {
-    this.borrador.set(regionEnBlanco());
+    this.formulario().reset(regionEnBlanco());
     this.editando.set(false);
   }
 
   protected async guarda(): Promise<void> {
     this.guardando.set(true);
     try {
-      const resultado = await this.guardador.ejecuta(this.pais(), this.borrador());
+      const resultado = await this.guardador.ejecuta(this.pais(), this.modelo());
       if (!resultado.ok) {
         this.avisos.error(
           resultado.error === 'sin-clave'

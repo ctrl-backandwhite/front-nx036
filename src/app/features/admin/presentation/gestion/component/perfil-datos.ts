@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCircleCheck, faPen, faUserPen } from '@fortawesome/free-solid-svg-icons';
+import { FormField, form, pattern } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { SesionActual } from '@core/auth/sesion-actual';
 import { DialogoStore } from '@ds/component/dialogo/dialogo.store';
@@ -10,6 +11,9 @@ import {
   ConsultaElPerfil, GuardaElPerfil,
 } from '../../../application/gestion/use-case/perfil.use-case';
 import { PerfilCampo, PerfilCampoEditable } from './perfil-campo';
+
+/** El país de registro son DOS letras, como ISO-3166 alfa-2; vacío significa «sin país». */
+const PAIS_ISO = /^[A-Za-z]{2}$/;
 
 /**
  * La ficha de la propia cuenta: quién es, qué puede y qué datos suyos se pueden cambiar.
@@ -26,7 +30,7 @@ import { PerfilCampo, PerfilCampoEditable } from './perfil-campo';
  */
 @Component({
   selector: 'nx-perfil-datos',
-  imports: [FaIconComponent, PerfilCampo, PerfilCampoEditable],
+  imports: [FaIconComponent, PerfilCampo, PerfilCampoEditable, FormField],
   template: `
     <div class="card p-6">
       <div class="flex items-start gap-4">
@@ -63,9 +67,12 @@ import { PerfilCampo, PerfilCampoEditable } from './perfil-campo';
       <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
         <nx-perfil-campo [etiqueta]="t('admin.profile.email')" [valor]="correo()" [soloLectura]="true" />
         @if (editando()) {
-          <nx-perfil-campo-editable [etiqueta]="t('admin.profile.name')" [(valor)]="nombre" />
-          <nx-perfil-campo-editable [etiqueta]="t('admin.profile.company')" [(valor)]="empresa" />
-          <nx-perfil-campo-editable [etiqueta]="t('admin.profile.country')" [(valor)]="pais"
+          <nx-perfil-campo-editable [etiqueta]="t('admin.profile.name')"
+                                    [formField]="formulario.nombre" />
+          <nx-perfil-campo-editable [etiqueta]="t('admin.profile.company')"
+                                    [formField]="formulario.empresa" />
+          <nx-perfil-campo-editable [etiqueta]="t('admin.profile.country')"
+                                    [formField]="formulario.pais"
                                     [ayuda]="t('admin.profile.country_hint')" />
         } @else {
           <nx-perfil-campo [etiqueta]="t('admin.profile.name')" [valor]="comoSeLlama()" />
@@ -81,7 +88,8 @@ import { PerfilCampo, PerfilCampoEditable } from './perfil-campo';
         <div class="mt-4 flex gap-2 justify-end">
           <button type="button" class="btn btn-outline text-[12px]"
                   (click)="cancela()">{{ t('actions.cancel') }}</button>
-          <button type="button" class="btn btn-primary text-[12px]" [disabled]="guardando()"
+          <button type="button" class="btn btn-primary text-[12px]"
+                  [disabled]="guardando() || formulario().invalid()"
                   (click)="guarda()">
             <fa-icon [icon]="iconos.guardar" /> {{ t('admin.profile.save') }}
           </button>
@@ -116,9 +124,17 @@ export class PerfilDatos {
   protected readonly guardando = signal(false);
   protected readonly guardadoEl = signal<string | null>(null);
 
-  protected readonly nombre = signal('');
-  protected readonly empresa = signal('');
-  protected readonly pais = signal('');
+  /**
+   * Lo que se edita, como UN formulario y no como tres signals sueltos.
+   *
+   * <p>El PAÍS decide el margen del comprador —es el de REGISTRO, no el de envío— así que ahora el
+   * esquema exige las dos letras de ISO-3166 cuando hay algo escrito. Antes se mandaba cualquier cosa y
+   * el rechazo llegaba del backend después del viaje.
+   */
+  protected readonly modelo = signal({ nombre: '', empresa: '', pais: '' });
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    pattern(ruta.pais, PAIS_ISO, { message: () => this.t('login.error.bad_data') });
+  });
 
   protected readonly comoSeLlama = computed(
     () => this.ficha()?.nombreVisible ?? this.quien()?.nombreVisible ?? '',
@@ -168,18 +184,21 @@ export class PerfilDatos {
   }
 
   private copiaDeLaCuenta(): void {
-    this.nombre.set(this.comoSeLlama());
-    this.empresa.set(this.ficha()?.empresa ?? '');
-    this.pais.set(this.ficha()?.pais ?? this.quien()?.pais ?? '');
+    this.modelo.set({
+      nombre: this.comoSeLlama(),
+      empresa: this.ficha()?.empresa ?? '',
+      pais: this.ficha()?.pais ?? this.quien()?.pais ?? '',
+    });
   }
 
   protected async guarda(): Promise<void> {
     this.guardando.set(true);
     try {
+      const datos = this.modelo();
       const resultado = await this.guardaElPerfil.ejecuta({
-        nombreVisible: this.nombre() || undefined,
-        empresa: this.empresa() || undefined,
-        pais: this.pais() || undefined,
+        nombreVisible: datos.nombre || undefined,
+        empresa: datos.empresa || undefined,
+        pais: datos.pais || undefined,
       });
       if (!resultado.ok) {
         // El motivo lo escribe el backend, ya traducido. Sin él, un texto que cuente algo.

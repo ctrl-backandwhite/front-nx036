@@ -4,6 +4,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
   IconDefinition, faBoxesStacked, faKey, faMagnifyingGlass, faTruck, faUsers,
 } from '@fortawesome/free-solid-svg-icons';
+import { FormField, form } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import {
   MAPA_DEL_PANEL, agrupaPorSeccion, filtraElMapa,
@@ -31,7 +32,7 @@ const ICONOS: Readonly<Record<string, IconDefinition>> = {
  */
 @Component({
   selector: 'nx-busqueda-global',
-  imports: [RouterLink, FaIconComponent],
+  imports: [RouterLink, FaIconComponent, FormField],
   template: `
     <button type="button" class="btn btn-ghost btn-sm gap-2 hidden md:inline-flex"
             [title]="t('admin.search.placeholder')" (click)="abre()">
@@ -50,7 +51,7 @@ const ICONOS: Readonly<Record<string, IconDefinition>> = {
              role="dialog" aria-modal="true" [attr.aria-label]="t('admin.search.placeholder')">
           <div class="border-b border-base-300 p-3 flex items-center gap-2 shrink-0">
             <fa-icon [icon]="iconoBuscar" class="opacity-60" />
-            <input #campo type="search" [value]="consulta()" (input)="escribe($event)"
+            <input #campo type="search" [formField]="formulario.consulta"
                    [placeholder]="t('admin.search.placeholder')"
                    [attr.aria-label]="t('admin.search.placeholder')"
                    class="grow bg-transparent focus:outline-none text-sm" />
@@ -94,12 +95,20 @@ export class BusquedaGlobal {
 
   protected readonly iconoBuscar = faMagnifyingGlass;
   protected readonly abierto = signal(false);
-  protected readonly consulta = signal('');
+
+  /**
+   * La caja de búsqueda, también con Signal Forms.
+   *
+   * <p>No valida nada —cualquier texto es una búsqueda legítima— pero se declara igual: cablear el
+   * campo a mano era justo lo que dejaba a cada pantalla resolviendo el enlace a su manera.
+   */
+  protected readonly modelo = signal({ consulta: '' });
+  protected readonly formulario = form(this.modelo);
 
   private readonly campo = viewChild<ElementRef<HTMLInputElement>>('campo');
 
   protected readonly resultados = computed(() =>
-    filtraElMapa(MAPA_DEL_PANEL, this.consulta(), this.traduccion.t),
+    filtraElMapa(MAPA_DEL_PANEL, this.modelo().consulta, this.traduccion.t),
   );
   protected readonly grupos = computed(() => agrupaPorSeccion(this.resultados()));
 
@@ -116,7 +125,7 @@ export class BusquedaGlobal {
   }
 
   protected abre(): void {
-    this.consulta.set('');
+    this.modelo.set({ consulta: '' });
     this.abierto.set(true);
   }
 
@@ -129,11 +138,7 @@ export class BusquedaGlobal {
     evento.preventDefault();
     this.abierto.update((v) => !v);
     if (this.abierto()) {
-      this.consulta.set('');
+      this.modelo.set({ consulta: '' });
     }
-  }
-
-  protected escribe(evento: Event): void {
-    this.consulta.set((evento.target as HTMLInputElement).value);
   }
 }

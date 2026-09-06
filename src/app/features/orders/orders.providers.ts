@@ -1,4 +1,4 @@
-import { EnvironmentProviders, inject, makeEnvironmentProviders } from '@angular/core';
+import { EnvironmentProviders, Provider, inject, makeEnvironmentProviders } from '@angular/core';
 import {
   CANCELACION_DE_PEDIDO_PORT,
   FACTURA_DE_PEDIDO_PORT,
@@ -13,6 +13,34 @@ import { ConsultaPedido } from './application/use-case/consulta-pedido.use-case'
 import { DescargaFactura } from './application/use-case/descarga-factura.use-case';
 import { ListaPedidos } from './application/use-case/lista-pedidos.use-case';
 import { SiguePedido } from './application/use-case/sigue-pedido.use-case';
+import { CancelacionDePedido } from './presentation/service/cancelacion-de-pedido';
+
+/**
+ * Los casos de uso de «orders».
+ *
+ * <p>Se listan aparte de los adaptadores para poder montarlos en una prueba EXACTAMENTE como los monta
+ * la ruta. Es la lección del fallo que arregló esta lista: mientras cada clase se declaraba a sí misma
+ * `providedIn: 'root'`, el banco de pruebas las tenía siempre a mano y la aplicación de verdad no, así
+ * que 2.800 pruebas en verde convivían con pantallas que reventaban al abrirlas. Con una sola lista,
+ * añadir un caso de uso lo mete a la vez en la ruta y en las pruebas, y no hay forma de que diverjan.
+ */
+export const APLICACION_DE_PEDIDOS: Provider[] = [
+  CancelaPedido,
+  ConsultaPedido,
+  DescargaFactura,
+  ListaPedidos,
+  SiguePedido,
+];
+
+/**
+ * La conversación de cancelar un pedido: un servicio de PRESENTACIÓN, no un caso de uso, porque lo que
+ * hace es hablar con quien mira. Se registra igualmente aquí porque inyecta `CancelaPedido`, y quien
+ * depende de algo que vive en la ruta no puede vivir en la raíz.
+ *
+ * <p>Va aparte de `APLICACION_DE_PEDIDOS` para no mezclar capas en una misma lista: lo que las une es el
+ * inyector, no el hexágono.
+ */
+export const PRESENTACION_DE_PEDIDOS: Provider[] = [CancelacionDePedido];
 
 /**
  * Ata los puertos de «orders» con sus adaptadores.
@@ -36,11 +64,7 @@ export function proveePedidos(): EnvironmentProviders {
     FacturaHttpAdapter,
     { provide: FACTURA_DE_PEDIDO_PORT, useFactory: () => inject(FacturaHttpAdapter) },
 
-    // Los casos de uso, junto a los puertos de los que dependen: mismo inyector, misma vida.
-    CancelaPedido,
-    ConsultaPedido,
-    DescargaFactura,
-    ListaPedidos,
-    SiguePedido,
+    ...APLICACION_DE_PEDIDOS,
+    ...PRESENTACION_DE_PEDIDOS,
   ]);
 }

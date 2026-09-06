@@ -15,9 +15,11 @@ import { CATALOGO_PORT } from '../../domain/port/catalogo.port';
 import { CESTA_PORT } from '../../domain/port/cesta.port';
 import { FAVORITOS_PORT } from '../../domain/port/favoritos.port';
 import { ResumenDeProducto } from '../../domain/model/producto';
+import { APLICACION_DEL_CATALOGO } from '../../catalog.providers';
 
 /** La cuadrícula monta tarjetas, y una tarjeta habla con tres puertos: aquí van sus dobles. */
 const PUERTOS_DE_LA_TARJETA = [
+  ...APLICACION_DEL_CATALOGO,
   provideRouter([]),
   { provide: CATALOGO_PORT, useValue: { ficha: espia.fn() } },
   { provide: CESTA_PORT, useValue: { anade: espia.fn(), productosQueLleva: espia.fn() } },
@@ -80,7 +82,14 @@ describe('BarraDeFiltros', () => {
       inputs: {
         criterio: CRITERIO_VACIO,
         categorias: [
-          { id: 'c1', slug: 'gorros', nombre: 'Gorros', posicion: 0, cuantosProductos: 3, hijas: [] },
+          {
+            id: 'c1',
+            slug: 'gorros',
+            nombre: 'Gorros',
+            posicion: 0,
+            cuantosProductos: 3,
+            hijas: [],
+          },
         ],
         proveedores: [{ id: 's1', slug: 'p', nombre: 'Textiles del Sur' }],
         esAdministrador,
@@ -103,7 +112,14 @@ describe('BarraDeFiltros', () => {
       inputs: {
         criterio: CRITERIO_VACIO,
         categorias: [
-          { id: 'c1', slug: 'gorros', nombre: 'Gorros', posicion: 0, cuantosProductos: 3, hijas: [] },
+          {
+            id: 'c1',
+            slug: 'gorros',
+            nombre: 'Gorros',
+            posicion: 0,
+            cuantosProductos: 3,
+            hijas: [],
+          },
         ],
         proveedores: [{ id: 's1', slug: 'p', nombre: 'Textiles del Sur' }],
         esAdministrador: true,
@@ -142,16 +158,42 @@ describe('BarraDeFiltros', () => {
     expect(criterio.orden).toBe('price_asc');
   });
 
+  /**
+   * Los dos eventos, en este orden, son los que dispara un navegador de verdad al teclear y salir del
+   * campo: el formulario recoge lo escrito con `input` y la barra lo publica al criterio con `change`.
+   */
   it('el rango de precio viaja como texto, tal y como se teclea', async () => {
     const { vista } = await monta();
     const campos = [...vista.container.querySelectorAll<HTMLInputElement>('input[type=number]')];
     campos[0].value = '5';
+    campos[0].dispatchEvent(new Event('input'));
     campos[0].dispatchEvent(new Event('change'));
     campos[1].value = '50';
+    campos[1].dispatchEvent(new Event('input'));
     campos[1].dispatchEvent(new Event('change'));
     vista.fixture.detectChanges();
     expect(vista.fixture.componentInstance.criterio().precioMinimo).toBe('5');
     expect(vista.fixture.componentInstance.criterio().precioMaximo).toBe('50');
+  });
+
+  /**
+   * Un precio negativo no existe y solo devolvería la lista entera. Antes no lo decía nadie: el campo
+   * lo aceptaba y la búsqueda salía rara sin explicación.
+   */
+  it('un precio negativo se señala bajo el campo', async () => {
+    const { vista } = await monta();
+    const campos = [...vista.container.querySelectorAll<HTMLInputElement>('input[type=number]')];
+    campos[0].value = '-5';
+    campos[0].dispatchEvent(new Event('input'));
+    campos[0].dispatchEvent(new Event('blur'));
+    vista.fixture.detectChanges();
+    expect(vista.container.querySelector('[role=alert]')).not.toBeNull();
+  });
+
+  /** Callado hasta que se toca: un filtro recién abierto no tiene nada que reprochar a nadie. */
+  it('recién abierta, la barra no acusa a nadie', async () => {
+    const { vista } = await monta();
+    expect(vista.container.querySelector('[role=alert]')).toBeNull();
   });
 
   it('el interruptor de vídeo también escribe su parte', async () => {
@@ -198,7 +240,7 @@ describe('FilaListado', () => {
   it('enseña el precio ya formateado por el backend', async () => {
     await render(FilaListado, {
       inputs: { producto: producto() },
-      providers: [provideRouter([])],
+      providers: [...APLICACION_DEL_CATALOGO, provideRouter([])],
     });
     expect(screen.getByText('9,90 €')).toBeInTheDocument();
   });
@@ -206,7 +248,7 @@ describe('FilaListado', () => {
   it('sin precio de venta pinta un guión, no el coste del proveedor', async () => {
     await render(FilaListado, {
       inputs: { producto: producto({ precio: {} }) },
-      providers: [provideRouter([])],
+      providers: [...APLICACION_DEL_CATALOGO, provideRouter([])],
     });
     expect(screen.getByText('—')).toBeInTheDocument();
   });
@@ -216,7 +258,7 @@ describe('CuadriculaProductos', () => {
   it('mientras carga enseña siluetas, no un vacío', async () => {
     const vista = await render(CuadriculaProductos, {
       inputs: { productos: [], cargando: true, cuantosHuecos: 4 },
-      providers: [provideRouter([])],
+      providers: [...APLICACION_DEL_CATALOGO, provideRouter([])],
     });
     expect(vista.container.querySelectorAll('.skeleton').length).toBeGreaterThan(0);
   });
@@ -224,7 +266,7 @@ describe('CuadriculaProductos', () => {
   it('sin resultados lo dice', async () => {
     const vista = await render(CuadriculaProductos, {
       inputs: { productos: [], cargando: false },
-      providers: [provideRouter([])],
+      providers: [...APLICACION_DEL_CATALOGO, provideRouter([])],
     });
     expect(vista.container.querySelector('.card')).not.toBeNull();
   });

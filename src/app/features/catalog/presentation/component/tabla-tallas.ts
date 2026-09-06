@@ -1,4 +1,5 @@
-import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { Component, computed, inject, input, linkedSignal, output, signal } from '@angular/core';
+import { FormField, applyEach, disabled, form, max, min } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
@@ -29,7 +30,7 @@ export interface CambioDeTalla {
  */
 @Component({
   selector: 'nx-tabla-tallas',
-  imports: [FaIconComponent],
+  imports: [FaIconComponent, FormField],
   template: `
     @if (valores().length > 0) {
       <div class="card card-border bg-base-100">
@@ -86,13 +87,12 @@ export interface CambioDeTalla {
                     >
                       <fa-icon [icon]="iconos.menos" class="text-[10px]" />
                     </button>
+                    <!-- Ni el mínimo, ni el tope de existencias, ni el bloqueo van ya en el marcado:
+                         los declara el esquema del formulario, que es quien los conoce por talla. -->
                     <input
                       type="number"
-                      min="0"
-                      [max]="existencias"
-                      [value]="cantidad"
-                      [disabled]="existencias <= 0"
-                      (change)="teclea(etiqueta, existencias, $event)"
+                      [formField]="formulario[etiqueta]"
+                      (change)="publica(etiqueta)"
                       class="input input-bordered input-xs join-item min-w-0 text-center font-mono px-1"
                       [class]="anchas() ? 'w-12' : 'flex-1 w-full'"
                       [attr.aria-label]="t('pdp.size') + ' ' + etiqueta"
@@ -145,6 +145,38 @@ export class TablaTallas {
   protected readonly desplegada = signal(false);
 
   protected readonly valores = computed(() => this.eje().valores);
+
+  /**
+   * Cuántas unidades lleva puestas cada talla, con TODAS las tallas presentes aunque vayan a cero.
+   *
+   * <p>Signal Forms construye un campo por cada clave que existe en el objeto: una talla sin clave
+   * dejaría su casilla sin nada a lo que atarse. Se DERIVA de lo que manda el padre, así que cambiar
+   * de color —que reajusta las unidades— vacía las casillas solo, sin sincronizar nada a mano.
+   */
+  private readonly cantidades = linkedSignal<Readonly<Record<string, number | null>>>(() =>
+    Object.fromEntries(
+      this.valores().map((valor) => {
+        const talla = this.etiquetaDe(valor);
+        return [talla, this.unidades()[talla] ?? 0];
+      }),
+    ),
+  );
+
+  /**
+   * Las tres reglas de cada casilla, ahora dichas una sola vez para todas las tallas.
+   *
+   * <p>Antes estaban repartidas entre tres sitios que había que mantener a la par: un `min="0"` y un
+   * `[max]` en el marcado, un `[disabled]` al lado, y un recorte a mano al teclear. El tope y el
+   * bloqueo son POR TALLA, porque las existencias lo son: el mismo producto puede tener la S agotada
+   * y la M con veinte.
+   */
+  protected readonly formulario = form(this.cantidades, (ruta) => {
+    applyEach(ruta, (casilla) => {
+      min(casilla, 0, { message: () => this.t('dialog.field.min') });
+      max(casilla, ({ key }) => this.existenciasDe(key()));
+      disabled(casilla, ({ key }) => this.existenciasDe(key()) <= 0);
+    });
+  });
   protected readonly colapsable = computed(() => this.valores().length > TOPE_ANTES_DE_COLAPSAR);
   protected readonly visibles = computed(() =>
     this.desplegada() || !this.colapsable()
@@ -172,11 +204,19 @@ export class TablaTallas {
     return this.unidades()[talla] ?? 0;
   }
 
-  protected teclea(talla: string, existencias: number, evento: Event): void {
-    const tecleado = Number((evento.target as HTMLInputElement).value);
+  /**
+   * Lo tecleado sube al SALIR de la casilla, igual que antes: publicarlo por dígito haría que escribir
+   * «12» pidiera primero una unidad y luego doce.
+   *
+   * <p>Se sigue recortando al stock aunque el formulario ya lo señale: quien manda sobre las unidades
+   * es la selección de la ficha, y el aviso no puede convertirse en un pedido imposible.
+   */
+  protected publica(talla: string): void {
+    const tecleado = this.cantidades()[talla];
+    const cantidad = tecleado !== null && tecleado !== undefined && Number.isFinite(tecleado) ? tecleado : 0;
     this.cambia.emit({
       talla,
-      cantidad: Math.min(existencias, Math.max(0, Number.isFinite(tecleado) ? tecleado : 0)),
+      cantidad: Math.min(this.existenciasDe(talla), Math.max(0, cantidad)),
     });
   }
 }

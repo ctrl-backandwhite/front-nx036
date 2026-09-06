@@ -1,4 +1,5 @@
-import { Component, inject, input, output, signal } from '@angular/core';
+import { Component, inject, input, linkedSignal, output, signal } from '@angular/core';
+import { FormField, form } from '@angular/forms/signals';
 import { NgOptimizedImage } from '@angular/common';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faSpinner, faTrash } from '@fortawesome/free-solid-svg-icons';
@@ -26,7 +27,7 @@ import {
  */
 @Component({
   selector: 'nx-etiquetas-de-variacion',
-  imports: [NgOptimizedImage, FaIconComponent],
+  imports: [NgOptimizedImage, FormField, FaIconComponent],
   template: `
     <div class="card overflow-hidden p-4 space-y-3">
       <div class="flex items-center justify-between gap-2 flex-wrap">
@@ -86,8 +87,8 @@ import {
                       (guardado(valor) ? 'text-ink-800 font-medium border-emerald-300' : 'text-ink-500')
                     "
                     [placeholder]="valor.valorZh"
-                    [value]="valor.valor ?? ''"
-                    (blur)="renombra(valor, $any($event.target).value)"
+                    [formField]="formulario[valor.id].etiqueta"
+                    (blur)="renombra(valor)"
                     (keydown.enter)="$any($event.target).blur()"
                   />
                   @if (guardado(valor)) {
@@ -105,8 +106,8 @@ import {
                     [id]="'foto-' + valor.id"
                     class="input input-xs flex-1 min-w-40"
                     [placeholder]="t('admin.catalog.detail.labels.image_url')"
-                    [value]="valor.urlImagen ?? ''"
-                    (blur)="fijaFoto(valor, $any($event.target).value)"
+                    [formField]="formulario[valor.id].foto"
+                    (blur)="fijaFoto(valor)"
                     (keydown.enter)="$any($event.target).blur()"
                   />
                 }
@@ -139,6 +140,36 @@ export class EtiquetasDeVariacion {
   protected readonly iconos = { borrar: faTrash, girando: faSpinner };
   protected readonly marcados = signal<ReadonlySet<string>>(new Set());
 
+  /**
+   * La etiqueta y la foto de cada valor, en un solo modelo indexado por identificador.
+   *
+   * <p>Se DERIVA de los ejes: cuando el servidor confirma un renombrado llega otra lista y las casillas
+   * se ponen al día solas, sin que nadie tenga que reescribirlas. Sigue siendo escribible porque es el
+   * modelo del formulario.
+   */
+  private readonly modelo = linkedSignal<
+    readonly EjeDeVariacion[],
+    Record<string, { etiqueta: string; foto: string }>
+  >({
+    source: () => this.ejes(),
+    computation: (ejes) =>
+      Object.fromEntries(
+        ejes.flatMap((eje) =>
+          eje.valores.map((valor) => [
+            valor.id,
+            { etiqueta: valor.valor ?? '', foto: valor.urlImagen ?? '' },
+          ]),
+        ),
+      ),
+  });
+
+  /**
+   * Sin reglas de campo: la etiqueta puede quedarse vacía —así se vuelve al valor de origen— y la foto
+   * también, porque quitarla es la forma de marcar que ese color no tiene imagen real. Quien exige una
+   * foto en los colores es la regla de carga, no este formulario.
+   */
+  protected readonly formulario = form(this.modelo);
+
   protected esColor(eje: EjeDeVariacion): boolean {
     return esEjeDeColor(eje);
   }
@@ -165,15 +196,15 @@ export class EtiquetasDeVariacion {
   }
 
   /** Solo se manda si de verdad cambió: salir del campo sin tocarlo no puede gastar una escritura. */
-  protected renombra(valor: ValorDeVariacion, etiqueta: string): void {
-    const limpia = etiqueta.trim();
+  protected renombra(valor: ValorDeVariacion): void {
+    const limpia = this.modelo()[valor.id].etiqueta.trim();
     if (limpia !== (valor.valor ?? '')) {
       this.renombrado.emit({ id: valor.id, etiqueta: limpia });
     }
   }
 
-  protected fijaFoto(valor: ValorDeVariacion, url: string): void {
-    const limpia = url.trim();
+  protected fijaFoto(valor: ValorDeVariacion): void {
+    const limpia = this.modelo()[valor.id].foto.trim();
     if (limpia !== (valor.urlImagen ?? '')) {
       this.fotoFijada.emit({ id: valor.id, url: limpia });
     }

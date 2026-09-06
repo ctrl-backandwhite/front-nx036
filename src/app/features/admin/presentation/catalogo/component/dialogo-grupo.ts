@@ -1,10 +1,12 @@
-import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { Component, computed, inject, input, linkedSignal, output } from '@angular/core';
+import { FormField, form, required, validate } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import {
   BORRADOR_DE_GRUPO_VACIO,
   BorradorDeGrupo,
   grupoGuardable,
 } from '../../../domain/catalogo/model/grupo-de-productos';
+import { EstadoDeCampo, falloDelCampo } from '../etiquetas';
 import { VentanaModal } from './ventana-modal';
 
 /**
@@ -15,7 +17,7 @@ import { VentanaModal } from './ventana-modal';
  */
 @Component({
   selector: 'nx-dialogo-grupo',
-  imports: [VentanaModal],
+  imports: [FormField, VentanaModal],
   template: `
     <nx-ventana-modal [titulo]="titulo()" (cierra)="cierra.emit()">
       <div class="space-y-3">
@@ -23,29 +25,19 @@ import { VentanaModal } from './ventana-modal';
           <span class="text-[12px] font-medium text-ink-600 mb-1 block">
             {{ t('admin.groups.col.name') }} *
           </span>
-          <input
-            class="input input-bordered input-sm w-full"
-            [value]="borrador().nombre"
-            (input)="fija('nombre', $any($event.target).value)"
-          />
+          <input class="input input-bordered input-sm w-full" [formField]="formulario.nombre" />
+          @if (fallo(formulario.nombre()); as texto) {
+            <span class="text-[11px] text-error mt-0.5 block">{{ texto }}</span>
+          }
         </label>
         <label class="block">
           <span class="text-[12px] font-medium text-ink-600 mb-1 block">
             {{ t('admin.groups.col.description') }}
           </span>
-          <input
-            class="input input-bordered input-sm w-full"
-            [value]="borrador().descripcion"
-            (input)="fija('descripcion', $any($event.target).value)"
-          />
+          <input class="input input-bordered input-sm w-full" [formField]="formulario.descripcion" />
         </label>
         <label class="flex items-center gap-2 text-[13px]">
-          <input
-            type="checkbox"
-            class="checkbox checkbox-sm"
-            [checked]="borrador().activo"
-            (change)="marcaActivo($event)"
-          />
+          <input type="checkbox" class="checkbox checkbox-sm" [formField]="formulario.activo" />
           {{ t('admin.groups.col.active') }}
         </label>
       </div>
@@ -58,7 +50,7 @@ import { VentanaModal } from './ventana-modal';
           type="button"
           class="btn btn-primary btn-sm"
           [disabled]="guardando() || !sePuedeGuardar()"
-          (click)="guarda.emit(borrador())"
+          (click)="guarda.emit(modelo())"
         >
           {{ t('actions.save') }}
         </button>
@@ -74,25 +66,36 @@ export class DialogoGrupo {
   readonly guarda = output<BorradorDeGrupo>();
 
   protected readonly t = inject(TraduccionService).t;
-  private readonly cambios = signal<Partial<BorradorDeGrupo>>({});
 
-  protected readonly borrador = computed<BorradorDeGrupo>(() => ({
-    ...this.inicial(),
-    ...this.cambios(),
-  }));
+  /** Lo que se está tecleando. Vuelve a lo que llega de fuera si la pantalla cambia de grupo. */
+  protected readonly modelo = linkedSignal<BorradorDeGrupo, BorradorDeGrupo>({
+    source: () => this.inicial(),
+    computation: (inicial) => ({ ...inicial }),
+  });
 
-  protected readonly sePuedeGuardar = computed(() => grupoGuardable(this.borrador()));
+  /**
+   * La única regla: sin nombre no hay grupo.
+   *
+   * <p>`required` marca el campo como obligatorio también para el navegador y los lectores de pantalla,
+   * pero por sí solo dejaría pasar «   »: la comprobación de verdad es la del dominio, `grupoGuardable`,
+   * que es la misma que decide si el botón se enciende.
+   */
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    required(ruta.nombre, { message: 'admin.groups.name_required' });
+    validate(ruta.nombre, ({ value }) =>
+      grupoGuardable({ ...BORRADOR_DE_GRUPO_VACIO, nombre: value() })
+        ? undefined
+        : { kind: 'required', message: 'admin.groups.name_required' },
+    );
+  });
 
-  protected titulo(): string {
-    return this.t(this.inicial().id ? 'actions.edit' : 'admin.groups.new');
-  }
+  protected readonly sePuedeGuardar = computed(() => !this.formulario().invalid());
 
-  protected fija(clave: 'nombre' | 'descripcion', valor: string): void {
-    this.cambios.update((actual) => ({ ...actual, [clave]: valor }));
-  }
+  protected readonly titulo = computed(() =>
+    this.t(this.inicial().id ? 'actions.edit' : 'admin.groups.new'),
+  );
 
-  protected marcaActivo(evento: Event): void {
-    const activo = (evento.target as HTMLInputElement).checked;
-    this.cambios.update((actual) => ({ ...actual, activo }));
+  protected fallo(estado: EstadoDeCampo): string {
+    return falloDelCampo(this.t, estado);
   }
 }

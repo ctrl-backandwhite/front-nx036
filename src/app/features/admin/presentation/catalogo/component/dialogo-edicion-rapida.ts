@@ -1,30 +1,62 @@
-import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { Component, inject, input, linkedSignal, output } from '@angular/core';
+import {
+  FormField,
+  form,
+  email as validaCorreo,
+  maxLength,
+  min,
+  pattern,
+} from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import {
   CambiosDeFicha,
   FichaDeProducto,
 } from '../../../domain/catalogo/model/ficha-de-producto';
 import { CategoriaParaElegir } from '../../../domain/catalogo/port/categorias-admin.port';
+import { EstadoDeCampo, falloDelCampo } from '../etiquetas';
 import { VentanaModal } from './ventana-modal';
 
 /** Las divisas que admite el coste de origen. Es una lista corta y fija: son las de los proveedores. */
 const DIVISAS = ['CNY', 'USD', 'EUR', 'GBP', 'BRL', 'MXN', 'JPY'];
 
-/** Un valor que puede faltar, escrito para un campo de texto: el hueco es la cadena vacía. */
-function comoTexto(valor: string | number | null | undefined): string {
-  return valor == null ? '' : String(valor);
+/** Lo que admite cada dato del fabricante. Son los topes del backend: pasarse rechaza el guardado. */
+const TOPE_DE_NOMBRE = 200;
+const TOPE_DE_DIRECCION = 300;
+const TOPE_DE_CORREO = 200;
+
+/** Una dirección web de verdad: el vídeo se pide por HTTP, no por un texto cualquiera. */
+const DIRECCION_WEB = /^https?:\/\/\S+$/;
+
+/** Lo que se teclea en la edición rápida. Los importes son números; el resto, texto. */
+interface FormularioDeEdicionRapida {
+  titulo: string;
+  marca: string;
+  coste: number | null;
+  divisa: string;
+  categoriaId: string;
+  moq: number | null;
+  recargo: number | null;
+  urlVideo: string;
+  fabricanteNombre: string;
+  fabricanteDireccion: string;
+  fabricanteCorreo: string;
 }
 
-/** La ficha volcada a los nombres que usan los campos del formulario. */
-function camposDeLaFicha(ficha: FichaDeProducto): Record<string, string> {
+/** Un valor que puede faltar, escrito para un campo de texto: el hueco es la cadena vacía. */
+function comoTexto(valor: string | null | undefined): string {
+  return valor == null ? '' : valor;
+}
+
+/** La ficha volcada a los nombres y los tipos que usan los campos del formulario. */
+function camposDeLaFicha(ficha: FichaDeProducto): FormularioDeEdicionRapida {
   return {
     titulo: comoTexto(ficha.titulo),
     marca: comoTexto(ficha.marca),
-    coste: comoTexto(ficha.coste),
+    coste: ficha.coste ?? null,
     divisa: ficha.divisa,
     categoriaId: comoTexto(ficha.categoriaId),
-    moq: comoTexto(ficha.moq ?? 1),
-    recargo: comoTexto(ficha.yuanes.recargo),
+    moq: ficha.moq ?? 1,
+    recargo: ficha.yuanes.recargo ?? null,
     urlVideo: comoTexto(ficha.urlVideo),
     fabricanteNombre: comoTexto(ficha.fabricante?.nombre),
     fabricanteDireccion: comoTexto(ficha.fabricante?.direccion),
@@ -44,32 +76,29 @@ function camposDeLaFicha(ficha: FichaDeProducto): Record<string, string> {
  */
 @Component({
   selector: 'nx-dialogo-edicion-rapida',
-  imports: [VentanaModal],
+  imports: [FormField, VentanaModal],
   template: `
     <nx-ventana-modal [titulo]="t('admin.catalog.edit.title')" (cierra)="cierra.emit()">
       <div class="space-y-3">
         <label class="block">
           <span class="text-xs text-ink-500">{{ t('admin.catalog.fields.title') }}</span>
-          <input class="input w-full" [value]="valor('titulo')" (input)="fija('titulo', $event)" />
+          <input class="input w-full" [formField]="formulario.titulo" />
         </label>
         <label class="block">
           <span class="text-xs text-ink-500">{{ t('admin.catalog.fields.brand') }}</span>
-          <input class="input w-full" [value]="valor('marca')" (input)="fija('marca', $event)" />
+          <input class="input w-full" [formField]="formulario.marca" />
         </label>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <label class="block">
             <span class="text-xs text-ink-500">{{ t('admin.catalog.fields.basePrice') }}</span>
-            <input
-              type="number"
-              step="0.01"
-              class="input w-full"
-              [value]="valor('coste')"
-              (input)="fija('coste', $event)"
-            />
+            <input type="number" step="0.01" class="input w-full" [formField]="formulario.coste" />
+            @if (fallo(formulario.coste()); as texto) {
+              <span class="text-[11px] text-error mt-0.5 block">{{ texto }}</span>
+            }
           </label>
           <label class="block">
             <span class="text-xs text-ink-500">{{ t('admin.catalog.fields.currency') }}</span>
-            <select class="select w-full" [value]="valor('divisa')" (change)="fija('divisa', $event)">
+            <select class="select w-full" [formField]="formulario.divisa">
               @for (divisa of divisas; track divisa) {
                 <option [value]="divisa">{{ divisa }}</option>
               }
@@ -78,11 +107,7 @@ function camposDeLaFicha(ficha: FichaDeProducto): Record<string, string> {
         </div>
         <label class="block">
           <span class="text-xs text-ink-500">{{ t('admin.catalog.fields.category') }}</span>
-          <select
-            class="select w-full"
-            [value]="valor('categoriaId')"
-            (change)="fija('categoriaId', $event)"
-          >
+          <select class="select w-full" [formField]="formulario.categoriaId">
             <option value="">{{ t('admin.catalog.fields.category_none') }}</option>
             @for (categoria of categorias(); track categoria.id) {
               <option [value]="categoria.id">{{ categoria.etiqueta }}</option>
@@ -92,24 +117,17 @@ function camposDeLaFicha(ficha: FichaDeProducto): Record<string, string> {
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <label class="block">
             <span class="text-xs text-ink-500">{{ t('admin.catalog.fields.moq') }}</span>
-            <input
-              type="number"
-              min="1"
-              class="input w-full"
-              [value]="valor('moq')"
-              (input)="fija('moq', $event)"
-            />
+            <input type="number" class="input w-full" [formField]="formulario.moq" />
+            @if (fallo(formulario.moq()); as texto) {
+              <span class="text-[11px] text-error mt-0.5 block">{{ texto }}</span>
+            }
           </label>
           <label class="block">
             <span class="text-xs text-ink-500">{{ t('admin.catalog.fields.surchargeCny') }}</span>
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              class="input w-full"
-              [value]="valor('recargo')"
-              (input)="fija('recargo', $event)"
-            />
+            <input type="number" step="0.01" class="input w-full" [formField]="formulario.recargo" />
+            @if (fallo(formulario.recargo()); as texto) {
+              <span class="text-[11px] text-error mt-0.5 block">{{ texto }}</span>
+            }
           </label>
         </div>
         <label class="block">
@@ -118,9 +136,11 @@ function camposDeLaFicha(ficha: FichaDeProducto): Record<string, string> {
             type="url"
             class="input w-full"
             placeholder="https://…"
-            [value]="valor('urlVideo')"
-            (input)="fija('urlVideo', $event)"
+            [formField]="formulario.urlVideo"
           />
+          @if (fallo(formulario.urlVideo()); as texto) {
+            <span class="text-[11px] text-error mt-0.5 block">{{ texto }}</span>
+          }
         </label>
 
         <fieldset class="border-t border-base-200 pt-3 mt-1">
@@ -129,31 +149,24 @@ function camposDeLaFicha(ficha: FichaDeProducto): Record<string, string> {
           </legend>
           <label class="block">
             <span class="text-xs text-ink-500">{{ t('compliance.field.name') }}</span>
-            <input
-              class="input w-full"
-              maxlength="200"
-              [value]="valor('fabricanteNombre')"
-              (input)="fija('fabricanteNombre', $event)"
-            />
+            <input class="input w-full" [formField]="formulario.fabricanteNombre" />
+            @if (fallo(formulario.fabricanteNombre()); as texto) {
+              <span class="text-[11px] text-error mt-0.5 block">{{ texto }}</span>
+            }
           </label>
           <label class="block">
             <span class="text-xs text-ink-500">{{ t('compliance.field.address') }}</span>
-            <input
-              class="input w-full"
-              maxlength="300"
-              [value]="valor('fabricanteDireccion')"
-              (input)="fija('fabricanteDireccion', $event)"
-            />
+            <input class="input w-full" [formField]="formulario.fabricanteDireccion" />
+            @if (fallo(formulario.fabricanteDireccion()); as texto) {
+              <span class="text-[11px] text-error mt-0.5 block">{{ texto }}</span>
+            }
           </label>
           <label class="block">
             <span class="text-xs text-ink-500">{{ t('compliance.field.email') }}</span>
-            <input
-              type="email"
-              class="input w-full"
-              maxlength="200"
-              [value]="valor('fabricanteCorreo')"
-              (input)="fija('fabricanteCorreo', $event)"
-            />
+            <input type="email" class="input w-full" [formField]="formulario.fabricanteCorreo" />
+            @if (fallo(formulario.fabricanteCorreo()); as texto) {
+              <span class="text-[11px] text-error mt-0.5 block">{{ texto }}</span>
+            }
           </label>
         </fieldset>
       </div>
@@ -165,7 +178,7 @@ function camposDeLaFicha(ficha: FichaDeProducto): Record<string, string> {
         <button
           type="button"
           class="btn btn-primary text-[12px]"
-          [disabled]="guardando()"
+          [disabled]="guardando() || formulario().invalid()"
           (click)="confirma()"
         >
           {{ t('actions.save') }}
@@ -185,43 +198,55 @@ export class DialogoEdicionRapida {
   protected readonly t = inject(TraduccionService).t;
   protected readonly divisas = DIVISAS;
 
-  /** Lo tecleado. Arranca vacío y solo lleva lo que se ha tocado; el resto sale de la ficha. */
-  private readonly cambios = signal<Record<string, string>>({});
+  /** Lo tecleado. Arranca con lo que trae la ficha y vuelve a ella si la pantalla cambia de producto. */
+  protected readonly modelo = linkedSignal<FichaDeProducto, FormularioDeEdicionRapida>({
+    source: () => this.ficha(),
+    computation: (ficha) => camposDeLaFicha(ficha),
+  });
 
-  protected valor(campo: string): string {
-    const tecleado = this.cambios()[campo];
-    return tecleado !== undefined ? tecleado : this.deLaFicha(campo);
-  }
+  /**
+   * Las reglas de la edición rápida.
+   *
+   * <p>Ninguna es nueva del todo: los topes de longitud y los mínimos ya estaban escritos en el marcado
+   * como `maxlength` y `min`, que el navegador solo respeta mientras se teclea —un texto pegado o un
+   * número escrito a mano pasaban enteros— y que además terminaban en un rechazo del backend sin decir
+   * qué campo era. Aquí valen para las dos cosas: apagan el botón y dicen dónde está el problema.
+   *
+   * <p>Las dos que sí se añaden son las del CONTACTO obligatorio del artículo 19: un correo que no tiene
+   * forma de correo y una dirección de vídeo que no es una dirección no sirven de nada publicados.
+   */
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    min(ruta.coste, 0);
+    min(ruta.moq, 1);
+    min(ruta.recargo, 0);
+    pattern(ruta.urlVideo, DIRECCION_WEB, { message: 'sourcing.url.invalid' });
+    maxLength(ruta.fabricanteNombre, TOPE_DE_NOMBRE);
+    maxLength(ruta.fabricanteDireccion, TOPE_DE_DIRECCION);
+    maxLength(ruta.fabricanteCorreo, TOPE_DE_CORREO);
+    validaCorreo(ruta.fabricanteCorreo);
+  });
 
-  /** Lo que la ficha trae hoy, con el mismo nombre que usan los campos del formulario. */
-  private readonly original = computed<Record<string, string>>(() =>
-    camposDeLaFicha(this.ficha()),
-  );
-
-  private deLaFicha(campo: string): string {
-    return this.original()[campo] ?? '';
-  }
-
-  protected fija(campo: string, evento: Event): void {
-    const valor = (evento.target as HTMLInputElement).value;
-    this.cambios.update((actual) => ({ ...actual, [campo]: valor }));
+  protected fallo(estado: EstadoDeCampo): string {
+    return falloDelCampo(this.t, estado);
   }
 
   protected confirma(): void {
+    const valores = this.modelo();
     this.guarda.emit({
-      titulo: this.valor('titulo') || undefined,
-      marca: this.valor('marca') || undefined,
-      coste: this.valor('coste') ? parseFloat(this.valor('coste')) : undefined,
-      divisa: this.valor('divisa') || undefined,
-      moq: this.valor('moq') ? parseInt(this.valor('moq'), 10) : undefined,
-      urlVideo: this.valor('urlVideo'),
-      categoriaId: this.valor('categoriaId') || undefined,
+      titulo: valores.titulo || undefined,
+      marca: valores.marca || undefined,
+      coste: valores.coste ?? undefined,
+      divisa: valores.divisa || undefined,
+      // El pedido mínimo son unidades enteras: el campo numérico admite decimales y el backend no.
+      moq: valores.moq === null ? undefined : Math.trunc(valores.moq),
+      urlVideo: valores.urlVideo,
+      categoriaId: valores.categoriaId || undefined,
       // Cero se manda para poder QUITAR el recargo; sin valor significa «no lo edito».
-      yuanes: { recargo: this.valor('recargo') !== '' ? parseFloat(this.valor('recargo')) : 0 },
+      yuanes: { recargo: valores.recargo ?? 0 },
       fabricante: {
-        nombre: this.valor('fabricanteNombre'),
-        direccion: this.valor('fabricanteDireccion'),
-        correo: this.valor('fabricanteCorreo'),
+        nombre: valores.fabricanteNombre,
+        direccion: valores.fabricanteDireccion,
+        correo: valores.fabricanteCorreo,
       },
     });
   }

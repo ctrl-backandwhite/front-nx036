@@ -18,6 +18,7 @@ import { AbreLaFicha } from './abre-la-ficha.use-case';
 import { BuscaProductos } from './busca-productos.use-case';
 import { PublicaResena } from './publica-resena.use-case';
 import { ListaFavoritos, ListaHistorial } from './lista-guardados.use-case';
+import { APLICACION_DEL_CATALOGO } from '../../catalog.providers';
 
 function ficha(cambios: Partial<FichaDeProducto> = {}): FichaDeProducto {
   return {
@@ -46,7 +47,7 @@ function ficha(cambios: Partial<FichaDeProducto> = {}): FichaDeProducto {
 describe('AlternaFavorito', () => {
   function monta(puerto: Partial<Record<string, unknown>>, haySesion = true) {
     TestBed.configureTestingModule({
-      providers: [{ provide: FAVORITOS_PORT, useValue: puerto }],
+      providers: [...APLICACION_DEL_CATALOGO, { provide: FAVORITOS_PORT, useValue: puerto }],
     });
     if (haySesion) {
       TestBed.inject(SesionActual).publica({
@@ -110,10 +111,17 @@ describe('AlternaFavorito', () => {
 });
 
 describe('AnadeALaCesta', () => {
-  function monta(fichaDevuelta: FichaDeProducto, anade = vi.fn().mockResolvedValue(exito(undefined))) {
+  function monta(
+    fichaDevuelta: FichaDeProducto,
+    anade = vi.fn().mockResolvedValue(exito(undefined)),
+  ) {
     TestBed.configureTestingModule({
       providers: [
-        { provide: CATALOGO_PORT, useValue: { ficha: vi.fn().mockResolvedValue(exito(fichaDevuelta)) } },
+        ...APLICACION_DEL_CATALOGO,
+        {
+          provide: CATALOGO_PORT,
+          useValue: { ficha: vi.fn().mockResolvedValue(exito(fichaDevuelta)) },
+        },
         { provide: CESTA_PORT, useValue: { anade, productosQueLleva: vi.fn() } },
       ],
     });
@@ -148,7 +156,12 @@ describe('AnadeALaCesta', () => {
     const { caso, anade } = monta(conVariantes);
     await caso.conVariante(conVariantes, conVariantes.variantes[1], 2);
     expect(anade).toHaveBeenCalledWith(
-      expect.objectContaining({ variantId: 'v2', variantLabel: 'M', unitPriceSource: 8, quantity: 2 }),
+      expect.objectContaining({
+        variantId: 'v2',
+        variantLabel: 'M',
+        unitPriceSource: 8,
+        quantity: 2,
+      }),
     );
   });
 
@@ -175,6 +188,7 @@ describe('AnadeALaCesta', () => {
   it('propaga el fallo de red de la ficha', async () => {
     TestBed.configureTestingModule({
       providers: [
+        ...APLICACION_DEL_CATALOGO,
         {
           provide: CATALOGO_PORT,
           useValue: { ficha: vi.fn().mockResolvedValue(fallo(creaError('sin-conexion'))) },
@@ -192,6 +206,7 @@ describe('AbreLaFicha', () => {
   function monta(haySesion: boolean, anota = vi.fn().mockResolvedValue(exito(undefined))) {
     TestBed.configureTestingModule({
       providers: [
+        ...APLICACION_DEL_CATALOGO,
         {
           provide: CATALOGO_PORT,
           useValue: { ficha: vi.fn().mockResolvedValue(exito(ficha())) },
@@ -226,9 +241,14 @@ describe('AbreLaFicha', () => {
 });
 
 describe('BuscaProductos', () => {
-  function monta(busca = vi.fn().mockResolvedValue(exito({ items: [], pagina: 0, tamano: 36, total: 0, totalDePaginas: 0 }))) {
+  function monta(
+    busca = vi
+      .fn()
+      .mockResolvedValue(exito({ items: [], pagina: 0, tamano: 36, total: 0, totalDePaginas: 0 })),
+  ) {
     TestBed.configureTestingModule({
       providers: [
+        ...APLICACION_DEL_CATALOGO,
         { provide: CATALOGO_PORT, useValue: { busca } },
         {
           provide: CESTA_PORT,
@@ -236,7 +256,11 @@ describe('BuscaProductos', () => {
         },
       ],
     });
-    return { caso: TestBed.inject(BuscaProductos), busca, referencia: TestBed.inject(ReferenciaDeCestaStore) };
+    return {
+      caso: TestBed.inject(BuscaProductos),
+      busca,
+      referencia: TestBed.inject(ReferenciaDeCestaStore),
+    };
   }
 
   /** Un slug donde va un identificador dejaba la pantalla con el esqueleto puesto para siempre. */
@@ -265,7 +289,10 @@ describe('PublicaResena', () => {
   it('firma con el nombre de la sesión, no con el tecleado', async () => {
     const publica = vi.fn().mockResolvedValue(exito(undefined));
     TestBed.configureTestingModule({
-      providers: [{ provide: RESENAS_PORT, useValue: { publica, lista: vi.fn() } }],
+      providers: [
+        ...APLICACION_DEL_CATALOGO,
+        { provide: RESENAS_PORT, useValue: { publica, lista: vi.fn() } },
+      ],
     });
     TestBed.inject(SesionActual).publica({
       id: 'u1',
@@ -288,7 +315,10 @@ describe('PublicaResena', () => {
   it('un invitado sí firma con lo que escribe', async () => {
     const publica = vi.fn().mockResolvedValue(exito(undefined));
     TestBed.configureTestingModule({
-      providers: [{ provide: RESENAS_PORT, useValue: { publica, lista: vi.fn() } }],
+      providers: [
+        ...APLICACION_DEL_CATALOGO,
+        { provide: RESENAS_PORT, useValue: { publica, lista: vi.fn() } },
+      ],
     });
     await TestBed.inject(PublicaResena).ejecuta('p1', {
       valoracion: 4,
@@ -302,9 +332,12 @@ describe('PublicaResena', () => {
 
 describe('listas guardadas', () => {
   it('piden su página al puerto que les toca', async () => {
-    const lista = vi.fn().mockResolvedValue(exito({ items: [], pagina: 1, tamano: 24, total: 0, totalDePaginas: 0 }));
+    const lista = vi
+      .fn()
+      .mockResolvedValue(exito({ items: [], pagina: 1, tamano: 24, total: 0, totalDePaginas: 0 }));
     TestBed.configureTestingModule({
       providers: [
+        ...APLICACION_DEL_CATALOGO,
         { provide: FAVORITOS_PORT, useValue: { lista } },
         { provide: HISTORIAL_PORT, useValue: { lista } },
       ],

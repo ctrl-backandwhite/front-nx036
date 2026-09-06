@@ -1,15 +1,21 @@
-import { Component, inject, input, output } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
+import { FieldTree, FormField } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faImage } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { BorradorDeVariante } from '../../../../domain/catalogo/model/variante-de-producto';
+import { EstadoDeCampo, falloDelCampo } from '../../etiquetas';
 
 /**
  * Las celdas editables de una variante: foto, SKU, título, precio, existencias y opciones.
  *
  * <p>Las mismas seis celdas se usan en la edición de UNA fila y en la de TODAS a la vez; la séptima
  * —los botones— la pone quien lo monta con `ng-content`, que es lo único que cambia entre los dos casos.
+ *
+ * <p>Recibe el CAMPO del formulario de quien la monta y escribe directamente en él: antes publicaba cada
+ * tecla hacia arriba y el padre la volvía a mezclar en su propio estado, que es el rodeo que hacía falta
+ * cuando no había formulario.
  *
  * <p>El componente ES la fila: se maqueta con la utilidad `table-row`, de modo que el selector cumple la
  * norma —todo componente empieza por `nx-`— sin dejar de comportarse como un `<tr>`.
@@ -18,13 +24,13 @@ import { BorradorDeVariante } from '../../../../domain/catalogo/model/variante-d
  */
 @Component({
   selector: 'nx-filas-de-variante',
-  imports: [NgOptimizedImage, FaIconComponent],
+  imports: [NgOptimizedImage, FormField, FaIconComponent],
   template: `
     <td class="px-3 py-2">
       <div class="flex items-center gap-1">
-        @if (borrador().urlImagen) {
+        @if (valores().urlImagen) {
           <img
-            [ngSrc]="borrador().urlImagen"
+            [ngSrc]="valores().urlImagen"
             width="32"
             height="32"
             alt=""
@@ -39,8 +45,7 @@ import { BorradorDeVariante } from '../../../../domain/catalogo/model/variante-d
           class="input input-bordered input-xs w-full"
           [placeholder]="t('admin.variants.image_ph')"
           [attr.aria-label]="t('admin.variants.image')"
-          [value]="borrador().urlImagen"
-          (input)="emite('urlImagen', $event)"
+          [formField]="campos().urlImagen"
         />
       </div>
     </td>
@@ -48,17 +53,18 @@ import { BorradorDeVariante } from '../../../../domain/catalogo/model/variante-d
       <input
         class="input input-bordered input-xs w-full"
         [attr.aria-label]="t('admin.catalog.detail.inv.sku')"
-        [value]="borrador().sku"
-        (input)="emite('sku', $event)"
+        [formField]="campos().sku"
       />
+      @if (fallo(campos().sku()); as texto) {
+        <div class="text-[11px] text-error mt-0.5">{{ texto }}</div>
+      }
     </td>
     <td class="px-3 py-2">
       <input
         class="input input-bordered input-xs w-full"
         [placeholder]="t('admin.variants.title_ph')"
         [attr.aria-label]="t('admin.variants.title_ph')"
-        [value]="borrador().titulo"
-        (input)="emite('titulo', $event)"
+        [formField]="campos().titulo"
       />
     </td>
     <td class="px-3 py-2">
@@ -68,9 +74,11 @@ import { BorradorDeVariante } from '../../../../domain/catalogo/model/variante-d
         class="input input-bordered input-xs w-full text-right"
         placeholder="0.00"
         [attr.aria-label]="t('admin.catalog.col.price')"
-        [value]="borrador().precio"
-        (input)="emite('precio', $event)"
+        [formField]="campos().precio"
       />
+      @if (fallo(campos().precio()); as texto) {
+        <div class="text-[11px] text-error mt-0.5">{{ texto }}</div>
+      }
     </td>
     <td class="px-3 py-2">
       <input
@@ -78,17 +86,18 @@ import { BorradorDeVariante } from '../../../../domain/catalogo/model/variante-d
         class="input input-bordered input-xs w-full text-right"
         placeholder="0"
         [attr.aria-label]="t('admin.catalog.detail.inv.stock')"
-        [value]="borrador().existencias"
-        (input)="emite('existencias', $event)"
+        [formField]="campos().existencias"
       />
+      @if (fallo(campos().existencias()); as texto) {
+        <div class="text-[11px] text-error mt-0.5">{{ texto }}</div>
+      }
     </td>
     <td class="px-3 py-2">
       <input
         class="input input-bordered input-xs w-full"
         placeholder="Color:Rojo, Talla:M"
         [attr.aria-label]="t('admin.catalog.detail.inv.options')"
-        [value]="borrador().opciones"
-        (input)="emite('opciones', $event)"
+        [formField]="campos().opciones"
       />
     </td>
     <ng-content />
@@ -96,13 +105,15 @@ import { BorradorDeVariante } from '../../../../domain/catalogo/model/variante-d
   host: { class: 'table-row border-t border-ink-100 bg-base-200/40' },
 })
 export class FilasDeVariante {
-  readonly borrador = input.required<BorradorDeVariante>();
-  readonly cambia = output<Partial<BorradorDeVariante>>();
+  readonly campos = input.required<FieldTree<BorradorDeVariante>>();
 
   protected readonly t = inject(TraduccionService).t;
   protected readonly iconoImagen = faImage;
 
-  protected emite(campo: keyof BorradorDeVariante, evento: Event): void {
-    this.cambia.emit({ [campo]: (evento.target as HTMLInputElement).value });
+  /** Lo que hay escrito ahora mismo en la fila: la miniatura sale de aquí, no de otra copia. */
+  protected readonly valores = computed(() => this.campos()().value());
+
+  protected fallo(estado: EstadoDeCampo): string {
+    return falloDelCampo(this.t, estado);
   }
 }

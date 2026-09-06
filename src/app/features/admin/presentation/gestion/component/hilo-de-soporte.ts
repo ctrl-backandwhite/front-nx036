@@ -1,6 +1,7 @@
-import { Component, DestroyRef, effect, inject, input, signal } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, input, signal } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
+import { FormField, form, validate } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { MensajeDeTicket } from '../../../domain/gestion/model/soporte';
 import {
@@ -24,7 +25,7 @@ const REFRESCO_MS = 5000;
  */
 @Component({
   selector: 'nx-hilo-de-soporte',
-  imports: [FaIconComponent],
+  imports: [FaIconComponent, FormField],
   template: `
     <div class="flex flex-col h-[420px]">
       <div class="flex-1 overflow-y-auto space-y-2 p-3 bg-ink-50/40 rounded-box">
@@ -46,10 +47,11 @@ const REFRESCO_MS = 5000;
         <p role="alert" class="text-[12px] text-error mt-2">{{ error() }}</p>
       }
       <form class="flex items-center gap-2 mt-2" (submit)="envia($event)">
-        <input class="input flex-1" [value]="texto()" (input)="escribe($event)"
+        <input class="input flex-1" [formField]="formulario.texto"
                [placeholder]="t('support.thread.placeholder')"
                [attr.aria-label]="t('support.thread.placeholder')" />
-        <button type="submit" class="btn btn-primary btn-sm" [disabled]="enviando() || !texto().trim()"
+        <button type="submit" class="btn btn-primary btn-sm"
+                [disabled]="enviando() || formulario().invalid()"
                 [attr.aria-label]="t('chat.send')">
           <fa-icon [icon]="iconoEnviar" />
         </button>
@@ -67,7 +69,26 @@ export class HiloDeSoporte {
 
   protected readonly iconoEnviar = faPaperPlane;
   protected readonly mensajes = signal<readonly MensajeDeTicket[]>([]);
-  protected readonly texto = signal('');
+
+  protected readonly modelo = signal({ texto: '' });
+  /**
+   * Un mensaje en blanco no se manda: sería un globo vacío en la conversación del cliente.
+   *
+   * <p>Antes eso vivía en el `[disabled]` del botón Y en un `if` del manejador. Ahora es UNA regla del
+   * esquema que apaga el botón sola; el manejador solo pregunta si el formulario vale.
+   */
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    // Se mira el texto YA RECORTADO: un mensaje de solo espacios está tan vacío como uno sin nada.
+    validate(ruta.texto, ({ value }) =>
+      value().trim() === ''
+        ? { kind: 'vacio', message: this.t('dialog.field.required') }
+        : null,
+    );
+  });
+
+  /** El mensaje ya limpio: lo que de verdad viaja, sin los espacios de los lados. */
+  protected readonly cuerpo = computed(() => this.modelo().texto.trim());
+
   protected readonly enviando = signal(false);
   /** Un rechazo al enviar se ENSEÑA: tragárselo deja creer que el cliente ya tiene la respuesta. */
   protected readonly error = signal('');
@@ -82,25 +103,20 @@ export class HiloDeSoporte {
     this.destruccion.onDestroy(() => clearInterval(reloj));
   }
 
-  protected escribe(evento: Event): void {
-    this.texto.set((evento.target as HTMLInputElement).value);
-  }
-
   protected async envia(evento: Event): Promise<void> {
     evento.preventDefault();
-    const cuerpo = this.texto().trim();
-    if (!cuerpo) {
+    if (this.formulario().invalid()) {
       return;
     }
     this.enviando.set(true);
-    const resultado = await this.responde.ejecuta(this.idTicket(), cuerpo);
+    const resultado = await this.responde.ejecuta(this.idTicket(), this.cuerpo());
     this.enviando.set(false);
     if (!resultado.ok) {
       this.error.set(resultado.error.mensaje || this.t('common.error'));
       return;
     }
     this.error.set('');
-    this.texto.set('');
+    this.modelo.set({ texto: '' });
     await this.carga();
   }
 

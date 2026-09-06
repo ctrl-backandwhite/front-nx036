@@ -12,6 +12,7 @@ import { ResumenDeProducto } from '../../domain/model/producto';
 import { SesionActual } from '@core/auth/sesion-actual';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
 import { TarjetaProducto } from './tarjeta-producto';
+import { APLICACION_DEL_CATALOGO } from '../../catalog.providers';
 
 function producto(cambios: Partial<ResumenDeProducto> = {}): ResumenDeProducto {
   return {
@@ -39,14 +40,20 @@ async function monta(
   const vista = await render(TarjetaProducto, {
     inputs: { producto: entrada },
     providers: [
+      ...APLICACION_DEL_CATALOGO,
       provideRouter([{ path: '**', children: [] }]),
       {
         provide: CATALOGO_PORT,
-        useValue: { ficha: puertos.ficha ?? vi.fn().mockResolvedValue(exito({ ...entrada, variantes: [] })) },
+        useValue: {
+          ficha: puertos.ficha ?? vi.fn().mockResolvedValue(exito({ ...entrada, variantes: [] })),
+        },
       },
       {
         provide: CESTA_PORT,
-        useValue: { anade: puertos.anade ?? vi.fn().mockResolvedValue(exito(undefined)), productosQueLleva: vi.fn() },
+        useValue: {
+          anade: puertos.anade ?? vi.fn().mockResolvedValue(exito(undefined)),
+          productosQueLleva: vi.fn(),
+        },
       },
       { provide: FAVORITOS_PORT, useValue: puertos.favoritos ?? {} },
     ],
@@ -182,6 +189,7 @@ describe('TarjetaProducto', () => {
     const vista = await render(TarjetaProducto, {
       inputs: { producto: producto({ imagenPrincipal: 'foto.jpg' }), prioritaria: true },
       providers: [
+        ...APLICACION_DEL_CATALOGO,
         provideRouter([{ path: '**', children: [] }]),
         { provide: CATALOGO_PORT, useValue: { ficha: vi.fn() } },
         { provide: CESTA_PORT, useValue: { anade: vi.fn(), productosQueLleva: vi.fn() } },

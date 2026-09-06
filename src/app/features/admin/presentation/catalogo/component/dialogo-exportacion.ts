@@ -1,4 +1,5 @@
 import { Component, computed, inject, output, resource, signal } from '@angular/core';
+import { FormField, form, min, required, validate } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faDownload, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
@@ -14,11 +15,19 @@ import {
   segmentos,
   tamanoDelSegmento,
 } from '../../../domain/catalogo/model/exportacion';
-import { mensajeDeError } from '../etiquetas';
+import { EstadoDeCampo, falloDelCampo, mensajeDeError } from '../etiquetas';
 import { VentanaModal } from './ventana-modal';
 
 /** Cuántos productos trae cada fichero por omisión. */
 const TAMANO_DE_SEGMENTO = 1000;
+
+/** Lo que se rellena en el diálogo: el tamaño del tramo y el filtro con el que se cuenta. */
+interface FormularioDeExportacion {
+  tamano: number | null;
+  desde: string;
+  hasta: string;
+  verificado: string;
+}
 
 /**
  * La exportación de productos.
@@ -32,7 +41,7 @@ const TAMANO_DE_SEGMENTO = 1000;
  */
 @Component({
   selector: 'nx-dialogo-exportacion',
-  imports: [FaIconComponent, VentanaModal],
+  imports: [FaIconComponent, FormField, VentanaModal],
   template: `
     <nx-ventana-modal [titulo]="t('admin.export.title')" ancho="sm:max-w-lg" (cierra)="cierra.emit()">
       <p class="text-[12px] text-ink-500">{{ t('admin.export.help') }}</p>
@@ -45,11 +54,12 @@ const TAMANO_DE_SEGMENTO = 1000;
           <input
             id="export-tamano"
             type="number"
-            min="1"
             class="input input-bordered input-sm w-32"
-            [value]="tamano()"
-            (input)="tamano.set(+$any($event.target).value)"
+            [formField]="formulario.tamano"
           />
+          @if (fallo(formulario.tamano()); as texto) {
+            <div class="text-[11px] text-error mt-0.5">{{ texto }}</div>
+          }
         </div>
         <div class="text-[12px] text-ink-500 pb-1.5">
           {{ total.isLoading() ? '…' : tCon('admin.export.total', { n: cuantos() }) }}
@@ -65,9 +75,8 @@ const TAMANO_DE_SEGMENTO = 1000;
             id="export-desde"
             type="date"
             class="input input-bordered input-sm"
-            [value]="desde()"
-            [max]="hasta() || null"
-            (input)="desde.set($any($event.target).value)"
+            [max]="modelo().hasta || null"
+            [formField]="formulario.desde"
           />
         </div>
         <div>
@@ -78,10 +87,12 @@ const TAMANO_DE_SEGMENTO = 1000;
             id="export-hasta"
             type="date"
             class="input input-bordered input-sm"
-            [value]="hasta()"
-            [min]="desde() || null"
-            (input)="hasta.set($any($event.target).value)"
+            [min]="modelo().desde || null"
+            [formField]="formulario.hasta"
           />
+          @if (fallo(formulario.hasta()); as texto) {
+            <div class="text-[11px] text-error mt-0.5">{{ texto }}</div>
+          }
         </div>
         <!--
           La certificación va en la MISMA fila que las fechas porque se combinan entre sí, no se
@@ -95,8 +106,7 @@ const TAMANO_DE_SEGMENTO = 1000;
           <select
             id="export-verificado"
             class="select select-bordered select-sm"
-            [value]="verificado()"
-            (change)="verificado.set($any($event.target).value)"
+            [formField]="formulario.verificado"
           >
             <option value="">{{ t('admin.export.verified_all') }}</option>
             <option value="true">{{ t('admin.catalog.verified.yes') }}</option>
@@ -115,7 +125,7 @@ const TAMANO_DE_SEGMENTO = 1000;
         <button
           type="button"
           class="btn btn-primary btn-sm w-full gap-2 mt-3"
-          [disabled]="ocupado() !== null"
+          [disabled]="ocupado() !== null || formulario().invalid()"
           (click)="descargaTodo()"
         >
           <fa-icon
@@ -140,7 +150,7 @@ const TAMANO_DE_SEGMENTO = 1000;
               type="button"
               class="w-full flex items-center justify-between px-3 py-2 rounded-md border border-ink-100 text-[13px] hover:bg-ink-50"
               [class.border-primary]="ocupado() === clave(tramo)"
-              [disabled]="ocupado() !== null"
+              [disabled]="ocupado() !== null || formulario().invalid()"
               (click)="descarga(tramo)"
             >
               <span class="font-mono">{{ tramo.desde }} – {{ tramo.hasta }}</span>
@@ -180,21 +190,43 @@ export class DialogoExportacion {
 
   protected readonly iconos = { descargar: faDownload, girando: faSpinner };
 
-  protected readonly tamano = signal(TAMANO_DE_SEGMENTO);
-  protected readonly desde = signal('');
-  protected readonly hasta = signal('');
-  protected readonly verificado = signal('');
+  protected readonly modelo = signal<FormularioDeExportacion>({
+    tamano: TAMANO_DE_SEGMENTO,
+    desde: '',
+    hasta: '',
+    verificado: '',
+  });
+
+  /**
+   * Las reglas de la exportación.
+   *
+   * <p>El tamaño del tramo era un `min="1"` del marcado: dejarlo vacío calculaba tramos de uno en uno y
+   * ofrecía dos mil quinientos botones. Y el rango de fechas no puede ir del revés —el `min`/`max` de
+   * los selectores lo impide con el ratón, pero no al teclear—: es una regla que mira DOS campos, así
+   * que se declara sobre el segundo leyendo el primero.
+   */
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    required(ruta.tamano);
+    min(ruta.tamano, 1);
+    validate(ruta.hasta, ({ value, valueOf }) => {
+      const desde = valueOf(ruta.desde);
+      return value() && desde && value() < desde
+        ? { kind: 'min', message: 'admin.export.date_hint' }
+        : undefined;
+    });
+  });
+
   /** Qué se está descargando: `'todo'`, la clave de un tramo, o nada. */
   protected readonly ocupado = signal<string | null>(null);
 
   protected readonly filtro = computed<FiltroDeExportacion>(() => ({
-    creadoDesde: this.desde() || undefined,
-    creadoHasta: this.hasta() || undefined,
-    verificado: this.verificado() === '' ? undefined : this.verificado() === 'true',
+    creadoDesde: this.modelo().desde || undefined,
+    creadoHasta: this.modelo().hasta || undefined,
+    verificado: this.modelo().verificado === '' ? undefined : this.modelo().verificado === 'true',
   }));
 
   protected readonly hayFiltro = computed(
-    () => !!this.desde() || !!this.hasta() || !!this.verificado(),
+    () => !!this.modelo().desde || !!this.modelo().hasta || !!this.modelo().verificado,
   );
 
   /**
@@ -211,7 +243,9 @@ export class DialogoExportacion {
   });
 
   protected readonly cuantos = computed(() => this.total.value());
-  protected readonly tramos = computed(() => segmentos(this.cuantos(), this.tamano()));
+  protected readonly tramos = computed(() =>
+    segmentos(this.cuantos(), this.modelo().tamano ?? 0),
+  );
 
   protected clave(tramo: SegmentoDeExportacion): string {
     return `${tramo.desde}-${tramo.hasta}`;
@@ -221,10 +255,12 @@ export class DialogoExportacion {
     return tamanoDelSegmento(tramo);
   }
 
+  protected fallo(estado: EstadoDeCampo): string {
+    return falloDelCampo(this.t, estado);
+  }
+
   protected limpia(): void {
-    this.desde.set('');
-    this.hasta.set('');
-    this.verificado.set('');
+    this.modelo.update((actual) => ({ ...actual, desde: '', hasta: '', verificado: '' }));
   }
 
   protected async descarga(tramo: SegmentoDeExportacion): Promise<void> {

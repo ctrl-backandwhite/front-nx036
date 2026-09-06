@@ -84,7 +84,7 @@ import { ResumenDeLaCompra } from '../component/resumen-de-la-compra';
               (baja)="baja($event)"
               (sube)="sube($event)"
               (quita)="quita($event)"
-              (escribeNotas)="estado.escribeNotas($event)"
+              (notasChange)="estado.escribeNotas($event)"
               (descartaAviso)="avisoDeMinimo.set(null)"
             />
           </div>

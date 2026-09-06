@@ -1,4 +1,5 @@
 import { Component, computed, inject, input, linkedSignal, output, signal } from '@angular/core';
+import { FormField, disabled, form, validate } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
   faCircleCheck,
@@ -58,7 +59,7 @@ function conIdentidad(textos: readonly string[]): readonly ProblemaVisible[] {
  */
 @Component({
   selector: 'nx-importador-masivo',
-  imports: [FaIconComponent, VentanaModal, TablaDeCampos],
+  imports: [FaIconComponent, FormField, VentanaModal, TablaDeCampos],
   template: `
     <nx-ventana-modal
       [titulo]="t(clase() === 'products' ? 'admin.catalog.bulk.title_products' : 'admin.catalog.bulk.title_categories')"
@@ -153,9 +154,8 @@ function conIdentidad(textos: readonly string[]): readonly ProblemaVisible[] {
         id="importador-json"
         class="textarea textarea-bordered w-full font-mono text-[12px] h-64 resize-none"
         spellcheck="false"
-        [disabled]="!!adjunto()"
-        [value]="texto()"
-        (input)="escribe($event)"
+        [formField]="formulario.texto"
+        (input)="problemas.set([])"
       ></textarea>
 
       @if (problemas().length > 0) {
@@ -227,10 +227,33 @@ export class ImportadorMasivo {
    * obligatorio todavía no tiene valor ahí, y además así cambiar de productos a categorías trae la
    * plantilla que toca.
    */
-  protected readonly texto = linkedSignal<ClaseDeImportacion, string>({
+  private readonly modelo = linkedSignal<ClaseDeImportacion, { texto: string }>({
     source: () => this.clase(),
-    computation: (clase) => PLANTILLAS[clase],
+    computation: (clase) => ({ texto: PLANTILLAS[clase] }),
   });
+
+  /**
+   * Las reglas del editor.
+   *
+   * <p>El texto tiene que ser una lista JSON que el esquema acepte: eso ya se comprobaba en vivo, pero
+   * vivía suelto en un `computed` y el botón lo consultaba a mano. Ahora es una regla del campo, así que
+   * la validez del formulario ES la respuesta a «¿se puede importar?».
+   *
+   * <p>Con un fichero adjunto el editor se APAGA —el que manda entonces es el fichero— y la regla se
+   * calla: un texto que ya no se va a usar no puede impedir la importación. Apagarlo desde el esquema es
+   * lo que además pinta el campo como deshabilitado.
+   */
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    disabled(ruta.texto, () => !!this.adjunto());
+    validate(ruta.texto, ({ value }) =>
+      analizaJson(value(), this.clase()).clase === 'valido'
+        ? undefined
+        : { kind: 'parse', message: 'admin.catalog.bulk.invalid_json' },
+    );
+  });
+
+  /** Lo que hay escrito ahora mismo en el editor. */
+  protected readonly texto = computed(() => this.modelo().texto);
   protected readonly camposVisibles = signal(false);
   protected readonly ocupado = signal(false);
   protected readonly avance = signal<{ hechas: number; total: number } | null>(null);
@@ -247,7 +270,7 @@ export class ImportadorMasivo {
   protected readonly analisis = computed(() => analizaJson(this.texto(), this.clase()));
 
   protected readonly sePuedeImportar = computed(
-    () => !!this.adjunto() || this.analisis().clase === 'valido',
+    () => !!this.adjunto() || !this.formulario().invalid(),
   );
 
   protected readonly porcentaje = computed(() => {
@@ -257,13 +280,13 @@ export class ImportadorMasivo {
       : 0;
   });
 
-  protected formatosAdmitidos(): string {
-    return this.clase() === 'products'
+  protected readonly formatosAdmitidos = computed(() =>
+    this.clase() === 'products'
       ? '.json,.ndjson,application/json,application/x-ndjson'
-      : '.json,application/json';
-  }
+      : '.json,application/json',
+  );
 
-  protected resumenDelAnalisis(): string {
+  protected readonly resumenDelAnalisis = computed(() => {
     const analisis = this.analisis();
     switch (analisis.clase) {
       case 'valido':
@@ -277,20 +300,15 @@ export class ImportadorMasivo {
       default:
         return this.t('admin.catalog.bulk.empty');
     }
-  }
-
-  protected escribe(evento: Event): void {
-    this.texto.set((evento.target as HTMLTextAreaElement).value);
-    this.problemas.set([]);
-  }
+  });
 
   protected ponEjemplo(): void {
-    this.texto.set(EJEMPLOS[this.clase()]);
+    this.modelo.set({ texto: EJEMPLOS[this.clase()] });
     this.problemas.set([]);
   }
 
   protected ponPlantilla(): void {
-    this.texto.set(PLANTILLAS[this.clase()]);
+    this.modelo.set({ texto: PLANTILLAS[this.clase()] });
     this.problemas.set([]);
   }
 

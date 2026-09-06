@@ -5,8 +5,15 @@ import { DIRECCION_VACIA, Direccion } from '../../domain/model/direccion';
 import { DIRECCIONES_PORT } from '../../domain/port/direcciones.port';
 import { DireccionesStore } from '../state/direcciones.store';
 import { CargaDirecciones, EliminaDireccion, GuardaDireccion } from './direcciones.use-case';
+import { APLICACION_DE_ACCOUNT } from '../../account.providers';
 
-const DATOS = { ...DIRECCION_VACIA, nombreCompleto: 'Ana', linea1: 'Calle', ciudad: 'Madrid', pais: 'ES' };
+const DATOS = {
+  ...DIRECCION_VACIA,
+  nombreCompleto: 'Ana',
+  linea1: 'Calle',
+  ciudad: 'Madrid',
+  pais: 'ES',
+};
 
 const GUARDADA: Direccion = {
   id: 'dir-1',
@@ -32,7 +39,10 @@ describe('casos de uso de direcciones', () => {
     actualiza.mockReset().mockResolvedValue(exito(GUARDADA));
     elimina.mockReset().mockResolvedValue(exito(undefined));
     TestBed.configureTestingModule({
-      providers: [{ provide: DIRECCIONES_PORT, useValue: { lista, crea, actualiza, elimina } }],
+      providers: [
+        ...APLICACION_DE_ACCOUNT,
+        { provide: DIRECCIONES_PORT, useValue: { lista, crea, actualiza, elimina } },
+      ],
     });
     almacen = TestBed.inject(DireccionesStore);
   });

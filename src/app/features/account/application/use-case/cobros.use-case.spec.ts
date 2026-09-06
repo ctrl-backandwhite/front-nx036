@@ -12,6 +12,7 @@ import {
   MarcaMetodoPorDefecto,
   PideCodigoDeBajaDeMetodo,
 } from './cobros.use-case';
+import { APLICACION_DE_ACCOUNT } from '../../account.providers';
 
 const ACTIVA = { clavePublicable: 'pk_test', activo: true, pruebaGratisGastada: false };
 const TARJETA = { referencia: 'pm_1', tipo: 'TARJETA' as const, porDefecto: true };
@@ -45,6 +46,7 @@ describe('casos de uso de cobro', () => {
     abreAltaDeTarjeta.mockReset().mockResolvedValue(exito('seti_secreto'));
     TestBed.configureTestingModule({
       providers: [
+        ...APLICACION_DE_ACCOUNT,
         {
           provide: METODOS_DE_PAGO_PORT,
           useValue: {
@@ -121,7 +123,9 @@ describe('casos de uso de cobro', () => {
 
   it('si la pasarela rechaza la tarjeta, no se limpia el campo ni se refresca', async () => {
     const campo = campoDoble();
-    campo.confirmaAlta.mockResolvedValue(fallo(creaError('peticion-invalida', 'Tarjeta rechazada')));
+    campo.confirmaAlta.mockResolvedValue(
+      fallo(creaError('peticion-invalida', 'Tarjeta rechazada')),
+    );
 
     const resultado = await TestBed.inject(AnadeTarjeta).ejecuta(campo, 'Ana');
 

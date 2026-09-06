@@ -1,4 +1,5 @@
 import { Component, computed, inject, input, linkedSignal, output } from '@angular/core';
+import { FormField, form } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCircleCheck } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
@@ -23,7 +24,7 @@ import {
  */
 @Component({
   selector: 'nx-fila-de-declaracion',
-  imports: [FaIconComponent],
+  imports: [FaIconComponent, FormField],
   template: `
     <td class="whitespace-nowrap text-[12px]">
       <div class="font-mono">{{ grupo().hs6 }}</div>
@@ -34,16 +35,14 @@ import {
       <input
         class="input input-sm input-bordered w-full min-w-[16rem]"
         [attr.aria-label]="t('admin.declgroups.ename')"
-        [value]="ingles()"
-        (input)="ingles.set($any($event.target).value)"
+        [formField]="formulario.ingles"
       />
     </td>
     <td>
       <input
         class="input input-sm input-bordered w-full min-w-[12rem]"
         [attr.aria-label]="t('admin.declgroups.cname')"
-        [value]="chino()"
-        (input)="chino.set($any($event.target).value)"
+        [formField]="formulario.chino"
       />
     </td>
     <td class="whitespace-nowrap text-[12px]">
@@ -63,8 +62,8 @@ import {
       <button
         type="button"
         class="btn btn-xs btn-ghost"
-        [disabled]="!hayCambios()"
-        (click)="guarda.emit({ ingles: ingles().trim(), chino: chino().trim() })"
+        [disabled]="!sePuedeGuardar()"
+        (click)="guarda.emit({ ingles: modelo().ingles.trim(), chino: modelo().chino.trim() })"
       >
         {{ t('admin.declgroups.save') }}
       </button>
@@ -95,19 +94,29 @@ export class FilaDeDeclaracion {
   protected readonly t = inject(TraduccionService).t;
   protected readonly iconoAprobado = faCircleCheck;
 
-  protected readonly ingles = linkedSignal<GrupoDeDeclaracion, string>({
+  /** Lo tecleado en la fila. Vuelve a lo del servidor al guardar, al sembrar o al recargar. */
+  protected readonly modelo = linkedSignal<GrupoDeDeclaracion, { ingles: string; chino: string }>({
     source: () => this.grupo(),
-    computation: (grupo) => grupo.nombreEn ?? '',
+    computation: (grupo) => ({ ingles: grupo.nombreEn ?? '', chino: grupo.nombreZh ?? '' }),
   });
 
-  protected readonly chino = linkedSignal<GrupoDeDeclaracion, string>({
-    source: () => this.grupo(),
-    computation: (grupo) => grupo.nombreZh ?? '',
-  });
+  /**
+   * El formulario va SIN reglas de campo, y es a propósito.
+   *
+   * <p>Ninguna de las dos descripciones es obligatoria aquí: una terna recién sembrada nace sin ellas y
+   * eso no es un error, es lo que queda por hacer. Quien exige la inglesa es la APROBACIÓN —firmar sin
+   * descripción es lo que hace que el transportista rechace la guía—, y esa regla la sigue poniendo el
+   * dominio (`puedeAprobarse`) sobre el botón que la necesita, no sobre el campo.
+   *
+   * <p>Tampoco se inventa un tope de longitud: el que tenga el backend no está escrito en ningún sitio
+   * de este lado, y poner uno a ojo bloquearía descripciones que hoy se guardan.
+   */
+  protected readonly formulario = form(this.modelo);
 
-  protected readonly hayCambios = computed(() =>
-    descripcionCambiada(this.grupo(), this.ingles(), this.chino()),
+  /** Se guarda cuando de verdad hay algo distinto de lo que ya tiene el servidor. */
+  protected readonly sePuedeGuardar = computed(() =>
+    descripcionCambiada(this.grupo(), this.modelo().ingles, this.modelo().chino),
   );
 
-  protected readonly sePuedeAprobar = computed(() => puedeAprobarse(this.ingles()));
+  protected readonly sePuedeAprobar = computed(() => puedeAprobarse(this.modelo().ingles));
 }

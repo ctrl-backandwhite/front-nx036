@@ -1,4 +1,5 @@
 import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { FormField, form, min, required } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { GuiaPuntos } from '@ds/component/guia-puntos/guia-puntos';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
@@ -27,7 +28,7 @@ interface FilaEditable {
  */
 @Component({
   selector: 'nx-desglose-editable',
-  imports: [GuiaPuntos],
+  imports: [FormField, GuiaPuntos],
   template: `
     <div class="mt-2 rounded-lg border border-dashed border-base-300 bg-base-200/40 px-3 py-2 text-[12px]">
       <div class="opacity-60 mb-1">{{ t('product.price.breakdown_admin') }}</div>
@@ -48,12 +49,12 @@ interface FilaEditable {
             <span>{{ t(fila.clave) }}</span>
             <nx-guia-puntos />
             @if (editando() === fila.campo) {
+              <!-- El mínimo ya no va como atributo: lo declara el esquema, que además es quien decide
+                   si se guarda. El atributo solo frenaba las flechas del navegador. -->
               <input
                 type="number"
                 step="0.01"
-                min="0"
-                [value]="borrador()"
-                (input)="borrador.set($any($event.target).value)"
+                [formField]="formulario.importe"
                 (keydown.enter)="guarda(fila.campo)"
                 (keydown.escape)="editando.set(null)"
                 (blur)="editando.set(null)"
@@ -85,7 +86,19 @@ export class DesgloseEditable {
   protected readonly t = inject(TraduccionService).t;
 
   protected readonly editando = signal<CampoEnYuanes | null>(null);
-  protected readonly borrador = signal('');
+
+  /** Lo que se está tecleando. En yuanes y como NÚMERO: es un campo numérico, no un texto. */
+  private readonly borrador = signal<{ importe: number | null }>({ importe: 0 });
+
+  /**
+   * Las dos reglas del importe, que antes vivían repartidas entre un atributo `min="0"` del marcado y
+   * una comprobación al guardar. Un importe vacío o negativo no se manda: el subsidio se RESTA, y en
+   * negativo acabaría cobrando de más a quien compra.
+   */
+  protected readonly formulario = form(this.borrador, (ruta) => {
+    required(ruta.importe, { message: () => this.t('dialog.field.required') });
+    min(ruta.importe, 0, { message: () => this.t('dialog.field.min') });
+  });
 
   protected readonly filasFijas = computed(() =>
     [
@@ -124,15 +137,15 @@ export class DesgloseEditable {
   });
 
   protected empiezaEdicion(fila: FilaEditable): void {
-    this.borrador.set(fila.crudo != null ? String(fila.crudo) : '0');
+    this.borrador.set({ importe: fila.crudo ?? 0 });
     this.editando.set(fila.campo);
   }
 
   protected async guarda(campo: CampoEnYuanes): Promise<void> {
-    const valor = Number.parseFloat(this.borrador());
+    const valor = this.borrador().importe;
     this.editando.set(null);
-    // Un importe negativo o sin sentido no se manda: el subsidio se resta, y en negativo cobraría de más.
-    if (!Number.isFinite(valor) || valor < 0) {
+    // Un único sitio al que preguntar si el importe vale, en vez de repetir aquí la regla.
+    if (this.formulario().invalid() || valor === null) {
       return;
     }
     const resultado = await this.editor.guardaImporteEnYuanes(this.idDelProducto(), campo, valor);

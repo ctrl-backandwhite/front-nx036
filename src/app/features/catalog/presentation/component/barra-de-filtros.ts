@@ -1,4 +1,5 @@
-import { Component, computed, inject, input, model, output } from '@angular/core';
+import { Component, computed, inject, input, linkedSignal, model, output } from '@angular/core';
+import { FieldTree, FormField, form, min, validate } from '@angular/forms/signals';
 import { faTruckFast, faVideo } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { CampoBusqueda } from '@ds/component/campo-busqueda/campo-busqueda';
@@ -15,6 +16,30 @@ import { FiltroInterruptor } from './filtro-interruptor';
 const ORIGENES = ['CN', 'HK', 'US', 'ES', 'MX'];
 /** Certificaciones que el catálogo sabe filtrar. */
 const CERTIFICACIONES = ['CE', 'FCC', 'RoHS', 'FDA', 'EN71'];
+/**
+ * El rango de precio tal y como lo maneja el formulario: dos números que SIEMPRE existen.
+ *
+ * <p>El criterio del negocio los guarda como texto opcional —así viajan en la dirección del navegador
+ * y así los espera el backend—, pero Signal Forms construye un campo por cada clave que EXISTE en el
+ * objeto: un criterio sin precio puesto no tiene la clave y la plantilla se quedaría sin nada a lo que
+ * atarse. Aquí las dos claves están siempre, con el nulo como «sin poner».
+ */
+interface RangoDePrecio {
+  readonly minimo: number | null;
+  readonly maximo: number | null;
+}
+
+/** El texto del criterio, como número para el campo. Lo que no sea un número es «sin poner». */
+function aNumero(texto: string | undefined): number | null {
+  const valor = Number(texto);
+  return texto && Number.isFinite(valor) ? valor : null;
+}
+
+/** Y al revés, para devolverlo al criterio: sin valor no se manda la clave, no una cadena vacía. */
+function aTexto(valor: number | null): string | undefined {
+  return valor === null ? undefined : String(valor);
+}
+
 const ORDENES: readonly OrdenDelCatalogo[] = [
   'best_match',
   'sales',
@@ -39,7 +64,7 @@ const ORDENES: readonly OrdenDelCatalogo[] = [
  */
 @Component({
   selector: 'nx-barra-de-filtros',
-  imports: [CampoBusqueda, FiltroDesplegable, FiltroInterruptor],
+  imports: [CampoBusqueda, FiltroDesplegable, FiltroInterruptor, FormField],
   template: `
     <div class="card p-3 sm:p-4 flex flex-col gap-3">
       <div class="flex flex-wrap items-center gap-2">
@@ -114,28 +139,35 @@ const ORDENES: readonly OrdenDelCatalogo[] = [
           (activoChange)="cambia({ conVideo: $event })"
         />
 
-        <div class="flex items-center gap-1.5">
-          <label class="sr-only" for="filtro-precio-min">{{ t('catalog.price_min') }}</label>
-          <input
-            id="filtro-precio-min"
-            type="number"
-            inputmode="decimal"
-            class="input input-bordered input-sm w-24 min-h-11 sm:min-h-8 text-[12px]"
-            [placeholder]="t('catalog.price_min')"
-            [value]="criterio().precioMinimo ?? ''"
-            (change)="cambia({ precioMinimo: valorDe($event) })"
-          />
-          <span aria-hidden="true" class="text-ink-400">–</span>
-          <label class="sr-only" for="filtro-precio-max">{{ t('catalog.price_max') }}</label>
-          <input
-            id="filtro-precio-max"
-            type="number"
-            inputmode="decimal"
-            class="input input-bordered input-sm w-24 min-h-11 sm:min-h-8 text-[12px]"
-            [placeholder]="t('catalog.price_max')"
-            [value]="criterio().precioMaximo ?? ''"
-            (change)="cambia({ precioMaximo: valorDe($event) })"
-          />
+        <!-- El envoltorio solo existe para poder colgar el aviso DEBAJO del par de campos: dentro de
+             la fila se metería entre el mínimo y el máximo. -->
+        <div>
+          <div class="flex items-center gap-1.5">
+            <label class="sr-only" for="filtro-precio-min">{{ t('catalog.price_min') }}</label>
+            <input
+              id="filtro-precio-min"
+              type="number"
+              inputmode="decimal"
+              class="input input-bordered input-sm w-24 min-h-11 sm:min-h-8 text-[12px]"
+              [placeholder]="t('catalog.price_min')"
+              [formField]="formulario.minimo"
+              (change)="publicaElRango()"
+            />
+            <span aria-hidden="true" class="text-ink-400">–</span>
+            <label class="sr-only" for="filtro-precio-max">{{ t('catalog.price_max') }}</label>
+            <input
+              id="filtro-precio-max"
+              type="number"
+              inputmode="decimal"
+              class="input input-bordered input-sm w-24 min-h-11 sm:min-h-8 text-[12px]"
+              [placeholder]="t('catalog.price_max')"
+              [formField]="formulario.maximo"
+              (change)="publicaElRango()"
+            />
+          </div>
+          @if (falloDelRango(); as fallo) {
+            <span role="alert" class="text-xs text-error mt-1 block">{{ fallo }}</span>
+          }
         </div>
 
         <nx-filtro-desplegable
@@ -199,8 +231,62 @@ export class BarraDeFiltros {
     ORDENES.map((orden) => ({ valor: orden, etiqueta: this.t(`catalog.sort.${orden}`) })),
   );
 
-  protected valorDe(evento: Event): string | undefined {
-    return (evento.target as HTMLInputElement).value || undefined;
+  /**
+   * El rango de precio, normalizado y con las dos claves puestas.
+   *
+   * <p>Se DERIVA del criterio que llega, así que «limpiar filtros» o un enlace compartido vacían los
+   * campos solos, sin sincronizar nada a mano.
+   */
+  private readonly rango = linkedSignal<RangoDePrecio>(() => ({
+    minimo: aNumero(this.criterio().precioMinimo),
+    maximo: aNumero(this.criterio().precioMaximo),
+  }));
+
+  /**
+   * Las dos reglas del rango, ahora declaradas en vez de repartidas.
+   *
+   * <p>Un precio negativo no existe y solo devolvería la lista entera. Y un mínimo por encima del
+   * máximo no devuelve NADA: el catálogo se queda en blanco y quien busca no entiende por qué. Antes
+   * ninguna de las dos se decía en ninguna parte.
+   */
+  protected readonly formulario = form(this.rango, (ruta) => {
+    min(ruta.minimo, 0, { message: () => this.t('dialog.field.min') });
+    min(ruta.maximo, 0, { message: () => this.t('dialog.field.min') });
+    validate(ruta, ({ value }) => {
+      const { minimo, maximo } = value();
+      // Sin mensaje a propósito: no hay ninguna clave traducida que diga «el mínimo supera al
+      // máximo» y aquí no se inventan claves. Queda anotado; el estado sí es correcto ya.
+      return minimo !== null && maximo !== null && minimo > maximo ? { kind: 'rango-invertido' } : null;
+    });
+  });
+
+  /**
+   * Un solo aviso para el par: son un rango, y dos mensajes idénticos uno debajo de otro no dicen más
+   * que uno.
+   */
+  protected readonly falloDelRango = computed(
+    () => this.falloDe(this.formulario.minimo) ?? this.falloDe(this.formulario.maximo),
+  );
+
+  /**
+   * El mensaje que toca enseñar bajo un campo, o nulo. Se calla hasta que el campo se ha TOCADO:
+   * pintar de rojo un filtro recién abierto acusa a quien todavía no ha escrito nada.
+   */
+  private falloDe<T>(campo: FieldTree<T>): string | null {
+    const estado = campo();
+    return estado.touched() ? (estado.errors()[0]?.message ?? null) : null;
+  }
+
+  /**
+   * El rango sube al SALIR del campo, no en cada tecleada.
+   *
+   * <p>No es un detalle de estilo: el criterio acaba en la dirección del navegador, así que publicarlo
+   * por dígito sería una navegación —y una búsqueda entera— por cada tecla. El valor ya lo lleva el
+   * formulario; esto solo lo publica.
+   */
+  protected publicaElRango(): void {
+    const { minimo, maximo } = this.rango();
+    this.cambia({ precioMinimo: aTexto(minimo), precioMaximo: aTexto(maximo) });
   }
 
   protected cambia(parcial: Partial<CriterioDeBusqueda>): void {

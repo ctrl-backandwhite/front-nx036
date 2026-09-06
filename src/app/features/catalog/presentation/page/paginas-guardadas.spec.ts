@@ -13,6 +13,7 @@ import { PaginaDeProductos } from '../../domain/model/producto';
 import { FavoritosPage } from './favoritos.page';
 import { HistorialPage } from './historial.page';
 import { PortadaPage } from './portada.page';
+import { APLICACION_DEL_CATALOGO } from '../../catalog.providers';
 
 function pagina(cuantos: number, totalDePaginas = 1): PaginaDeProductos {
   return {
@@ -51,6 +52,7 @@ describe('FavoritosPage', () => {
   it('enseña los productos marcados', async () => {
     const vista = await render(FavoritosPage, {
       providers: [
+        ...APLICACION_DEL_CATALOGO,
         ...PUERTOS_DE_LA_TARJETA,
         {
           provide: FAVORITOS_PORT,
@@ -67,6 +69,7 @@ describe('FavoritosPage', () => {
   it('sin favoritos ofrece ir al catálogo', async () => {
     const vista = await render(FavoritosPage, {
       providers: [
+        ...APLICACION_DEL_CATALOGO,
         ...PUERTOS_DE_LA_TARJETA,
         {
           provide: FAVORITOS_PORT,
@@ -82,6 +85,7 @@ describe('FavoritosPage', () => {
   it('un fallo del servidor no deja la pantalla rota', async () => {
     const vista = await render(FavoritosPage, {
       providers: [
+        ...APLICACION_DEL_CATALOGO,
         ...PUERTOS_DE_LA_TARJETA,
         {
           provide: FAVORITOS_PORT,
@@ -102,6 +106,7 @@ describe('HistorialPage', () => {
   it('enseña lo visitado y recuerda la retención del dato', async () => {
     const vista = await render(HistorialPage, {
       providers: [
+        ...APLICACION_DEL_CATALOGO,
         ...PUERTOS_DE_LA_TARJETA,
         {
           provide: HISTORIAL_PORT,
@@ -119,6 +124,7 @@ describe('HistorialPage', () => {
   it('con varias páginas ofrece pasar de una a otra', async () => {
     const vista = await render(HistorialPage, {
       providers: [
+        ...APLICACION_DEL_CATALOGO,
         ...PUERTOS_DE_LA_TARJETA,
         {
           provide: HISTORIAL_PORT,
@@ -136,6 +142,7 @@ describe('PortadaPage', () => {
   async function monta(haySesion: boolean) {
     const vista = await render(PortadaPage, {
       providers: [
+        ...APLICACION_DEL_CATALOGO,
         provideRouter([]),
         SESION_RESUELTA,
         {
@@ -193,6 +200,7 @@ describe('PortadaPage', () => {
   it('sin datos todavía, las cifras se enseñan como pendientes', async () => {
     const vista = await render(PortadaPage, {
       providers: [
+        ...APLICACION_DEL_CATALOGO,
         provideRouter([]),
         SESION_RESUELTA,
         {

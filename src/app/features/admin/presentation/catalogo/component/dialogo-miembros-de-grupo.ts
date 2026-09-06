@@ -132,9 +132,9 @@ export class DialogoMiembrosDeGrupo {
     candidatosAMiembro(this.encontrados.value(), this.miembros.value()),
   );
 
-  protected titulo(): string {
-    return this.tCon('admin.groups.members_of', { name: this.grupo().nombre });
-  }
+  protected readonly titulo = computed(() =>
+    this.tCon('admin.groups.members_of', { name: this.grupo().nombre }),
+  );
 
   protected anade(candidato: MiembroDeGrupo): void {
     void this.mueve(candidato.id, true);

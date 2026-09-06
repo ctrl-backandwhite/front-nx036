@@ -1,4 +1,5 @@
-import { Component, computed, inject, input, output } from '@angular/core';
+import { Component, computed, inject, input, linkedSignal, output } from '@angular/core';
+import { FormField, applyEach, form, min } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
@@ -23,7 +24,7 @@ import {
  */
 @Component({
   selector: 'nx-precios-de-ficha',
-  imports: [FaIconComponent],
+  imports: [FaIconComponent, FormField],
   template: `
     <div class="space-y-4">
       @if (ficha().tramos.length > 0) {
@@ -96,11 +97,10 @@ import {
                         [id]="'precio-' + variante.id"
                         type="number"
                         step="0.01"
-                        min="0"
                         class="input input-xs w-24 text-right font-mono"
                         [title]="ficha().divisa"
-                        [value]="precio(variante)"
-                        (blur)="confirma(variante, $any($event.target).value)"
+                        [formField]="formulario[variante.id]"
+                        (blur)="confirma(variante)"
                         (keydown.enter)="$any($event.target).blur()"
                       />
                       <span class="text-[10px] text-ink-400">{{ ficha().divisa }}</span>
@@ -141,6 +141,34 @@ export class PreciosDeFicha {
     precioDeReferencia(this.ficha().variantes, this.ficha().coste),
   );
 
+  /**
+   * Un precio editable por variante, derivado de la ficha.
+   *
+   * <p>Se rehace solo cuando llega otra ficha —al guardar, al cambiar de idioma—, así que la casilla
+   * nunca se queda enseñando un precio viejo. Sigue siendo escribible porque es el modelo del
+   * formulario.
+   */
+  private readonly precios = linkedSignal<FichaDeProducto, Record<string, number | null>>({
+    source: () => this.ficha(),
+    computation: (ficha) =>
+      Object.fromEntries(
+        ficha.variantes.map((variante) => [
+          variante.id,
+          variante.precio != null ? Number(variante.precio) : Number(ficha.coste ?? 0),
+        ]),
+      ),
+  });
+
+  /**
+   * Ningún precio puede ser negativo.
+   *
+   * <p>Era un `min="0"` del marcado, que solo limita las flechas del navegador: un −5 tecleado llegaba
+   * al guardado. Y aquí un precio en negativo no es un dato raro, es vender por debajo del coste.
+   */
+  protected readonly formulario = form(this.precios, (ruta) => {
+    applyEach(ruta, (precio) => min(precio, 0));
+  });
+
   protected etiqueta(tramo: { cantidadMinima: number; cantidadMaxima?: number | null }): string {
     return etiquetaDeTramo({ ...tramo, precioUnitario: 0, divisa: '' });
   }
@@ -149,6 +177,7 @@ export class PreciosDeFicha {
     return traduceOpciones(variante.titulo ?? '', this.idioma());
   }
 
+  /** El precio que TIENE la variante hoy, no el que se está tecleando: es la base de la comparación. */
   protected precio(variante: VarianteDeProducto): number {
     return variante.precio != null ? Number(variante.precio) : Number(this.ficha().coste ?? 0);
   }
@@ -166,9 +195,9 @@ export class PreciosDeFicha {
     return valor === 0 ? '—' : `${valor > 0 ? '+' : ''}${valor.toFixed(1)}%`;
   }
 
-  protected confirma(variante: VarianteDeProducto, valor: string): void {
-    const precio = Number(valor);
-    if (valor.trim() === '' || !Number.isFinite(precio)) {
+  protected confirma(variante: VarianteDeProducto): void {
+    const precio = this.precios()[variante.id];
+    if (precio === null || !Number.isFinite(precio) || this.formulario[variante.id]().invalid()) {
       return;
     }
     this.cambiaPrecio.emit({

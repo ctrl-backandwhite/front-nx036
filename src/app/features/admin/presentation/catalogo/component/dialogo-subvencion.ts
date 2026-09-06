@@ -1,12 +1,16 @@
 import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { FormField, form, min, validateTree } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { PeticionDeSubvencion } from '../../../domain/catalogo/port/productos-admin.port';
+import { EstadoDeCampo, falloDelCampo } from '../etiquetas';
 import { AmbitoElegido, SelectorDeAmbito } from './selector-de-ambito';
 import { VentanaModal } from './ventana-modal';
 
-/** Un importe vacío significa «no lo toco»; uno escrito, el valor que se fija. */
-function importeOSinTocar(texto: string): number | undefined {
-  return texto === '' ? undefined : parseFloat(texto);
+/** Lo que se rellena en el diálogo. `null` en una bolsa significa «esa no la toco». */
+interface FormularioDeSubvencion {
+  envio: number | null;
+  arancel: number | null;
+  ambito: AmbitoElegido;
 }
 
 /**
@@ -18,7 +22,7 @@ function importeOSinTocar(texto: string): number | undefined {
  */
 @Component({
   selector: 'nx-dialogo-subvencion',
-  imports: [VentanaModal, SelectorDeAmbito],
+  imports: [FormField, VentanaModal, SelectorDeAmbito],
   template: `
     <nx-ventana-modal [titulo]="t('admin.catalog.subsidy.title')" (cierra)="cierra.emit()">
       <p class="text-[12px] text-ink-500 mb-2">{{ t('admin.catalog.subsidy.hint') }}</p>
@@ -29,12 +33,13 @@ function importeOSinTocar(texto: string): number | undefined {
         id="subvencion-envio"
         type="number"
         step="0.01"
-        min="0"
         class="input w-full"
         placeholder="0"
-        [value]="envio()"
-        (input)="envio.set($any($event.target).value)"
+        [formField]="formulario.envio"
       />
+      @if (fallo(formulario.envio()); as texto) {
+        <p class="text-[11px] text-error mt-0.5">{{ texto }}</p>
+      }
       <label for="subvencion-arancel" class="text-xs text-ink-500 mt-2 block">
         {{ t('admin.catalog.fields.dutyUserCny') }}
       </label>
@@ -42,15 +47,16 @@ function importeOSinTocar(texto: string): number | undefined {
         id="subvencion-arancel"
         type="number"
         step="0.01"
-        min="0"
         class="input w-full"
         placeholder="0"
-        [value]="arancel()"
-        (input)="arancel.set($any($event.target).value)"
+        [formField]="formulario.arancel"
       />
+      @if (fallo(formulario.arancel()); as texto) {
+        <p class="text-[11px] text-error mt-0.5">{{ texto }}</p>
+      }
       <div class="mt-3">
         <nx-selector-de-ambito
-          [(ambito)]="ambito"
+          [campo]="formulario.ambito"
           [seleccionados]="seleccion().length"
           [nombreDeCategoria]="nombreDeCategoria()"
           prefijo="admin.catalog.subsidy"
@@ -82,18 +88,46 @@ export class DialogoSubvencion {
   readonly confirma = output<PeticionDeSubvencion>();
 
   protected readonly t = inject(TraduccionService).t;
-  protected readonly envio = signal('');
-  protected readonly arancel = signal('');
-  protected readonly ambito = signal<AmbitoElegido>('todo');
 
-  protected readonly sePuedeGuardar = computed(() => this.envio() !== '' || this.arancel() !== '');
+  protected readonly modelo = signal<FormularioDeSubvencion>({
+    envio: null,
+    arancel: null,
+    ambito: 'todo',
+  });
+
+  /**
+   * Las reglas de las dos bolsas.
+   *
+   * <p>Ninguna es obligatoria por separado —dejar una vacía es justo cómo se cambia una sin pisar la
+   * otra—, pero las dos vacías no aplican nada: eso se comprueba SOBRE EL FORMULARIO ENTERO con
+   * `validateTree`, que es donde vive una regla que mira dos campos a la vez.
+   *
+   * <p>Y ninguna puede ser negativa: una bolsa en negativo le sumaría al cliente en vez de descontarle.
+   */
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    min(ruta.envio, 0);
+    min(ruta.arancel, 0);
+    validateTree(ruta, ({ value }) =>
+      value().envio === null && value().arancel === null
+        ? { kind: 'sin-bolsas', message: 'admin.catalog.subsidy.hint' }
+        : undefined,
+    );
+  });
+
+  /** Vale para guardar cuando no queda ningún error: el de las dos bolsas vacías incluido. */
+  protected readonly sePuedeGuardar = computed(() => !this.formulario().invalid());
+
+  protected fallo(estado: EstadoDeCampo): string {
+    return falloDelCampo(this.t, estado);
+  }
 
   protected aplica(): void {
+    const valores = this.modelo();
     this.confirma.emit({
-      envioCny: importeOSinTocar(this.envio()),
-      arancelCny: importeOSinTocar(this.arancel()),
-      productoIds: this.ambito() === 'seleccion' ? this.seleccion() : undefined,
-      categoriaId: this.ambito() === 'categoria' ? (this.categoriaId() ?? undefined) : undefined,
+      envioCny: valores.envio ?? undefined,
+      arancelCny: valores.arancel ?? undefined,
+      productoIds: valores.ambito === 'seleccion' ? this.seleccion() : undefined,
+      categoriaId: valores.ambito === 'categoria' ? (this.categoriaId() ?? undefined) : undefined,
     });
   }
 }

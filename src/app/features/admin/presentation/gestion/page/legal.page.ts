@@ -3,6 +3,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
   faCircleCheck, faFloppyDisk, faPlus, faTrashCan, faTriangleExclamation, faUpload,
 } from '@fortawesome/free-solid-svg-icons';
+import { FormField, applyEach, form, required } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { DialogoStore } from '@ds/component/dialogo/dialogo.store';
 import {
@@ -23,20 +24,28 @@ const SEPARADOR_DE_PARRAFOS = '\n\n';
  * lista se reordena y se borra por el medio, y seguirla por posición haría que al quitar la segunda
  * sección Angular reconstruyera todas las de abajo: se pierde el foco a media frase y el cursor salta.
  * La clave se pone al cargar, vive solo en la pantalla y no viaja al backend.
+ *
+ * <p>Los párrafos viven aquí como UN texto con líneas en blanco por medio, que es como se escriben. Se
+ * parten al guardar y no en cada pulsación: antes se partían y se volvían a juntar letra a letra.
  */
-interface SeccionEditable extends SeccionLegal {
-  readonly clave: string;
+interface SeccionEditable {
+  clave: string;
+  h: string;
+  p: string;
+}
+
+/** El documento entero mientras se edita. */
+interface DocumentoEditable {
+  titulo: string;
+  intro: string;
+  secciones: SeccionEditable[];
 }
 
 let siguienteClave = 0;
 
 function conClave(seccion: SeccionLegal): SeccionEditable {
   siguienteClave += 1;
-  return { ...seccion, clave: `seccion-${siguienteClave}` };
-}
-
-function valorDe(evento: Event): string {
-  return (evento.target as HTMLInputElement | HTMLTextAreaElement).value;
+  return { h: seccion.h, p: seccion.p.join(SEPARADOR_DE_PARRAFOS), clave: `seccion-${siguienteClave}` };
 }
 
 /**
@@ -57,13 +66,14 @@ function valorDe(evento: Event): string {
  */
 @Component({
   selector: 'nx-legal-admin',
-  imports: [FaIconComponent],
+  imports: [FaIconComponent, FormField],
   template: `
     <div class="space-y-4">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <h1 class="text-xl font-semibold">{{ t('admin.legal.title') }}</h1>
         <div class="flex items-center gap-2">
-          <button type="button" class="btn btn-sm" [disabled]="!sucio() || guardando()"
+          <button type="button" class="btn btn-sm"
+                  [disabled]="!sucio() || guardando() || formulario().invalid()"
                   (click)="guardaElBorrador()">
             <fa-icon [icon]="iconos.guardar" /> {{ t('admin.legal.save') }}
           </button>
@@ -126,22 +136,27 @@ function valorDe(evento: Event): string {
 
           <label class="block" for="legal-titulo">
             <span class="text-[12px] opacity-70">{{ t('admin.legal.doc_title') }}</span>
-            <input id="legal-titulo" class="input input-bordered w-full" [value]="titulo()"
-                   (input)="escribeTitulo($event)" />
+            <input id="legal-titulo" class="input input-bordered w-full"
+                   [formField]="formulario.titulo" />
+            @if (formulario.titulo().touched() && formulario.titulo().errors().length) {
+              <span role="alert" class="text-[11px] text-error mt-0.5 block">
+                {{ formulario.titulo().errors()[0].message }}
+              </span>
+            }
           </label>
 
           <label class="block" for="legal-intro">
             <span class="text-[12px] opacity-70">{{ t('admin.legal.intro') }}</span>
             <textarea id="legal-intro" class="input input-bordered min-h-20 w-full text-[13px]"
-                      [value]="intro()" (input)="escribeIntro($event)"></textarea>
+                      [formField]="formulario.intro"></textarea>
           </label>
 
-          @for (seccion of secciones(); track seccion.clave) {
+          @for (seccion of modelo().secciones; track seccion.clave) {
             <div class="rounded-lg border border-base-300 p-3">
               <div class="flex items-center gap-2">
-                <input class="input input-bordered input-sm flex-1 font-medium" [value]="seccion.h"
+                <input class="input input-bordered input-sm flex-1 font-medium"
                        [attr.aria-label]="t('admin.legal.doc_title')"
-                       (input)="escribeEncabezado($index, $event)" />
+                       [formField]="formulario.secciones[$index].h" />
                 <button type="button" class="btn btn-ghost btn-xs text-error"
                         [attr.aria-label]="t('actions.delete')" (click)="borraSeccion($index)">
                   <fa-icon [icon]="iconos.borrar" />
@@ -150,8 +165,8 @@ function valorDe(evento: Event): string {
               <!-- Los párrafos se separan por línea en blanco: es la convención que ya usa cualquiera
                    que escriba texto, y evita montar un editor enriquecido para un documento legal. -->
               <textarea class="input input-bordered mt-2 min-h-28 w-full text-[13px]"
-                        [attr.aria-label]="t('admin.newsletter.content')" [value]="parrafos(seccion)"
-                        (input)="escribeParrafos($index, $event)"></textarea>
+                        [attr.aria-label]="t('admin.newsletter.content')"
+                        [formField]="formulario.secciones[$index].p"></textarea>
             </div>
           }
 
@@ -191,11 +206,28 @@ export class LegalPage {
   protected readonly guardando = signal(false);
   protected readonly publicando = signal(false);
 
-  protected readonly titulo = signal('');
-  protected readonly intro = signal('');
-  protected readonly secciones = signal<readonly SeccionEditable[]>([]);
-  /** Hay cambios en pantalla que todavía no se han guardado. Es lo que decide si publicar avisa. */
-  protected readonly sucio = signal(false);
+  /**
+   * El documento en edición, como UN formulario.
+   *
+   * <p>Cada sección lleva su encabezado obligatorio: una sección sin título se pinta en el escaparate
+   * como un bloque de texto suelto, sin nada que diga de qué habla.
+   */
+  protected readonly modelo = signal<DocumentoEditable>({ titulo: '', intro: '', secciones: [] });
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    required(ruta.titulo, { message: () => this.t('dialog.field.required') });
+    applyEach(ruta.secciones, (seccion) => {
+      required(seccion.h, { message: () => this.t('dialog.field.required') });
+    });
+  });
+
+  /**
+   * Hay cambios en pantalla que todavía no se han guardado. Es lo que decide si publicar avisa.
+   *
+   * <p>Ya no es un signal que haya que acordarse de encender en cada manejador —donde se olvidaba— sino
+   * el estado que el propio formulario lleva. Se apaga al volver a leer el documento, que es cuando lo
+   * de la pantalla y lo del servidor vuelven a coincidir.
+   */
+  protected readonly sucio = computed(() => this.formulario().dirty());
 
   protected readonly pendientes = computed(() => conBorradorPendiente(this.documentos()));
   protected readonly resumenDePendientes = computed(() =>
@@ -217,10 +249,6 @@ export class LegalPage {
     return this.existe(idioma) ? 'btn-ghost' : 'btn-ghost opacity-40';
   }
 
-  protected parrafos(seccion: SeccionLegal): string {
-    return seccion.p.join(SEPARADOR_DE_PARRAFOS);
-  }
-
   protected eligeClase(clase: ClaseDeDocumento): void {
     this.clase.set(clase);
     void this.leeElDocumento();
@@ -231,50 +259,42 @@ export class LegalPage {
     void this.leeElDocumento();
   }
 
-  protected escribeTitulo(evento: Event): void {
-    this.titulo.set(valorDe(evento));
-    this.sucio.set(true);
-  }
-
-  protected escribeIntro(evento: Event): void {
-    this.intro.set(valorDe(evento));
-    this.sucio.set(true);
-  }
-
-  protected escribeEncabezado(indice: number, evento: Event): void {
-    const encabezado = valorDe(evento);
-    this.cambiaSeccion(indice, (seccion) => ({ ...seccion, h: encabezado }));
-  }
-
-  protected escribeParrafos(indice: number, evento: Event): void {
-    const escritos = valorDe(evento).split(SEPARADOR_DE_PARRAFOS);
-    this.cambiaSeccion(indice, (seccion) => ({ ...seccion, p: escritos }));
-  }
-
+  /**
+   * Quitar o añadir una sección también es un cambio pendiente.
+   *
+   * <p>Se marca a mano porque no lo hace ningún campo: la directiva marca sucio lo que se TECLEA, y aquí
+   * lo que cambia es la lista.
+   */
   protected borraSeccion(indice: number): void {
-    this.secciones.update((previas) => previas.filter((_, k) => k !== indice));
-    this.sucio.set(true);
+    this.modelo.update((previo) => ({
+      ...previo,
+      secciones: previo.secciones.filter((_, k) => k !== indice),
+    }));
+    this.formulario().markAsDirty();
   }
 
   protected anadeSeccion(): void {
-    this.secciones.update((previas) => [...previas, conClave({ h: '', p: [''] })]);
-    this.sucio.set(true);
+    this.modelo.update((previo) => ({
+      ...previo,
+      secciones: [...previo.secciones, conClave({ h: '', p: [''] })],
+    }));
+    this.formulario().markAsDirty();
   }
 
   /** Guardar NO publica y NO avisa a nadie: es la mitad segura de esta pantalla. */
   protected async guardaElBorrador(): Promise<void> {
     this.guardando.set(true);
-    const resultado = await this.guarda.ejecuta(this.clase(), this.idioma(), this.titulo(), {
-      intro: this.intro(),
+    const documento = this.modelo();
+    const resultado = await this.guarda.ejecuta(this.clase(), this.idioma(), documento.titulo, {
+      intro: documento.intro,
       // La clave de edición se queda aquí: el documento que se guarda es el del dominio.
-      secciones: this.secciones().map(({ h, p }) => ({ h, p })),
+      secciones: documento.secciones.map(({ h, p }) => ({ h, p: p.split(SEPARADOR_DE_PARRAFOS) })),
     });
     this.guardando.set(false);
     if (!resultado.ok) {
       await this.dialogo.alerta(resultado.error.mensaje || this.t('common.error'), undefined, 'error');
       return;
     }
-    this.sucio.set(false);
     await this.carga();
     await this.dialogo.alerta(this.t('admin.legal.saved'), undefined, 'success');
   }
@@ -314,16 +334,6 @@ export class LegalPage {
     );
   }
 
-  private cambiaSeccion(
-    indice: number,
-    cambio: (seccion: SeccionEditable) => SeccionEditable,
-  ): void {
-    this.secciones.update((previas) =>
-      previas.map((seccion, k) => (k === indice ? cambio(seccion) : seccion)),
-    );
-    this.sucio.set(true);
-  }
-
   /** Respaldo para las claves que aún no están en los ocho diccionarios: `t()` devolvería la clave. */
   private conRespaldo(clave: string, respaldo: string): string {
     const traducido = this.t(clave);
@@ -350,18 +360,18 @@ export class LegalPage {
     this.cargando.set(false);
     if (!resultado.ok) {
       this.documento.set(null);
-      this.titulo.set('');
-      this.intro.set('');
-      this.secciones.set([]);
-      this.sucio.set(false);
+      // `reset` además de escribir el valor deja el formulario LIMPIO y sin tocar: es lo que apaga el
+      // aviso de «cambios sin guardar» al cambiar de documento o después de guardar.
+      this.formulario().reset({ titulo: '', intro: '', secciones: [] });
       return;
     }
     const documento = resultado.valor;
     const fuente = fuenteDeEdicion(documento);
     this.documento.set(documento);
-    this.titulo.set(fuente.titulo);
-    this.intro.set(fuente.cuerpo.intro);
-    this.secciones.set(fuente.cuerpo.secciones.map(conClave));
-    this.sucio.set(false);
+    this.formulario().reset({
+      titulo: fuente.titulo,
+      intro: fuente.cuerpo.intro,
+      secciones: fuente.cuerpo.secciones.map(conClave),
+    });
   }
 }

@@ -1,6 +1,7 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faHeadset } from '@fortawesome/free-solid-svg-icons';
+import { FormField, form } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
 import {
@@ -22,7 +23,7 @@ import { ConsultaReporteDeOperadores } from '../../../application/logistica/use-
  */
 @Component({
   selector: 'nx-operadores-page',
-  imports: [FaIconComponent],
+  imports: [FaIconComponent, FormField],
   template: `
     <div class="space-y-5">
       <div>
@@ -40,8 +41,7 @@ import { ConsultaReporteDeOperadores } from '../../../application/logistica/use-
             id="operadores-desde"
             type="date"
             class="input input-bordered input-sm block mt-1"
-            [value]="desde()"
-            (change)="desde.set($any($event.target).value)"
+            [formField]="formulario.desde"
           />
         </div>
         <div>
@@ -50,8 +50,7 @@ import { ConsultaReporteDeOperadores } from '../../../application/logistica/use-
             id="operadores-hasta"
             type="date"
             class="input input-bordered input-sm block mt-1"
-            [value]="hasta()"
-            (change)="hasta.set($any($event.target).value)"
+            [formField]="formulario.hasta"
           />
         </div>
         <div class="ml-auto text-sm text-ink-600">
@@ -104,18 +103,17 @@ export class OperadoresPage {
   private readonly consulta = inject(ConsultaReporteDeOperadores);
   private readonly avisos = inject(AvisosStore);
 
-  private readonly rangoInicial = ultimoMes(new Date());
+  /** El intervalo es UNA cosa: las dos fechas viven en el mismo modelo y en el mismo formulario. */
+  protected readonly rango = signal(ultimoMes(new Date()));
+  protected readonly formulario = form(this.rango);
 
-  protected readonly desde = signal(this.rangoInicial.desde);
-  protected readonly hasta = signal(this.rangoInicial.hasta);
   protected readonly filas = signal<readonly FilaDeReporte[]>([]);
 
   protected readonly totales = computed(() => totalesDelReporte(this.filas()));
 
   constructor() {
     effect(() => {
-      const rango = { desde: this.desde(), hasta: this.hasta() };
-      void this.carga(rango);
+      void this.carga(this.rango());
     });
   }
 

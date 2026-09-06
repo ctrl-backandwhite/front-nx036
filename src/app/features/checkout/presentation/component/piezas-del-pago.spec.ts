@@ -8,6 +8,7 @@ import { InfoDeAranceles } from './info-de-aranceles';
 import { CampoDeCupon } from './campo-de-cupon';
 import { CampoDeReferido } from './campo-de-referido';
 import { CamposDeDireccion } from './campos-de-direccion';
+import { LineasDeLaCompra } from './lineas-de-la-compra';
 import { SelectorDeMetodo } from './selector-de-metodo';
 import { AvisosDeAduana } from './avisos-de-aduana';
 import { BannerDePaises } from './banner-de-paises';
@@ -130,11 +131,16 @@ describe('CamposDeDireccion', () => {
     document.cookie = 'nx036-locale=es';
   });
 
+  /** Todas las claves presentes: el formulario solo crea campo para las que existen en el objeto. */
   const VACIA = {
     nombreCompleto: '',
     linea1: '',
+    linea2: '',
     ciudad: '',
+    provincia: '',
+    codigoPostal: '',
     pais: '',
+    telefono: '',
   };
 
   /** Sin etiqueta asociada se oyen siete «cuadro de texto» seguidos y no se puede rellenar nada. */
@@ -148,11 +154,74 @@ describe('CamposDeDireccion', () => {
   it('escribir emite la dirección entera, no solo el campo', async () => {
     const vista = await render(CamposDeDireccion, { inputs: { valor: VACIA } });
     const emitidas: { ciudad: string }[] = [];
-    vista.fixture.componentInstance.valorChange.subscribe((d: { ciudad: string }) => emitidas.push(d));
+    // El campo es un `model()`, así que la salida `valorChange` se escucha desde la propia señal.
+    vista.fixture.componentInstance.valor.subscribe((d: { ciudad: string }) => emitidas.push(d));
 
     await userEvent.type(screen.getByLabelText(/ciudad/i), 'M');
 
     expect(emitidas.at(-1)?.ciudad).toBe('M');
+  });
+
+  /**
+   * Lo que antes no había: el formulario DICE qué falta. Un campo obligatorio que se toca y se deja
+   * vacío enseña su mensaje debajo, en vez de dejar el botón de pagar apagado sin explicación.
+   */
+  it('un campo obligatorio que se toca y se deja vacío enseña su mensaje', async () => {
+    await render(CamposDeDireccion, { inputs: { valor: VACIA } });
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByLabelText(/ciudad/i));
+    await userEvent.tab();
+
+    expect(screen.getByText('Este campo es obligatorio.')).toBeInTheDocument();
+  });
+
+  it('con los cuatro campos del envío escritos, la dirección se da por completa', async () => {
+    const vista = await render(CamposDeDireccion, {
+      inputs: { valor: { ...VACIA, nombreCompleto: 'Ana', linea1: 'Calle 1', ciudad: 'Madrid', pais: 'ES' } },
+    });
+
+    expect(vista.fixture.componentInstance.completa()).toBe(true);
+  });
+});
+
+describe('LineasDeLaCompra', () => {
+  beforeEach(() => {
+    document.cookie = 'nx036-locale=es';
+  });
+
+  const LINEA = {
+    productId: 'p1',
+    slug: 'camiseta',
+    titulo: 'Camiseta',
+    precioUnitarioOrigen: 100,
+    divisaDeOrigen: 'CNY',
+    cantidad: 1,
+  };
+
+  const VALORACION = {
+    subtotal: signal('10,00 €'),
+    unitario: () => '10,00 €',
+    totalDeLinea: () => '10,00 €',
+  };
+
+  /** Las notas viajan por un `model()`: escribir tiene que seguir avisando al estado de la compra. */
+  it('escribir una nota la emite al padre', async () => {
+    const vista = await render(LineasDeLaCompra, {
+      inputs: {
+        lineas: [LINEA],
+        valoracion: VALORACION,
+        notas: '',
+        sePuedeBajar: () => true,
+      },
+    });
+    const emitidas: string[] = [];
+    vista.fixture.componentInstance.notas.subscribe((n: string) => emitidas.push(n));
+
+    await userEvent.type(screen.getByLabelText(/notas/i), 'Portería');
+
+    expect(emitidas.at(-1)).toBe('Portería');
   });
 });
 

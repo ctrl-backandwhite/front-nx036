@@ -105,11 +105,16 @@ describe('TablaTallas', () => {
     expect(cambia).toHaveBeenCalledWith({ talla: 'S', cantidad: 1 });
   });
 
-  /** Tecleando tampoco se puede pedir más de lo que hay. */
+  /**
+   * Tecleando tampoco se puede pedir más de lo que hay. Los dos eventos, en este orden, son los que
+   * dispara un navegador al teclear y salir: el formulario recoge lo escrito con `input` y la casilla
+   * lo publica al salir con `change`.
+   */
   it('lo tecleado se recorta al stock', async () => {
     const { vista, cambia } = await monta(() => 3);
     const campo = vista.container.querySelector<HTMLInputElement>('input[type=number]')!;
     campo.value = '9';
+    campo.dispatchEvent(new Event('input'));
     campo.dispatchEvent(new Event('change'));
     vista.fixture.detectChanges();
     expect(cambia).toHaveBeenCalledWith({ talla: 'S', cantidad: 3 });

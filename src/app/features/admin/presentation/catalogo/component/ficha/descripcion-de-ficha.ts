@@ -1,4 +1,5 @@
-import { Component, inject, input, output, signal } from '@angular/core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { FormField, form } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faPen } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
@@ -14,7 +15,7 @@ import { FichaDeProducto } from '../../../../domain/catalogo/model/ficha-de-prod
  */
 @Component({
   selector: 'nx-descripcion-de-ficha',
-  imports: [FaIconComponent],
+  imports: [FaIconComponent, FormField],
   template: `
     <div class="card p-5">
       @if (editando()) {
@@ -26,8 +27,7 @@ import { FichaDeProducto } from '../../../../domain/catalogo/model/ficha-de-prod
             id="descripcion-producto"
             class="textarea textarea-bordered w-full h-56 text-[13px]"
             [placeholder]="t('admin.catalog.detail.write_description')"
-            [value]="borrador()"
-            (input)="borrador.set($any($event.target).value)"
+            [formField]="formulario.descripcion"
           ></textarea>
           <div class="flex justify-end gap-2">
             <button type="button" class="btn btn-ghost btn-sm" (click)="editando.set(false)">
@@ -36,7 +36,7 @@ import { FichaDeProducto } from '../../../../domain/catalogo/model/ficha-de-prod
             <button
               type="button"
               class="btn btn-primary btn-sm"
-              [disabled]="guardando()"
+              [disabled]="guardando() || formulario().invalid()"
               (click)="confirma()"
             >
               {{ t('admin.catalog.detail.save_description') }}
@@ -70,19 +70,26 @@ export class DescripcionDeFicha {
   protected readonly t = inject(TraduccionService).t;
   protected readonly iconoEditar = faPen;
   protected readonly editando = signal(false);
-  protected readonly borrador = signal('');
 
-  protected texto(): string {
-    return this.ficha().descripcion ?? '';
-  }
+  protected readonly modelo = signal({ descripcion: '' });
+
+  /**
+   * El formulario no lleva reglas: la descripción puede quedarse vacía a propósito —es como se borra
+   * una que llegó mal del origen—. Está aquí para que el campo se gestione como todos los demás y para
+   * que el botón salga del estado del formulario en vez de una comprobación suelta.
+   */
+  protected readonly formulario = form(this.modelo);
+
+  /** Lo que hay guardado hoy en la ficha, que es lo que se pinta cuando no se está editando. */
+  protected readonly texto = computed(() => this.ficha().descripcion ?? '');
 
   protected empieza(): void {
-    this.borrador.set(this.texto());
+    this.modelo.set({ descripcion: this.texto() });
     this.editando.set(true);
   }
 
   protected confirma(): void {
-    this.guarda.emit(this.borrador());
+    this.guarda.emit(this.modelo().descripcion);
     this.editando.set(false);
   }
 }

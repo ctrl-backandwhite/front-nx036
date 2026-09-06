@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { FormField, form } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCircleCheck, faHeadset, faTicket } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
@@ -19,7 +20,7 @@ const ESTADOS = ['OPEN', 'RESOLVED', 'CLOSED'] as const;
  */
 @Component({
   selector: 'nx-tickets-de-soporte',
-  imports: [FaIconComponent, HiloDeSoporte],
+  imports: [FaIconComponent, FormField, HiloDeSoporte],
   template: `
     <div class="space-y-5">
       <header class="flex flex-wrap items-end justify-between gap-3">
@@ -32,7 +33,7 @@ const ESTADOS = ['OPEN', 'RESOLVED', 'CLOSED'] as const;
         <div>
           <label class="sr-only" for="tickets-estado">{{ t('filters.status') }}</label>
           <select id="tickets-estado" class="select select-bordered select-sm text-[13px]"
-                  [value]="estado()" (change)="filtra($event)">
+                  [formField]="filtro.estado" (change)="filtra()">
             <option value="">{{ t('admin.support.all') }}</option>
             @for (opcion of estados; track opcion) {
               <option [value]="opcion">{{ opcion }}</option>
@@ -97,7 +98,7 @@ const ESTADOS = ['OPEN', 'RESOLVED', 'CLOSED'] as const;
                 <label class="sr-only" for="ticket-resolucion">{{ t('admin.support.resolution') }}</label>
                 <input id="ticket-resolucion" class="input input-bordered input-sm flex-1"
                        [placeholder]="t('admin.support.resolution')"
-                       [value]="resolucion()" (input)="resolucion.set(valorDe($event))" />
+                       [formField]="cierre.resolucion" />
                 <button type="button" class="btn btn-outline btn-sm"
                         [disabled]="resolviendo()" (click)="resuelve(ticket)">
                   <fa-icon [icon]="iconos.resolver" /> {{ t('admin.support.resolve') }}
@@ -119,10 +120,18 @@ export class TicketsDeSoportePage {
 
   protected readonly tickets = signal<readonly Ticket[]>([]);
   protected readonly cargando = signal(true);
-  protected readonly estado = signal('');
   protected readonly abierto = signal<Ticket | null>(null);
-  protected readonly resolucion = signal('');
   protected readonly resolviendo = signal(false);
+
+  /**
+   * Dos formularios y no uno: el filtro de la bandeja y el cierre de un caso no tienen nada que ver, y
+   * juntarlos en el mismo modelo obligaría a leer cuál de las dos claves manda en cada sitio.
+   *
+   * <p>Ninguno de los dos exige nada: filtrar por «todos» es legítimo, y dar un caso por resuelto sin
+   * escribir resolución también —eso ya era así y no se cambia aquí—.
+   */
+  protected readonly filtro = form(signal({ estado: '' }));
+  protected readonly cierre = form(signal({ resolucion: '' }));
 
   protected readonly iconos = { soporte: faHeadset, ticket: faTicket, resolver: faCircleCheck };
 
@@ -150,18 +159,13 @@ export class TicketsDeSoportePage {
     return new Date(iso).toLocaleString();
   }
 
-  protected valorDe(evento: Event): string {
-    return (evento.target as HTMLInputElement).value;
-  }
-
   protected selecciona(ticket: Ticket): void {
     this.abierto.set(ticket);
     // Se precarga lo que ya hubiera escrito: corregir una resolución no debería obligar a reescribirla.
-    this.resolucion.set(ticket.resolucion ?? '');
+    this.cierre.resolucion().value.set(ticket.resolucion ?? '');
   }
 
-  protected filtra(evento: Event): void {
-    this.estado.set((evento.target as HTMLSelectElement).value);
+  protected filtra(): void {
     void this.recarga();
   }
 
@@ -172,13 +176,13 @@ export class TicketsDeSoportePage {
   protected async resuelve(ticket: Ticket): Promise<void> {
     this.resolviendo.set(true);
     try {
-      const resultado = await this.atiende.resuelve(ticket.id, this.resolucion());
+      const resultado = await this.atiende.resuelve(ticket.id, this.cierre.resolucion().value());
       if (!resultado.ok) {
         this.avisos.error(resultado.error.mensaje || this.t('common.error'));
         return;
       }
       this.abierto.set(null);
-      this.resolucion.set('');
+      this.cierre.resolucion().value.set('');
       await this.recarga();
     } finally {
       this.resolviendo.set(false);
@@ -188,7 +192,7 @@ export class TicketsDeSoportePage {
   private async recarga(): Promise<void> {
     this.cargando.set(true);
     try {
-      const resultado = await this.atiende.consulta(this.estado());
+      const resultado = await this.atiende.consulta(this.filtro.estado().value());
       if (resultado.ok) {
         this.tickets.set(resultado.valor);
         return;

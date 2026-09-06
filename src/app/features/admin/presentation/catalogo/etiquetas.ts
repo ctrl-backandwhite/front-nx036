@@ -93,3 +93,89 @@ export function conRespaldo(
   const texto = t(clave);
   return texto === clave ? respaldo : texto;
 }
+
+/**
+ * Un error de validación de Signal Forms, con lo poco que aquí hace falta de él.
+ *
+ * <p>Se declara suelto en vez de importar `ValidationError` para que este fichero no dependa de
+ * `@angular/forms`: es una tabla de textos, y una tabla de textos no tiene por qué saber de formularios.
+ * La forma es la del contrato público (`kind` más `message`), y los límites —`min`, `minLength`…— llegan
+ * como opcionales porque cada motivo trae el suyo.
+ */
+export interface ErrorDeCampo {
+  readonly kind: string;
+  readonly message?: string;
+  readonly min?: number | Date;
+  readonly max?: number | Date;
+  readonly minLength?: number;
+  readonly maxLength?: number;
+}
+
+/** Lo que se necesita saber de un campo para decidir si hay que avisar y de qué. */
+export interface EstadoDeCampo {
+  touched(): boolean;
+  errors(): readonly ErrorDeCampo[];
+}
+
+/**
+ * Cómo se llama en el diccionario cada motivo por el que un campo no vale, y qué se enseña mientras esa
+ * clave no exista en los ocho idiomas.
+ *
+ * <p>Solo `required` tiene hoy entrada propia (`dialog.field.required`). PENDIENTE del equipo que cuida
+ * `shared/i18n`: hacen falta `admin.catalog.error.min`, `.max`, `.min_length`, `.max_length`, `.email` y
+ * `.pattern`. Hasta entonces manda el respaldo escrito, que es exactamente lo que ya hace `conRespaldo`
+ * con los rótulos del alta.
+ */
+const MOTIVOS_DE_ERROR: Readonly<
+  Record<string, { readonly clave: string; readonly respaldo: (error: ErrorDeCampo) => string }>
+> = {
+  required: { clave: 'dialog.field.required', respaldo: () => 'Este campo es obligatorio.' },
+  email: {
+    clave: 'admin.catalog.error.email',
+    respaldo: () => 'Ese correo no tiene forma de correo.',
+  },
+  min: { clave: 'admin.catalog.error.min', respaldo: (e) => `El valor mínimo es ${String(e.min)}.` },
+  max: { clave: 'admin.catalog.error.max', respaldo: (e) => `El valor máximo es ${String(e.max)}.` },
+  minLength: {
+    clave: 'admin.catalog.error.min_length',
+    respaldo: (e) => `Escribe al menos ${e.minLength} caracteres.`,
+  },
+  maxLength: {
+    clave: 'admin.catalog.error.max_length',
+    respaldo: (e) => `No caben más de ${e.maxLength} caracteres.`,
+  },
+  pattern: { clave: 'admin.catalog.error.pattern', respaldo: () => 'Ese formato no vale.' },
+  parse: { clave: 'admin.catalog.error.pattern', respaldo: () => 'Ese formato no vale.' },
+};
+
+/**
+ * El texto de un error de validación de un campo.
+ *
+ * <p>Cuando el validador trae su propia clave en `message` gana esa, porque dice exactamente qué pasa en
+ * ESE campo —«los slugs usan minúsculas, dígitos y guiones»— y eso ayuda más que un «formato no válido»
+ * genérico. Si no la trae, se cae a la tabla del motivo.
+ */
+export function textoDelErrorDeCampo(t: (clave: string) => string, error: ErrorDeCampo): string {
+  if (error.message) {
+    return t(error.message);
+  }
+  const motivo = MOTIVOS_DE_ERROR[error.kind];
+  return motivo ? conRespaldo(t, motivo.clave, motivo.respaldo(error)) : t('common.error');
+}
+
+/**
+ * El aviso que va debajo de un campo: el texto del PRIMER error, y solo si ya se ha tocado.
+ *
+ * <p>Solo el primero porque apilar tres avisos mueve el resto del formulario a cada tecla y no se lee
+ * ninguno. Y solo si se ha tocado porque un formulario que nace gritando «obligatorio» en todos los
+ * campos no informa de nada: el botón apagado ya dice que falta algo, y el aviso dice el qué cuando se
+ * llega a ese campo.
+ *
+ * <p>Devuelve la cadena vacía cuando no hay nada que decir, que es falsa: en la plantilla basta con
+ * `@if (fallo(...); as texto)`.
+ */
+export function falloDelCampo(t: (clave: string) => string, estado: EstadoDeCampo): string {
+  return estado.touched() && estado.errors().length > 0
+    ? textoDelErrorDeCampo(t, estado.errors()[0])
+    : '';
+}

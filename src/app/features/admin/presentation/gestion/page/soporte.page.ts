@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCircleCheck, faHeadset, faTicket } from '@fortawesome/free-solid-svg-icons';
+import { FormField, form } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { DialogoStore } from '@ds/component/dialogo/dialogo.store';
 import { ESTADOS_DE_TICKET, Ticket, admiteResolucion } from '../../../domain/gestion/model/soporte';
@@ -42,7 +43,7 @@ const SILUETAS = [0, 1, 2, 3];
  */
 @Component({
   selector: 'nx-soporte-admin',
-  imports: [FaIconComponent, VentanaModal, HiloDeSoporte],
+  imports: [FaIconComponent, VentanaModal, HiloDeSoporte, FormField],
   template: `
     <div class="space-y-5">
       <header class="flex flex-wrap items-end justify-between gap-3">
@@ -114,7 +115,7 @@ const SILUETAS = [0, 1, 2, 3];
             <div class="mt-3 pt-3 border-t border-ink-100 flex items-center gap-2">
               <label class="sr-only" for="soporte-resolucion">{{ t('admin.support.resolution') }}</label>
               <input id="soporte-resolucion" class="input flex-1 h-9 text-[13px]"
-                     [value]="resolucion()" (input)="escribe($event)"
+                     [formField]="formulario.resolucion"
                      [placeholder]="t('admin.support.resolution')" />
               <button type="button" class="btn btn-outline btn-sm" [disabled]="resolviendo()"
                       (click)="resuelve(ticket)">
@@ -141,7 +142,17 @@ export class SoportePage {
   protected readonly cargando = signal(true);
   protected readonly estado = signal('');
   protected readonly seleccionado = signal<Ticket | null>(null);
-  protected readonly resolucion = signal('');
+
+  /**
+   * El texto de resolución.
+   *
+   * <p>No se declara obligatorio en el esquema aunque el caso de uso lo exija: el rótulo dice
+   * «(opcional)» porque quien atiende puede cerrar el caso desde otro sitio, y quien decide de verdad es
+   * el caso de uso, que devuelve el motivo. Apagar el botón aquí escondería ese mensaje.
+   */
+  protected readonly modelo = signal({ resolucion: '' });
+  protected readonly formulario = form(this.modelo);
+
   protected readonly resolviendo = signal(false);
 
   constructor() {
@@ -167,16 +178,14 @@ export class SoportePage {
 
   protected abre(ticket: Ticket): void {
     this.seleccionado.set(ticket);
-    this.resolucion.set(ticket.resolucion ?? '');
+    // `reset` escribe el valor y deja el campo limpio: abrir otro caso no arrastra el «tocado» del
+    // anterior ni su texto.
+    this.formulario().reset({ resolucion: ticket.resolucion ?? '' });
   }
 
   protected cierra(): void {
     this.seleccionado.set(null);
-    this.resolucion.set('');
-  }
-
-  protected escribe(evento: Event): void {
-    this.resolucion.set((evento.target as HTMLInputElement).value);
+    this.formulario().reset({ resolucion: '' });
   }
 
   /**
@@ -187,7 +196,7 @@ export class SoportePage {
    */
   protected async resuelve(ticket: Ticket): Promise<void> {
     this.resolviendo.set(true);
-    const resultado = await this.resolucionDelCaso.ejecuta(ticket.id, this.resolucion());
+    const resultado = await this.resolucionDelCaso.ejecuta(ticket.id, this.modelo().resolucion);
     this.resolviendo.set(false);
     if (!resultado.ok) {
       await this.dialogo.alerta(resultado.error.mensaje || this.t('common.error'), undefined, 'error');

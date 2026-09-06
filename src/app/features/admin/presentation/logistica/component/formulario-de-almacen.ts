@@ -1,8 +1,25 @@
 import { Component, computed, inject, input, linkedSignal, output } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faXmark } from '@fortawesome/free-solid-svg-icons';
+import { FormField, apply, form } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
-import { DatosDeAlmacen, almacenGuardable } from '../../../domain/logistica/model/almacen';
+import { DatosDeAlmacen } from '../../../domain/logistica/model/almacen';
+import { TEXTO_CON_CONTENIDO, claveDeError } from '../form/reglas-de-formulario';
+
+/**
+ * Lo que se teclea, con país y ciudad SIEMPRE como texto.
+ *
+ * <p>En el modelo del dominio los dos son opcionales, y un `undefined` atado a un campo se pinta
+ * literalmente como «undefined». Aquí se normalizan a cadena vacía y se devuelven tal cual: el
+ * dominio los admite igual.
+ */
+interface BorradorDeAlmacen {
+  codigo: string;
+  nombre: string;
+  pais: string;
+  ciudad: string;
+  activo: boolean;
+}
 
 /**
  * Alta y edición de un almacén.
@@ -12,7 +29,7 @@ import { DatosDeAlmacen, almacenGuardable } from '../../../domain/logistica/mode
  */
 @Component({
   selector: 'nx-formulario-de-almacen',
-  imports: [FaIconComponent],
+  imports: [FaIconComponent, FormField],
   template: `
     <div
       class="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -47,9 +64,11 @@ import { DatosDeAlmacen, almacenGuardable } from '../../../domain/logistica/mode
               id="almacen-codigo"
               class="input input-bordered input-sm w-full"
               placeholder="ES-MAD"
-              [value]="borrador().codigo"
-              (input)="cambia('codigo', $any($event.target).value)"
+              [formField]="formulario.codigo"
             />
+            @if (formulario.codigo().touched() && errorDe(formulario.codigo().errors()); as clave) {
+              <p class="text-[11px] text-error mt-1" role="alert">{{ t(clave) }}</p>
+            }
           </div>
           <div>
             <label for="almacen-nombre" class="text-[12px] text-ink-500 mb-1 block">
@@ -59,9 +78,11 @@ import { DatosDeAlmacen, almacenGuardable } from '../../../domain/logistica/mode
               id="almacen-nombre"
               class="input input-bordered input-sm w-full"
               placeholder="Madrid Central"
-              [value]="borrador().nombre"
-              (input)="cambia('nombre', $any($event.target).value)"
+              [formField]="formulario.nombre"
             />
+            @if (formulario.nombre().touched() && errorDe(formulario.nombre().errors()); as clave) {
+              <p class="text-[11px] text-error mt-1" role="alert">{{ t(clave) }}</p>
+            }
           </div>
           <!-- Móvil primero: una columna, y dos a partir de la anchura pequeña. -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -73,9 +94,11 @@ import { DatosDeAlmacen, almacenGuardable } from '../../../domain/logistica/mode
                 id="almacen-pais"
                 class="input input-bordered input-sm w-full"
                 placeholder="ES"
-                [value]="borrador().pais ?? ''"
-                (input)="cambia('pais', $any($event.target).value)"
+                [formField]="formulario.pais"
               />
+              @if (formulario.pais().touched() && errorDe(formulario.pais().errors()); as clave) {
+                <p class="text-[11px] text-error mt-1" role="alert">{{ t(clave) }}</p>
+              }
             </div>
             <div>
               <label for="almacen-ciudad" class="text-[12px] text-ink-500 mb-1 block">
@@ -85,18 +108,12 @@ import { DatosDeAlmacen, almacenGuardable } from '../../../domain/logistica/mode
                 id="almacen-ciudad"
                 class="input input-bordered input-sm w-full"
                 placeholder="Madrid"
-                [value]="borrador().ciudad ?? ''"
-                (input)="cambia('ciudad', $any($event.target).value)"
+                [formField]="formulario.ciudad"
               />
             </div>
           </div>
           <label class="flex items-center gap-2 text-[13px]">
-            <input
-              type="checkbox"
-              class="checkbox checkbox-sm"
-              [checked]="borrador().activo"
-              (change)="marcaActivo($any($event.target).checked)"
-            />
+            <input type="checkbox" class="checkbox checkbox-sm" [formField]="formulario.activo" />
             {{ t('admin.warehouses.active') }}
           </label>
         </div>
@@ -107,8 +124,8 @@ import { DatosDeAlmacen, almacenGuardable } from '../../../domain/logistica/mode
           </button>
           <button
             type="button"
-            (click)="guarda.emit(borrador())"
-            [disabled]="guardando() || !completo()"
+            (click)="guarda.emit(modelo())"
+            [disabled]="guardando() || formulario().invalid()"
             class="btn btn-primary btn-sm"
           >
             {{ t('admin.warehouses.save') }}
@@ -130,17 +147,31 @@ export class FormularioDeAlmacen {
   protected readonly iconoAspa = faXmark;
   protected readonly t = inject(TraduccionService).t;
 
-  protected readonly borrador = linkedSignal(() => this.datos());
-  protected readonly completo = computed(() => almacenGuardable(this.borrador()));
+  protected readonly errorDe = claveDeError;
+
+  /** Se edita sobre una COPIA: la fila de la tabla no se toca hasta que el guardado sale bien. */
+  protected readonly modelo = linkedSignal<BorradorDeAlmacen>(() => {
+    const datos = this.datos();
+    return {
+      codigo: datos.codigo,
+      nombre: datos.nombre,
+      pais: datos.pais ?? '',
+      ciudad: datos.ciudad ?? '',
+      activo: datos.activo,
+    };
+  });
+
+  /**
+   * Las reglas van DECLARADAS: sin código ni nombre el albarán no identifica el almacén y el backend
+   * lo rechaza. Antes lo decía `almacenGuardable` desde la plantilla; ahora lo dice el esquema, y el
+   * botón de guardar se apaga solo — el caso de uso sigue comprobándolo, que es quien de verdad manda.
+   */
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    apply(ruta.codigo, TEXTO_CON_CONTENIDO);
+    apply(ruta.nombre, TEXTO_CON_CONTENIDO);
+  });
+
   protected readonly titulo = computed(() =>
     this.editando() ? this.t('admin.warehouses.edit') : this.t('admin.warehouses.create'),
   );
-
-  protected cambia(clave: 'codigo' | 'nombre' | 'pais' | 'ciudad', valor: string): void {
-    this.borrador.update((actual) => ({ ...actual, [clave]: valor }));
-  }
-
-  protected marcaActivo(activo: boolean): void {
-    this.borrador.update((actual) => ({ ...actual, activo }));
-  }
 }

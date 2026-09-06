@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faEnvelopeOpenText, faPaperPlane, faUsers } from '@fortawesome/free-solid-svg-icons';
+import { FormField, form, validate } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
 import { DialogoStore } from '@ds/component/dialogo/dialogo.store';
@@ -19,7 +20,7 @@ import {
  */
 @Component({
   selector: 'nx-boletin-admin',
-  imports: [FaIconComponent],
+  imports: [FaIconComponent, FormField],
   template: `
     <div class="space-y-5">
       <header class="flex flex-wrap items-end justify-between gap-3">
@@ -47,7 +48,12 @@ import {
             </label>
             <input id="boletin-asunto" class="input input-bordered w-full"
                    [placeholder]="t('admin.newsletter.subject_ph')"
-                   [value]="asunto()" (input)="asunto.set(escrito($event))" />
+                   [formField]="formulario.asunto" />
+            @if (formulario.asunto().touched() && formulario.asunto().errors().length) {
+              <p role="alert" class="text-[11px] text-error mt-1">
+                {{ formulario.asunto().errors()[0].message }}
+              </p>
+            }
           </div>
           <div>
             <label for="boletin-contenido" class="text-xs text-ink-500">
@@ -56,7 +62,12 @@ import {
             <textarea id="boletin-contenido"
                       class="textarea textarea-bordered w-full h-48 text-[13px]"
                       [placeholder]="t('admin.newsletter.content_ph')"
-                      [value]="cuerpo()" (input)="cuerpo.set(escrito($event))"></textarea>
+                      [formField]="formulario.cuerpo"></textarea>
+            @if (formulario.cuerpo().touched() && formulario.cuerpo().errors().length) {
+              <p role="alert" class="text-[11px] text-error mt-1">
+                {{ formulario.cuerpo().errors()[0].message }}
+              </p>
+            }
             <p class="text-[11px] text-ink-400 mt-1">{{ t('admin.newsletter.html_hint') }}</p>
           </div>
           <div class="flex justify-end">
@@ -70,12 +81,12 @@ import {
         <div class="card p-5">
           <h2 class="font-medium text-sm mb-2">{{ t('admin.newsletter.preview') }}</h2>
           <div class="border border-ink-100 rounded-box p-4 bg-base-200/40 min-h-[12rem]">
-            <div class="font-semibold mb-2">{{ asunto() || t('admin.newsletter.subject_ph') }}</div>
+            <div class="font-semibold mb-2">{{ modelo().asunto || t('admin.newsletter.subject_ph') }}</div>
             <!-- El cuerpo se teclea en HTML y aquí se PINTA. La asociación «innerHTML» basta: Angular lo pasa por
                  su saneador antes de escribirlo, que quita las etiquetas de guion, los atributos «on…» y los enlaces «javascript:».
                  Por eso no se añade ninguna librería de saneado — sería sanear dos veces. -->
-            @if (cuerpo()) {
-              <div class="text-[13px] text-ink-700 prose-sm" [innerHTML]="cuerpo()"></div>
+            @if (modelo().cuerpo) {
+              <div class="text-[13px] text-ink-700 prose-sm" [innerHTML]="modelo().cuerpo"></div>
             } @else {
               <div class="text-[13px] text-ink-400 prose-sm">
                 {{ t('admin.newsletter.content_ph') }}
@@ -145,8 +156,24 @@ export class BoletinPage {
   };
 
   protected readonly resumen = signal<ResumenDelBoletin | null>(null);
-  protected readonly asunto = signal('');
-  protected readonly cuerpo = signal('');
+
+  /**
+   * La redacción del envío.
+   *
+   * <p>Las dos reglas de campo —asunto y cuerpo con algo escrito— se declaran en el esquema con el
+   * texto ya RECORTADO, que es como las mira el dominio: un asunto de solo espacios está tan vacío como
+   * uno sin nada.
+   */
+  protected readonly modelo = signal({ asunto: '', cuerpo: '' });
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    validate(ruta.asunto, ({ value }) =>
+      value().trim() === '' ? { kind: 'vacio', message: this.t('dialog.field.required') } : null,
+    );
+    validate(ruta.cuerpo, ({ value }) =>
+      value().trim() === '' ? { kind: 'vacio', message: this.t('dialog.field.required') } : null,
+    );
+  });
+
   protected readonly enviando = signal(false);
 
   protected readonly suscriptores = computed(() => this.resumen()?.suscriptores ?? 0);
@@ -154,17 +181,18 @@ export class BoletinPage {
     () => this.resumen()?.campanas ?? [],
   );
 
-  /** Sin asunto, sin cuerpo o sin nadie a quien mandárselo, el botón no se puede pulsar. */
+  /**
+   * Sin asunto, sin cuerpo o sin nadie a quien mandárselo, el botón no se puede pulsar.
+   *
+   * <p>La regla entera sigue viviendo en el dominio. El formulario cubre los dos campos; el recuento de
+   * suscriptores no es un campo —lo dice el servidor— y por eso no puede salir del esquema.
+   */
   protected readonly sePuedeEnviar = computed(() =>
-    envioValido(this.asunto(), this.cuerpo(), this.suscriptores()),
+    envioValido(this.modelo().asunto, this.modelo().cuerpo, this.suscriptores()),
   );
 
   constructor() {
     void this.carga();
-  }
-
-  protected escrito(evento: Event): string {
-    return (evento.target as HTMLInputElement | HTMLTextAreaElement).value;
   }
 
   protected fecha(campana: CampanaDelBoletin): string {
@@ -180,15 +208,15 @@ export class BoletinPage {
       return;
     }
     this.enviando.set(true);
-    const resultado = await this.enviaElBoletin.ejecuta(this.asunto(), this.cuerpo());
+    const resultado = await this.enviaElBoletin.ejecuta(this.modelo().asunto, this.modelo().cuerpo);
     this.enviando.set(false);
     if (!resultado.ok) {
       this.avisos.error(resultado.error.mensaje || this.t('common.error'));
       return;
     }
-    // El formulario se vacía solo tras el envío: dejarlo lleno invita a mandarlo dos veces.
-    this.asunto.set('');
-    this.cuerpo.set('');
+    // El formulario se vacía solo tras el envío: dejarlo lleno invita a mandarlo dos veces. Se hace con
+    // `reset`, que además lo deja sin tocar: si no, quedaría en rojo por obligatorio nada más enviar.
+    this.formulario().reset({ asunto: '', cuerpo: '' });
     this.avisos.exito(this.tCon('admin.newsletter.sent', { n: resultado.valor }));
     void this.carga();
   }

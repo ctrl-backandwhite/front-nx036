@@ -1,6 +1,15 @@
-import { Component, inject, output, signal } from '@angular/core';
+import { Component, computed, inject, output, signal } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faPlus, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
+import {
+  FormField,
+  apply,
+  applyEach,
+  form,
+  maxLength,
+  min,
+  required,
+} from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { PreferenciasService } from '@core/preferences/preferencias';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
@@ -13,15 +22,34 @@ import {
   BuscaProductosParaPedido,
   CreaPedido,
 } from '../../../application/logistica/use-case/alta-de-pedidos.use-case';
+import { TEXTO_CON_CONTENIDO, claveDeError } from '../form/reglas-de-formulario';
 
 /** Una línea mientras se está montando: lleva el título para poder enseñarla sin volver a buscar. */
 interface LineaEnCurso {
-  readonly productoId: string;
-  readonly titulo: string;
-  readonly cantidad: number;
+  productoId: string;
+  titulo: string;
+  cantidad: number | null;
 }
 
-function direccionVacia(): DireccionDeEnvio {
+/**
+ * La dirección mientras se teclea, con los nueve campos SIEMPRE como texto.
+ *
+ * <p>En el modelo del dominio la mitad son opcionales, y un `undefined` atado a un campo se pinta
+ * literalmente como «undefined». Aquí se normalizan a cadena vacía; el dominio los admite igual.
+ */
+type BorradorDeDireccion = { [K in keyof DireccionDeEnvio]-?: string };
+
+/** Todo lo que hay en el diálogo, incluido el buscador, que NO viaja en el pedido. */
+interface BorradorDePedido {
+  emailCliente: string;
+  idExterno: string;
+  consulta: string;
+  notas: string;
+  direccion: BorradorDeDireccion;
+  lineas: LineaEnCurso[];
+}
+
+function direccionVacia(): BorradorDeDireccion {
   return {
     nombreCompleto: '',
     telefono: '',
@@ -35,6 +63,17 @@ function direccionVacia(): DireccionDeEnvio {
   };
 }
 
+function pedidoEnBlanco(): BorradorDePedido {
+  return {
+    emailCliente: '',
+    idExterno: '',
+    consulta: '',
+    notas: '',
+    direccion: direccionVacia(),
+    lineas: [],
+  };
+}
+
 /**
  * Alta manual de un pedido.
  *
@@ -43,7 +82,7 @@ function direccionVacia(): DireccionDeEnvio {
  */
 @Component({
   selector: 'nx-modal-alta-de-pedido',
-  imports: [FaIconComponent],
+  imports: [FaIconComponent, FormField],
   template: `
     <div
       class="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -79,8 +118,7 @@ function direccionVacia(): DireccionDeEnvio {
             <input
               id="alta-email"
               class="input input-bordered input-sm w-full"
-              [value]="emailCliente()"
-              (input)="emailCliente.set($any($event.target).value)"
+              [formField]="formulario.emailCliente"
             />
           </div>
           <div>
@@ -90,8 +128,7 @@ function direccionVacia(): DireccionDeEnvio {
             <input
               id="alta-externo"
               class="input input-bordered input-sm w-full"
-              [value]="idExterno()"
-              (input)="idExterno.set($any($event.target).value)"
+              [formField]="formulario.idExterno"
             />
           </div>
         </div>
@@ -100,11 +137,14 @@ function direccionVacia(): DireccionDeEnvio {
           <label for="alta-buscar" class="text-[12px] font-medium text-ink-600 mb-1 block">
             {{ t('admin.orders.create.items') }}
           </label>
+          <!-- La búsqueda se lanza con lo que hay en el ELEMENTO, no con lo que ya haya llegado al
+               modelo: el campo tiene su propio oyente del mismo suceso y así da igual cuál corra
+               primero. -->
           <input
             id="alta-buscar"
             class="input input-bordered input-sm w-full"
             [placeholder]="t('admin.orders.create.search_product')"
-            [value]="consulta()"
+            [formField]="formulario.consulta"
             (input)="busca($any($event.target).value)"
           />
           @if (consulta() && sugerencias().length > 0) {
@@ -124,20 +164,18 @@ function direccionVacia(): DireccionDeEnvio {
           }
           @if (lineas().length > 0) {
             <div class="mt-2 space-y-1">
-              @for (linea of lineas(); track linea.productoId) {
+              @for (linea of lineas(); track linea.productoId; let posicion = $index) {
                 <div class="flex items-center gap-2 text-[12px] bg-ink-50 rounded-md px-2 py-1">
                   <span class="flex-1 truncate">{{ linea.titulo }}</span>
                   <!-- Mientras se escribe se guarda lo tecleado tal cual; el mínimo se aplica al
                        salir del campo. Forzarlo en cada pulsación hacía que corregir una línea a 5
-                       acabara pidiendo 15. -->
+                       acabara pidiendo 15. El mínimo de 1 lo declara el esquema, no el marcado. -->
                   <input
                     type="number"
-                    min="1"
                     class="input input-bordered input-xs w-16"
-                    [value]="linea.cantidad"
+                    [formField]="formulario.lineas[posicion].cantidad"
                     [attr.aria-label]="linea.titulo"
-                    (input)="cambiaCantidad(linea.productoId, $any($event.target).valueAsNumber)"
-                    (blur)="normaliza(linea.productoId)"
+                    (blur)="normaliza(posicion)"
                   />
                   <button
                     type="button"
@@ -169,9 +207,15 @@ function direccionVacia(): DireccionDeEnvio {
                 <input
                   [id]="'alta-' + campo.clave"
                   class="input input-bordered input-sm w-full"
-                  [value]="valorDe(campo.clave)"
-                  (input)="cambiaDireccion(campo.clave, $any($event.target).value)"
+                  [formField]="formulario.direccion[campo.clave]"
                 />
+                @if (
+                  formulario.direccion[campo.clave]().touched() &&
+                    errorDe(formulario.direccion[campo.clave]().errors());
+                  as clave
+                ) {
+                  <p class="text-[11px] text-error mt-1" role="alert">{{ t(clave) }}</p>
+                }
               </div>
             }
           </div>
@@ -184,8 +228,7 @@ function direccionVacia(): DireccionDeEnvio {
           <textarea
             id="alta-notas"
             class="textarea textarea-bordered textarea-sm w-full h-16"
-            [value]="notas()"
-            (input)="notas.set($any($event.target).value)"
+            [formField]="formulario.notas"
           ></textarea>
         </div>
 
@@ -214,6 +257,7 @@ export class ModalAltaDePedido {
   protected readonly iconoAspa = faXmark;
   protected readonly iconoMas = faPlus;
   protected readonly iconoPapelera = faTrash;
+  protected readonly errorDe = claveDeError;
   protected readonly t = inject(TraduccionService).t;
 
   private readonly crea = inject(CreaPedido);
@@ -221,14 +265,35 @@ export class ModalAltaDePedido {
   private readonly avisos = inject(AvisosStore);
   private readonly preferencias = inject(PreferenciasService);
 
-  protected readonly emailCliente = signal('');
-  protected readonly idExterno = signal('');
-  protected readonly notas = signal('');
-  protected readonly consulta = signal('');
   protected readonly guardando = signal(false);
-  protected readonly lineas = signal<readonly LineaEnCurso[]>([]);
   protected readonly sugerencias = signal<readonly { id: string; titulo: string }[]>([]);
-  protected readonly direccion = signal<DireccionDeEnvio>(direccionVacia());
+
+  protected readonly modelo = signal<BorradorDePedido>(pedidoEnBlanco());
+
+  /**
+   * Los mismos campos que exige `faltanDatosDeEnvio` en el dominio, dichos aquí de forma declarativa.
+   *
+   * <p>El botón de guardar NO se apaga con esto: sin líneas o sin dirección el aviso tiene que
+   * llegar, y quien decide sigue siendo el caso de uso. Lo que aporta el esquema es señalar EN EL
+   * CAMPO cuál de los cuatro falta, en vez de un mensaje al pie que no dice dónde mirar.
+   */
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    apply(ruta.direccion.nombreCompleto, TEXTO_CON_CONTENIDO);
+    apply(ruta.direccion.linea1, TEXTO_CON_CONTENIDO);
+    apply(ruta.direccion.ciudad, TEXTO_CON_CONTENIDO);
+    apply(ruta.direccion.pais, TEXTO_CON_CONTENIDO);
+    maxLength(ruta.direccion.pais, 2);
+    maxLength(ruta.notas, 500);
+    // Una línea siempre vale al menos una unidad ENTERA: con 0 o con media el almacén no sabe qué
+    // preparar. Declararlo aquí devuelve al campo el tope que antes ponía el marcado.
+    applyEach(ruta.lineas, (linea) => {
+      required(linea.cantidad);
+      min(linea.cantidad, 1);
+    });
+  });
+
+  protected readonly consulta = computed(() => this.modelo().consulta);
+  protected readonly lineas = computed(() => this.modelo().lineas);
 
   /** Los campos de la dirección, en el orden en que se rellenan. */
   protected readonly campos = [
@@ -241,18 +306,13 @@ export class ModalAltaDePedido {
     { clave: 'provincia', etiqueta: 'admin.orders.create.state', obligatorio: false },
     { clave: 'codigoPostal', etiqueta: 'admin.orders.create.postal', obligatorio: false },
     { clave: 'pais', etiqueta: 'admin.orders.create.country', obligatorio: true },
-  ] as const;
-
-  protected valorDe(clave: keyof DireccionDeEnvio): string {
-    return this.direccion()[clave] ?? '';
-  }
-
-  protected cambiaDireccion(clave: keyof DireccionDeEnvio, valor: string): void {
-    this.direccion.update((actual) => ({ ...actual, [clave]: valor }));
-  }
+  ] as const satisfies readonly {
+    clave: keyof BorradorDeDireccion;
+    etiqueta: string;
+    obligatorio: boolean;
+  }[];
 
   protected async busca(texto: string): Promise<void> {
-    this.consulta.set(texto);
     if (!texto.trim()) {
       this.sugerencias.set([]);
       return;
@@ -263,44 +323,42 @@ export class ModalAltaDePedido {
 
   /** Añadir dos veces el mismo producto SUMA una unidad en vez de crear una línea repetida. */
   protected anade(producto: { id: string; titulo: string }): void {
-    this.lineas.update((actuales) =>
-      actuales.some((l) => l.productoId === producto.id)
-        ? actuales.map((l) =>
-            l.productoId === producto.id ? { ...l, cantidad: l.cantidad + 1 } : l,
+    this.modelo.update((actual) => ({
+      ...actual,
+      lineas: actual.lineas.some((l) => l.productoId === producto.id)
+        ? actual.lineas.map((l) =>
+            l.productoId === producto.id ? { ...l, cantidad: (l.cantidad ?? 0) + 1 } : l,
           )
-        : [...actuales, { productoId: producto.id, titulo: producto.titulo, cantidad: 1 }],
-    );
+        : [...actual.lineas, { productoId: producto.id, titulo: producto.titulo, cantidad: 1 }],
+    }));
   }
 
-  protected cambiaCantidad(productoId: string, cantidad: number): void {
-    this.lineas.update((actuales) =>
-      actuales.map((l) =>
-        l.productoId === productoId
-          ? { ...l, cantidad: Number.isFinite(cantidad) ? cantidad : 1 }
-          : l,
-      ),
-    );
-  }
-
-  protected normaliza(productoId: string): void {
-    this.lineas.update((actuales) =>
-      actuales.map((l) =>
-        l.productoId === productoId ? { ...l, cantidad: cantidadValida(l.cantidad) } : l,
-      ),
-    );
+  protected normaliza(posicion: number): void {
+    const campo = this.formulario.lineas[posicion].cantidad;
+    campo().value.set(cantidadValida(campo().value() ?? 1));
   }
 
   protected quita(productoId: string): void {
-    this.lineas.update((actuales) => actuales.filter((l) => l.productoId !== productoId));
+    this.modelo.update((actual) => ({
+      ...actual,
+      lineas: actual.lineas.filter((l) => l.productoId !== productoId),
+    }));
   }
 
   protected async guarda(): Promise<void> {
+    // Al intentar guardar se marcan todos los campos como tocados: así lo que falta sale en rojo de
+    // una vez, en vez de descubrirse campo a campo al ir pasando por ellos.
+    this.formulario().markAsTouched();
+    const borrador = this.modelo();
     const pedido: PedidoNuevo = {
-      emailCliente: this.emailCliente().trim(),
-      idExterno: this.idExterno().trim(),
-      direccionDeEnvio: this.direccion(),
-      lineas: this.lineas().map((l) => ({ productoId: l.productoId, cantidad: l.cantidad })),
-      notas: this.notas().trim(),
+      emailCliente: borrador.emailCliente.trim(),
+      idExterno: borrador.idExterno.trim(),
+      direccionDeEnvio: borrador.direccion,
+      lineas: borrador.lineas.map((l) => ({
+        productoId: l.productoId,
+        cantidad: cantidadValida(l.cantidad ?? 1),
+      })),
+      notas: borrador.notas.trim(),
     };
     this.guardando.set(true);
     try {

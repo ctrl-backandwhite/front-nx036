@@ -1,4 +1,5 @@
 import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { FieldTree, FormField, form, required, validate } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faPlus, faWandMagicSparkles } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
@@ -19,7 +20,7 @@ import { VentanaModal } from './ventana-modal';
  */
 @Component({
   selector: 'nx-dialogo-nuevo-diseno',
-  imports: [FaIconComponent, ImagenSegura, VentanaModal],
+  imports: [FaIconComponent, FormField, ImagenSegura, VentanaModal],
   template: `
     <nx-ventana-modal [titulo]="titulo()" ancho="2xl" (cierra)="cancela.emit()">
       <p class="text-[12px] text-ink-500 -mt-2 mb-4">{{ t('pod.create_body') }}</p>
@@ -29,12 +30,13 @@ import { VentanaModal } from './ventana-modal';
           <label for="pod-nombre" class="text-[12px] text-ink-500">{{ t('pod.field.name') }}</label>
           <input
             id="pod-nombre"
-            required
             class="input mt-1"
             [placeholder]="t('pod.field.name_placeholder')"
-            [value]="nombre()"
-            (input)="nombre.set(valor($event))"
+            [formField]="formulario.nombre"
           />
+          @if (falloDe(formulario.nombre); as fallo) {
+            <span role="alert" class="text-xs text-error mt-1 block">{{ fallo }}</span>
+          }
         </div>
 
         <div>
@@ -46,15 +48,14 @@ import { VentanaModal } from './ventana-modal';
             rows="3"
             class="input mt-1"
             [placeholder]="t('pod.field.prompt_placeholder')"
-            [value]="instruccion()"
-            (input)="instruccion.set(valor($event))"
+            [formField]="formulario.instruccion"
           ></textarea>
           <div class="mt-2 flex flex-wrap gap-1.5">
             @for (plantilla of plantillas; track plantilla.clave) {
               <button
                 type="button"
                 class="chip text-[11px]"
-                (click)="instruccion.set(plantilla.instruccion)"
+                (click)="usaLaPlantilla(plantilla.instruccion)"
               >
                 {{ t(plantilla.clave) }}
               </button>
@@ -111,24 +112,52 @@ export class DialogoNuevoDiseno {
   protected readonly plantillas = PLANTILLAS_DE_INSTRUCCION;
   protected readonly iconos = { varita: faWandMagicSparkles, mas: faPlus };
 
-  protected readonly nombre = signal('');
-  protected readonly instruccion = signal('');
+  protected readonly modelo = signal({ nombre: '', instruccion: '' });
+
+  /**
+   * Quien MANDA sobre el nombre es el dominio: `sePuedeCrear` ya sabe que un nombre de solo espacios no
+   * vale. `required` va además porque es quien devuelve el atributo nativo al campo, que antes estaba
+   * escrito a mano en la plantilla y con `[formField]` no puede estarlo.
+   */
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    required(ruta.nombre, { message: () => this.t('dialog.field.required') });
+    validate(ruta.nombre, ({ value }) =>
+      sePuedeCrear(value()) ? null : { kind: 'sin-nombre', message: this.t('dialog.field.required') },
+    );
+  });
+
+  /** Lo escrito, para lo que la plantilla necesita fuera del campo: el botón de generar y el alt. */
+  protected readonly nombre = computed(() => this.modelo().nombre);
+  protected readonly instruccion = computed(() => this.modelo().instruccion);
 
   protected readonly titulo = computed(
     () => `${this.t('pod.create_for')} ${this.producto().titulo}`,
   );
 
-  protected readonly sePuedeEnviar = computed(() => !this.creando() && sePuedeCrear(this.nombre()));
+  protected readonly sePuedeEnviar = computed(
+    () => !this.creando() && !this.formulario().invalid(),
+  );
+
+  /** Las plantillas escriben en el campo, no al lado: lo que se elige se puede seguir editando. */
+  protected usaLaPlantilla(instruccion: string): void {
+    this.formulario.instruccion().value.set(instruccion);
+  }
 
   protected envia(evento: Event): void {
     evento.preventDefault();
     if (!this.sePuedeEnviar()) {
       return;
     }
-    this.crea.emit({ nombre: this.nombre().trim(), instruccion: this.instruccion() });
+    const datos = this.modelo();
+    this.crea.emit({ nombre: datos.nombre.trim(), instruccion: datos.instruccion });
   }
 
-  protected valor(evento: Event): string {
-    return (evento.target as HTMLInputElement | HTMLTextAreaElement).value;
+  /**
+   * El mensaje que toca enseñar bajo un campo, o nulo. Se calla hasta que el campo se ha TOCADO:
+   * pintar de rojo un formulario recién abierto acusa a quien todavía no ha escrito nada.
+   */
+  protected falloDe<T>(campo: FieldTree<T>): string | null {
+    const estado = campo();
+    return estado.touched() ? (estado.errors()[0]?.message ?? null) : null;
   }
 }

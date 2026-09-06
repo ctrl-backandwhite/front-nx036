@@ -1,4 +1,5 @@
 import { Component, input, model } from '@angular/core';
+import { FormField, form, transformedValue } from '@angular/forms/signals';
 
 export interface OpcionDeFiltro {
   readonly valor: string;
@@ -17,13 +18,13 @@ export interface OpcionDeFiltro {
  */
 @Component({
   selector: 'nx-filtro-desplegable',
+  imports: [FormField],
   template: `
     <label class="inline-flex items-center gap-1.5 text-[12px]">
       <span class="text-ink-500">{{ etiqueta() }}</span>
       <select
         class="select select-bordered select-sm text-[12px] min-h-11 sm:min-h-8"
-        [value]="valor() ?? ''"
-        (change)="elige($event)"
+        [formField]="formulario"
         [attr.aria-label]="etiqueta()"
       >
         @if (marcador()) {
@@ -40,10 +41,26 @@ export class FiltroDesplegable {
   readonly etiqueta = input.required<string>();
   readonly opciones = input.required<readonly OpcionDeFiltro[]>();
   readonly marcador = input('');
+  /** Sin filtro puesto es `null`, no cadena vacía: así el padre distingue «todos» de «vacío». */
   readonly valor = model<string | null>(null);
 
-  protected elige(evento: Event): void {
-    const elegido = (evento.target as HTMLSelectElement).value;
-    this.valor.set(elegido || null);
-  }
+  /**
+   * El puente entre el dato del negocio y lo que el desplegable nativo sabe manejar.
+   *
+   * <p>El `<select>` solo habla en cadenas y su hueco de «todos» es la cadena vacía, mientras que el
+   * criterio de búsqueda distingue el nulo. La traducción va en los DOS sentidos y en un solo sitio,
+   * de modo que el padre sigue recibiendo `null` y no una cadena vacía que acabaría colándose en la
+   * dirección del navegador como un filtro puesto que no filtra nada.
+   */
+  private readonly elegido = transformedValue(this.valor, {
+    parse: (crudo: string) => ({ value: crudo || null }),
+    format: (valor: string | null) => valor ?? '',
+  });
+
+  /**
+   * El desplegable no tiene reglas que declarar —las opciones son las que son—, pero pasa por el
+   * formulario igual que el resto: es lo que da el enlace con la directiva y, con él, el estado de
+   * tocado y sucio que antes había que inventarse en cada pantalla.
+   */
+  protected readonly formulario = form(this.elegido);
 }

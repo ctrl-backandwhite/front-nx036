@@ -1,4 +1,5 @@
-import { Component, inject, output, signal } from '@angular/core';
+import { Component, computed, inject, output, signal } from '@angular/core';
+import { FieldTree, FormField, form, required, validate } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { ClaseDeTicket, NuevoTicket } from '../../domain/model/ticket';
 
@@ -13,6 +14,7 @@ import { ClaseDeTicket, NuevoTicket } from '../../domain/model/ticket';
  */
 @Component({
   selector: 'nx-dialogo-de-ticket',
+  imports: [FormField],
   template: `
     <div class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
          role="dialog" aria-modal="true" [attr.aria-label]="t('support.new')">
@@ -23,24 +25,27 @@ import { ClaseDeTicket, NuevoTicket } from '../../domain/model/ticket';
           <div>
             <label for="ticket-clase" class="text-xs opacity-70">{{ t('support.kind') }}</label>
             <select id="ticket-clase" class="select select-bordered w-full mt-1"
-                    [value]="clase()" (change)="clase.set(claseElegida($event))">
+                    [formField]="formulario.clase">
               <option value="SUPPORT">{{ t('support.kind.SUPPORT') }}</option>
               <option value="DISPUTE">{{ t('support.kind.DISPUTE') }}</option>
             </select>
           </div>
           <div>
             <label for="ticket-asunto" class="text-xs opacity-70">{{ t('support.subject') }}</label>
-            <input id="ticket-asunto" required class="input input-bordered w-full mt-1"
-                   [value]="asunto()" (input)="asunto.set(valorDe($event))" />
+            <input id="ticket-asunto" class="input input-bordered w-full mt-1"
+                   [formField]="formulario.asunto" />
+            @if (falloDe(formulario.asunto); as fallo) {
+              <span role="alert" class="text-xs text-error mt-1 block">{{ fallo }}</span>
+            }
           </div>
           <div>
             <label for="ticket-cuerpo" class="text-xs opacity-70">{{ t('support.body') }}</label>
             <textarea id="ticket-cuerpo" rows="4" class="textarea textarea-bordered w-full mt-1"
-                      [value]="cuerpo()" (input)="cuerpo.set(valorDe($event))"></textarea>
+                      [formField]="formulario.cuerpo"></textarea>
           </div>
           <div class="flex justify-end gap-2">
             <button type="button" class="btn btn-ghost" (click)="cierra.emit()">{{ t('common.cancel') }}</button>
-            <button type="submit" class="btn btn-primary" [disabled]="enviando() || !asunto().trim()">
+            <button type="submit" class="btn btn-primary" [disabled]="!sePuedeEnviar()">
               {{ t('support.new') }}
             </button>
           </div>
@@ -56,23 +61,49 @@ export class DialogoDeTicket {
   readonly cierra = output<void>();
   readonly abre = output<NuevoTicket>();
 
-  protected readonly clase = signal<ClaseDeTicket>('SUPPORT');
-  protected readonly asunto = signal('');
-  protected readonly cuerpo = signal('');
+  /**
+   * La clase viaja como texto porque un `<select>` atado con `[formField]` habla en texto: el tipo del
+   * dominio se recupera al emitir, y solo con los dos valores que tienen `<option>`.
+   */
+  protected readonly modelo = signal({ clase: 'SUPPORT', asunto: '', cuerpo: '' });
 
-  protected valorDe(evento: Event): string {
-    return (evento.target as HTMLInputElement | HTMLTextAreaElement).value;
-  }
+  /**
+   * Sin asunto no hay ticket: es lo único que ve quien atiende en la lista de la bandeja, y una fila
+   * sin título es indistinguible de las demás. El cuerpo sí puede ir vacío —se sigue en el hilo—.
+   */
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    required(ruta.asunto, { message: () => this.t('dialog.field.required') });
+    // Un asunto de solo espacios está tan vacío como uno sin nada, y `required` no lo ve.
+    validate(ruta.asunto, ({ value }) =>
+      value().trim() === '' ? { kind: 'en-blanco', message: this.t('dialog.field.required') } : null,
+    );
+  });
 
-  protected claseElegida(evento: Event): ClaseDeTicket {
-    return (evento.target as HTMLSelectElement).value as ClaseDeTicket;
-  }
+  /** Un único sitio al que preguntar si el ticket se puede abrir. */
+  protected readonly sePuedeEnviar = computed(
+    () => !this.enviando() && !this.formulario().invalid(),
+  );
 
   protected envia(evento: Event): void {
     evento.preventDefault();
-    if (!this.asunto().trim()) {
+    if (!this.sePuedeEnviar()) {
       return;
     }
-    this.abre.emit({ clase: this.clase(), asunto: this.asunto(), cuerpo: this.cuerpo() });
+    const datos = this.modelo();
+    this.abre.emit({ clase: this.claseDelDominio(), asunto: datos.asunto, cuerpo: datos.cuerpo });
+  }
+
+  /**
+   * El mensaje que toca enseñar bajo un campo, o nulo. Se calla hasta que el campo se ha TOCADO:
+   * pintar de rojo un formulario recién abierto acusa a quien todavía no ha escrito nada.
+   */
+  protected falloDe<T>(campo: FieldTree<T>): string | null {
+    const estado = campo();
+    return estado.touched() ? (estado.errors()[0]?.message ?? null) : null;
+  }
+
+  /** Sin conversión forzada: se compara con el valor que existe y el otro es el de partida. */
+  private claseDelDominio(): ClaseDeTicket {
+    return this.modelo().clase === 'DISPUTE' ? 'DISPUTE' : 'SUPPORT';
   }
 }
