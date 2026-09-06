@@ -57,6 +57,28 @@ describe('FormularioDeAlmacen', () => {
     );
   });
 
+  /**
+   * El dominio compara con `.trim()`, y el `required` de Signal Forms da por bueno un texto de solo
+   * espacios: sin la regla propia, el formulario dejaría mandar un código que el backend rechaza.
+   */
+  it('un código de solo espacios no cuenta como relleno', async () => {
+    await render(FormularioDeAlmacen, { inputs: { datos: almacenEnBlanco() } });
+
+    await userEvent.type(screen.getByLabelText(/Código/i), '   ');
+    await userEvent.type(screen.getByLabelText(/Nombre/i), 'Barcelona');
+
+    expect(screen.getByRole('button', { name: /Guardar/i })).toBeDisabled();
+  });
+
+  it('al salir de un campo obligatorio vacío lo dice en el propio campo', async () => {
+    await render(FormularioDeAlmacen, { inputs: { datos: almacenEnBlanco() } });
+
+    await userEvent.click(screen.getByLabelText(/Código/i));
+    await userEvent.tab();
+
+    expect(await screen.findByText(/obligatorio/i)).toBeInTheDocument();
+  });
+
   /** La fila de la tabla no se toca hasta que el guardado sale bien. */
   it('edita sobre una copia: cancelar no cambia nada de fuera', async () => {
     const datos = { ...almacenEnBlanco(), codigo: 'ES-MAD', nombre: 'Madrid' };
@@ -116,6 +138,43 @@ describe('FormularioDeLimite', () => {
     fixture.detectChanges();
 
     expect(screen.getByLabelText(/Destino/i)).toHaveValue('');
+  });
+
+  /**
+   * Un peso por encima de lo que admite el canal emite una guía que el transportista rechaza en el
+   * almacén y deja el pedido parado: el formulario lo para antes de que salga.
+   */
+  it('un peso máximo disparatado no deja guardar', async () => {
+    await render(FormularioDeLimite, {
+      inputs: { limite: { ...limiteEnBlanco(), canal: 'FZZXR' }, esAlta: true },
+    });
+
+    const peso = screen.getByLabelText(/Peso máximo/i);
+    await userEvent.clear(peso);
+    await userEvent.type(peso, '500000');
+
+    expect(screen.getByRole('button', { name: /Guardar/i })).toBeDisabled();
+  });
+
+  /** Un número que se queda a medias no es un cero: no se puede mandar como si lo fuera. */
+  it('un número borrado del todo no deja guardar', async () => {
+    await render(FormularioDeLimite, {
+      inputs: { limite: { ...limiteEnBlanco(), canal: 'FZZXR' }, esAlta: true },
+    });
+
+    await userEvent.clear(screen.getByLabelText(/Mínimo facturable/i));
+
+    expect(screen.getByRole('button', { name: /Guardar/i })).toBeDisabled();
+  });
+
+  /** El comodín bloquea el destino: bloqueado y vacío NO puede contar como «falta rellenarlo». */
+  it('con el comodín marcado el destino vacío no impide guardar', async () => {
+    await render(FormularioDeLimite, {
+      inputs: { limite: { ...limiteEnBlanco(), canal: 'FZZXR' }, esAlta: true },
+    });
+
+    expect(screen.getByLabelText(/Destino/i)).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Guardar/i })).toBeEnabled();
   });
 
   it('publica el límite editado al guardar', async () => {

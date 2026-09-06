@@ -123,7 +123,12 @@ const MEDIDA_MAXIMA_RAZONABLE_MM = 2_000;
               <p class="text-[11px] text-error mt-1" role="alert">{{ t(clave) }}</p>
             }
             <label class="flex items-center gap-2 text-[12px] text-ink-500 mt-1">
-              <input type="checkbox" class="checkbox checkbox-xs" [formField]="formulario.comodin" />
+              <input
+                type="checkbox"
+                class="checkbox checkbox-xs"
+                [formField]="formulario.comodin"
+                (change)="alMarcarElComodin($any($event.target).checked)"
+              />
               {{ t('admin.carrier_limits.any_country') }}
             </label>
             <p class="text-[11px] text-ink-400 mt-1">{{ t('admin.carrier_limits.hint.country') }}</p>
@@ -318,6 +323,19 @@ export class FormularioDeLimite {
       activo: borrador.activo,
     };
   });
+
+  /**
+   * Marcar «cualquier país» BORRA el destino escrito.
+   *
+   * <p>Dejarlo puesto debajo de una casilla que dice lo contrario se lee como que se va a guardar ese
+   * país. Se mira el estado de la CASILLA, no el del modelo, para no depender de qué oyente corra
+   * primero.
+   */
+  protected alMarcarElComodin(marcado: boolean): void {
+    if (marcado) {
+      this.formulario.pais().value.set('');
+    }
+  }
 
   /**
    * Canal y destino se guardan en MAYÚSCULAS: son códigos, y `es` y `ES` no pueden ser dos filas.

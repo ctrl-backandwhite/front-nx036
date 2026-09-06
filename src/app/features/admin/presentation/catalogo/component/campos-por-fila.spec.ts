@@ -6,7 +6,12 @@ import { CatalogoAdminStore } from '../../../application/catalogo/state/catalogo
 import { ListaTodasLasCategorias } from '../../../application/catalogo/use-case/administra-categorias.use-case';
 import { ConsultaIdiomas } from '../../../application/catalogo/use-case/consulta-idiomas.use-case';
 import { CreaProducto } from '../../../application/catalogo/use-case/crea-producto.use-case';
+import { EliminaVariante } from '../../../application/catalogo/use-case/elimina-variante.use-case';
+import { GuardaVariante } from '../../../application/catalogo/use-case/guarda-variante.use-case';
+import { GuardaVariantesEnLote } from '../../../application/catalogo/use-case/guarda-variantes-en-lote.use-case';
+import { ListaVariantes } from '../../../application/catalogo/use-case/lista-variantes.use-case';
 import { DialogoAltaDeProducto } from './dialogo-alta-de-producto';
+import { GestorDeVariantes } from './gestor-de-variantes';
 import { EjeDeVariacion } from '../../../domain/catalogo/model/eje-de-variacion';
 import { FichaDeProducto } from '../../../domain/catalogo/model/ficha-de-producto';
 import { VarianteDeProducto } from '../../../domain/catalogo/model/variante-de-producto';
@@ -23,6 +28,10 @@ import en from '@shared/i18n/dictionary/en';
  * modelo, el campo no tiene a qué atarse y la pantalla revienta al pintarla, no al compilarla.
  */
 const t = (clave: string): string => es[clave] ?? en[clave] ?? clave;
+
+/** El texto de una clave como expresión, para cuando el elemento lleva un icono al lado. */
+const rx = (clave: string): RegExp =>
+  new RegExp(t(clave).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
 
 beforeEach(() => {
   document.cookie = 'nx036-locale=es';
@@ -221,10 +230,11 @@ describe('DialogoAltaDeProducto', () => {
       'ropa',
     );
     await userEvent.type(
-      screen.getByLabelText(/Español/),
+      screen.getByLabelText(`${t('admin.create_product.title_field')} (Español)`),
       'Auricular',
     );
-    await userEvent.type(screen.getByLabelText(/Precio/), '29.9');
+    // Sin clave en el diccionario todavía: el rótulo que se ve es el respaldo escrito en la definición.
+    await userEvent.type(screen.getByLabelText('Precio (CNY)'), '29.9');
 
     expect(crear).toBeEnabled();
     expect(screen.queryByText(t('admin.create_product.required'))).toBeNull();
@@ -234,10 +244,67 @@ describe('DialogoAltaDeProducto', () => {
   it('añadir un tramo crea una fila editable de verdad', async () => {
     await pinta();
 
-    await userEvent.click(screen.getByRole('button', { name: /Añadir tramo/ }));
-    const desde = screen.getByLabelText(/Desde/);
+    await userEvent.click(screen.getByRole('button', { name: 'Añadir tramo' }));
+    const desde = screen.getByLabelText('Desde');
     await userEvent.type(desde, '10');
 
     expect((desde as HTMLInputElement).value).toBe('10');
+  });
+});
+
+describe('GestorDeVariantes', () => {
+  const lista = { ejecuta: vi.fn() };
+  const guarda = { ejecuta: vi.fn() };
+  const guardaLote = { ejecuta: vi.fn() };
+  const elimina = { ejecuta: vi.fn() };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    lista.ejecuta.mockResolvedValue(
+      exito([variante(), variante({ id: 'v2', sku: 'SKU-2', precio: 45 })]),
+    );
+    guardaLote.ejecuta.mockResolvedValue(exito(1));
+  });
+
+  async function pinta() {
+    const vista = await render(GestorDeVariantes, {
+      providers: [
+        { provide: ListaVariantes, useValue: lista },
+        { provide: GuardaVariante, useValue: guarda },
+        { provide: GuardaVariantesEnLote, useValue: guardaLote },
+        { provide: EliminaVariante, useValue: elimina },
+      ],
+      inputs: { productoId: 'p1' },
+    });
+    await vista.fixture.whenStable();
+    vista.fixture.detectChanges();
+    return vista;
+  }
+
+  /**
+   * La edición masiva monta un campo por variante a partir de un modelo indexado por identificador: si
+   * la clave de una fila no está en el modelo, el campo no tiene a qué atarse y la tabla revienta.
+   */
+  it('la edición de todas a la vez trae una fila editable por variante', async () => {
+    await pinta();
+
+    await userEvent.click(screen.getByRole('button', { name: rx('admin.variants.edit_all') }));
+
+    const skus = screen.getAllByLabelText(
+      t('admin.catalog.detail.inv.sku'),
+    ) as HTMLInputElement[];
+    expect(skus.map((campo) => campo.value)).toEqual(['SKU-1', 'SKU-2']);
+  });
+
+  /** El alta de una variante exige SKU: es lo único que la identifica en el almacén. */
+  it('sin SKU no se puede guardar la variante nueva', async () => {
+    await pinta();
+
+    await userEvent.click(screen.getByRole('button', { name: rx('admin.variants.add') }));
+    const guardar = screen.getByLabelText(t('actions.save'));
+    expect(guardar).toBeDisabled();
+
+    await userEvent.type(screen.getByLabelText(t('admin.catalog.detail.inv.sku')), 'SKU-9');
+    expect(guardar).toBeEnabled();
   });
 });

@@ -217,6 +217,9 @@ export class WidgetDeChat {
     }
     const mensaje = this.modelo().borrador;
     this.modelo.set({ borrador: '' });
+    // Vaciar el campo sin olvidar que se había tocado lo dejaría en rojo pidiendo texto justo después
+    // de mandar la pregunta.
+    this.formulario().reset();
     const { busqueda } = await this.pregunta.ejecuta(
       mensaje,
       String(this.preferencias.idioma()),

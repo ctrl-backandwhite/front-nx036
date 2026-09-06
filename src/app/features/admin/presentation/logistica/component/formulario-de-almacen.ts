@@ -96,9 +96,6 @@ interface BorradorDeAlmacen {
                 placeholder="ES"
                 [formField]="formulario.pais"
               />
-              @if (formulario.pais().touched() && errorDe(formulario.pais().errors()); as clave) {
-                <p class="text-[11px] text-error mt-1" role="alert">{{ t(clave) }}</p>
-              }
             </div>
             <div>
               <label for="almacen-ciudad" class="text-[12px] text-ink-500 mb-1 block">

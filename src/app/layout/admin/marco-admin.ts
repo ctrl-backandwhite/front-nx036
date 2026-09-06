@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
+import { Component, computed, inject, input, linkedSignal, output } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter, map } from 'rxjs';
@@ -224,7 +224,6 @@ export class MarcoAdmin {
   protected readonly iconoSalir = faRightFromBracket;
   protected readonly iconoAbrirFuera = faArrowUpRightFromSquare;
   protected readonly t = inject(TraduccionService).t;
-  protected readonly abierto = signal(false);
 
   private readonly enrutador = inject(Router);
 
@@ -236,13 +235,20 @@ export class MarcoAdmin {
     { initialValue: this.enrutador.url },
   );
 
-  constructor() {
-    // El cajón lateral se cierra al navegar: en el móvil tapa la pantalla entera.
-    effect(() => {
-      this.ruta();
-      this.abierto.set(false);
-    });
-  }
+  /**
+   * La barra lateral, que se cierra sola al navegar.
+   *
+   * <p>Es un `linkedSignal` y no un `signal` con un `effect` detrás, que es como estaba. La diferencia
+   * importa: un efecto que solo asigna un valor derivado de otro se ejecuta en un orden que no se
+   * controla y corre aunque nadie mire el resultado. Aquí la relación se DECLARA —«cuando cambie la
+   * ruta, vuelve a cerrada»— y se sigue pudiendo abrir y cerrar a mano entre navegación y navegación.
+   *
+   * <p>Se cierra porque dejarla abierta sobre la pantalla nueva tapa el contenido en el móvil.
+   */
+  protected readonly abierto = linkedSignal({
+    source: this.ruta,
+    computation: () => false,
+  });
 
   protected readonly secciones = computed(() => seccionesPara(this.usuario()?.papel ?? null));
 

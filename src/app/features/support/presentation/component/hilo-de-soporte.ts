@@ -126,6 +126,9 @@ export class HiloDeSoporte {
       if (resultado.ok) {
         // Se limpia SOLO si se envió. Si falla, lo escrito sigue ahí para poder reintentarlo.
         this.modelo.set({ borrador: '' });
+        // Y se olvida que el campo se había tocado: si no, queda en rojo pidiendo texto nada más
+        // mandar la respuesta.
+        this.formulario().reset();
         await this.recarga();
       }
     } finally {

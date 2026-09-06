@@ -1,4 +1,4 @@
-import { Component, effect, inject, input, output, signal } from '@angular/core';
+import { Component, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { FormField, apply, disabled, form, maxLength, validate } from '@angular/forms/signals';
 import {
@@ -250,9 +250,13 @@ export class RegionesFiscales {
   constructor() {
     // Al cambiar de país se vuelve a pedir y se limpia el formulario: dejar escrito lo del país
     // anterior invita a guardarlo en el nuevo sin darse cuenta.
+    //
+    // El vaciado va en `untracked` a propósito: toca el formulario, y si esa lectura entrara en las
+    // dependencias del efecto, escribir en cualquier campo lo volvería a disparar y el formulario se
+    // borraría solo mientras se teclea.
     effect(() => {
       const pais = this.pais();
-      this.cancela();
+      untracked(() => this.cancela());
       void this.recarga(pais);
     });
   }

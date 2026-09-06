@@ -195,6 +195,9 @@ export class ContactoPage {
     // Se limpia lo escrito, no quién escribe: mandar un segundo mensaje no debería obligar a volver a
     // teclear el correo.
     this.modelo.update((actual) => ({ ...actual, asunto: '', mensaje: '' }));
+    // Y se olvida que los campos se habían tocado: vaciarlos sin esto deja el formulario en rojo
+    // pidiendo un mensaje obligatorio JUSTO DESPUÉS de haberlo enviado bien.
+    this.formulario().reset();
   }
 
   /**

@@ -276,6 +276,41 @@ describe('ImpuestosPage', () => {
     );
   });
 
+  /** Sin país no hay clave que guardar: el botón se apaga solo en vez de gastar la petición. */
+  it('sin país elegido no deja guardar', async () => {
+    await monta();
+
+    expect(screen.getByRole('button', { name: /^Guardar/i })).toBeDisabled();
+  });
+
+  /**
+   * De aquí sale lo que el backend COBRA en el checkout de ese país: un 250 % no es una configuración
+   * exótica, es un dedo de más, y descubrirlo en la liquidación sale caro.
+   */
+  it('una tasa por encima del 100 % no se puede guardar', async () => {
+    await monta();
+
+    await userEvent.selectOptions(screen.getByLabelText(/País/i), 'ES');
+    const tasa = screen.getByLabelText(/Tasa/i);
+    await userEvent.clear(tasa);
+    await userEvent.type(tasa, '250');
+
+    expect(screen.getByRole('button', { name: /^Guardar/i })).toBeDisabled();
+  });
+
+  it('con país y tasa razonable ya se puede guardar', async () => {
+    await monta();
+
+    await userEvent.selectOptions(screen.getByLabelText(/País/i), 'FR');
+    const tasa = screen.getByLabelText(/Tasa/i);
+    await userEvent.clear(tasa);
+    await userEvent.type(tasa, '20');
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /^Guardar/i })).toBeEnabled(),
+    );
+  });
+
   it('abrir las regiones de un país las pide al backend', async () => {
     const { puerto } = await monta();
 
