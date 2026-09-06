@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { PaginaDeEscaparate } from './layout/escaparate/pagina-de-escaparate';
 import { PaginaDePanel } from './layout/admin/pagina-de-panel';
+import { exigeRol } from '@core/auth/sesion.guard';
 import { rutas as rutasDeAcceso } from '@features/auth/presentation/auth.routes';
 
 /**
@@ -36,10 +37,34 @@ export const routes: Routes = [
    * descargándose cuando se entra en ella, porque el diferido está en cada `loadComponent`. */
   ...rutasDeAcceso,
 
+
+  /* ── Alias del panel ────────────────────────────────────────────────────────────────────────
+   *
+   * Direcciones cortas que el front anterior redirige al panel: `/academy` lleva a
+   * `/admin/academy`, y `/platform` al panel a secas. Se descubrieron al certificar, porque en el
+   * Angular NO EXISTÍAN: caían en la página de «no encontrado», y con la cabecera y el pie alrededor
+   * parecían una página vacía en vez de un error.
+   *
+   * Son enlaces que la gente tiene guardados y que aparecen en correos enviados hace meses, así que
+   * perderlos no se nota hasta que alguien se queja. Van aquí, en la raíz, porque redirigen fuera del
+   * escaparate y no pertenecen a ningún contexto. */
+  { path: 'academy', redirectTo: 'admin/academy', pathMatch: 'full' },
+  { path: 'mentors', redirectTo: 'admin/mentors', pathMatch: 'full' },
+  { path: 'warehouses', redirectTo: 'admin/warehouses', pathMatch: 'full' },
+  { path: 'platform', redirectTo: 'admin', pathMatch: 'full' },
+
   // ── Panel de administración ─────────────────────────────────────────────────────────────────
   {
     path: 'admin',
     component: PaginaDePanel,
+    /* El guardián va en el PADRE, no solo en las hijas.
+     *
+     * Cada área del panel protegía sus propias rutas, pero `/admin` a secas no tenía guardián: quien no
+     * había entrado veía el marco entero con su barra de secciones —«Resumen», «Dashboard», los
+     * nombres de todo el back-office— antes de que nadie le echara. No filtraba datos, porque los pide
+     * la API con credencial, pero sí el mapa de la casa. Lo destapó la certificación comparando qué
+     * pasa al abrir `/admin` sin sesión en cada front. */
+    canActivate: [exigeRol('ADMIN', 'OPERATOR')],
     loadChildren: () => import('@features/admin/presentation/admin.routes').then((m) => m.rutas),
   },
 

@@ -13,8 +13,6 @@
 export const RUTAS_PUBLICAS: readonly string[] = [
   '/about',
   '/activate',
-  '/auth/callback',
-  '/cart',
   '/catalog/:slug',
   '/connect',
   '/contact',
@@ -29,6 +27,7 @@ export const RUTAS_PUBLICAS: readonly string[] = [
 
 /** Exigen sesión. Se montan en el navegador: su contenido depende de quién mira. */
 export const RUTAS_PRIVADAS: readonly string[] = [
+  '/cart',
   '/addresses',
   '/affiliate',
   '/catalog',

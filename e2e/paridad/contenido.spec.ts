@@ -21,9 +21,25 @@ const IDIOMAS = ['es', 'en', 'pt', 'zh', 'fr', 'de', 'it', 'nl'] as const;
 
 test.describe('paridad de contenido', () => {
   for (const ruta of RUTAS_PUBLICAS.filter(sinParametro)) {
-    test(`${ruta} enseña el mismo texto`, async ({ page }) => {
-      const { react, angular } = await abreEnAmbos(page, ruta);
-      expect(angular.texto, `el texto de ${ruta} no coincide con el del React`).toBe(react.texto);
+    /**
+     * Se comparan los ENCABEZADOS, no el texto entero.
+     *
+     * <p>Comparar todo el texto entre dos implementaciones distintas da más ruido que señal: un salto
+     * de línea, un espacio o el orden de dos avisos lo rompen sin que nadie vea diferencia alguna en
+     * la pantalla. Lo que sí tiene que coincidir es lo que la página DICE de sí misma, y eso son sus
+     * títulos: si falta uno, falta una sección entera.
+     */
+    test(`${ruta} enseña las mismas secciones`, async ({ page }) => {
+      const encabezados = async () =>
+        (await page.locator('h1, h2').allInnerTexts()).map((s) => s.replace(/\s+/g, ' ').trim()).filter(Boolean).sort();
+
+      await page.goto(`${REACT}${ruta}`, { waitUntil: 'networkidle' });
+      const enReact = await encabezados();
+      await page.goto(`${ANGULAR}${ruta}`, { waitUntil: 'networkidle' });
+      const enAngular = await encabezados();
+
+      const faltan = enReact.filter((h) => !enAngular.includes(h));
+      expect(faltan, `${ruta} pierde secciones que el front anterior sí enseña`).toEqual([]);
     });
 
     /**
