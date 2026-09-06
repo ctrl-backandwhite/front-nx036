@@ -175,6 +175,13 @@ recuperan las etiquetas de compartir que se perdieron al apagar el SSR, sin paga
 Regla práctica: lo público se prerenderiza (`RenderMode.Prerender`); lo que exige sesión —cuenta, cesta,
 panel— se marca `RenderMode.Client`, porque su HTML depende de quién mira.
 
+**Al construir hace falta `NEXADROP_API_INTERNA`**, apuntando a un backend accesible desde donde se
+compila. Sin ella, el prerenderizado corre en Node con rutas relativas que no apuntan a ningún host,
+las peticiones fallan **en silencio** y las páginas se escriben con sus marcadores de carga. No falla el
+build: sale una web que parece prerenderizada y no lo está. Medido en la portada: con la variable,
+3.995 caracteres de texto y 24 precios; sin ella, 1.035 y ninguno. Es el mismo fallo que tuvo el front
+anterior con su renderizado en servidor.
+
 ---
 
 ## 7. Rendimiento: no se replica lo lento

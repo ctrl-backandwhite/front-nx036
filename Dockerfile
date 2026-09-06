@@ -48,6 +48,19 @@ ENV NG_CLI_ANALYTICS=false
 #   dist/front-nx036/browser/index.html       la portada ya pintada
 #   dist/front-nx036/browser/index.csr.html   el esqueleto para el resto de rutas
 #   dist/front-nx036/browser/*-HASH.js|css    los estáticos, con hash en el nombre
+# La dirección del backend MIENTRAS SE CONSTRUYE.
+#
+# Es lo que decide si el prerenderizado sirve de algo. En el navegador la API vive en el mismo origen y
+# basta con `/api/...`; al generar el HTML no hay navegador, el código corre en Node y una ruta relativa
+# no apunta a ninguna parte. Sin esto, las peticiones fallan EN SILENCIO y las páginas se escriben con
+# sus marcadores de carga: medido, la portada pasaba de 3.995 caracteres de texto y 24 precios a 1.035
+# y ninguno.
+#
+# El backend tiene que estar accesible desde donde se construye. Si no lo está, la imagen sale igual
+# —no falla— pero con las páginas vacías, así que conviene comprobarlo tras cada despliegue.
+ARG NEXADROP_API_INTERNA=http://backend:18082
+ENV NEXADROP_API_INTERNA=${NEXADROP_API_INTERNA}
+
 RUN npm run build:${ENTORNO}
 
 # ══════════════════════════════════════════════════════════════════════════════
