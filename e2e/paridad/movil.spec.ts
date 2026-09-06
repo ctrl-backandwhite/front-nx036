@@ -14,7 +14,16 @@ import { RUTAS_PUBLICAS } from '../util/rutas';
 const sinParametro = (r: string) => !r.includes(':');
 
 test.describe('la web en el móvil', () => {
-  test.skip(({ }, info) => info.project.name !== 'movil', 'solo aplica a la anchura de móvil');
+  /* Estas comprobaciones solo tienen sentido a la anchura de un móvil.
+   *
+   * Va en un `beforeEach` y no en `test.skip(callback)` a nivel de bloque: ahí el segundo argumento NO
+   * es la información de la prueba, así que leer `info.project` reventaba con «no se puede leer
+   * 'project' de undefined» — y al reventar en la primera, las diecinueve siguientes NI SE EJECUTABAN.
+   * Aparecían como «no ejecutadas» en el informe, que es la peor forma de fallar: un hueco de cobertura
+   * que no se lee como un fallo. */
+  test.beforeEach(({ }, info) => {
+    test.skip(info.project.name !== 'movil', 'solo aplica a la anchura de móvil');
+  });
 
   for (const ruta of RUTAS_PUBLICAS.filter(sinParametro)) {
     test(`${ruta} cabe en la pantalla sin desplazarse en horizontal`, async ({ page }) => {
