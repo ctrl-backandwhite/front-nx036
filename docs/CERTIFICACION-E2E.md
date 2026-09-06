@@ -148,3 +148,53 @@ El porte está certificado cuando:
 2. Los huecos de cobertura conocidos están **escritos y justificados**, no omitidos.
 3. El recuento de comprobaciones ejecutadas aparece en el informe y cuadra con lo previsto.
 4. Las pruebas unitarias y de componente siguen en verde, con la cobertura por encima del umbral.
+
+---
+
+## Resultado de la certificación de cierre — 6 de septiembre de 2026
+
+Construido con optimización (`--optimization --source-map=false --output-hashing=all`) contra el mismo
+backend local que sirve al front anterior. Las dos anchuras, 406 comprobaciones lanzadas.
+
+| | |
+|---|---|
+| **Pasadas** | **384** |
+| Fallidas | 2 (el mismo caso en las dos anchuras) |
+| Inestables | **0** |
+| Saltadas | 20, todas justificadas abajo |
+| Duración | 23,6 min |
+
+Y aparte: **2.848 pruebas unitarias** en 318 ficheros, `ng lint` limpio, 32 rutas prerenderizadas.
+
+### Lo único que queda en rojo
+
+**La ficha de producto no lleva sus etiquetas para compartir.** Es consecuencia de una decisión que
+está sin tomar, no de un fallo: hay 7.729 productos y prerenderizarlos todos no es viable. Ahora que el
+prerenderizado sí recibe datos, prerenderizar un subconjunto —los más visitados— daría etiquetas reales
+para esas fichas, a cambio de alargar cada despliegue. Es decisión del titular, y está en
+`DEFECTOS-CERTIFICACION.md`.
+
+### Las 20 saltadas, una por una
+
+| Cuántas | Qué | Por qué se salta |
+|---|---|---|
+| 19 | Comprobaciones de móvil | Solo tienen sentido a la anchura de un móvil; en la pasada de escritorio se saltan a propósito |
+| 1 | Ficha de producto en el recorrido con sesión | Se salta **solo si la base local no tiene productos**. Si los hay, se ejecuta |
+
+### Qué hizo falta arreglar para que este número signifique algo
+
+Cinco de las certificaciones anteriores dieron rojos que NO eran defectos del porte, y uno de esos
+rojos escondía el mejor hallazgo de todos. Queda escrito porque volverá a pasar:
+
+1. **Se comparaba rendimiento con la configuración de trabajo** (26 MB, sin optimizar) contra el build
+   de producción del otro front. Al medir en igualdad apareció la causa real: el porte **cargaba Stripe
+   en páginas públicas**, más de 1 MB y un rastreador de terceros donde el original no pide nada.
+2. **El backend limita los accesos** y respondía 429 a partir del undécimo. La batería entraba por el
+   formulario treinta veces, así que de la mitad en adelante medía el limitador. Se atribuía a «carga».
+3. **Playwright no comprueba tipos**: enumeró 406 pruebas en verde con dos ficheros que usaban una
+   función sin importarla. Ahora la batería tiene su `tsconfig` y `npm run e2e` lo comprueba antes de
+   abrir un navegador.
+4. **`networkidle` esperaba a que la OTRA aplicación se callara**, y el front anterior pide
+   `/login.data` en bucle: la red no queda en reposo nunca.
+5. **Los bloques diferidos no existen hasta que se baja**, así que se comparaba una pantalla con pie
+   contra otra sin él, e inventaba defectos de accesibilidad que no estaban en ninguna de las dos.
