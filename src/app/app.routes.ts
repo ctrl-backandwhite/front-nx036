@@ -49,6 +49,15 @@ export const routes: Routes = [
    * perderlos no se nota hasta que alguien se queja. Van aquí, en la raíz, porque redirigen fuera del
    * escaparate y no pertenecen a ningún contexto. */
   { path: 'academy', redirectTo: 'admin/academy', pathMatch: 'full' },
+  { path: 'dashboard', redirectTo: 'admin/dashboard', pathMatch: 'full' },
+  { path: 'productos', redirectTo: 'admin/productos', pathMatch: 'full' },
+  { path: 'products', redirectTo: 'admin/products', pathMatch: 'full' },
+  { path: 'categorias', redirectTo: 'admin/categorias', pathMatch: 'full' },
+  { path: 'proveedores', redirectTo: 'admin/proveedores', pathMatch: 'full' },
+  { path: 'ordenes', redirectTo: 'admin/ordenes', pathMatch: 'full' },
+  { path: 'facturacion', redirectTo: 'admin/facturacion', pathMatch: 'full' },
+  { path: 'usuarios', redirectTo: 'admin/usuarios', pathMatch: 'full' },
+  { path: 'perfil', redirectTo: 'admin/perfil', pathMatch: 'full' },
   { path: 'mentors', redirectTo: 'admin/mentors', pathMatch: 'full' },
   { path: 'warehouses', redirectTo: 'admin/warehouses', pathMatch: 'full' },
   { path: 'platform', redirectTo: 'admin', pathMatch: 'full' },
