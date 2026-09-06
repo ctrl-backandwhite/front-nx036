@@ -3,6 +3,8 @@ import { isPlatformBrowser } from '@angular/common';
 import { ALMACEN_LOCAL } from '@core/storage/almacen.port';
 import { AlmacenLocalAdapter } from '@core/storage/almacen-local.adapter';
 import { AlmacenMemoriaAdapter } from '@core/storage/almacen-memoria.adapter';
+import { ALTA_EN_EL_BOLETIN } from '@core/newsletter/alta-en-el-boletin.port';
+import { AltaEnElBoletinHttpAdapter } from '@core/newsletter/alta-en-el-boletin-http.adapter';
 
 /**
  * La raíz de composición: el ÚNICO sitio donde se decide qué implementación cumple cada puerto.
@@ -17,6 +19,12 @@ import { AlmacenMemoriaAdapter } from '@core/storage/almacen-memoria.adapter';
  */
 export function proveeNucleo(): EnvironmentProviders {
   return makeEnvironmentProviders([
+    /* El alta en el boletín va en la raíz porque la piden el pie —que sale en todas las pantallas— y la
+     * portada, y esos dos no pueden verse entre sí. Colgada de un contexto, el otro se queda sin ella:
+     * es lo que le pasaba al formulario del pie, que no llegaba a ninguna parte. */
+    AltaEnElBoletinHttpAdapter,
+    { provide: ALTA_EN_EL_BOLETIN, useFactory: () => inject(AltaEnElBoletinHttpAdapter) },
+
     AlmacenLocalAdapter,
     AlmacenMemoriaAdapter,
     {

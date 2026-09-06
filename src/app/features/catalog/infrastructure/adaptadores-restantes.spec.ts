@@ -9,6 +9,8 @@ import { GuiaDeBienvenidaHttpAdapter } from './guia-de-bienvenida-http.adapter';
 import { AnaliticaHttpAdapter } from './analitica-http.adapter';
 import { ResenasHttpAdapter } from './resenas-http.adapter';
 import { FavoritosHttpAdapter } from './favoritos-http.adapter';
+import { PaisesDeEnvioHttpAdapter } from './paises-de-envio-http.adapter';
+import { AltaEnElBoletinHttpAdapter } from './alta-en-el-boletin-http.adapter';
 
 const BASE = 'http://api.test';
 
@@ -28,6 +30,8 @@ describe('el resto de los adaptadores', () => {
         AnaliticaHttpAdapter,
         ResenasHttpAdapter,
         FavoritosHttpAdapter,
+        PaisesDeEnvioHttpAdapter,
+        AltaEnElBoletinHttpAdapter,
       ],
     });
     http = TestBed.inject(HttpTestingController);
@@ -249,5 +253,73 @@ describe('el resto de los adaptadores', () => {
     const peticion = http.expectOne((r) => r.url === `${BASE}/api/me/favorites`);
     expect(peticion.request.params.get('page')).toBe('1');
     peticion.flush({ items: [], page: 1, size: 24, totalElements: 0, totalPages: 0 });
+  });
+
+  /* ── El cierre de la portada ─────────────────────────────────────────────────────────────── */
+
+  it('los países de envío llegan con su código en mayúsculas', async () => {
+    const promesa = TestBed.inject(PaisesDeEnvioHttpAdapter).lista();
+    http.expectOne((r) => r.url === `${BASE}/api/shipping/countries`).flush([
+      { countryCode: 'es', countryName: 'España' },
+      { countryCode: 'DE', countryName: 'Alemania' },
+    ]);
+    const resultado = await promesa;
+
+    expect(resultado.ok && resultado.valor).toEqual([
+      { codigo: 'ES', nombre: 'España' },
+      { codigo: 'DE', nombre: 'Alemania' },
+    ]);
+  });
+
+  /** Un país sin nombre saldría en la cinta como una píldora vacía, y eso se lee como una avería. */
+  it('las filas sin código o sin nombre se descartan', async () => {
+    const promesa = TestBed.inject(PaisesDeEnvioHttpAdapter).lista();
+    http.expectOne((r) => r.url === `${BASE}/api/shipping/countries`).flush([
+      { countryCode: 'ES', countryName: 'España' },
+      { countryCode: 'FR' },
+      { countryName: 'Italia' },
+    ]);
+    const resultado = await promesa;
+
+    expect(resultado.ok && resultado.valor).toHaveLength(1);
+  });
+
+  /** Si el backend contesta cualquier otra cosa, sale lista vacía y la sección no se pinta. */
+  it('una respuesta que no es lista no revienta la portada', async () => {
+    const promesa = TestBed.inject(PaisesDeEnvioHttpAdapter).lista();
+    http.expectOne((r) => r.url === `${BASE}/api/shipping/countries`).flush(null);
+    const resultado = await promesa;
+
+    expect(resultado.ok && resultado.valor).toEqual([]);
+  });
+
+  it('sin red, los países se devuelven como fallo del dominio', async () => {
+    const promesa = TestBed.inject(PaisesDeEnvioHttpAdapter).lista();
+    http
+      .expectOne((r) => r.url === `${BASE}/api/shipping/countries`)
+      .error(new ProgressEvent('error'));
+    const resultado = await promesa;
+
+    expect(resultado.ok).toBe(false);
+  });
+
+  it('el alta en el boletín manda el correo y distingue a quien ya estaba', async () => {
+    const promesa = TestBed.inject(AltaEnElBoletinHttpAdapter).suscribe('alguien@nx036.test');
+    const peticion = http.expectOne((r) => r.url === `${BASE}/api/newsletter/subscribe`);
+    expect(peticion.request.body).toEqual({ email: 'alguien@nx036.test' });
+    peticion.flush({ status: 'OK', alreadySubscribed: true });
+    const resultado = await promesa;
+
+    expect(resultado.ok && resultado.valor.yaEstaba).toBe(true);
+  });
+
+  it('un alta nueva no se anuncia como repetida', async () => {
+    const promesa = TestBed.inject(AltaEnElBoletinHttpAdapter).suscribe('otro@nx036.test');
+    http
+      .expectOne((r) => r.url === `${BASE}/api/newsletter/subscribe`)
+      .flush({ status: 'OK', alreadySubscribed: false });
+    const resultado = await promesa;
+
+    expect(resultado.ok && resultado.valor.yaEstaba).toBe(false);
   });
 });

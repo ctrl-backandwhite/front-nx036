@@ -9,6 +9,8 @@ import { HISTORIAL_PORT } from './domain/port/historial.port';
 import { RESENAS_PORT } from './domain/port/resenas.port';
 import { PROMOCIONES_PORT } from './domain/port/promociones.port';
 import { CIFRAS_DEL_SITIO_PORT } from './domain/port/cifras-del-sitio.port';
+import { PAISES_DE_ENVIO_PORT } from './domain/port/paises-de-envio.port';
+import { ALTA_EN_EL_BOLETIN_PORT } from './domain/port/alta-en-el-boletin.port';
 import { ANALITICA_DE_PRODUCTO_PORT } from './domain/port/analitica-de-producto.port';
 import { EDICION_DE_FICHA_PORT } from './domain/port/edicion-de-ficha.port';
 import { CESTA_PORT } from './domain/port/cesta.port';
@@ -18,6 +20,8 @@ import { FavoritosHttpAdapter, HistorialHttpAdapter } from './infrastructure/fav
 import { ResenasHttpAdapter } from './infrastructure/resenas-http.adapter';
 import { PromocionesHttpAdapter } from './infrastructure/promociones-http.adapter';
 import { CifrasDelSitioHttpAdapter } from './infrastructure/cifras-del-sitio-http.adapter';
+import { PaisesDeEnvioHttpAdapter } from './infrastructure/paises-de-envio-http.adapter';
+import { AltaEnElBoletinHttpAdapter } from './infrastructure/alta-en-el-boletin-http.adapter';
 import { AnaliticaHttpAdapter } from './infrastructure/analitica-http.adapter';
 import { EdicionDeFichaHttpAdapter } from './infrastructure/edicion-de-ficha-http.adapter';
 import { CestaHttpAdapter } from './infrastructure/cesta-http.adapter';
@@ -93,6 +97,15 @@ export function proveeCatalogo(): EnvironmentProviders {
     /* Las cifras del sitio: idiomas, divisas y almacenes. */
     CifrasDelSitioHttpAdapter,
     { provide: CIFRAS_DEL_SITIO_PORT, useFactory: () => inject(CifrasDelSitioHttpAdapter) },
+
+    /* El cierre de la portada: la banda de países y el alta en el boletín. Los dos puertos son
+     * propios del catálogo aunque otros contextos pregunten a las mismas rutas; ver el porqué en cada
+     * fichero de puerto. */
+    PaisesDeEnvioHttpAdapter,
+    { provide: PAISES_DE_ENVIO_PORT, useFactory: () => inject(PaisesDeEnvioHttpAdapter) },
+
+    AltaEnElBoletinHttpAdapter,
+    { provide: ALTA_EN_EL_BOLETIN_PORT, useFactory: () => inject(AltaEnElBoletinHttpAdapter) },
 
     AnaliticaHttpAdapter,
     { provide: ANALITICA_DE_PRODUCTO_PORT, useFactory: () => inject(AnaliticaHttpAdapter) },

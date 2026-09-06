@@ -18,6 +18,8 @@ import { RECUPERADOR_DE_SESION } from '@core/auth/recuperador-de-sesion.port';
 import { FondoHero } from '../component/fondo-hero';
 import { SeccionesPortada } from '../component/secciones-portada';
 import { CartelPromociones } from '../component/cartel-promociones';
+import { SeccionBoletin } from '../component/seccion-boletin';
+import { BandaDePaises } from '../component/banda-de-paises';
 
 /**
  * La portada de la tienda.
@@ -39,7 +41,15 @@ import { CartelPromociones } from '../component/cartel-promociones';
  */
 @Component({
   selector: 'nx-portada',
-  imports: [RouterLink, FaIconComponent, FondoHero, SeccionesPortada, CartelPromociones],
+  imports: [
+    RouterLink,
+    FaIconComponent,
+    FondoHero,
+    SeccionesPortada,
+    CartelPromociones,
+    SeccionBoletin,
+    BandaDePaises,
+  ],
   template: `
     <div class="space-y-8 md:space-y-20">
       <section
@@ -143,6 +153,34 @@ import { CartelPromociones } from '../component/cartel-promociones';
         <nx-secciones-portada />
       } @placeholder {
         <div class="h-64"></div>
+      }
+
+      <!--
+        El cierre de la portada, las dos secciones que le faltaban al porte.
+
+        El BOLETÍN, en escritorio nada más: en el móvil el pie grande tampoco se pinta, y pedir un
+        correo justo cuando alguien está deslizando productos con el pulgar interrumpe lo único que ha
+        venido a hacer.
+
+        La BANDA DE PAÍSES cuenta el alcance real del sitio. Va la última, como en el front anterior:
+        es el remate, no un contenido que compita con los productos.
+
+        Las dos van con los DOS disparadores. Con «hydrate on viewport» a secas quedarían invisibles
+        para quien llega navegando desde otra pantalla, porque entonces no hay HTML prerenderizado que
+        hidratar y nada dispara el bloque.
+      -->
+      @defer (on viewport; hydrate on viewport) {
+        <div class="hidden md:block"><nx-seccion-boletin /></div>
+      } @placeholder {
+        <div class="hidden md:block h-64"></div>
+      }
+
+      @defer (on viewport; hydrate on viewport) {
+        <div class="hidden md:block"><nx-banda-de-paises /></div>
+      } @placeholder {
+        <!-- Sin hueco reservado: si no hay cobertura la cinta no se pinta, y un blanco fijo al final de
+             la portada se vería como un fallo de maquetación. -->
+        <span></span>
       }
     </div>
   `,

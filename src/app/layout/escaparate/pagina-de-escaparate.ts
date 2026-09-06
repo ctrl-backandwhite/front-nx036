@@ -1,9 +1,10 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { MarcoEscaparate, UsuarioDelMarco } from './marco-escaparate';
 import { SesionActual } from '@core/auth/sesion-actual';
 import { CarritoStore } from '@features/cart/application/state/carrito.store';
 import { CierraSesion } from '@features/auth/application/use-case/cierra-sesion.use-case';
+import { ALTA_EN_EL_BOLETIN } from '@core/newsletter/alta-en-el-boletin.port';
 
 /**
  * El anfitrión del marco del escaparate.
@@ -28,8 +29,11 @@ import { CierraSesion } from '@features/auth/application/use-case/cierra-sesion.
     <nx-marco-escaparate
       [usuario]="usuario()"
       [lineasCesta]="lineasCesta()"
+      [boletinEnviado]="boletinEnviado()"
+      [yaSuscrito]="yaSuscrito()"
       (cierraSesion)="sal()"
       (abreCesta)="vaALaCesta()"
+      (suscribeAlBoletin)="suscribeAlBoletin($event)"
     />
   `,
 })
@@ -38,6 +42,23 @@ export class PaginaDeEscaparate {
   private readonly carrito = inject(CarritoStore);
   private readonly cerrar = inject(CierraSesion);
   private readonly router = inject(Router);
+  private readonly boletin = inject(ALTA_EN_EL_BOLETIN);
+
+  /* El resultado del alta en el boletín del PIE.
+   *
+   * <p>Se ata aquí porque el marco solo reemite la salida hacia arriba, y arriba no la recogía nadie:
+   * el campo se limpiaba, quien lo usaba veía que «algo había pasado» y al backend no llegaba nada. Un
+   * formulario que finge es peor que uno que falla, porque nadie lo denuncia. */
+  protected readonly boletinEnviado = signal(false);
+  protected readonly yaSuscrito = signal(false);
+
+  protected async suscribeAlBoletin(correo: string): Promise<void> {
+    const resultado = await this.boletin.suscribe(correo);
+    /* Se da por enviado también cuando falla, igual que el front anterior: es un alta en un boletín, no
+     * una compra. Enseñar un error aquí invita a reintentar sin que haya nada que arreglar. */
+    this.yaSuscrito.set(resultado.ok ? resultado.valor.yaEstaba : false);
+    this.boletinEnviado.set(true);
+  }
 
   protected readonly usuario = computed<UsuarioDelMarco | null>(() => {
     const datos = this.sesion.datos();
