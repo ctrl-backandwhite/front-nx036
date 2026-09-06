@@ -9,6 +9,16 @@
 # construcción se cae al resolver el complemento de Tailwind. Comprobado en el
 # `package-lock.json` antes de escribir esto, no heredado a ciegas del React.
 FROM node:22 AS construccion
+
+# A qué entorno apunta la imagen: `des`, `pre` o `pro`.
+#
+# Es un argumento y no un valor fijo porque la MISMA receta tiene que servir para los tres: si cada
+# entorno tuviera su Dockerfile, acabarían divergiendo en cosas que no son el entorno —la versión de
+# Node, el orden de las capas— y preproducción dejaría de ensayar lo que va a pasar en producción.
+#
+# El valor por defecto es `pro` porque es el que no admite atajos: si alguien construye sin decir nada,
+# lo que sale es lo más restrictivo, no lo más permisivo. Equivocarse hacia el lado seguro.
+ARG ENTORNO=pro
 WORKDIR /app
 
 # El manifiesto y el candado ANTES que el código: mientras esos dos ficheros no
@@ -27,14 +37,18 @@ COPY . .
 # variable de entorno para que no cuelgue ni mande nada hacia fuera.
 ENV NG_CLI_ANALYTICS=false
 
-# `npm run build` = `ng build` (configuración `production` por defecto, según
+# `npm run build:<entorno>` = `ng build --configuration <entorno>`, que sustituye el fichero de
+# entorno por el que toca (ver `fileReplacements` en `angular.json`). Lo que cambia entre los tres es
+# a qué dominio apunta y si lleva las ayudas de desarrollo; CÓMO se compila es idéntico, para que lo
+# que se certifica en preproducción sea exactamente lo que se sirve en producción.
+# (configuración `pro` por defecto, según
 # `angular.json`). Con `outputMode: static` esto NO deja un servidor Node: el
 # paquete de servidor se usa DURANTE la construcción para prerenderizar y luego
 # se tira. Lo que queda es:
 #   dist/front-nx036/browser/index.html       la portada ya pintada
 #   dist/front-nx036/browser/index.csr.html   el esqueleto para el resto de rutas
 #   dist/front-nx036/browser/*-HASH.js|css    los estáticos, con hash en el nombre
-RUN npm run build
+RUN npm run build:${ENTORNO}
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Etapa 2 · Imagen final
