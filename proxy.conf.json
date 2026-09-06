@@ -1,0 +1,49 @@
+// Pasarela del servidor de desarrollo de Angular (`ng serve`, puerto 3004).
+//
+// Este fichero LLEVA COMENTARIOS A PROPÓSITO y no es JSON estricto: el cargador de
+// Angular (`@angular/build/src/utils/load-proxy-config`) lo analiza con `jsonc-parser`,
+// que admite comentarios y comas sobrantes. Comprobado en el propio node_modules antes
+// de escribirlo. La alternativa habitual —una clave falsa `"//"` con el texto dentro—
+// NO sirve aquí: cada clave del objeto es una RUTA a reenviar, así que `"//"` acabaría
+// registrada como una regla de proxy más.
+//
+// Reproduce las cuatro rutas que el frontend de React reenvía desde su `vite.config.ts`.
+// Hay que reenviarlas porque la base del API va VACÍA a propósito (igual que en React,
+// ver `src/api/client.ts`): el navegador pide `/api`, `/oauth2`… al MISMO origen. Sin
+// este fichero esas peticiones caerían en el servidor de Angular, que respondería con
+// el index.html y el cliente reventaría al intentar leerlo como JSON.
+//
+// Por qué cada ruta:
+//   /api           el API de la aplicación.
+//   /oauth2        arranque del acceso con Google (redirección hacia el proveedor).
+//   /login/oauth2  la VUELTA de Google. Se reenvía este prefijo y no `/login` entero
+//                  porque `/login` a secas es una ruta de la aplicación Angular: si se
+//                  reenviara completo, la pantalla de acceso dejaría de existir.
+//   /.well-known   descubrimiento OIDC y ficheros de verificación de dominio.
+{
+  "/api": {
+    // Reescribe la cabecera Host a la del destino. Hace falta porque el backend de
+    // Spring mira el Host para construir las redirecciones absolutas de OAuth2.
+    "changeOrigin": true,
+    // No valida el certificado del destino. Hoy el destino es http y no cambia nada;
+    // se deja escrito para que apuntar a un backend con certificado autofirmado (pre)
+    // siga funcionando sin tocar el fichero.
+    "secure": false,
+    "target": "http://localhost:18082"
+  },
+  "/oauth2": {
+    "changeOrigin": true,
+    "secure": false,
+    "target": "http://localhost:18082"
+  },
+  "/login/oauth2": {
+    "changeOrigin": true,
+    "secure": false,
+    "target": "http://localhost:18082"
+  },
+  "/.well-known": {
+    "changeOrigin": true,
+    "secure": false,
+    "target": "http://localhost:18082"
+  }
+}

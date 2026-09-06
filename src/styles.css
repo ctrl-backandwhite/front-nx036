@@ -1,0 +1,1109 @@
+/* Hoja de estilos global — tema NX036 «Aduana / Cargo».
+ *
+ * Es una COPIA FIEL del estilo del frontend React: mismos tokens, mismos colores, mismas utilidades y
+ * las mismas correcciones de contraste ganadas a base de incidencias (DROP-368, DROP-459...). El encargo
+ * era que el diseño no cambiara ni un pixel al pasar a Angular, así que el estilo no se reinterpreta:
+ * se hereda. Lo único que cambia es el anfitrión, que en React era `#root` y aquí es `<nx-root>`.
+ *
+ * NINGÚN componente de la aplicación declara estilos propios: el lint lo impide. Todo lo que se ve sale
+ * de este fichero, de los parciales que importa o de una utilidad de Tailwind.
+ *
+ * Los bloques de TEMA se quedan aquí, en la hoja de entrada, y no en un parcial: Tailwind solo descarta
+ * las variables que nadie usa cuando el `@theme` está en el fichero de entrada. Metidos en un `@import`
+ * la hoja pasaba de 43 kB a 104 kB sin pintar nada distinto.
+ */
+@import "tailwindcss";
+
+/* Tailwind construye la hoja mirando el TEXTO de los ficheros del proyecto y quedándose con lo que
+ * parece un nombre de clase. Los ficheros de datos —las traducciones de los ocho idiomas, los países,
+ * los textos legales— son 25.000 líneas de prosa donde aparecen por casualidad palabras que Tailwind
+ * confunde con utilidades. Medido: la hoja pasaba de 55 kB a 105 kB de reglas que no pinta nadie.
+ *
+ * Se excluyen del escaneo. No se pierde nada: son datos, no plantillas; ninguna clase de la interfaz
+ * se declara ahí. */
+@source not "./app/shared/i18n";
+@source not "./app/shared/data";
+@source not "./app/shared/content";
+
+/* Paleta NX036 "Aduana / Cargo" — identidad de comercio transfronterizo.
+ * Cobalto profundo (acción/CTA) sobre neutros cálidos de arena + acento latón: la tensión
+ * frío/cálido evita el look de "azul SaaS" genérico y del índigo violáceo de IA. Marino como
+ * estructura. El nombre del theme se mantiene (nx036-pastel) por compat con data-theme / theme.ts.
+ */
+@plugin "daisyui" {
+  themes: nx036-pastel --default, nx036-pastel-dark --prefersdark, corporate, business;
+}
+
+@plugin "daisyui/theme" {
+  name: "nx036-pastel";
+  default: true;
+  prefersdark: false;
+  color-scheme: light;
+  --color-base-100: #fcfdfe;   /* blanco casi puro, muy leve frío */
+  --color-base-200: #f4f6f9;   /* gris muy claro */
+  --color-base-300: #e3e8ef;   /* gris claro (bordes/divisores) */
+  --color-base-content: #14212e; /* tinta marino (texto) */
+
+  --color-primary:   #0c4a97;  /* cobalto profundo (CTA/links/activo) */
+  --color-primary-content: #eef4fc;
+
+  --color-secondary: #123246;  /* marino acero (superficies/botón secundario) */
+  --color-secondary-content: #eaf1f6;
+
+  --color-accent:    #c0862d;  /* latón (badges/acento premium) */
+  --color-accent-content: #211505;
+
+  --color-neutral:   #14212e;  /* tinta (superficies oscuras) */
+  --color-neutral-content: #f4f6f9;
+
+  --color-info:    #2e6e8e;
+  --color-info-content: #f0f7fa;
+  --color-success: #1e6b52;    /* pino (stock/éxito) */
+  --color-success-content: #eff7f2;
+  --color-warning: #d9962b;    /* ámbar */
+  --color-warning-content: #241704;
+  --color-error:   #b4472e;    /* ladrillo (error/rebajas) */
+  --color-error-content: #fbf0ec;
+
+  --radius-selector: 0.6rem;
+  --radius-field:    0.55rem;
+  --radius-box:      0.85rem;
+  --border:          1px;
+  --depth: 1;
+  --noise: 0;
+}
+
+@plugin "daisyui/theme" {
+  name: "nx036-pastel-dark";
+  default: false;
+  prefersdark: true;
+  color-scheme: dark;
+  --color-base-100: #0e1a26;   /* marino profundo */
+  --color-base-200: #142434;
+  --color-base-300: #1e3143;
+  --color-base-content: #e7eef3;
+
+  --color-primary:   #3f93ec;  /* cobalto claro para dark */
+  --color-primary-content: #03121f;
+
+  --color-secondary: #2a5a7e;
+  --color-secondary-content: #eaf1f6;
+
+  --color-accent:    #d39b41;
+  --color-accent-content: #1e1305;
+
+  --color-neutral:   #1a2a38;
+  --color-neutral-content: #e7eef3;
+
+  --color-info:    #4a8cab;
+  --color-info-content: #071720;
+  --color-success: #2e9070;
+  --color-success-content: #05160f;
+  --color-warning: #e0a63a;
+  --color-warning-content: #201502;
+  --color-error:   #d0573c;
+  --color-error-content: #1f0a05;
+
+  --radius-selector: 0.6rem;
+  --radius-field:    0.55rem;
+  --radius-box:      0.85rem;
+  --border:          1px;
+  --depth: 1;
+  --noise: 0;
+}
+
+@theme {
+  /* brand = cobalto profundo "Aduana/Cargo" (azul real, no el índigo violáceo de IA) */
+  --color-brand-50:  #eaf1fb;
+  --color-brand-100: #cbdef4;
+  --color-brand-200: #98bde8;
+  --color-brand-300: #5c93d7;
+  --color-brand-400: #2a6cc0;
+  --color-brand-500: #1355a6;
+  --color-brand-600: #0c4a97;
+  --color-brand-700: #0b3d78;
+  --color-brand-800: #0d3460;
+  --color-brand-900: #0d2b4c;
+
+  /* ink = marino frío (antes slate) */
+  --color-ink-900: #14212e;
+  --color-ink-700: #2c3e4e;
+  --color-ink-500: #5c6e7c;
+  --color-ink-300: #b7c2cb;
+  --color-ink-100: #e1e7ec;
+  --color-ink-50:  #f4f7f9;
+
+  --font-sans: "Roboto", system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-mono: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* Movido desde componentes.css: los tokens viven en la hoja de entrada. */
+@theme {
+  --color-surface:         var(--color-base-100);
+  --color-surface-hover:   color-mix(in oklch, var(--color-base-100) 88%, var(--color-primary));
+  --color-surface-elevated:var(--color-base-100);
+  --color-surface-sunken:  var(--color-base-200);
+  --shadow-pastel-sm:  0 1px 2px 0 color-mix(in oklch, var(--color-primary) 18%, transparent);
+  --shadow-pastel:     0 4px 12px -4px color-mix(in oklch, var(--color-primary) 22%, transparent),
+                       0 2px 4px -2px color-mix(in oklch, var(--color-primary) 14%, transparent);
+  --shadow-pastel-lg:  0 18px 38px -16px color-mix(in oklch, var(--color-primary) 28%, transparent),
+                       0 8px 16px -8px color-mix(in oklch, var(--color-primary) 18%, transparent);
+}
+/* Movido desde movimiento.css: los tokens viven en la hoja de entrada. */
+@theme {
+  /* Transitions: el usuario pidió que toda la app transicione en ~1s, de forma suave.
+   * `base` = 1s es la duración estándar (color, sombra, fondo, hover de cards/inputs/badges,
+   * filas de tabla, tooltips, acordeones, subrayados de nav…). `fast` se mantiene corto solo
+   * para el micro-feedback de pulsación y los pequeños lifts de transform (si translateY tardara
+   * 1s el hover se sentiría pegajoso). `slow/slower` para animaciones de entrada más amplias. */
+  --motion-fast:    300ms;
+  --motion-base:    1000ms;
+  --motion-slow:    1000ms;
+  /* Fundido entre fotos de la galería del producto. Debe ser MENOR que el intervalo del pase automático
+     (AUTOPLAY_STEP_MS en useGalleryAutoplay), o la foto cambiaría antes de acabar de aparecer.
+     Muy por debajo, además: el cruce arranca en cuanto salta el temporizador, así que con 2 s cada foto
+     solo quedaba nítida 3 s de los 5 y se percibía como si el pase fuera más rápido de lo configurado
+     (medido el 5-ago-2026: intervalos de 4,99 s con fundido de 2 s). Con 600 ms la foto se queda quieta
+     4,4 s, que es lo que se espera de un pase de 5 s. */
+  --motion-gallery-fade: 600ms;
+  /* Cambio de foto cuando manda el USUARIO. Corto a propósito: al pulsar una miniatura o pasar con las
+     flechas se espera respuesta inmediata, y un fundido de 2 s se percibe como que la web va lenta. El
+     fundido largo es solo para el pase automático, que es decorativo. */
+  --motion-gallery-fade-fast: 140ms;
+  --motion-slower:  1400ms;
+  /* Default GLOBAL de las utilidades Tailwind `transition*` (transition-colors, transition-all,
+   * transition-transform…): sin esto usarían 150ms. Lo subimos a 1s con easing suave para que
+   * CUALQUIER elemento con una clase `transition*` y sin duración explícita anime en 1s. */
+  --default-transition-duration: 1000ms;
+  --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  --tw-duration: 1000ms;
+  --motion-easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-easing-decel:    cubic-bezier(0.0, 0, 0.2, 1);
+  --motion-easing-accel:    cubic-bezier(0.4, 0, 1, 1);
+  --motion-easing-emph:     cubic-bezier(0.2, 0, 0, 1);
+  --motion-distance-sm: 4px;
+  --motion-distance-md: 8px;
+  --motion-distance-lg: 16px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   BASE DEL DOCUMENTO — tipografía, jerarquía y ajustes de lectura
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+html, body, nx-root { height: 100%; }
+html { font-size: 15px; }
+body {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  /* Fondo plano y limpio (sin degradados de color: se veían "IA"). */
+  background-color: var(--color-base-200);
+  color: var(--color-base-content);
+  letter-spacing: -0.005em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* DROP-368: jerarquía tipográfica en color base-content; subtítulos en 70% opacity. */
+h1, h2, h3, h4 { font-weight: 500; letter-spacing: -0.018em; color: var(--color-base-content); }
+h1 { font-size: 1.5rem; line-height: 1.25; }
+h2 { font-size: 1.125rem; line-height: 1.3; }
+h3 { font-size: 0.95rem; line-height: 1.3; }
+label { font-weight: 400; }
+strong, .font-medium { font-weight: 500; }
+.font-bold { font-weight: 700; }
+code, pre, .font-mono { font-family: var(--font-mono); }
+
+/* DROP-271..273 — btn, card, badge, input now come from daisyUI pastel.
+ * Legacy custom utilities were removed to let daisyUI style every existing
+ * `<button className="btn btn-primary">` and `<div className="card">` markup.
+ *
+ * Helper utilities that don't collide with daisyUI are kept below.
+ */
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   PIEZAS DE INTERFAZ — tarjetas, tablas, distintivos, avisos, menús
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+@utility card-header {
+  padding: 0.875rem 1.125rem;
+  border-bottom: 1px solid var(--color-base-300);
+  font-weight: 500; font-size: 0.875rem; color: var(--color-base-content);
+  display: flex; align-items: center; justify-content: space-between;
+  background: color-mix(in oklch, var(--color-primary) 6%, var(--color-base-100));
+}
+
+/* DROP-367: tokens semánticos de superficie. */
+
+
+/* DROP-379: utilidades shadow-pastel. */
+.shadow-pastel-sm { box-shadow: var(--shadow-pastel-sm); }
+.shadow-pastel    { box-shadow: var(--shadow-pastel); }
+.shadow-pastel-lg { box-shadow: var(--shadow-pastel-lg); }
+
+/* DROP-376: cards con fondo base-100, sombra pastel sutil y borde 1px. */
+.card { background-color: var(--color-base-100); border: 1px solid var(--color-base-300); box-shadow: var(--shadow-pastel-sm); }
+.card.card-border { border: 1px solid var(--color-base-300); }
+.card[data-hover="true"]:hover, .card.card-hover:hover { box-shadow: var(--shadow-pastel-lg); }
+
+/* DROP-377: tablas — header pastel uniforme, zebra suave, hover claro. */
+.table thead,
+.table thead.bg-ink-50 {
+  background-color: color-mix(in oklch, var(--color-primary) 8%, var(--color-base-100)) !important;
+}
+.table thead th,
+.table thead.bg-ink-50 th {
+  color: color-mix(in oklch, var(--color-base-content) 70%, transparent) !important;
+  font-weight: 500;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  padding-top: 0.625rem;
+  padding-bottom: 0.625rem;
+}
+.table.table-zebra tbody tr:nth-child(even) {
+  background-color: color-mix(in oklch, var(--color-primary) 3%, var(--color-base-100));
+}
+.table tbody tr { border-bottom: 1px solid color-mix(in oklch, var(--color-base-300) 60%, transparent); }
+.table tbody tr:last-child { border-bottom: 0; }
+.table tbody tr:hover {
+  background-color: color-mix(in oklch, var(--color-primary) 10%, var(--color-base-100)) !important;
+}
+.table tbody td {
+  padding-top: 0.625rem;
+  padding-bottom: 0.625rem;
+  vertical-align: middle;
+}
+/* Números tabulares para columnas alineadas a la derecha. */
+.table td.text-right,
+.table td.text-end,
+.table th.text-right,
+.table th.text-end { font-variant-numeric: tabular-nums; }
+
+/* Borrar bordes y colores legacy (text-ink-500, border-ink-100) sobre tablas. */
+.table .text-ink-500, .table .text-ink-400 { color: color-mix(in oklch, var(--color-base-content) 60%, transparent); }
+.table .text-ink-300 { color: color-mix(in oklch, var(--color-base-content) 40%, transparent); }
+.table tr.border-ink-100, .table tr.border-t.border-ink-100 { border-color: color-mix(in oklch, var(--color-base-300) 60%, transparent); }
+
+/* Badges: que el texto nunca se rompa en 2 líneas y tenga padding cómodo. */
+.badge {
+  white-space: nowrap;
+  padding-inline: 0.6rem;
+  min-height: 1.35rem;
+  line-height: 1;
+  gap: 0.25rem;
+}
+.badge-sm { padding-inline: 0.5rem; min-height: 1.15rem; }
+.badge-lg { padding-inline: 0.8rem; min-height: 1.65rem; }
+
+/* Última columna (acciones) en tablas: separación entre iconos/botones. */
+.table td:last-child > .flex,
+.table td:last-child > .inline-flex { gap: 0.5rem; }
+.table td:last-child .btn + .btn,
+.table td:last-child a + a,
+.table td:last-child button + button,
+.table td:last-child a + button,
+.table td:last-child button + a { margin-left: 0.375rem; }
+.table td:last-child a, .table td:last-child button {
+  vertical-align: middle;
+}
+/* Cuando las acciones son un wrapper inline sin flex (Link + Link sueltos), inyectamos un gap visual. */
+.table td.actions, .table td[data-actions="true"] {
+  display: table-cell;
+}
+.table td.actions > *, .table td[data-actions="true"] > * {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 0.375rem;
+}
+.table td.actions > *:last-child, .table td[data-actions="true"] > *:last-child {
+  margin-right: 0;
+}
+
+/* DROP-370/372/459: alerts y banners — borde lateral del color de estado, fondo
+ * pastel sutil con texto oscuro de alto contraste. El bug DROP-459 (texto verde
+ * sobre fondo verde, "casi ilegible") venía de que las clases Tailwind hijas
+ * heredaban un color too-pale; forzamos color en TODOS los descendientes textuales
+ * con un valor literal seguro (contraste WCAG AA ≥ 4.5:1). */
+.alert {
+  border-left-width: 3px;
+  background-color: color-mix(in oklch, var(--color-base-100) 80%, transparent);
+}
+/* El texto de estos avisos NO puede salir de los tokens `*-content`. Esos colores existen para
+ * escribir SOBRE el color sólido —blanco roto sobre el verde oscuro del éxito, casi negro sobre el
+ * ámbar del aviso—, pero aquí el fondo es ese mismo color al 14 % sobre `base-100`, es decir, casi el
+ * fondo de la página. Usarlos pintaba blanco sobre blanco: el 18-ago-2026 se vio en producción un aviso
+ * de «Añadido al carrito» que sencillamente no se leía. Solo se salvaba el ámbar, porque su token de
+ * contenido es oscuro por casualidad; en tema oscuro no se leía ninguno de los cuatro.
+ *
+ * El texto se mezcla con `base-content` —el color con el que se escribe el resto de la página, oscuro
+ * en tema claro y claro en oscuro— y se le añade un cuarto del color del estado para que siga
+ * reconociéndose de un vistazo. Así el contraste sale del mismo sitio que el del texto normal y no
+ * depende de que alguien acierte un token a mano en cada tema. */
+.alert-info    { border-left-color: var(--color-info);    background-color: color-mix(in oklch, var(--color-info) 14%, var(--color-base-100));    color: color-mix(in oklch, var(--color-info) 25%, var(--color-base-content)); }
+.alert-success { border-left-color: var(--color-success); background-color: color-mix(in oklch, var(--color-success) 14%, var(--color-base-100)); color: color-mix(in oklch, var(--color-success) 25%, var(--color-base-content)); }
+.alert-warning { border-left-color: var(--color-warning); background-color: color-mix(in oklch, var(--color-warning) 14%, var(--color-base-100)); color: color-mix(in oklch, var(--color-warning) 25%, var(--color-base-content)); }
+.alert-error   { border-left-color: var(--color-error);   background-color: color-mix(in oklch, var(--color-error) 14%, var(--color-base-100));   color: color-mix(in oklch, var(--color-error) 25%, var(--color-base-content)); }
+
+/* DROP-459: forzar color del texto en TODOS los hijos del alert para que las
+ * clases Tailwind utility no sobrescriban con un verde claro inconcluyente.
+ * Trabaja en light y dark gracias a *-content tokens. */
+.alert-success *, .alert-success span, .alert-success p,
+.alert-success strong, .alert-success a:not(.btn) { color: inherit !important; }
+.alert-error *, .alert-error span, .alert-error p,
+.alert-error strong, .alert-error a:not(.btn) { color: inherit !important; }
+.alert-warning *, .alert-warning span, .alert-warning p,
+.alert-warning strong, .alert-warning a:not(.btn) { color: inherit !important; }
+.alert-info *, .alert-info span, .alert-info p,
+.alert-info strong, .alert-info a:not(.btn) { color: inherit !important; }
+
+/* DROP-369/370: badges — ghost/active/verified/trustpass. */
+.badge-ghost { background-color: var(--color-base-200); color: var(--color-base-content); border-color: var(--color-base-300); }
+.badge-trustpass { background-color: color-mix(in oklch, var(--color-success) 18%, var(--color-base-100)); color: var(--color-success-content); border-color: color-mix(in oklch, var(--color-success) 35%, transparent); }
+
+/* DROP-371: iconos destructivos con tinte rojo pastel sin saturación. */
+.btn-ghost.text-error, .btn-ghost.text-red-600, .text-destructive { color: var(--color-error-content); }
+.btn-ghost.text-error:hover { background-color: color-mix(in oklch, var(--color-error) 18%, transparent); }
+
+/* DROP-374: outline coherente (borde primary suave, hover fill 8%). */
+.btn-outline { border-color: color-mix(in oklch, var(--color-primary) 45%, var(--color-base-300)); }
+.btn-outline:hover { background-color: color-mix(in oklch, var(--color-primary) 10%, transparent); border-color: var(--color-primary); }
+
+/* DROP-380: sidebar menu — activo en pastel lavanda. */
+.menu :where(li > *:not(ul, .menu-title, details, .btn).menu-active),
+.menu :where(li > *:not(ul, .menu-title, details, .btn):is(.active)),
+.menu :where(li > details > summary.menu-active),
+.menu .menu-active {
+  background-color: var(--color-primary) !important;   /* azul profundo sólido */
+  color: var(--color-primary-content) !important;       /* texto claro, alto contraste */
+}
+
+/* Aside admin: forzar columna vertical y ancho completo del menú vertical. */
+aside .menu:not(.menu-horizontal) {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  width: 100%;
+}
+aside .menu:not(.menu-horizontal) > li { width: 100%; }
+aside .menu:not(.menu-horizontal) > li > a {
+  display: flex; align-items: center; gap: 0.625rem;
+  width: 100%;
+}
+aside .menu .menu-title {
+  padding: 0.5rem 0.875rem 0.25rem;
+  font-size: 10px;
+}
+
+/* DROP-382: round-badge utility para iconos KPI con tinte de estado. */
+@utility kpi-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 2.5rem; height: 2.5rem; border-radius: 9999px;
+  background-color: color-mix(in oklch, currentColor 16%, var(--color-base-100));
+}
+
+/* Scrollbar muy delgada con tinte pastel claro. Aside admin usa esta clase. */
+.scrollbar-thin::-webkit-scrollbar { width: 3px; height: 3px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: color-mix(in oklch, var(--color-primary) 22%, transparent);
+  border-radius: 9999px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklch, var(--color-primary) 38%, transparent);
+}
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklch, var(--color-primary) 22%, transparent) transparent;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   MOVIMIENTO Y ACCESIBILIDAD — duraciones, curvas, transiciones
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+@media print { .no-print { display: none !important; } }
+
+@keyframes slide-up {
+  from { transform: translateY(8px); opacity: 0; }
+  to   { transform: translateY(0);   opacity: 1; }
+}
+@keyframes slide-in-right {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+@keyframes slide-out-right {
+  from { transform: translateX(0); }
+  to   { transform: translateX(100%); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* Reusable skeleton shimmer (DROP-254). */
+@utility skeleton {
+  background-color: var(--color-ink-100);
+  background-image: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.55) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  border-radius: 0.375rem;
+}
+@keyframes skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; }
+}
+
+/* DROP-257: shared component utilities. Keep these in sync with @theme tokens. */
+@utility chip {
+  display: inline-flex; align-items: center; gap: 0.375rem;
+  padding: 0.125rem 0.625rem; border-radius: 9999px;
+  font-size: 0.75rem; font-weight: 500;
+  background-color: var(--color-ink-100); color: var(--color-ink-700);
+  border: 1px solid transparent;
+  transition: background-color var(--motion-base) var(--motion-easing-standard),
+              border-color var(--motion-base) var(--motion-easing-standard);
+  &:hover { background-color: var(--color-ink-50); border-color: var(--color-ink-300); }
+}
+
+@utility chip-active {
+  background-color: var(--color-brand-50); color: var(--color-brand-700);
+  border-color: var(--color-brand-200);
+}
+
+@utility section-header {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+@utility banner {
+  display: flex; align-items: flex-start; gap: 0.625rem;
+  padding: 0.75rem 1rem; border-radius: 0.5rem;
+  border: 1px solid; font-size: 0.8125rem; line-height: 1.4;
+}
+
+@utility focus-ring {
+  &:focus-visible {
+    outline: 2px solid var(--color-brand-400);
+    outline-offset: 2px;
+    border-radius: 0.375rem;
+  }
+}
+
+/* DROP-253 a11y baseline */
+:focus-visible { outline: 2px solid var(--color-brand-400); outline-offset: 2px; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+/* DROP-318: Motion tokens — duración, easing, distancia. Usados por CSS y por framer-motion. */
+
+
+/* DROP-321/322/326: hover suave en botones, cards y enlaces. */
+.btn { transition: transform var(--motion-fast) var(--motion-easing-standard),
+                   box-shadow var(--motion-base) var(--motion-easing-standard),
+                   background-color var(--motion-base) var(--motion-easing-standard),
+                   border-color var(--motion-base) var(--motion-easing-standard); }
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(0); transition-duration: 60ms; }
+
+.card { transition: transform var(--motion-base) var(--motion-easing-standard),
+                    box-shadow var(--motion-slow) var(--motion-easing-standard); }
+.card.card-hover:hover,
+.card[data-hover="true"]:hover { transform: translateY(-2px); box-shadow: 0 10px 24px -10px rgb(0 0 0 / 0.18); }
+
+/* DROP-323: hover de filas de tabla (fade de bg). */
+.table tbody tr { transition: background-color var(--motion-base) var(--motion-easing-standard); }
+
+/* DROP-324: focus en inputs/selects/textarea. */
+.input, .select, .textarea {
+  transition: border-color var(--motion-base) var(--motion-easing-standard),
+              box-shadow var(--motion-base) var(--motion-easing-standard),
+              background-color var(--motion-base) var(--motion-easing-standard);
+}
+
+/* DROP-472: alinear inputs en formularios. daisyUI 5 da a .input/.select un
+ * width fijo por defecto (~20rem) que rompe alineación cuando viven dentro de
+ * grids/flex con otras filas en w-full. Hacemos width:100% por defecto;
+ * cualquier caso particular puede sobrescribir con w-auto/max-w-*. */
+.input, .select, .textarea { width: 100%; }
+/* Mantén las cajas de altura uniforme dentro de la misma fila para evitar
+ * el efecto escalera cuando hay validación inline o iconos. */
+.input, .select { min-height: 2.5rem; }
+/* Exclusiones: inputs join (stepper -/+ qty) y los tamaños xs/sm cortos no
+ * deben heredar width:100% — quedarían enormes en grids densos como la tabla
+ * de tallas del PDP. La altura compacta tampoco aplica a estos. */
+.join .input, .join .select { width: auto; min-height: 0; }
+.input-xs, .select-xs { width: auto !important; min-height: 1.5rem !important; }
+.input-sm, .select-sm { min-height: 2rem; }
+
+/* Los <select> con clase .input no muestran la flecha nativa (parecen un input normal).
+ * Añadimos un chevron para que se note que son desplegables. */
+select.input {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%236b7280' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.6rem center;
+  background-size: 1.1rem;
+  padding-right: 2rem;
+}
+
+/* DROP-325: badges al cambiar estado. */
+.badge { transition: background-color var(--motion-base) var(--motion-easing-standard),
+                     color var(--motion-base) var(--motion-easing-standard),
+                     transform var(--motion-fast) var(--motion-easing-standard); }
+
+/* DROP-326: underline animado en links de navegación. */
+.menu a, .link-hover { position: relative; }
+.nav-underline { position: relative; }
+.nav-underline::after {
+  content: "";
+  position: absolute; left: 8px; right: 8px; bottom: 2px; height: 2px;
+  background: currentColor; border-radius: 2px;
+  transform: scaleX(0); transform-origin: left center;
+  transition: transform var(--motion-base) var(--motion-easing-emph);
+}
+.nav-underline:hover::after,
+.nav-underline.menu-active::after { transform: scaleX(1); }
+
+/* DROP-327: tooltips daisyUI con fade+translate. */
+.tooltip::before, [data-tip]::before {
+  transition: opacity var(--motion-base) var(--motion-easing-standard),
+              transform var(--motion-base) var(--motion-easing-decel);
+  /* Bordes redondeados como las tarjetas (mismo token de radio) en vez del radio pequeño por defecto. */
+  border-radius: var(--radius-box, 0.75rem);
+  padding: 0.375rem 0.625rem;
+}
+
+/* DROP-328/329: page transitions + skeleton/content fade-in. */
+@keyframes nx-fade-in    { from { opacity: 0; } to { opacity: 1; } }
+@keyframes nx-fade-up    { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes nx-scale-in   { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+@keyframes nx-slide-right{ from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
+.animate-fade-in   { animation: nx-fade-in    var(--motion-slow)   var(--motion-easing-standard) both; }
+.animate-fade-up   { animation: nx-fade-up    var(--motion-slower) var(--motion-easing-emph)     both; }
+.animate-scale-in  { animation: nx-scale-in   var(--motion-base)   var(--motion-easing-emph)     both; }
+.animate-slide-rt  { animation: nx-slide-right var(--motion-slow)  var(--motion-easing-emph)     both; }
+/* Transición de 1s al cambiar de pestaña/filtro en el buzón de notificaciones (como la navegación entre páginas). */
+.animate-nx-fade   { animation: nx-fade-in 1s var(--motion-easing-standard, ease) both; }
+@media (prefers-reduced-motion: reduce) { .animate-nx-fade { animation: none !important; } }
+/* Transición sutil (fade + ligero slide) al cambiar de sección en el sidebar de "Mi cuenta" (perfil). */
+/* Transición al cambiar de sección: fundido + leve desplazamiento hacia arriba (más suave que solo
+   opacidad). Clave: fill-mode `backwards` (NO `both`) → el `transform` SOLO existe durante la animación y
+   al terminar vuelve a `none`; así no deja un bloque contenedor que descoloque los `position: fixed`
+   (modales), que además se abren siempre después de que la transición acaba. Ver nota más abajo. */
+.animate-section-fade { animation: nx-fade-up var(--motion-slow, 1000ms) var(--motion-easing-emph, cubic-bezier(0.2, 0, 0, 1)) backwards; }
+@media (prefers-reduced-motion: reduce) { .animate-section-fade { animation: none !important; } }
+/* Transición entre fotos de la galería del producto. Se hace en CRUCE: la foto nueva aparece ENCIMA de
+   la anterior, que sigue visible debajo hasta que el fundido termina. Sin esa capa inferior se veía el
+   fondo vacío a mitad de transición, que es lo que daba sensación de corte. Curva ease-in-out para que
+   arranque y termine despacio en vez de entrar de golpe. */
+.animate-fade-gallery {
+  animation: nx-fade-in var(--motion-gallery-fade) cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+/* Misma transición, pero a la velocidad de una respuesta directa: se usa en cuanto el usuario toma el
+   control de la galería. Curva de salida (ease-out) porque entra rápido y asienta al final. */
+.animate-fade-gallery-fast {
+  animation: nx-fade-in var(--motion-gallery-fade-fast) cubic-bezier(0, 0, 0.2, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-gallery,
+  .animate-fade-gallery-fast { animation: none !important; }
+}
+
+/* DROP-637: marquee infinito del banner de países de envío (home). La pista está duplicada, así que
+   desplazar -50% produce un bucle perfecto. Respeta prefers-reduced-motion. */
+@keyframes nx-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-\[nx-marquee_90s_linear_infinite\] { animation: none !important; }
+}
+
+/* DROP-637: "bump" del icono del carrito al recibir un producto (efecto volar-al-carrito). */
+@keyframes nx-cart-bump {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.35); }
+  55%  { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+#nx-cart-icon.cart-bump { animation: nx-cart-bump .45s var(--motion-easing-emph); }
+@media (prefers-reduced-motion: reduce) {
+  #nx-cart-icon.cart-bump { animation: none; }
+}
+
+/* DROP-331: modales con fade+scale. daisyUI ya pinta el backdrop. */
+dialog.modal[open] .modal-box { animation: nx-scale-in var(--motion-base) var(--motion-easing-emph) both; }
+dialog.modal[open]::backdrop { animation: nx-fade-in var(--motion-base) var(--motion-easing-standard) both; }
+
+/* DROP-332: toasts con slide-in. */
+.toast > * { animation: nx-fade-up var(--motion-base) var(--motion-easing-emph) both; }
+
+/* DROP-333: dropdowns con fade+translate-y. */
+.dropdown .dropdown-content { animation: nx-fade-up var(--motion-fast) var(--motion-easing-standard) both; }
+
+/* DROP-334: collapse / accordion con altura animada — la mayor parte la maneja
+ * el browser via [open], aquí solo suavizamos contenido. */
+.collapse-content { transition: padding var(--motion-base) var(--motion-easing-standard); }
+
+/* DROP-335: spinners corporate. daisyUI loading ya anima; alineamos color y duración. */
+.loading { animation-duration: 900ms; }
+
+/* DROP-337: sticky header con shadow on scroll. Toggled vía JS data-scrolled. */
+.navbar[data-scrolled="true"] {
+  box-shadow: 0 6px 16px -10px rgb(0 0 0 / 0.22);
+  transition: box-shadow var(--motion-slow) var(--motion-easing-standard);
+}
+
+/* DROP-320: prefers-reduced-motion — guardia global. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .btn:hover, .card[data-hover="true"]:hover { transform: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   AJUSTES POR PANTALLA — tema oscuro, portada, acceso, carga, móvil
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* =====================================================================
+ *  DROP-416..433 — Sweep cosmético + dark mode pastel
+ *  Fix múltiple en un solo bloque para acortar diff.
+ * ===================================================================== */
+
+/* DROP-416: hero del home — iconos de propuesta de valor con contraste fuerte. */
+.hero .kpi-icon,
+.hero .stat-figure { color: var(--color-primary) !important; opacity: 0.9; }
+
+/* DROP-417: login/checkout — gradiente menos saturado en columna izquierda. */
+.hero.bg-primary > div[aria-hidden="true"] > .absolute.inset-0.bg-gradient-to-br {
+  opacity: 0.85;
+}
+
+/* DROP-418: badge "Popular" en /pricing — separación del borde de la tarjeta. */
+.card .badge-primary[class*="absolute"] { top: -0.75rem; transform: translateX(-50%); }
+
+/* DROP-419: sidebar admin — agrupación menos confusa con borde inferior por sección. */
+aside .menu > .menu-title { border-top: 1px solid color-mix(in oklch, var(--color-base-300) 50%, transparent); padding-top: 0.75rem; }
+aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
+
+/* DROP-420: cabeceras de tabla — uppercase moderado, no exagerado. */
+.table thead th, .table thead.bg-ink-50 th {
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-size: 12px !important;
+}
+
+/* DROP-421: gráfico SVG con gridlines y ejes visibles. Por el momento ya tiene
+ * stroke="var(--color-ink-100)"; reforzamos visibilidad en pastel. */
+.card svg line[stroke="var(--color-ink-100)"] { stroke: color-mix(in oklch, var(--color-base-300) 80%, transparent); }
+.card svg text { fill: color-mix(in oklch, var(--color-base-content) 65%, transparent) !important; }
+
+/* DROP-422: switch de 2FA — visible con contorno explícito. */
+.toggle { border: 1px solid var(--color-base-300); }
+.toggle:checked { border-color: var(--color-primary); }
+
+/* DROP-423: tarjetas de catálogo — precio sin chocar con fondo pastel. */
+.card.product-card .text-brand-700,
+.card .font-semibold.text-brand-700 { color: var(--color-primary-content) !important; }
+
+/* ============ DARK MODE — DROP-424..433 ============ */
+
+[data-theme="nx036-pastel-dark"] {
+  /* DROP-424: hero badges/icons legibles */
+  .hero .badge-outline { background-color: color-mix(in oklch, var(--color-base-100) 60%, transparent); }
+  .hero .kpi-icon { background-color: color-mix(in oklch, var(--color-primary) 28%, var(--color-base-100)); }
+
+  /* DROP-425: tarjetas de catálogo — fondo coherente con base-100 oscuro */
+  .card, .card-border {
+    background-color: var(--color-base-100) !important;
+    border-color: var(--color-base-300) !important;
+  }
+  .card.bg-base-100 { background-color: var(--color-base-100) !important; }
+
+  /* DROP-426: precios catálogo legibles (texto antes en azul oscuro) */
+  .card .text-brand-700,
+  .card .font-semibold.text-brand-700,
+  .card .text-primary-content {
+    color: var(--color-primary) !important;
+  }
+  .product-card .font-medium { color: var(--color-base-content) !important; }
+
+  /* DROP-427: features del pricing legibles */
+  .card .text-success, .card .text-warning, .card .text-info { filter: brightness(1.2); }
+
+  /* DROP-428: prose docs jerarquía + contraste fuerte */
+  .prose, .prose * { color: var(--color-base-content); }
+  .prose h1, .prose h2, .prose h3, .prose h4 { color: var(--color-base-content); opacity: 1; }
+  .prose code, .prose kbd {
+    background: color-mix(in oklch, var(--color-primary) 18%, var(--color-base-200)) !important;
+    color: var(--color-base-content) !important;
+    border: 1px solid var(--color-base-300);
+  }
+  .prose pre { background: var(--color-base-200); color: var(--color-base-content); }
+  .prose a { color: var(--color-primary); text-decoration: underline; }
+  .prose strong, .prose b { color: var(--color-base-content); font-weight: 600; }
+
+  /* DROP-428 v2: /developers no usa .prose; usa text-ink-* directamente,
+   * que en dark mode son hex codes claros sobre fondo claro (i.e. tokens
+   * pensados para light). Re-mapeamos los ink-* para que en dark caigan a
+   * tonos legibles. */
+  .text-ink-900 { color: oklch(95% 0.015 245) !important; }
+  .text-ink-700 { color: oklch(86% 0.018 245) !important; }
+  .text-ink-600 { color: oklch(80% 0.020 245) !important; }
+  .text-ink-500 { color: oklch(68% 0.020 245) !important; }
+  .text-ink-400 { color: oklch(55% 0.020 245) !important; }
+  .text-ink-300 { color: oklch(45% 0.020 245) !important; }
+  /* La sidebar TOC del docs casi desaparecía: subir contraste y reforzar
+   * el item activo con un fondo claro sobre dark. */
+  aside nav a:hover { background-color: color-mix(in oklch, var(--color-primary) 16%, transparent) !important; }
+  /* Bloque de código: garantizar fondo elevado distinguible del page bg. */
+  pre, pre code, .card pre {
+    background-color: oklch(13% 0.015 245) !important;
+    color: oklch(92% 0.015 245) !important;
+    border: 1px solid var(--color-base-300);
+  }
+  /* Tarjetas brand-50 (cyan claro): en dark son ilegibles → invertir tinte. */
+  .bg-brand-50 { background-color: color-mix(in oklch, var(--color-primary) 22%, var(--color-base-100)) !important; }
+  .border-brand-100 { border-color: color-mix(in oklch, var(--color-primary) 35%, transparent) !important; }
+  .text-brand-700, .text-brand-600 { color: oklch(72% 0.16 248) !important; }
+
+  /* DROP-430: topbar admin sin tinte rosado */
+  .navbar { background-color: var(--color-base-100) !important; }
+  .navbar.bg-base-100\/95 { background-color: color-mix(in oklch, var(--color-base-100) 95%, transparent) !important; }
+
+  /* DROP-431: zebra visible en dark — mayor diferencia entre filas */
+  .table.table-zebra tbody tr:nth-child(even) {
+    background-color: color-mix(in oklch, var(--color-primary) 10%, var(--color-base-100)) !important;
+  }
+  .table.table-zebra tbody tr:nth-child(odd) {
+    background-color: var(--color-base-100) !important;
+  }
+  .table tbody tr:hover {
+    background-color: color-mix(in oklch, var(--color-primary) 18%, var(--color-base-100)) !important;
+  }
+
+  /* DROP-432: inputs/selects/textarea con borde visible */
+  .input, .select, .textarea,
+  .input-bordered, .select-bordered, .textarea-bordered {
+    border-color: var(--color-base-300) !important;
+    border-width: 1px !important;
+    background-color: color-mix(in oklch, var(--color-base-100) 95%, var(--color-base-200)) !important;
+    color: var(--color-base-content);
+  }
+  .input:focus, .select:focus, .textarea:focus {
+    border-color: var(--color-primary) !important;
+    outline: 2px solid color-mix(in oklch, var(--color-primary) 30%, transparent);
+    outline-offset: -1px;
+  }
+
+  /* DROP-433: botones secundarios distinguibles */
+  .btn-outline {
+    border-color: color-mix(in oklch, var(--color-primary) 50%, var(--color-base-300)) !important;
+    color: var(--color-base-content);
+  }
+  .btn-outline:hover {
+    background-color: color-mix(in oklch, var(--color-primary) 20%, transparent) !important;
+    border-color: var(--color-primary) !important;
+  }
+  .btn-ghost {
+    border: 1px solid color-mix(in oklch, var(--color-base-300) 60%, transparent);
+  }
+  .btn-ghost:hover {
+    background-color: color-mix(in oklch, var(--color-primary) 16%, transparent) !important;
+    border-color: var(--color-base-300);
+  }
+
+  /* DROP-500/512: en dark mode los tonos pastel claros con texto oscuro
+   * (bg-emerald-100 text-emerald-700) quedaban casi invisibles sobre el
+   * fondo dark. Re-mapeamos los badges Tailwind a tonos saturados con
+   * texto claro/alto contraste. */
+  .badge.bg-emerald-100 { background-color: color-mix(in oklch, oklch(70% 0.13 150) 75%, var(--color-base-100)) !important; }
+  .badge.bg-emerald-100.text-emerald-700, .badge.bg-emerald-100.text-emerald-800 { color: oklch(15% 0.05 150) !important; }
+  .badge.bg-amber-100   { background-color: color-mix(in oklch, oklch(78% 0.13 85) 75%, var(--color-base-100)) !important; }
+  .badge.bg-amber-100.text-amber-700, .badge.bg-amber-100.text-amber-800 { color: oklch(20% 0.07 70) !important; }
+  .badge.bg-sky-100     { background-color: color-mix(in oklch, oklch(72% 0.10 230) 75%, var(--color-base-100)) !important; }
+  .badge.bg-sky-100.text-sky-700, .badge.bg-sky-100.text-sky-800 { color: oklch(16% 0.06 230) !important; }
+  .badge.bg-rose-100    { background-color: color-mix(in oklch, oklch(72% 0.12 25) 75%, var(--color-base-100)) !important; }
+  .badge.bg-rose-100.text-rose-700, .badge.bg-rose-100.text-rose-800 { color: oklch(16% 0.06 25) !important; }
+  .badge.bg-violet-100  { background-color: color-mix(in oklch, oklch(60% 0.07 250) 75%, var(--color-base-100)) !important; }
+  .badge.bg-violet-100.text-violet-700, .badge.bg-violet-100.text-violet-800 { color: oklch(24% 0.05 250) !important; }
+  .badge.bg-brand-50    { background-color: color-mix(in oklch, var(--color-primary) 40%, var(--color-base-100)) !important; }
+  .badge.bg-brand-50.text-brand-700, .badge.bg-brand-50.text-brand-800 { color: oklch(40% 0.16 248) !important; }
+  .badge.bg-ink-100, .badge.bg-ink-200 { background-color: var(--color-base-300) !important; color: var(--color-base-content) !important; }
+  /* Reforzar borde para visibilidad incluso si el fondo se confunde con base-300. */
+  .badge { border: 1px solid color-mix(in oklch, var(--color-base-300) 70%, transparent); }
+}
+
+/* DROP-423 (light): precios en azul oscuro sobre fondo pastel rosa — más contraste */
+[data-theme="nx036-pastel"] .product-card .text-brand-700,
+[data-theme="nx036-pastel"] .card .font-semibold.text-brand-700 {
+  color: color-mix(in oklch, var(--color-primary) 60%, var(--color-base-content)) !important;
+}
+
+/* DROP-328: transición de página (entrada suave ~1s) por CSS puro. Se usa un <div class="page-fade">
+   KEYEADO por ruta en PageTransition: al navegar, React remonta el div y la animación se reproduce.
+   CSS en vez de framer-motion porque su motion.div se quedaba congelado en el estado inicial en este
+   entorno (la página aparecía de golpe o incluso invisible). Respeta prefers-reduced-motion. */
+.page-fade {
+  /* Misma transición SUAVE que las secciones de "Mi cuenta" (fundido + leve desplazamiento hacia arriba).
+     Clave: reutiliza nx-fade-up con fill-mode `backwards` → el `transform` SOLO existe durante la animación
+     y al terminar vuelve a `none`, por lo que no deja un bloque contenedor que descoloque los `position:
+     fixed`. Los modales que se abren por interacción lo hacen tras la transición; el único que aparece AL
+     MONTAR (/developers) va por portal a document.body, fuera de este contenedor. */
+  animation: nx-fade-up 1s cubic-bezier(0.2, 0, 0, 1) backwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-fade { animation: none; }
+}
+
+/* ── Hero backdrop: cintas deslizantes de productos (slide) con scrim de legibilidad ──
+ * Varias cintas horizontales de imágenes reales del catálogo que se deslizan en bucle
+ * (efecto cinta transportadora). El texto SIEMPRE legible: velo base-100 fuerte en el
+ * centro, suave en los bordes. Animación por CSS transform (GPU). */
+.hero-belts { position: absolute; inset: -4% -2%; display: flex; flex-direction: column; gap: 10px; }
+.hero-belt  { flex: 1 1 0; min-height: 0; overflow: hidden; display: flex; }
+.hero-track {
+  display: flex; gap: 10px; height: 100%;
+  animation: hero-slide 60s linear infinite;
+  will-change: transform;
+}
+.hero-belt.reverse .hero-track   { animation-direction: reverse; animation-duration: 78s; }
+.hero-belt:nth-child(3) .hero-track { animation-duration: 94s; }
+.hero-cell {
+  flex: 0 0 auto;
+  width: clamp(130px, 15vw, 210px);
+  height: 100%;
+  background-size: cover; background-position: center;
+  border-radius: 14px;
+}
+@keyframes hero-slide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+.hero-scrim {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 68% at 50% 46%,
+    var(--color-base-100) 46%,
+    color-mix(in oklch, var(--color-base-100) 80%, transparent) 68%,
+    color-mix(in oklch, var(--color-base-100) 50%, transparent) 100%);
+}
+.hero-tint {
+  position: absolute; inset: 0;
+  /* fundido neutro (sin color) para integrar el slide con el fondo plano */
+  background: linear-gradient(to bottom,
+    transparent 55%,
+    color-mix(in oklch, var(--color-base-200) 70%, transparent) 100%);
+}
+@media (prefers-reduced-motion: reduce) { .hero-track { animation: none; } }
+
+/* Legibilidad sobre banners bg-primary: el h1-h4 global forzaba color base-content
+ * (marino), ilegible sobre el azul profundo. Aquí se restablece a primary-content. */
+.hero.bg-primary h1, .hero.bg-primary h2, .hero.bg-primary h3, .hero.bg-primary h4 {
+  color: var(--color-primary-content);
+}
+
+/* Cards dentro del panel azul de auth (login/register): fondo translúcido para que el
+ * texto claro (primary-content) se lea sobre el azul. El .card global las forzaba a
+ * base-100 (claro) -> texto claro sobre claro = invisible (regresión al oscurecer el azul). */
+.hero.bg-primary .card {
+  background-color: color-mix(in oklch, var(--color-primary-content) 9%, transparent) !important;
+  border-color: color-mix(in oklch, var(--color-primary-content) 24%, transparent) !important;
+  box-shadow: none;
+}
+.hero.bg-primary .card, .hero.bg-primary .card * { color: var(--color-primary-content); }
+
+/* Panel de marca (login/register): imagen e-commerce de fondo (Unsplash, uso libre) con
+ * velo azul en degradado para que el texto claro quede legible. Imagen z0, velo z1, contenido z2. */
+.auth-hero-img { position: relative; }
+.auth-hero-img::before {
+  content: ""; position: absolute; inset: 0; z-index: 0;
+  background-image: url("/login-bg.jpg");
+  background-size: cover; background-position: center;
+  filter: saturate(0.92) brightness(0.9);
+}
+.auth-hero-img::after {
+  content: ""; position: absolute; inset: 0; z-index: 1;
+  /* Scrim editorial: navy oscuro pegado a la izquierda (texto), la tienda asoma a la
+   * derecha; + un brillo azul de marca sutil desde abajo. Nada de lavado plano de color. */
+  background:
+    linear-gradient(103deg,
+      color-mix(in oklch, #08111d 92%, transparent) 0%,
+      color-mix(in oklch, #08111d 66%, transparent) 46%,
+      color-mix(in oklch, #0a1b30 34%, transparent) 100%),
+    linear-gradient(to top,
+      color-mix(in oklch, var(--color-primary) 34%, transparent) 0%,
+      transparent 52%);
+}
+.auth-hero-img > * { position: relative; z-index: 2; }
+
+/* ── Splash de carga: carrito desplazándose de izquierda a derecha (~3s) ─────────────── */
+.cart-splash {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.25rem;
+  background: var(--color-base-200);            /* mismo fondo que la página/slide */
+  color: var(--color-base-content);
+  transition: opacity .5s ease;
+}
+.cart-splash.leaving { opacity: 0; pointer-events: none; }
+.cart-splash__brand {
+  font-weight: 700; font-size: 1.05rem; letter-spacing: -0.01em;
+  color: var(--color-base-content);
+}
+.cart-splash__cart {
+  font-size: 3rem;
+  transform-origin: 50% 50%;
+  animation: cart-spin 1.1s linear infinite;   /* el carrito da vueltas mientras carga */
+}
+/* Carrito en contorno: sin relleno, solo las líneas del borde en azul. */
+.cart-splash__cart path {
+  fill: transparent;
+  stroke: var(--color-primary);
+  stroke-width: 22px;               /* unidades del viewBox de FontAwesome */
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  paint-order: stroke;
+}
+.cart-splash__label {
+  font-size: .8rem; letter-spacing: .12em; text-transform: uppercase;
+  color: color-mix(in oklch, var(--color-base-content) 55%, transparent);
+}
+@keyframes cart-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .cart-splash__cart { animation: none; }
+}
+
+/*
+ * El brillo que barre el cartel de rebajas de la portada.
+ *
+ * Sobre el fondo marino el destello es tenue (blanco a baja opacidad): da vida al cartel sin el
+ * efecto chillón de antes. Se respeta `prefers-reduced-motion`: para quien pide menos movimiento
+ * desaparece del todo en vez de quedarse a medias.
+ */
+@keyframes promo-shine {
+  0% { transform: translateX(-120%) skewX(-18deg); }
+  60%, 100% { transform: translateX(240%) skewX(-18deg); }
+}
+
+.promo-shine::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 28%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.10), transparent);
+  animation: promo-shine 5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .promo-shine::after { animation: none; opacity: 0; }
+}
+
+/* Aviso del arancel de la UE. Parpadea despacio para que se vea: es un importe que el cliente no
+   espera en el resumen y, si no lo pregunta, se lleva la sorpresa al pagar. No es decoración —por eso
+   se para cuando el sistema pide menos movimiento, y por eso late en lugar de desaparecer del todo:
+   un icono que se apaga por completo se lee como un fallo de pintado. */
+@keyframes nx-attention { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .45; transform: scale(1.18); } }
+.animate-attention { animation: nx-attention 1.6s var(--motion-easing-standard, ease-in-out) infinite; }
+@media (prefers-reduced-motion: reduce) { .animate-attention { animation: none !important; } }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Que en el móvil se sienta una aplicación, no una página web
+   ─────────────────────────────────────────────────────────────────────────────
+
+   Son cuatro detalles pequeños, y son justo los que delatan a una web cuando se
+   usa con el dedo. Ninguno afecta al escritorio. */
+@media (max-width: 767px) {
+  /* 1. El destello azul al tocar. Es la marca de fábrica del navegador: ninguna
+        aplicación lo hace, y aparece en CADA toque. */
+  a, button, [role="button"], input, select, textarea, summary {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* 2. El rebote elástico al llegar al final. En una aplicación el contenido se
+        para; en el navegador se despega y asoma el fondo. */
+  html, body {
+    overscroll-behavior-y: contain;
+  }
+
+  /* 3. Que al tocar un campo no se acerque la pantalla de golpe. El navegador lo
+        hace cuando la letra baja de 16px, y devolver el zoom es cosa del usuario:
+        se queda mirando un formulario descuadrado. */
+  input, select, textarea {
+    font-size: max(16px, 1em);
+  }
+
+  /* 4. Lo fijo abajo respeta el indicador de inicio de los móviles sin botón. Sin
+        esto, la última franja de la pantalla queda bajo el gesto del sistema y no
+        se puede tocar. */
+  .fixed.bottom-0 {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Las hileras que se deslizan no enseñan su barra: ninguna aplicación la muestra, y en una franja de
+   productos ocupa casi tanto como el propio gesto. El contenido sigue siendo accesible con teclado y
+   con lector de pantalla —solo se oculta el adorno, no el desplazamiento—. */
+.snap-x {
+  scrollbar-width: none;
+}
+.snap-x::-webkit-scrollbar {
+  display: none;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   La columna de botones flotantes esquiva la barra de pestañas
+   ─────────────────────────────────────────────────────────────────────────────
+
+   En la esquina inferior derecha viven tres cosas apiladas: volver arriba, el
+   chat y el asistente. Estaban colocadas contando desde el fondo de la pantalla,
+   y al aparecer la barra de pestañas del móvil (4-sep-2026) el primero quedó
+   DETRÁS de ella: se veía, pero el toque se lo llevaba la barra.
+
+   Se suben en bloque lo que mide la barra, conservando la separación entre
+   ellos, que es lo que evita pulsar el que no es. En pantallas grandes no hay
+   barra y no se toca nada. */
+:root {
+  /* Cuánto hay que subir lo que va anclado abajo. En pantallas grandes no hay barra de pestañas y vale
+     cero; el valor real se define en el media query de abajo. Existe como variable porque el asistente
+     se ARRASTRA y lleva su posición en un estilo en línea: una regla de hoja de estilos no puede
+     sobreescribirlo, pero sí puede entrar en su cálculo. */
+  --hueco-barra: 0px;
+}
+
+@media (max-width: 767px) {
+  :root {
+    /* 3,5rem es el alto de la barra; el añadido es el indicador de inicio de los móviles sin botón. */
+    --hueco-barra: calc(3.5rem + env(safe-area-inset-bottom));
+  }
+
+  .fixed.bottom-6:not(nav) {
+    bottom: calc(1.5rem + var(--hueco-barra));
+  }
+  .fixed.bottom-28 {
+    bottom: calc(7rem + var(--hueco-barra));
+  }
+}
+
+/* El asistente y el chat, a escala de móvil.
+   58 px de personaje y 48 de botón de chat están pensados para una pantalla de escritorio; en 375 px
+   de ancho se comen una esquina entera y tapan producto. Se reducen a 42 y 40, que sigue estando muy
+   por encima del mínimo que se puede tocar con el dedo sin fallar. */
+@media (max-width: 767px) {
+  .personaje-asistente {
+    width: 42px;
+    height: 42px;
+  }
+}

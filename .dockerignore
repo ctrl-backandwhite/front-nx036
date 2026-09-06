@@ -1,0 +1,23 @@
+# Lo que NO viaja al contexto de construcción.
+#
+# No es solo por tamaño: `COPY . .` mete en la imagen lo que encuentre, así que un
+# `node_modules` traído desde el portátil pisaría el que instala `npm ci` dentro del
+# contenedor y colaría binarios nativos compilados para OTRO sistema operativo.
+
+# Dependencias: las instala `npm ci` dentro de la imagen, a partir del candado.
+node_modules
+
+# Salida de `ng build`: la construcción es la que la genera. Copiar una de fuera
+# publicaría un escaparate viejo aunque el código fuente sea el nuevo.
+dist
+
+# Caché de la CLI de Angular. Son cientos de megas de resultados intermedios atados
+# a rutas absolutas del portátil, inservibles dentro del contenedor.
+.angular
+
+# Informes de cobertura de las pruebas.
+coverage
+
+# Historial de git. Nunca hace falta para construir y arrastra todo el pasado del
+# repositorio, ramas incluidas.
+.git

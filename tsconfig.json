@@ -1,0 +1,45 @@
+/* Configuración de TypeScript del proyecto. Ver https://angular.dev/reference/configs/angular-compiler-options. */
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    /* Verificación estricta: el tipo `any` implícito, el nulo sin comprobar y el `this` suelto son
+     * errores de compilación, no advertencias. Es la primera de las tres barreras que sostienen la
+     * arquitectura; las otras dos son la regla de dependencia del hexágono (eslint-plugin-boundaries)
+     * y la batería de pruebas. */
+    "strict": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "exactOptionalPropertyTypes": false,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "ES2022",
+    "module": "preserve",
+
+    /* Las rutas de módulo son parte del contrato arquitectónico: una importación entre capas se lee
+     * de un vistazo (`@core/...`, `@features/...`) y el lint puede razonar sobre ella. Los saltos
+     * relativos del tipo `../../../` ocultan de qué capa viene cada cosa. */
+    "paths": {
+      "@core/*": ["./src/app/core/*"],
+      "@shared/*": ["./src/app/shared/*"],
+      "@ds/*": ["./src/app/design-system/*"],
+      "@features/*": ["./src/app/features/*"],
+      "@composition/*": ["./src/app/composition/*"],
+      "@env/*": ["./src/environments/*"]
+    }
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true,
+    "typeCheckHostBindings": true
+  },
+  "files": [],
+  "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.spec.json" }]
+}
