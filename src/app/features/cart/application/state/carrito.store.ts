@@ -1,4 +1,4 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Service, computed, inject, signal } from '@angular/core';
 import { ALMACEN_LOCAL } from '@core/storage/almacen.port';
 import {
   LineaDeCarrito,
@@ -34,7 +34,7 @@ interface Guardado {
  * tuvo dos consecuencias reales — al volver a entrar se subía otra vez a la fusión, que SUMA, y las
  * cantidades se doblaban; y quedaba a la vista de quien abriera el navegador después.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class CarritoStore {
   private readonly almacen = inject(ALMACEN_LOCAL);
 

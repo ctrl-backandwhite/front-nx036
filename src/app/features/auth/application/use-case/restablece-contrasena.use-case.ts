@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Service, inject } from '@angular/core';
 import { Result } from '@shared/result/result';
 import { AppError } from '@shared/error/app-error';
 import { RESTABLECE_CONTRASENA_PORT } from '../../domain/port/restablece-contrasena.port';
@@ -9,7 +9,7 @@ import { RESTABLECE_CONTRASENA_PORT } from '../../domain/port/restablece-contras
  * <p>Es un caso de uso con dos pasos y no dos casos de uso porque la pantalla es UNA: la misma dirección
  * enseña el formulario del correo o el de la contraseña según traiga testigo o no.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class RestableceContrasena {
   private readonly puerto = inject(RESTABLECE_CONTRASENA_PORT);
 

@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Service, inject, signal } from '@angular/core';
 import { ALMACEN_LOCAL } from '../storage/almacen.port';
 
 const CLAVE = 'nx036-country';
@@ -12,7 +12,7 @@ const CLAVE = 'nx036-country';
  * <p>REGLA: es el país de REGISTRO, nunca el de la dirección de envío. Cambiar la dirección de entrega no
  * puede cambiar el precio.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class PaisDelUsuario {
   private readonly almacen = inject(ALMACEN_LOCAL);
   private readonly _codigo = signal<string>(this.almacen.lee(CLAVE) ?? '');

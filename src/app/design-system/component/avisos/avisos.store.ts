@@ -1,4 +1,4 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Service, computed, signal } from '@angular/core';
 
 export type TipoAviso = 'success' | 'error' | 'info' | 'warning';
 
@@ -28,7 +28,7 @@ const DURACION_MS = 4500;
  * durante cuánto. Por eso vive en el sistema de diseño y no en un contexto acotado — la confirmación de
  * «producto añadido» y la de «pedido enviado» son el mismo mecanismo.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class AvisosStore {
   private readonly _avisos = signal<readonly Aviso[]>([]);
   private siguienteId = 1;

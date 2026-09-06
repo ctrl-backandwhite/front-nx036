@@ -289,7 +289,7 @@ export class PreciosEditorDeRegla {
       const minimo = valueOf(ruta.costeMinimoUsd);
       return maximo === null || minimo === null || maximo >= minimo
         ? null
-        : { kind: 'tramo', message: this.t('dialog.field.number') };
+        : { kind: 'tramo', message: this.t('dialog.field.range') };
     });
 
     // Una regla de categoría sin categoría —o de producto sin producto— no se aplica a nada. Y el

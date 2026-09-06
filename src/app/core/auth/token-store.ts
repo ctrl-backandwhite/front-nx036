@@ -1,4 +1,4 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Service, computed, inject, signal } from '@angular/core';
 import { ALMACEN_LOCAL } from '../storage/almacen.port';
 
 const CLAVE_ACCESO = 'nx-access-token';
@@ -14,7 +14,7 @@ const CLAVE_REFRESCO = 'nx-refresh-token';
  * <p>Va en el almacenamiento del navegador a través del puerto, no tocando `localStorage`: al
  * prerenderizar no existe, y en modo privado hasta leer lanza.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class TokenStore {
   private readonly almacen = inject(ALMACEN_LOCAL);
 

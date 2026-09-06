@@ -1,4 +1,4 @@
-import { DOCUMENT, Injectable, PLATFORM_ID, inject } from '@angular/core';
+import { DOCUMENT, PLATFORM_ID, Service, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 
 /**
@@ -15,7 +15,7 @@ import { isPlatformBrowser } from '@angular/common';
  * desarrollar: el fallo aparecía lejos de quien lo escribió. Como servicio se inyecta una vez, se
  * guarda y se consulta desde donde haga falta.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class Plataforma {
   /** Cierto solo en el navegador. Se resuelve al crear el servicio, en contexto de inyección. */
   readonly esNavegador = isPlatformBrowser(inject(PLATFORM_ID));

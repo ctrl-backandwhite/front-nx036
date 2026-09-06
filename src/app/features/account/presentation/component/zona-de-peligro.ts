@@ -116,7 +116,7 @@ export class ZonaDePeligro {
    * código más corto.
    */
   protected readonly formulario = form(this.escrito, (ruta) => {
-    maxLength(ruta, 6);
+    maxLength(ruta, 6, { message: () => this.t('dialog.field.maxlength') });
     validate(ruta, ({ value }) => {
       if (value().trim() === '') {
         return { kind: 'required', message: this.t('dialog.field.required') };

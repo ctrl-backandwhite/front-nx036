@@ -128,14 +128,14 @@ export class AlertasDeTendencia {
    * La palabra clave NO es obligatoria: una alerta sin ella vigila todas las tendencias, que es un uso
    * legítimo y el que trae el backend por defecto.
    *
-   * <p>El tope de 100 se declara sin mensaje a propósito: no hay ninguna cadena traducida a los ocho
-   * idiomas que diga «como mucho 100», y escribir una a medias en español sería peor que el atributo
-   * `max` que la propia regla devuelve al campo. Queda anotado.
+   * <p>El tope de 100 ya tiene texto: `dialog.field.max` está en los ocho idiomas. Antes se declaraba
+   * sin mensaje porque no existía, y un umbral de 500 dejaba el campo en rojo y el botón apagado sin
+   * decir por qué.
    */
   protected readonly formulario = form(this.modelo, (ruta) => {
     required(ruta.umbral, { message: () => this.t('dialog.field.required') });
     min(ruta.umbral, UMBRAL_MINIMO, { message: () => this.t('dialog.field.min') });
-    max(ruta.umbral, UMBRAL_MAXIMO);
+    max(ruta.umbral, UMBRAL_MAXIMO, { message: () => this.t('dialog.field.max') });
   });
 
   protected readonly sePuedeCrear = computed(

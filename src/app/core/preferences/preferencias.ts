@@ -1,4 +1,4 @@
-import { DOCUMENT, Injectable, computed, inject, signal } from '@angular/core';
+import { DOCUMENT, Service, computed, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
 import { LOCALE_OPTIONS } from '@shared/i18n/translations';
@@ -128,7 +128,7 @@ export interface Preferencias {
  * dos lecturas distintas del mismo dato fue justo lo que provocó, en el front de React, que la página se
  * pintara en un idioma y los precios llegaran en la moneda de otro.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class PreferenciasService {
   private readonly documento = inject(DOCUMENT);
   private readonly enNavegador = isPlatformBrowser(inject(PLATFORM_ID));

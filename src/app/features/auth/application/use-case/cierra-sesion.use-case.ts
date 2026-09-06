@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Service, inject } from '@angular/core';
 import { AUTENTICACION_PORT } from '../../domain/port/autenticacion.port';
 import { TokenStore } from '@core/auth/token-store';
 import { SesionStore } from '../state/sesion.store';
@@ -10,7 +10,7 @@ import { SesionStore } from '../state/sesion.store';
  * equipo. Dejar a alguien dentro porque la red falló al avisar sería lo contrario de lo que pidió, y en
  * un ordenador compartido es un problema de verdad.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class CierraSesion {
   private readonly autenticacion = inject(AUTENTICACION_PORT);
   private readonly tokens = inject(TokenStore);

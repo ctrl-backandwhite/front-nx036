@@ -1,4 +1,15 @@
-import { Component, computed, effect, inject, input, output, resource, signal, untracked } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  linkedSignal,
+  output,
+  resource,
+  signal,
+  untracked,
+} from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
   faArrowLeft,
@@ -238,7 +249,20 @@ export class GuiaDeBienvenida {
     hecho: faCircleCheck,
   };
 
-  protected readonly abierta = signal(false);
+  /**
+   * Si la guía está abierta.
+   *
+   * <p>Es un `linkedSignal` y no un `signal` con un `effect` detrás: un efecto que solo asigna un valor
+   * derivado de otro corre en un orden que no se controla y se ejecuta aunque nadie mire el resultado.
+   * Aquí la relación se DECLARA —«cuando de fuera pidan abrirla, se abre»— y quien mira la puede cerrar
+   * después sin que la entrada se la vuelva a abrir, porque el origen no ha cambiado.
+   *
+   * <p>Va DESPUÉS de `abrir`, del que depende: un `linkedSignal` evalúa su origen al construirse.
+   */
+  protected readonly abierta = linkedSignal<boolean, boolean>({
+    source: this.abrir,
+    computation: (pedida, anterior) => pedida || (anterior?.value ?? false),
+  });
   protected readonly indice = signal(0);
   private readonly unidades = signal<Readonly<Record<string, number>>>({});
 
@@ -294,12 +318,8 @@ export class GuiaDeBienvenida {
   private espera: ReturnType<typeof setTimeout> | undefined;
 
   constructor() {
-    effect(() => {
-      if (this.abrir()) {
-        untracked(() => this.abierta.set(true));
-      }
-    });
-
+    // Esto SÍ es un efecto y se queda: no deriva un valor, dispara un temporizador y una llamada al
+    // backend. Un `computed` no puede hacerlo —tendría que ser puro— y un `linkedSignal` tampoco.
     effect(() => {
       const lineas = this.lineas();
       untracked(() => this.pideLaSimulacion(lineas));

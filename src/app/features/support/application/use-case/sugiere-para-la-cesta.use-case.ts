@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Service, inject, signal } from '@angular/core';
 import { SUGERENCIAS_DE_CESTA_PORT } from '../../domain/port/asistente.port';
 import {
   HuecoDelPaquete,
@@ -14,7 +14,7 @@ import {
  * quien está a punto de pagar comprueba la cifra, y una promesa falsa cuesta la venta entera. Y dejar
  * en pantalla lo de antes sería prometer sobre productos que ya no encajan con lo que se lleva ahora.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class SugiereParaLaCesta {
   private readonly puerto = inject(SUGERENCIAS_DE_CESTA_PORT);
 

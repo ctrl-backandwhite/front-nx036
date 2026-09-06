@@ -1,7 +1,9 @@
+import { TestBed } from '@angular/core/testing';
 import { fireEvent, render, screen } from '@testing-library/angular';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { exito, fallo } from '@shared/result/result';
 import { creaError } from '@shared/error/app-error';
+import { TraduccionService } from '@core/i18n/traduccion.service';
 import { BOLETIN_PORT, BoletinPort } from '../../domain/port/boletin.port';
 import { SeccionBoletin } from './seccion-boletin';
 
@@ -71,6 +73,21 @@ describe('SeccionBoletin', () => {
     await escribeYEnvia(vista, 'hola@ejemplo.com');
 
     expect(screen.getByRole('status')).toBeInTheDocument();
+  });
+
+  /**
+   * El campo pasó a Signal Forms justo por esto: antes solo lo miraba el `required` del navegador, así
+   * que «pepe» salía hacia el backend y quien lo escribió no se enteraba de nada.
+   */
+  it('un correo mal escrito no llega al backend y se dice por qué', async () => {
+    const vista = await monta();
+
+    await escribeYEnvia(vista, 'pepe');
+
+    expect(puerto.suscribe).not.toHaveBeenCalled();
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      TestBed.inject(TraduccionService).t('dialog.field.email'),
+    );
   });
 
   it('un correo en blanco no llega al backend', async () => {

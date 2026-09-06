@@ -1,5 +1,5 @@
 import { HttpClient, HttpContext, HttpParams, httpResource } from '@angular/common/http';
-import { Injectable, Signal, computed, inject } from '@angular/core';
+import { Service, Signal, computed, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { Result, exito, fallo } from '@shared/result/result';
 import { AppError } from '@shared/error/app-error';
@@ -42,7 +42,7 @@ function aHttpParams(parametros: Parametros | undefined): HttpParams {
  * <p>Devuelve `Result` y no lanza. Que una operación pueda fallar queda escrito en el tipo, y quien la
  * llama no puede seguir sin decidir qué hace con el fallo.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class ApiService {
   private readonly http = inject(HttpClient);
   private readonly config = inject(APP_CONFIG);

@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Service, inject } from '@angular/core';
 import { USUARIO_ACTUAL_PORT } from '../../domain/port/autenticacion.port';
 import { TokenStore } from '@core/auth/token-store';
 import { RecuperadorDeSesionPort } from '@core/auth/recuperador-de-sesion.port';
@@ -15,7 +15,7 @@ import { SesionStore } from '../state/sesion.store';
  * guardián protege zonas de ocho contextos y por eso no puede vivir aquí dentro; lo que sí vive aquí es
  * la única implementación que sabe pedirle la cuenta al backend. El núcleo declara y «auth» cumple.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class RecuperaSesion implements RecuperadorDeSesionPort {
   private readonly usuarioActual = inject(USUARIO_ACTUAL_PORT);
   private readonly tokens = inject(TokenStore);

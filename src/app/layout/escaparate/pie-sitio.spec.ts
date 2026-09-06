@@ -52,6 +52,42 @@ describe('PieSitio', () => {
     expect(correos).toEqual(['alguien@nx036.test']);
   });
 
+  /**
+   * El campo pasó a Signal Forms justo por esto: antes solo lo miraba el `required` del navegador, así
+   * que «pepe» salía hacia el backend y el rechazo llegaba de vuelta sin explicación.
+   */
+  it('un correo mal escrito no se manda y dice por qué', async () => {
+    const usuario = userEvent.setup({ delay: null });
+    const correos: string[] = [];
+    await render(PieSitio, {
+      providers: [provideRouter([])],
+      on: { suscribeAlBoletin: (c: string) => correos.push(c) },
+    });
+    const t = TestBed.inject(TraduccionService).t;
+
+    await usuario.type(screen.getByRole('textbox'), 'pepe');
+    await usuario.click(screen.getByRole('button', { name: t('newsletter.footer.subscribe') }));
+
+    expect(correos).toEqual([]);
+    expect(await screen.findByRole('alert')).toHaveTextContent(t('dialog.field.email'));
+  });
+
+  /** Sin correo no se manda nada, y el aviso dice que falta en vez de dejar el botón mudo. */
+  it('el correo en blanco se reclama con su mensaje', async () => {
+    const usuario = userEvent.setup({ delay: null });
+    const correos: string[] = [];
+    await render(PieSitio, {
+      providers: [provideRouter([])],
+      on: { suscribeAlBoletin: (c: string) => correos.push(c) },
+    });
+    const t = TestBed.inject(TraduccionService).t;
+
+    await usuario.click(screen.getByRole('button', { name: t('newsletter.footer.subscribe') }));
+
+    expect(correos).toEqual([]);
+    expect(await screen.findByRole('alert')).toHaveTextContent(t('dialog.field.required'));
+  });
+
   it('una vez enviada, la confirmación sustituye al formulario', async () => {
     await render(PieSitio, {
       providers: [provideRouter([])],

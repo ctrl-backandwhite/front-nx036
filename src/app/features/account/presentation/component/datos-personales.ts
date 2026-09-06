@@ -140,9 +140,9 @@ export class DatosPersonales {
    */
   protected readonly formulario = form(this.datos, (ruta) => {
     required(ruta.nombre, { message: () => this.t('dialog.field.required') });
-    maxLength(ruta.nombre, LARGO_DEL_NOMBRE);
-    maxLength(ruta.primerApellido, LARGO_DEL_NOMBRE);
-    maxLength(ruta.segundoApellido, LARGO_DEL_NOMBRE);
+    maxLength(ruta.nombre, LARGO_DEL_NOMBRE, { message: () => this.t('dialog.field.maxlength') });
+    maxLength(ruta.primerApellido, LARGO_DEL_NOMBRE, { message: () => this.t('dialog.field.maxlength') });
+    maxLength(ruta.segundoApellido, LARGO_DEL_NOMBRE, { message: () => this.t('dialog.field.maxlength') });
     required(ruta.idioma, { message: () => this.t('dialog.field.required') });
   });
 

@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Service, inject } from '@angular/core';
 import { ALMACEN_LOCAL } from '@core/storage/almacen.port';
 import { TokenStore } from '@core/auth/token-store';
 import { USUARIO_ACTUAL_PORT } from '@features/auth/domain/port/autenticacion.port';
@@ -18,7 +18,7 @@ const CLAVE_TESTIGO = 'nx036-aff-visitor';
  * <p>Del contexto de identidad solo se usa su DOMINIO —el puerto del usuario actual, que es contrato
  * público—: nunca su estado ni sus pantallas, que el aislamiento entre contextos prohíbe y con razón.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class CapturaReferido {
   private readonly atribucion = inject(ATRIBUCION_DE_REFERIDO_PORT);
   private readonly almacen = inject(ALMACEN_LOCAL);

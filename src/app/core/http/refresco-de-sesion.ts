@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { Service, inject } from '@angular/core';
 import { Observable, catchError, map, of, share } from 'rxjs';
 import { APP_CONFIG } from '../config/app-config';
 import { TokenStore } from '../auth/token-store';
@@ -17,7 +17,7 @@ interface RespuestaDeRefresco {
  * renovación invalida el token de refresco anterior, la última en llegar encontraría el suyo caducado y
  * cerraría la sesión de alguien que no había hecho nada.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class RefrescoDeSesion {
   private readonly http = inject(HttpClient);
   private readonly config = inject(APP_CONFIG);

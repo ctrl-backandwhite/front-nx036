@@ -164,7 +164,7 @@ export class WidgetDeChat {
    */
   protected readonly modelo = signal({ borrador: '' });
   protected readonly formulario = form(this.modelo, (ruta) => {
-    maxLength(ruta.borrador, TOPE_DEL_MENSAJE);
+    maxLength(ruta.borrador, TOPE_DEL_MENSAJE, { message: () => this.t('dialog.field.maxlength') });
     // Se mira el texto YA RECORTADO: un mensaje de solo espacios está tan vacío como uno sin nada.
     validate(ruta.borrador, ({ value }) =>
       value().trim() === '' ? { kind: 'vacio', message: this.t('dialog.field.required') } : null,

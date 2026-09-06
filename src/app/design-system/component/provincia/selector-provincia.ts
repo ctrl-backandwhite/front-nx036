@@ -55,6 +55,12 @@ export class SelectorProvincia {
   constructor() {
     // Al cambiar a un país CON provincias, un valor que no sea uno de sus códigos se limpia: si no, se
     // arrastraría el texto libre del país anterior haciéndose pasar por código y el impuesto saldría mal.
+    //
+    // Esto SÍ es un efecto y se queda. No deriva un valor propio: CORRIGE el de un `model()`, que
+    // pertenece a quien lo enlaza desde fuera, y escribirlo avisa al padre. Un `linkedSignal` no puede
+    // expresarlo —es dueño de su propio valor y no hay forma de atarlo a un modelo de dos sentidos—, y
+    // convertirlo en un `computed` que solo se pinte dejaría al padre con el código antiguo guardado:
+    // el impuesto por estado se calcularía con la región equivocada.
     effect(() => {
       const lista = this.provincias();
       const actual = this.valor();

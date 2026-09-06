@@ -1,4 +1,14 @@
-import { Component, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  linkedSignal,
+  output,
+  signal,
+  untracked,
+} from '@angular/core';
 import { FormField, form } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faLocationDot } from '@fortawesome/free-solid-svg-icons';
@@ -77,7 +87,26 @@ export class FormularioDeDireccion {
   protected readonly t = this.traduccion.t;
   protected readonly iconoTitulo = faLocationDot;
 
-  protected readonly datos = signal<DatosDeDireccion>(DIRECCION_VACIA);
+  /**
+   * Los datos del formulario, atados a la dirección que se está editando.
+   *
+   * <p>Es un `linkedSignal` y no un `signal` con un `effect` detrás, que es como estaba. La diferencia
+   * importa: un efecto que solo asigna un valor derivado de otro corre en un orden que no se controla y
+   * se ejecuta aunque nadie mire el resultado. Aquí la relación se DECLARA —«estos son los datos de la
+   * dirección abierta»— y se sigue tecleando encima mientras la ventana no cambie de dirección.
+   *
+   * <p>El perfil reutiliza UNA sola ventana para todas las tarjetas: sin esta recarga, la segunda
+   * edición enseñaría los datos de la primera y se guardarían sobre quien no toca.
+   *
+   * <p>Va DESPUÉS de las entradas de las que depende: un `linkedSignal` evalúa su origen al construirse.
+   */
+  protected readonly datos = linkedSignal<Direccion | null, DatosDeDireccion>({
+    source: this.direccion,
+    computation: (direccion) =>
+      direccion
+        ? aDatosDeDireccion(direccion)
+        : { ...DIRECCION_VACIA, porDefecto: this.seraLaPrimera() },
+  });
 
   /**
    * La etiqueta y la casilla de «por defecto», atadas al formulario.
@@ -89,7 +118,11 @@ export class FormularioDeDireccion {
   protected readonly formulario = form(this.datos);
 
   protected readonly guardando = signal(false);
-  protected readonly error = signal<string | null>(null);
+  /** El fallo del guardado, que se olvida al abrir la ventana sobre otra dirección. */
+  protected readonly error = linkedSignal<Direccion | null, string | null>({
+    source: this.direccion,
+    computation: () => null,
+  });
 
   protected readonly titulo = computed(() =>
     this.direccion() ? this.t('addresses.edit_title') : this.t('profile.addresses.add'),
@@ -103,22 +136,17 @@ export class FormularioDeDireccion {
   protected readonly valido = computed(() => direccionCompleta(this.datos()));
 
   constructor() {
-    // El perfil reutiliza UNA sola ventana para todas las tarjetas: al abrirla sobre otra dirección hay
-    // que recargar el formulario o la segunda edición enseñaría los datos de la primera y se guardarían
-    // sobre quien no toca.
+    // Los valores y el aviso de error ya los recarga el `linkedSignal`. Lo que NO se puede derivar es
+    // el «tocado» del formulario: no es una señal nuestra, es estado interno de Signal Forms y solo se
+    // reinicia llamándolo. Sin esto, la ventana reabierta sobre otra dirección heredaría los avisos en
+    // rojo de la anterior. Por eso este efecto se queda: no asigna un valor derivado, ejecuta una
+    // orden.
+    //
+    // Va en «untracked» porque el árbol del formulario se deriva del mismo modelo que este efecto
+    // acaba de provocar que se recalcule: leerlo aquí lo haría depender de su propio trabajo.
     effect(() => {
-      const direccion = this.direccion();
-      this.datos.set(
-        direccion
-          ? aDatosDeDireccion(direccion)
-          : { ...DIRECCION_VACIA, porDefecto: this.seraLaPrimera() },
-      );
-      // Con los datos se reinicia también el «tocado»: si no, la ventana reabierta sobre otra dirección
-      // heredaría los avisos en rojo de la anterior. Va en «untracked» porque el árbol del formulario
-      // se deriva del modelo que este mismo efecto acaba de escribir: leerlo aquí lo haría depender de
-      // su propia escritura y el efecto se llamaría a sí mismo sin parar.
+      this.direccion();
       untracked(() => this.formulario().reset());
-      this.error.set(null);
     });
   }
 

@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Service, inject, signal } from '@angular/core';
 import { Result } from '@shared/result/result';
 import { AppError } from '@shared/error/app-error';
 import { PREFERENCIAS_DE_CORREO_PORT } from '../../domain/port/boletin.port';
@@ -10,7 +10,7 @@ import { PREFERENCIAS_DE_CORREO_PORT } from '../../domain/port/boletin.port';
  * la vuelta aquí en vez de en la pantalla evita el error clásico de guardar lo contrario de lo que se
  * pulsó. La pantalla enseña el interruptor en positivo; el dominio y el servidor hablan en negativo.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class PreferenciasDeCorreo {
   private readonly puerto = inject(PREFERENCIAS_DE_CORREO_PORT);
 

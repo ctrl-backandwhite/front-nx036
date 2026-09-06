@@ -109,6 +109,9 @@ export class PersonajeDelAsistente {
       });
     };
 
+    // Esto SÍ es un efecto y se queda. No deriva un valor: DA DE ALTA Y DE BAJA un oyente del ratón en
+    // la ventana, que es estado del navegador y no una señal. Un `computed` tiene que ser puro y un
+    // `linkedSignal` solo sabe recalcular su propio valor; ninguno de los dos puede suscribirse a nada.
     effect(() => {
       // Ni duerme ni sigue el puntero si se ha pedido menos movimiento: es adorno, y molesta.
       const quieto = this.animo() === 'dormido' || this.prefiereMenosMovimiento();

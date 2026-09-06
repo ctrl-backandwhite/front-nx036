@@ -121,31 +121,32 @@ export interface EstadoDeCampo {
  * Cómo se llama en el diccionario cada motivo por el que un campo no vale, y qué se enseña mientras esa
  * clave no exista en los ocho idiomas.
  *
- * <p>Solo `required` tiene hoy entrada propia (`dialog.field.required`). PENDIENTE del equipo que cuida
- * `shared/i18n`: hacen falta `admin.catalog.error.min`, `.max`, `.min_length`, `.max_length`, `.email` y
- * `.pattern`. Hasta entonces manda el respaldo escrito, que es exactamente lo que ya hace `conRespaldo`
- * con los rótulos del alta.
+ * <p>Ya no queda casi nada por traducir: `dialog.field.required`, `.email`, `.maxlength`, `.pattern` y
+ * `.max` existen en los ocho idiomas y son las que se usan aquí. El respaldo escrito solo sigue vivo
+ * donde el texto tiene que decir el LÍMITE concreto —el mínimo, el número de caracteres—, porque esas
+ * claves no existen y un mensaje genérico dejaría sin saber cuál es el tope.
+ *
+ * <p>`min` no se atrapa con `dialog.field.min`: esa cadena dice «no puede ser un número negativo», que
+ * es cierto para `min(x, 0)` pero mentira para `min(moq, 1)`. Antes que decir algo falso, se dice el
+ * mínimo real con el respaldo.
  */
 const MOTIVOS_DE_ERROR: Readonly<
   Record<string, { readonly clave: string; readonly respaldo: (error: ErrorDeCampo) => string }>
 > = {
   required: { clave: 'dialog.field.required', respaldo: () => 'Este campo es obligatorio.' },
-  email: {
-    clave: 'admin.catalog.error.email',
-    respaldo: () => 'Ese correo no tiene forma de correo.',
-  },
+  email: { clave: 'dialog.field.email', respaldo: () => 'Ese correo no tiene forma de correo.' },
   min: { clave: 'admin.catalog.error.min', respaldo: (e) => `El valor mínimo es ${String(e.min)}.` },
-  max: { clave: 'admin.catalog.error.max', respaldo: (e) => `El valor máximo es ${String(e.max)}.` },
+  max: { clave: 'dialog.field.max', respaldo: (e) => `El valor máximo es ${String(e.max)}.` },
   minLength: {
     clave: 'admin.catalog.error.min_length',
     respaldo: (e) => `Escribe al menos ${e.minLength} caracteres.`,
   },
   maxLength: {
-    clave: 'admin.catalog.error.max_length',
+    clave: 'dialog.field.maxlength',
     respaldo: (e) => `No caben más de ${e.maxLength} caracteres.`,
   },
-  pattern: { clave: 'admin.catalog.error.pattern', respaldo: () => 'Ese formato no vale.' },
-  parse: { clave: 'admin.catalog.error.pattern', respaldo: () => 'Ese formato no vale.' },
+  pattern: { clave: 'dialog.field.pattern', respaldo: () => 'Ese formato no vale.' },
+  parse: { clave: 'dialog.field.pattern', respaldo: () => 'Ese formato no vale.' },
 };
 
 /**

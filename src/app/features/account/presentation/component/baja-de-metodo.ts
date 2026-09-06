@@ -74,16 +74,19 @@ export class BajaDeMetodo {
 
   /**
    * El código son seis dígitos. Se declara en dos tramos porque dicen cosas distintas: vacío es «te lo
-   * has dejado» y tiene texto que enseñar; incompleto es «sigue escribiendo» y no hay clave con la que
-   * decirlo sin inventarla, así que se deja sin mensaje y basta con que el botón siga apagado.
+   * has dejado» e incompleto es «eso no tiene forma de código». Los dos tienen ya su texto —antes el
+   * segundo se quedaba mudo y el botón apagado sin explicación—, y solo salen cuando el campo se ha
+   * tocado, así que no regañan a media escritura.
    */
   protected readonly formulario = form(this.escrito, (ruta) => {
-    maxLength(ruta, 6);
+    maxLength(ruta, 6, { message: () => this.t('dialog.field.maxlength') });
     validate(ruta, ({ value }) => {
       if (value() === '') {
         return { kind: 'required', message: this.t('dialog.field.required') };
       }
-      return codigoDeBajaDeMetodoCompleto(value()) ? undefined : { kind: 'pattern' };
+      return codigoDeBajaDeMetodoCompleto(value())
+        ? undefined
+        : { kind: 'pattern', message: this.t('dialog.field.pattern') };
     });
   });
 

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { PreloadingStrategy, Route } from '@angular/router';
 import { Observable, of, timer } from 'rxjs';
 import { mergeMap } from 'rxjs/operators';
@@ -20,7 +20,7 @@ import { mergeMap } from 'rxjs/operators';
  * <p>El retardo es lo que separa «adelantar trabajo» de «robar ancho de banda». Se empieza cuando la
  * pantalla ya está pintada y es utilizable.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class PrecargaSelectiva implements PreloadingStrategy {
   /** Tiempo de gracia tras el arranque. Bastante para que la primera pantalla esté servida. */
   private static readonly ESPERA_MS = 2_000;

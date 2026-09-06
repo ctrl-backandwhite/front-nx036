@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
+import { Component, computed, inject, input, linkedSignal, output } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
   faArrowLeft,
@@ -173,8 +173,27 @@ export class LecturaDeAviso {
   readonly responde = output<{ email: string; asunto: string; mensaje: string }>();
 
   protected readonly estados = ESTADOS_DE_GESTION;
-  protected readonly asunto = signal('');
-  protected readonly mensaje = signal('');
+  /**
+   * El borrador de la respuesta, que se prepara solo al abrir otro aviso.
+   *
+   * <p>Son `linkedSignal` y no `signal` con un `effect` detrás: un efecto que solo asigna valores
+   * derivados de otro corre en un orden que no se controla y se ejecuta aunque nadie mire el resultado.
+   * Aquí la relación se DECLARA —«al cambiar de aviso, asunto nuevo y cuerpo en blanco»— y entre aviso
+   * y aviso se sigue escribiendo encima.
+   *
+   * <p>El cuerpo se vacía porque arrastrar lo escrito para el aviso anterior es la forma más rápida de
+   * contestarle a quien no era.
+   *
+   * <p>Van DESPUÉS de `aviso`, del que dependen: un `linkedSignal` evalúa su origen al construirse.
+   */
+  protected readonly asunto = linkedSignal({
+    source: this.aviso,
+    computation: (abierto) => (abierto ? asuntoDeRespuesta(abierto) : ''),
+  });
+  protected readonly mensaje = linkedSignal({
+    source: this.aviso,
+    computation: () => '',
+  });
 
   protected readonly remitente = computed(() => {
     const abierto = this.aviso();
@@ -195,16 +214,6 @@ export class LecturaDeAviso {
     responder: faReply,
     enviar: faPaperPlane,
   };
-
-  constructor() {
-    // Al abrir otro aviso se prepara el asunto y se vacía el cuerpo: arrastrar lo escrito para el
-    // anterior es la forma más rápida de contestarle a quien no era.
-    effect(() => {
-      const abierto = this.aviso();
-      this.asunto.set(abierto ? asuntoDeRespuesta(abierto) : '');
-      this.mensaje.set('');
-    });
-  }
 
   protected valorDe(evento: Event): string {
     return (evento.target as HTMLInputElement | HTMLTextAreaElement).value;

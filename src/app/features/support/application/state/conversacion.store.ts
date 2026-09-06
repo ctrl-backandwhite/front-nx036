@@ -1,4 +1,4 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Service, computed, inject, signal } from '@angular/core';
 import { ALMACEN_LOCAL } from '@core/storage/almacen.port';
 import { MEMORIA_DE_SESION_PORT } from '../../domain/port/memoria-de-sesion.port';
 import { Turno } from '../../domain/model/conversacion';
@@ -32,7 +32,7 @@ const SIGUIENTE: Record<TamanoDelChat, TamanoDelChat> = { sm: 'md', md: 'lg', lg
  * <p>Lo guardado se lee con `hidrata()`, DESPUÉS del primer pintado: al prerenderizar no hay
  * almacenamiento, y en navegación privada tocarlo lanza.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class ConversacionStore {
   private readonly sesion = inject(MEMORIA_DE_SESION_PORT);
   private readonly almacen = inject(ALMACEN_LOCAL);

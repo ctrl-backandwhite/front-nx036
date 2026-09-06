@@ -1,4 +1,4 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Service, computed, signal } from '@angular/core';
 
 /**
  * El HECHO de que haya alguien dentro, y lo mínimo que hay que saber de esa persona.
@@ -27,7 +27,7 @@ export interface DatosDeSesion {
   readonly avatarUrl?: string;
 }
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class SesionActual {
   private readonly _datos = signal<DatosDeSesion | null>(null);
   private readonly _resuelta = signal(false);

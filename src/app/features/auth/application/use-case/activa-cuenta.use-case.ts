@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Service, inject } from '@angular/core';
 import { Result } from '@shared/result/result';
 import { AppError } from '@shared/error/app-error';
 import { ALTA_DE_CUENTA_PORT } from '../../domain/port/autenticacion.port';
@@ -13,7 +13,7 @@ import { ALTA_DE_CUENTA_PORT } from '../../domain/port/autenticacion.port';
  * <p>El REENVÍO responde igual exista o no la cuenta, y por eso no distingue el fallo: si contestara
  * distinto, sería una forma de averiguar qué direcciones están registradas.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class ActivaCuenta {
   private readonly alta = inject(ALTA_DE_CUENTA_PORT);
 

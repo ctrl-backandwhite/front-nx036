@@ -7,6 +7,11 @@
 // Se exporta por defecto para que el `import()` diferido del servicio de traducción no tenga que
 // conocer el nombre de la constante de cada idioma.
 const diccionario: Record<string, string> = {
+  'dialog.field.email': 'Introduza um email válido.',
+  'dialog.field.maxlength': 'Ultrapassou o comprimento permitido.',
+  'dialog.field.pattern': 'O formato não é o esperado.',
+  'dialog.field.max': 'Excede o valor máximo.',
+  'dialog.field.range': 'O fim vem antes do início.',
   'admin.catalog.detail.surcharge_dbl': 'Duplo clique para editar o acréscimo',
   'admin.create_product.section.pricing': 'Preço, marca e estado',
   'admin.create_product.section.logistics': 'Logística e dimensões',

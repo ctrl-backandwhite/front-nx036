@@ -1,4 +1,4 @@
-import { Injectable, Signal, computed, effect, inject, signal, untracked } from '@angular/core';
+import { Service, Signal, computed, effect, inject, signal, untracked } from '@angular/core';
 import type { Diccionario, Locale } from '@shared/i18n/translations';
 import en from '@shared/i18n/dictionary/en';
 import es from '@shared/i18n/dictionary/es';
@@ -79,7 +79,7 @@ export function sustituyeMarcadores(
  * el signal invalida el `computed` y Angular repinta solo lo que dependía de él; nadie tiene que
  * suscribirse ni avisar a nadie.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class TraduccionService {
   private readonly preferencias = inject(PreferenciasService);
 

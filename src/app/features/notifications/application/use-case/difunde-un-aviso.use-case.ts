@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Service, inject } from '@angular/core';
 import { Result } from '@shared/result/result';
 import { AppError } from '@shared/error/app-error';
 import {
@@ -14,7 +14,7 @@ import {
  * <p>Las dos van juntas porque son la misma pantalla y el mismo permiso. Ninguna se puede lanzar en
  * blanco: mandar un aviso sin cuerpo llena la bandeja de todos con una fila vacía.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class DifundeUnAviso {
   private readonly difusion = inject(DIFUSION_DE_AVISOS_PORT);
 

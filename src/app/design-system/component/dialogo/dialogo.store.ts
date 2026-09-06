@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Service, signal } from '@angular/core';
 
 export type VarianteDialogo = 'info' | 'success' | 'warning' | 'error';
 export type TipoDialogo = 'alert' | 'confirm' | 'prompt' | 'form';
@@ -46,7 +46,7 @@ interface DialogoActivo extends PeticionDialogo {
  *
  * <p>Se atiende UNO cada vez: dos diálogos superpuestos son una trampa: no se sabe cuál contesta qué.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class DialogoStore {
   private readonly _actual = signal<DialogoActivo | null>(null);
   private siguienteId = 1;

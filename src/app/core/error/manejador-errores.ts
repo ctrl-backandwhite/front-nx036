@@ -1,7 +1,7 @@
 import {
   EnvironmentProviders,
   ErrorHandler,
-  Injectable,
+  Service,
   Signal,
   makeEnvironmentProviders,
   signal,
@@ -25,7 +25,7 @@ export interface FalloRegistrado {
  * despliegue remoto obliga a recompilar en modo de desarrollo para poder verlo, que es justo lo que no
  * se puede hacer con una incidencia delante.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class ManejadorErrores implements ErrorHandler {
   private readonly _fallo = signal<FalloRegistrado | null>(null);
 

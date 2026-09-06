@@ -137,14 +137,14 @@ export class ContactoPage {
    * describiendo un problema no siempre sabe titularlo, y exigirlo solo consigue asuntos vacíos de
    * contenido como «duda».
    *
-   * <p>El formato del correo se comprueba pero NO se explica: no existe en los ocho idiomas ninguna
-   * cadena que diga «el correo no tiene buena pinta», y escribir una a medias sería peor que callarse.
-   * El campo es `type="email"`, así que el navegador ya lo señala por su cuenta. Queda anotado.
+   * <p>El formato del correo ya se EXPLICA: `dialog.field.email` está en los ocho idiomas. Antes se
+   * comprobaba en silencio y el campo se quedaba en rojo fiándolo todo a que el navegador dijera algo
+   * por su cuenta.
    */
   protected readonly formulario = form(this.modelo, (ruta) => {
     soloLectura(ruta.nombre, () => this.nombreFijado());
     required(ruta.email, { message: () => this.t('dialog.field.required') });
-    validaCorreo(ruta.email);
+    validaCorreo(ruta.email, { message: () => this.t('dialog.field.email') });
     required(ruta.mensaje, { message: () => this.t('dialog.field.required') });
     // Un mensaje de solo espacios está tan vacío como uno sin nada, y `required` no lo ve.
     validate(ruta.mensaje, ({ value }) =>
@@ -152,7 +152,7 @@ export class ContactoPage {
     );
     // El tope lo pone el backend. La regla además devuelve el `maxlength` al campo, así que el
     // navegador sigue impidiendo teclear por encima igual que antes.
-    maxLength(ruta.mensaje, TOPE_DEL_MENSAJE);
+    maxLength(ruta.mensaje, TOPE_DEL_MENSAJE, { message: () => this.t('dialog.field.maxlength') });
   });
 
   /** Lo escrito hasta ahora, para el contador de caracteres. */

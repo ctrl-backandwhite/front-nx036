@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Service, inject } from '@angular/core';
 import { Result } from '@shared/result/result';
 import { AppError } from '@shared/error/app-error';
 import { CONTACTO_PORT, MensajeDeContacto } from '../../domain/port/contacto.port';
@@ -9,7 +9,7 @@ import { CONTACTO_PORT, MensajeDeContacto } from '../../domain/port/contacto.por
  * <p>Recorta todo antes de enviarlo: un asunto con espacios delante llega así a la bandeja y se lee
  * como un fallo nuestro.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class EscribeALaCasa {
   private readonly contacto = inject(CONTACTO_PORT);
 

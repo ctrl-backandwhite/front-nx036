@@ -1,4 +1,4 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Service, computed, inject, signal } from '@angular/core';
 import { ALMACEN_LOCAL } from '@core/storage/almacen.port';
 import {
   EstadoDelAsistente,
@@ -37,7 +37,7 @@ function esPosicion(valor: unknown): valor is PosicionDelAsistente {
  * prerenderizar no hay almacenamiento, y lo que se pinte allí tiene que coincidir con lo que pinta el
  * navegador o Angular tira el HTML recibido y vuelve a montar la página.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class AvatarStore {
   private readonly almacen = inject(ALMACEN_LOCAL);
 

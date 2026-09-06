@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Service, inject } from '@angular/core';
 import { Result } from '@shared/result/result';
 import { AppError } from '@shared/error/app-error';
 import { BOLETIN_PORT, SuscripcionAlBoletin } from '../../domain/port/boletin.port';
@@ -9,7 +9,7 @@ import { BOLETIN_PORT, SuscripcionAlBoletin } from '../../domain/port/boletin.po
  * <p>La baja va por TESTIGO y no por correo: el enlace del pie de cada envío lo trae. Pedir el correo
  * dejaría que cualquiera diera de baja a otro escribiendo su dirección.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class GestionaElBoletin {
   private readonly boletin = inject(BOLETIN_PORT);
 

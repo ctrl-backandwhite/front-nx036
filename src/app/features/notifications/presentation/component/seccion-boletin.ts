@@ -1,4 +1,10 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import {
+  FormField,
+  email as validaCorreo,
+  form,
+  required,
+} from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
   faCircleCheck,
@@ -20,7 +26,7 @@ import { GestionaElBoletin } from '../../application/use-case/gestiona-el-boleti
  */
 @Component({
   selector: 'nx-seccion-boletin',
-  imports: [FaIconComponent],
+  imports: [FaIconComponent, FormField],
   template: `
     <section class="card p-8 lg:p-10 text-center bg-base-200/60 border border-base-300">
       <div class="max-w-xl mx-auto">
@@ -37,15 +43,25 @@ import { GestionaElBoletin } from '../../application/use-case/gestiona-el-boleti
             {{ t(yaEstaba() ? 'newsletter.footer.already' : 'newsletter.footer.done') }}
           </p>
         } @else {
-          <form (submit)="envia($event)" class="mt-5 flex flex-col sm:flex-row gap-2 justify-center max-w-md mx-auto">
-            <label class="sr-only" for="boletin-email">{{ t('newsletter.footer.placeholder') }}</label>
-            <input id="boletin-email" type="email" required autocomplete="email"
-                   class="input input-bordered flex-1"
-                   [placeholder]="t('newsletter.footer.placeholder')"
-                   [value]="correo()" (input)="correo.set(valorDe($event))" />
-            <button type="submit" class="btn btn-primary" [disabled]="enviando()">
-              <fa-icon [icon]="iconos.enviar" /> {{ t('newsletter.footer.subscribe') }}
-            </button>
+          <!-- «novalidate»: la validación la lleva Signal Forms, que es la norma del proyecto. Sin él,
+               el navegador se adelanta con su propio globo —en su idioma, no en el de quien mira— y el
+               formulario ni siquiera llega a enviarse, así que el mensaje traducido no aparecería nunca. -->
+          <form novalidate (submit)="envia($event)" class="mt-5 max-w-md mx-auto">
+            <div class="flex flex-col sm:flex-row gap-2 justify-center">
+              <label class="sr-only" for="boletin-email">
+                {{ t('newsletter.footer.placeholder') }}
+              </label>
+              <input id="boletin-email" type="email" autocomplete="email"
+                     class="input input-bordered flex-1"
+                     [placeholder]="t('newsletter.footer.placeholder')"
+                     [formField]="formulario.correo" />
+              <button type="submit" class="btn btn-primary" [disabled]="enviando()">
+                <fa-icon [icon]="iconos.enviar" /> {{ t('newsletter.footer.subscribe') }}
+              </button>
+            </div>
+            @if (falloDelCorreo(); as fallo) {
+              <span role="alert" class="text-[12px] text-error mt-1 block text-left">{{ fallo }}</span>
+            }
           </form>
         }
       </div>
@@ -56,7 +72,30 @@ export class SeccionBoletin {
   private readonly boletin = inject(GestionaElBoletin);
 
   protected readonly t = inject(TraduccionService).t;
-  protected readonly correo = signal('');
+
+  protected readonly modelo = signal({ correo: '' });
+
+  /**
+   * El alta al boletín, con Signal Forms.
+   *
+   * <p>Antes el campo estaba cableado a mano —`[value]` más `(input)`— y la única exigencia era el
+   * `required` del navegador: quien escribía «pepe» veía cómo se mandaba y no se enteraba de nada.
+   * Ahora las dos reglas se declaran en un sitio y cada una dice lo suyo debajo del campo.
+   */
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    required(ruta.correo, { message: () => this.t('dialog.field.required') });
+    validaCorreo(ruta.correo, { message: () => this.t('dialog.field.email') });
+  });
+
+  /**
+   * El aviso bajo el campo, o nulo. Se calla hasta que se ha TOCADO: una portada recién abierta no
+   * tiene por qué salir en rojo pidiendo un correo que nadie ha empezado a escribir.
+   */
+  protected readonly falloDelCorreo = computed(() => {
+    const estado = this.formulario.correo();
+    return estado.touched() ? (estado.errors()[0]?.message ?? null) : null;
+  });
+
   protected readonly hecho = signal(false);
   protected readonly yaEstaba = signal(false);
   protected readonly enviando = signal(false);
@@ -67,21 +106,28 @@ export class SeccionBoletin {
     enviar: faPaperPlane,
   };
 
-  protected valorDe(evento: Event): string {
-    return (evento.target as HTMLInputElement).value;
-  }
-
   protected async envia(evento: Event): Promise<void> {
     evento.preventDefault();
-    const correo = this.correo().trim();
-    if (!correo || this.enviando()) {
+    if (this.enviando()) {
+      return;
+    }
+    // Se recorta ANTES de validar: pegar un correo con espacios alrededor es lo más normal del mundo y
+    // no es un error que haya que explicar.
+    const correo = this.modelo().correo.trim();
+    if (correo !== this.modelo().correo) {
+      this.modelo.set({ correo });
+    }
+    if (this.formulario().invalid()) {
+      // El botón NO se apaga por esto: apagarlo sin decir por qué es justo lo que se quiere evitar. Se
+      // marca el campo como tocado para que el aviso salga, y ahí se ve qué falta.
+      this.formulario.correo().markAsTouched();
       return;
     }
     this.enviando.set(true);
     const resultado = await this.boletin.suscribe(correo);
     this.yaEstaba.set(resultado.ok && resultado.valor.yaEstaba);
     this.hecho.set(true);
-    this.correo.set('');
+    this.modelo.set({ correo: '' });
     this.enviando.set(false);
   }
 }

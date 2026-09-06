@@ -152,17 +152,20 @@ export class DobleFactor {
    * El esquema de los dos pasos.
    *
    * <p>Cada campo se declara en dos tramos porque dicen cosas distintas: vacío es «te lo has dejado» y
-   * tiene texto que enseñar; el código a medias es «sigue escribiendo» y no hay clave con la que decirlo
-   * sin inventarla, así que se deja sin mensaje y basta con que el botón siga apagado. Quien decide
-   * cuántos dígitos hacen un código es el dominio, no esta pantalla.
+   * el código a medias es «eso no tiene forma de código». Los dos tienen ya su texto —antes el segundo
+   * se quedaba mudo y el botón apagado sin explicación—, y solo salen cuando el campo se ha tocado, así
+   * que no regañan a media escritura. Quien decide cuántos dígitos hacen un código es el dominio, no
+   * esta pantalla.
    */
   protected readonly formulario = form(this.modelo, (ruta) => {
-    maxLength(ruta.codigo, 6);
+    maxLength(ruta.codigo, 6, { message: () => this.t('dialog.field.maxlength') });
     validate(ruta.codigo, ({ value }) => {
       if (value().trim() === '') {
         return { kind: 'required', message: this.t('dialog.field.required') };
       }
-      return codigoTotpCompleto(value()) ? undefined : { kind: 'pattern' };
+      return codigoTotpCompleto(value())
+        ? undefined
+        : { kind: 'pattern', message: this.t('dialog.field.pattern') };
     });
     validate(ruta.contrasena, ({ value }) =>
       value() === '' ? { kind: 'required', message: this.t('dialog.field.required') } : undefined,

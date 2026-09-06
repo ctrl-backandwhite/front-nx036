@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Service, inject } from '@angular/core';
 import { ASISTENTE_PORT } from '../../domain/port/asistente.port';
 import { claveDelAviso, turnoDelAsistente } from '../../domain/model/conversacion';
 import { ConversacionStore } from '../state/conversacion.store';
@@ -18,7 +18,7 @@ export interface ResultadoDeLaPregunta {
  * traduce quien llama. Distinguir «cupo agotado» de «apagado» importa: lo primero se arregla esperando
  * y lo segundo no.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class PreguntaAlAsistente {
   private readonly asistente = inject(ASISTENTE_PORT);
   private readonly conversacion = inject(ConversacionStore);

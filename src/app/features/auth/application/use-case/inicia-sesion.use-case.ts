@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Service, inject } from '@angular/core';
 import { Result, fallo } from '@shared/result/result';
 import { AppError } from '@shared/error/app-error';
 import { Credenciales, Usuario } from '../../domain/model/usuario';
@@ -17,7 +17,7 @@ import { SesionStore } from '../state/sesion.store';
  * la pantalla enseña el campo y vuelve a llamar con el código puesto. Así, activar o desactivar el doble
  * factor es cosa de la cuenta y no obliga a tocar el front.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class IniciaSesion {
   private readonly autenticacion = inject(AUTENTICACION_PORT);
   private readonly tokens = inject(TokenStore);

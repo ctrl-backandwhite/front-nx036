@@ -1,4 +1,4 @@
-import { DestroyRef, Injectable, inject, signal } from '@angular/core';
+import { DestroyRef, Service, inject, signal } from '@angular/core';
 import { esNavegador } from '@core/platform/plataforma';
 
 /** Cuánto se espera tras el último empujón antes de dar por terminado el desplazamiento. */
@@ -20,7 +20,7 @@ const REPOSO_MS = 250;
  * <p>NOTA: por el inventario del porte, esto pertenece al sistema de diseño —lo usan el asistente y el
  * chat—. Mientras no exista allí, vive aquí para no bloquear el porte de este contexto.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class Desplazandose {
   private readonly _activo = signal(false);
   readonly activo = this._activo.asReadonly();

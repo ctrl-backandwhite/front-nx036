@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Service, inject } from '@angular/core';
 import { Result, exito } from '@shared/result/result';
 import { AppError } from '@shared/error/app-error';
 import { EstadoDeGestion } from '../../domain/model/aviso';
@@ -16,7 +16,7 @@ export type Movimiento = 'archiva' | 'desarchiva' | 'aLaPapelera' | 'restaura' |
  * siempre y sin decir nada. Aquí se esperan TODAS —las que salgan bien se aplican— y se devuelve el
  * primer fallo para que la pantalla lo cuente.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class MueveAvisos {
   private readonly gestion = inject(GESTION_DE_AVISOS_PORT);
   private readonly estado = inject(BuzonStore);

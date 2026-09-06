@@ -31,6 +31,10 @@ export class ContadorAnimado {
   });
 
   constructor() {
+    // Esto SÍ es un efecto y se queda. No es una derivación: la cifra que se pinta no sale del valor de
+    // entrada, sale del TIEMPO —se recorre con `requestAnimationFrame` desde donde estuviera hasta el
+    // destino—. Un `computed` o un `linkedSignal` tendrían que dar el resultado ya, que es exactamente
+    // el salto seco que este componente existe para evitar.
     effect(() => {
       const destino = this.valor();
       if (this.reduceMovimiento()) {

@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Service, inject } from '@angular/core';
 import { Result } from '@shared/result/result';
 import { AppError } from '@shared/error/app-error';
 import { NuevoTicket, Ticket } from '../../domain/model/ticket';
@@ -11,7 +11,7 @@ import { MIS_TICKETS_PORT } from '../../domain/port/tickets.port';
  * dejaba el formulario abierto, sin ticket y sin una palabra, justo en la pantalla a la que se llega
  * cuando algo ya ha ido mal.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class MisTickets {
   private readonly puerto = inject(MIS_TICKETS_PORT);
 

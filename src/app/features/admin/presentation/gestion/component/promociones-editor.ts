@@ -334,7 +334,7 @@ export class PromocionesEditor {
       const empieza = valueOf(ruta.empiezaEl);
       return termina === '' || empieza === '' || termina >= empieza
         ? null
-        : { kind: 'vigencia', message: this.t('login.error.bad_data') };
+        : { kind: 'vigencia', message: this.t('dialog.field.range') };
     });
   });
 

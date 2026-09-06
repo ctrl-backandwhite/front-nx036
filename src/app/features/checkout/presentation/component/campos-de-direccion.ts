@@ -183,11 +183,11 @@ export class CamposDeDireccion {
    */
   protected readonly formulario = form(this.valor, (ruta) => {
     required(ruta.nombreCompleto, { message: () => this.t('dialog.field.required') });
-    maxLength(ruta.nombreCompleto, 120);
+    maxLength(ruta.nombreCompleto, 120, { message: () => this.t('dialog.field.maxlength') });
     required(ruta.linea1, { message: () => this.t('dialog.field.required') });
-    maxLength(ruta.linea1, 200);
+    maxLength(ruta.linea1, 200, { message: () => this.t('dialog.field.maxlength') });
     required(ruta.ciudad, { message: () => this.t('dialog.field.required') });
-    maxLength(ruta.ciudad, 120);
+    maxLength(ruta.ciudad, 120, { message: () => this.t('dialog.field.maxlength') });
     required(ruta.pais, { message: () => this.t('dialog.field.required') });
   });
 

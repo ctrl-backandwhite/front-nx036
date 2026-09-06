@@ -1,4 +1,10 @@
-import { Component, inject, input, output, signal } from '@angular/core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
+import {
+  FormField,
+  email as validaCorreo,
+  form,
+  required,
+} from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
@@ -60,7 +66,7 @@ const REDES = [
  */
 @Component({
   selector: 'nx-pie-sitio',
-  imports: [RouterLink, FaIconComponent],
+  imports: [RouterLink, FaIconComponent, FormField],
   template: `
     <footer
       class="hidden md:flex footer sm:footer-horizontal bg-base-200 text-base-content/80 border-t border-base-300 px-4 lg:px-10 py-10 mt-12"
@@ -96,23 +102,31 @@ const REDES = [
             {{ yaSuscrito() ? t('newsletter.footer.already') : t('newsletter.footer.done') }}
           </p>
         } @else {
-          <form (submit)="suscribe($event)" class="join">
-            <input
-              type="email"
-              required
-              [value]="correo()"
-              (input)="escribeCorreo($event)"
-              [placeholder]="t('newsletter.footer.placeholder')"
-              [attr.aria-label]="t('newsletter.footer.subscribe')"
-              class="input input-bordered input-sm join-item text-[13px]"
-            />
-            <button
-              type="submit"
-              class="btn btn-primary btn-sm join-item"
-              [attr.aria-label]="t('newsletter.footer.subscribe')"
-            >
-              <fa-icon [icon]="iconoEnviar" />
-            </button>
+          <!-- «novalidate»: la validación la lleva Signal Forms, que es la norma del proyecto. Sin él,
+               el navegador se adelanta con su propio globo —en su idioma, no en el de quien mira— y el
+               formulario ni siquiera llega a enviarse, así que el mensaje traducido no aparecería nunca. -->
+          <form novalidate (submit)="suscribe($event)">
+            <!-- El «join» envuelve solo al par campo-botón: el aviso va fuera, o al aparecer partiría
+                 el grupo y el campo dejaría de encajar con el botón. -->
+            <div class="join">
+              <input
+                type="email"
+                [formField]="formulario.correo"
+                [placeholder]="t('newsletter.footer.placeholder')"
+                [attr.aria-label]="t('newsletter.footer.subscribe')"
+                class="input input-bordered input-sm join-item text-[13px]"
+              />
+              <button
+                type="submit"
+                class="btn btn-primary btn-sm join-item"
+                [attr.aria-label]="t('newsletter.footer.subscribe')"
+              >
+                <fa-icon [icon]="iconoEnviar" />
+              </button>
+            </div>
+            @if (falloDelCorreo(); as fallo) {
+              <span role="alert" class="text-[12px] text-error mt-1 block">{{ fallo }}</span>
+            }
           </form>
         }
       </nav>
@@ -189,19 +203,49 @@ export class PieSitio {
   protected readonly iconoEnviar = faPaperPlane;
   protected readonly iconoHecho = faCircleCheck;
   protected readonly t = inject(TraduccionService).t;
-  protected readonly correo = signal('');
 
-  protected escribeCorreo(evento: Event): void {
-    this.correo.set((evento.target as HTMLInputElement).value);
-  }
+  protected readonly modelo = signal({ correo: '' });
+
+  /**
+   * El alta al boletín, con Signal Forms.
+   *
+   * <p>Antes el campo estaba cableado a mano —`[value]` más `(input)`— y la única exigencia era el
+   * `required` del navegador: quien escribía «pepe» veía cómo se mandaba y el rechazo llegaba después,
+   * desde el servidor. Ahora las dos reglas se declaran en un sitio y cada una dice lo suyo debajo del
+   * campo.
+   */
+  protected readonly formulario = form(this.modelo, (ruta) => {
+    required(ruta.correo, { message: () => this.t('dialog.field.required') });
+    validaCorreo(ruta.correo, { message: () => this.t('dialog.field.email') });
+  });
+
+  /**
+   * El aviso bajo el campo, o nulo. Se calla hasta que se ha TOCADO: un pie recién pintado no tiene por
+   * qué salir en rojo pidiendo un correo que nadie ha empezado a escribir.
+   */
+  protected readonly falloDelCorreo = computed(() => {
+    const estado = this.formulario.correo();
+    return estado.touched() ? (estado.errors()[0]?.message ?? null) : null;
+  });
 
   protected suscribe(evento: Event): void {
     evento.preventDefault();
-    const valor = this.correo().trim();
-    if (!valor) {
+    // Se recorta ANTES de validar: pegar un correo con espacios alrededor es lo más normal del mundo y
+    // no es un error que haya que explicar.
+    const limpio = this.modelo().correo.trim();
+    if (limpio !== this.modelo().correo) {
+      this.modelo.set({ correo: limpio });
+    }
+    if (this.formulario().invalid()) {
+      // El botón NO se apaga: apagarlo sin decir por qué es justo lo que se quiere evitar. Se marca el
+      // campo como tocado para que el aviso salga, y ahí se ve qué falta.
+      this.formulario.correo().markAsTouched();
       return;
     }
-    this.suscribeAlBoletin.emit(valor);
-    this.correo.set('');
+    this.suscribeAlBoletin.emit(limpio);
+    this.modelo.set({ correo: '' });
+    // Y se olvida el «tocado»: si no, el campo recién vaciado se queda en rojo pidiendo un correo
+    // obligatorio JUSTO DESPUÉS de haberlo mandado bien.
+    this.formulario().reset();
   }
 }

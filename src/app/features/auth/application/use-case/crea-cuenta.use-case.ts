@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Service, inject } from '@angular/core';
 import { Result, fallo } from '@shared/result/result';
 import { AppError, creaError } from '@shared/error/app-error';
 import { ALTA_DE_CUENTA_PORT } from '../../domain/port/autenticacion.port';
@@ -26,7 +26,7 @@ export interface CuentaCreada {
  * <p>El fallo local viaja como `AppError` con su CÓDIGO propio: la pantalla decide qué texto enseña,
  * igual que hace con los códigos que manda el servidor, sin que este caso de uso sepa de idiomas.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class CreaCuenta {
   private readonly alta = inject(ALTA_DE_CUENTA_PORT);
 

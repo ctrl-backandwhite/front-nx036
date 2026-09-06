@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { Service, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { APP_CONFIG } from '../config/app-config';
 
@@ -22,7 +22,7 @@ interface Reto {
  * <p>Usa `HttpClient` SIN pasar por los interceptores de la aplicación (`HttpBackend` no, aquí basta con
  * que el interceptor de captcha se salte esta ruta): pedir el reto no puede exigir a su vez un reto.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class CaptchaService {
   private readonly http = inject(HttpClient);
   private readonly config = inject(APP_CONFIG);

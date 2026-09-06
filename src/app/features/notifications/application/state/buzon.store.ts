@@ -1,4 +1,4 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Service, computed, signal } from '@angular/core';
 import { Aviso, Carpeta, Categoria, categoriasPresentes, filtraPorCategoria } from '../../domain/model/aviso';
 
 /**
@@ -9,7 +9,7 @@ import { Aviso, Carpeta, Categoria, categoriasPresentes, filtraPorCategoria } fr
  * almacén hiciera además las llamadas, cualquier pantalla podría dispararlas desde cualquier sitio y no
  * habría un único lugar donde leer qué pasa al abrir una carpeta.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class BuzonStore {
   private readonly _carpeta = signal<Carpeta>('inbox');
   private readonly _filtro = signal<Categoria | ''>('');

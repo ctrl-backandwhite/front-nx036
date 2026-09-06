@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Service, inject } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 import { APP_CONFIG } from '../config/app-config';
 
@@ -23,7 +23,7 @@ export interface EtiquetasDePagina {
   readonly tipo?: 'website' | 'product' | 'article';
 }
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class EtiquetasService {
   private readonly meta = inject(Meta);
   private readonly titulo = inject(Title);

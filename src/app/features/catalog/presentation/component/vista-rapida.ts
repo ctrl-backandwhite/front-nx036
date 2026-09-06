@@ -1,4 +1,13 @@
-import { Component, computed, effect, inject, input, output, resource, signal, untracked } from '@angular/core';
+import {
+  Component,
+  computed,
+  inject,
+  input,
+  linkedSignal,
+  output,
+  resource,
+  signal,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
@@ -196,7 +205,23 @@ export class VistaRapida {
     derecha: faChevronRight,
   };
 
-  protected readonly indice = signal(0);
+  /**
+   * La foto que se está mirando, que vuelve a la primera al cambiar de producto.
+   *
+   * <p>Es un `linkedSignal` y no un `signal` con un `effect` detrás: un efecto que solo asigna un valor
+   * derivado de otro corre en un orden que no se controla y se ejecuta aunque nadie mire el resultado.
+   * Aquí la relación se DECLARA —«cuando cambie el producto, vuelve a la primera»— y entre producto y
+   * producto se sigue pudiendo pasar de foto a mano.
+   *
+   * <p>Sin este reinicio, la ventana se quedaría enseñando la quinta imagen de un producto que quizá
+   * solo tiene dos.
+   *
+   * <p>Va DESPUÉS de `slug`, del que depende: un `linkedSignal` evalúa su origen al construirse.
+   */
+  protected readonly indice = linkedSignal({
+    source: this.slug,
+    computation: () => 0,
+  });
   protected readonly anadiendo = signal(false);
 
   protected readonly datos = resource({
@@ -218,15 +243,6 @@ export class VistaRapida {
   protected readonly principal = computed(
     () => this.miniaturas()[this.indice()]?.direccion ?? this.producto()?.imagenPrincipal,
   );
-
-  constructor() {
-    // Al cambiar de producto se vuelve a la primera foto: si no, se quedaría enseñando la quinta imagen
-    // de un producto que quizá solo tiene dos.
-    effect(() => {
-      this.slug();
-      untracked(() => this.indice.set(0));
-    });
-  }
 
   /** Da la vuelta en los extremos: llegar a la última y no poder seguir es un callejón sin salida. */
   protected pasa(paso: number): void {

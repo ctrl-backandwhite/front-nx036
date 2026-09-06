@@ -7,6 +7,11 @@
 // Se exporta por defecto para que el `import()` diferido del servicio de traducción no tenga que
 // conocer el nombre de la constante de cada idioma.
 const diccionario: Record<string, string> = {
+  'dialog.field.email': '请输入有效的电子邮箱。',
+  'dialog.field.maxlength': '超出了允许的长度。',
+  'dialog.field.pattern': '格式不符合要求。',
+  'dialog.field.max': '超过了最大值。',
+  'dialog.field.range': '结束早于开始。',
   'admin.catalog.detail.surcharge_dbl': '双击编辑附加费',
   'admin.create_product.section.pricing': '价格、品牌与状态',
   'admin.create_product.section.logistics': '物流与尺寸',

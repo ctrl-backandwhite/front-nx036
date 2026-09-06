@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Service, inject } from '@angular/core';
 import { Result } from '@shared/result/result';
 import { AppError } from '@shared/error/app-error';
 import { Aviso, sinLeer } from '../../domain/model/aviso';
@@ -12,7 +12,7 @@ import { BuzonStore } from '../state/buzon.store';
  * uso. La marca de leído es SILENCIOSA a propósito: la dispara el propio buzón al abrir, no quien mira.
  * Un aviso de error ahí interrumpiría una lectura que sí ha funcionado.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class LeeUnAviso {
   private readonly buzon = inject(BUZON_PORT);
   private readonly estado = inject(BuzonStore);

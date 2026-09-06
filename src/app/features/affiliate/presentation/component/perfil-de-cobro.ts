@@ -1,4 +1,4 @@
-import { Component, effect, inject, input, output, signal } from '@angular/core';
+import { Component, inject, input, linkedSignal, output, signal } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faMoneyBillTransfer } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
@@ -141,26 +141,41 @@ export class PerfilDeCobroForm {
   protected readonly iconoDinero = faMoneyBillTransfer;
   protected readonly t = inject(TraduccionService).t;
 
-  protected readonly titular = signal('');
-  protected readonly iban = signal('');
-  protected readonly bic = signal('');
-  protected readonly correoPaypal = signal('');
-  protected readonly metodoPreferido = signal<MetodoDeCobro>('WALLET');
-  protected readonly contrasena = signal('');
+  /**
+   * Los campos que arrancan con lo guardado.
+   *
+   * <p>Son `linkedSignal` y no `signal` con un `effect` detrás, que es como estaban. La diferencia
+   * importa: un efecto que solo asigna valores derivados de otro corre en un orden que no se controla y
+   * se ejecuta aunque nadie mire el resultado. Aquí la relación se DECLARA —«cuando llegue el perfil
+   * guardado, parte de él»— y lo tecleado después manda mientras el perfil no vuelva a cambiar, que es
+   * justo lo que hace falta: el guardado REEMPLAZA el perfil entero y hay que reenviarlo completo.
+   *
+   * <p>Mientras el perfil no ha llegado —`null`— se conserva lo que hubiera, que era lo que hacía el
+   * `return` temprano del efecto.
+   *
+   * <p>Van DESPUÉS de `perfil`, del que dependen: un `linkedSignal` evalúa su origen al construirse.
+   */
+  protected readonly titular = linkedSignal<PerfilDeCobro | null, string>({
+    source: this.perfil,
+    computation: (datos, anterior) => (datos ? (datos.titular ?? '') : (anterior?.value ?? '')),
+  });
+  protected readonly bic = linkedSignal<PerfilDeCobro | null, string>({
+    source: this.perfil,
+    computation: (datos, anterior) => (datos ? (datos.bic ?? '') : (anterior?.value ?? '')),
+  });
+  protected readonly correoPaypal = linkedSignal<PerfilDeCobro | null, string>({
+    source: this.perfil,
+    computation: (datos, anterior) => (datos ? (datos.correoPaypal ?? '') : (anterior?.value ?? '')),
+  });
+  protected readonly metodoPreferido = linkedSignal<PerfilDeCobro | null, MetodoDeCobro>({
+    source: this.perfil,
+    computation: (datos, anterior) => datos?.metodoPreferido ?? anterior?.value ?? 'WALLET',
+  });
 
-  constructor() {
-    // El formulario se rellena con lo guardado en cuanto llega: hay que reenviarlo entero al guardar.
-    effect(() => {
-      const datos = this.perfil();
-      if (!datos) {
-        return;
-      }
-      this.titular.set(datos.titular ?? '');
-      this.bic.set(datos.bic ?? '');
-      this.correoPaypal.set(datos.correoPaypal ?? '');
-      this.metodoPreferido.set(datos.metodoPreferido);
-    });
-  }
+  /* El IBAN y la contraseña NO se heredan del perfil: el servidor solo devuelve el IBAN enmascarado y
+   * la contraseña no se guarda en ninguna parte. Los dos se escriben cada vez. */
+  protected readonly iban = signal('');
+  protected readonly contrasena = signal('');
 
   protected marcadorDeIban(): string {
     return this.perfil()?.ibanEnmascarado

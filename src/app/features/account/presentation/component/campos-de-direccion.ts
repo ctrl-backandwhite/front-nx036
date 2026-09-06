@@ -194,12 +194,12 @@ export class CamposDeDireccion {
    */
   protected readonly formulario = form(this.datos, (ruta) => {
     required(ruta.nombreCompleto, { message: () => this.t('dialog.field.required') });
-    maxLength(ruta.nombreCompleto, LARGO_DEL_NOMBRE);
+    maxLength(ruta.nombreCompleto, LARGO_DEL_NOMBRE, { message: () => this.t('dialog.field.maxlength') });
     required(ruta.linea1, { message: () => this.t('dialog.field.required') });
-    maxLength(ruta.linea1, LARGO_DE_LA_LINEA);
-    maxLength(ruta.linea2, LARGO_DE_LA_LINEA);
+    maxLength(ruta.linea1, LARGO_DE_LA_LINEA, { message: () => this.t('dialog.field.maxlength') });
+    maxLength(ruta.linea2, LARGO_DE_LA_LINEA, { message: () => this.t('dialog.field.maxlength') });
     required(ruta.ciudad, { message: () => this.t('dialog.field.required') });
-    maxLength(ruta.ciudad, LARGO_DE_LA_CIUDAD);
+    maxLength(ruta.ciudad, LARGO_DE_LA_CIUDAD, { message: () => this.t('dialog.field.maxlength') });
     required(ruta.pais, { message: () => this.t('dialog.field.required') });
     validate(ruta.codigoPostal, ({ value }) =>
       codigoPostalInvalido(value(), this.formatoPostal())

@@ -41,11 +41,21 @@ interface ErrorConTipo {
  *
  * <p>`parse` es el que da un campo numérico cuando el navegador no puede leer lo tecleado; sin él, un
  * número imposible se quedaba sin explicación y el botón de guardar apagado sin decir por qué.
+ *
+ * <p>`max` decía «escribe un número válido», que es falso: el número está bien escrito, lo que pasa es
+ * que se pasa del tope. Y `maxLength`, `pattern` y `email` no estaban en la tabla porque no existía
+ * ninguna cadena traducida que los nombrara: un nombre de almacén demasiado largo o un código de país
+ * mal escrito dejaban el campo en rojo y el botón apagado SIN decir qué pasaba. Ya existen.
+ *
+ * <p>`minLength` sigue fuera a propósito: no hay clave que lo diga y no se inventa ninguna.
  */
 const MENSAJES: Readonly<Record<string, string>> = {
   required: 'dialog.field.required',
   min: 'dialog.field.min',
-  max: 'dialog.field.number',
+  max: 'dialog.field.max',
+  maxLength: 'dialog.field.maxlength',
+  pattern: 'dialog.field.pattern',
+  email: 'dialog.field.email',
   parse: 'dialog.field.number',
 };
 
@@ -88,7 +98,7 @@ export function claveDeError(errores: readonly ErrorConTipo[]): string | null {
       return clave;
     }
   }
-  // Un tipo sin mensaje propio —el tope de longitud, que el navegador ya impide superar— no se
-  // inventa un texto: enseñar «este campo es obligatorio» en un campo relleno confunde más que callar.
+  // Un tipo sin mensaje propio no se inventa un texto: enseñar «este campo es obligatorio» en un campo
+  // relleno confunde más que callar.
   return null;
 }

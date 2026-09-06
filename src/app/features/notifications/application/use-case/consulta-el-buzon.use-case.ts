@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Service, inject } from '@angular/core';
 import { Result } from '@shared/result/result';
 import { AppError } from '@shared/error/app-error';
 import { Carpeta, sinLeer } from '../../domain/model/aviso';
@@ -12,7 +12,7 @@ import { BuzonStore } from '../state/buzon.store';
  * avisar. Cuando el buzón se quedaba MUDO ante un rechazo del servidor, quien miraba volvía a pulsar
  * creyendo que había fallado el clic.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class ConsultaElBuzon {
   private readonly buzon = inject(BUZON_PORT);
   private readonly estado = inject(BuzonStore);

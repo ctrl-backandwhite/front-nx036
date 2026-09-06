@@ -1,4 +1,4 @@
-import { Component, DestroyRef, effect, inject, input, signal } from '@angular/core';
+import { Component, DestroyRef, effect, inject, input, linkedSignal, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
@@ -112,7 +112,20 @@ export class ActivacionPage {
 
   protected readonly estado = signal<'inicial' | 'activando' | 'ok' | 'error'>('inicial');
   protected readonly mensaje = signal<string | null>(null);
-  protected readonly correo = signal('');
+  /**
+   * El correo del reenvío, que arranca con el que trae la dirección.
+   *
+   * <p>Es un `linkedSignal` y no un `signal` con un `effect` detrás: un efecto que solo asigna un valor
+   * derivado de otro corre en un orden que no se controla y se ejecuta aunque nadie mire el resultado.
+   * Aquí la relación se DECLARA —«si la dirección trae correo, ese es el de partida»— y lo tecleado
+   * después manda, porque el origen ya no cambia.
+   *
+   * <p>Va DESPUÉS de `email`, del que depende: un `linkedSignal` evalúa su origen al construirse.
+   */
+  protected readonly correo = linkedSignal<string, string>({
+    source: this.email,
+    computation: (sugerido, anterior) => sugerido || (anterior?.value ?? ''),
+  });
   protected readonly reenviando = signal(false);
   protected readonly reenviado = signal(false);
   protected readonly espera = signal(0);
@@ -129,16 +142,13 @@ export class ActivacionPage {
   constructor() {
     // Con código en la dirección se activa sola: quien pulsa el botón del correo no tiene que hacer
     // nada más. El efecto lo dispara el propio parámetro, así que también funciona si cambia.
+    //
+    // Esto SÍ es un efecto y se queda: no deriva un valor, llama al backend y termina navegando. Un
+    // `computed` no puede hacerlo —tendría que ser puro— y un `linkedSignal` tampoco.
     effect(() => {
       const codigo = this.code();
       if (codigo) {
         void this.activa(codigo);
-      }
-    });
-    effect(() => {
-      const sugerido = this.email();
-      if (sugerido) {
-        this.correo.set(sugerido);
       }
     });
     inject(DestroyRef).onDestroy(() => this.paraLosRelojes());

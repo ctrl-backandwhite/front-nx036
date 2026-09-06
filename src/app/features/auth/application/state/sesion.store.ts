@@ -1,4 +1,4 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Service, computed, inject, signal } from '@angular/core';
 import { Rol, Usuario, nombreParaSaludar, tieneRol } from '../../domain/model/usuario';
 import { PaisDelUsuario } from '@core/http/pais-del-usuario';
 import { SesionActual } from '@core/auth/sesion-actual';
@@ -19,7 +19,7 @@ import { SesionActual } from '@core/auth/sesion-actual';
  * el guardián de rutas sepan quién mira sin tener que entrar en las tripas de este contexto. Aquí queda
  * la cuenta ENTERA —empresa, teléfono, idioma—; allí solo lo mínimo para decidir qué se enseña.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class SesionStore {
   private readonly pais = inject(PaisDelUsuario);
   private readonly sesionActual = inject(SesionActual);

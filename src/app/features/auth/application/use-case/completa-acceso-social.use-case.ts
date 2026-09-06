@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Service, inject } from '@angular/core';
 import { TokenStore } from '@core/auth/token-store';
 import { USUARIO_ACTUAL_PORT } from '../../domain/port/autenticacion.port';
 import { destinoPorDefecto, destinoSeguro, pareceCredencial } from '../../domain/model/acceso-social';
@@ -16,7 +16,7 @@ import { SesionStore } from '../state/sesion.store';
  * <p>Devuelve ADÓNDE hay que ir; no navega. Navegar es cosa de la pantalla, y así este caso de uso se
  * prueba sin enrutador.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class CompletaAccesoSocial {
   private readonly usuarioActual = inject(USUARIO_ACTUAL_PORT);
   private readonly tokens = inject(TokenStore);

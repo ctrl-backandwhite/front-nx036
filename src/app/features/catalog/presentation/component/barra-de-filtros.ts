@@ -254,9 +254,11 @@ export class BarraDeFiltros {
     min(ruta.maximo, 0, { message: () => this.t('dialog.field.min') });
     validate(ruta, ({ value }) => {
       const { minimo, maximo } = value();
-      // Sin mensaje a propósito: no hay ninguna clave traducida que diga «el mínimo supera al
-      // máximo» y aquí no se inventan claves. Queda anotado; el estado sí es correcto ya.
-      return minimo !== null && maximo !== null && minimo > maximo ? { kind: 'rango-invertido' } : null;
+      // `dialog.field.range` —«el final va antes que el principio»— es exactamente esto. Antes iba sin
+      // mensaje porque no existía la clave, y el filtro se quedaba en rojo sin decir qué pasaba.
+      return minimo !== null && maximo !== null && minimo > maximo
+        ? { kind: 'rango-invertido', message: this.t('dialog.field.range') }
+        : null;
     });
   });
 

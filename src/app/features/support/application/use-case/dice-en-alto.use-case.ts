@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Service, inject } from '@angular/core';
 import { VOZ_PORT } from '../../domain/port/voz.port';
 import { QueDecir } from '../../domain/model/asistente';
 
@@ -9,7 +9,7 @@ import { QueDecir } from '../../domain/model/asistente';
  * volvía a soltar la misma frase, que es la forma más rápida de que alguien apague la voz para siempre.
  * Para volver a oírla está el botón de repetir, que fuerza la locución saltándose ese recuerdo.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class DiceEnAlto {
   private readonly voz = inject(VOZ_PORT);
 
