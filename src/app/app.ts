@@ -1,5 +1,6 @@
 import { Component, effect, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { CapturaDeReferido } from '@features/affiliate/presentation/component/captura-de-referido';
 import { DOCUMENT } from '@angular/core';
 import { PreferenciasService } from '@core/preferences/preferencias';
 
@@ -13,8 +14,12 @@ import { PreferenciasService } from '@core/preferences/preferencias';
  */
 @Component({
   selector: 'nx-root',
-  imports: [RouterOutlet],
-  template: '<router-outlet />',
+  imports: [RouterOutlet, CapturaDeReferido],
+  /**
+   * La captura de referido no pinta nada: se limita a mirar la dirección y registrar de quién viene la
+   * visita. Va aquí, en el armazón, porque un enlace de afiliado puede apuntar a cualquier página.
+   */
+  template: '<router-outlet /><nx-captura-de-referido />',
 })
 export class App {
   private readonly preferencias = inject(PreferenciasService);

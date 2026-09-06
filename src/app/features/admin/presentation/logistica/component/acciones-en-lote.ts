@@ -1,4 +1,4 @@
-import { Component, inject, input, output } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
   faBan,
@@ -31,7 +31,7 @@ const ACCIONES: readonly AccionSobrePedido[] = ['forward', 'ship', 'deliver', 'r
     @if (cuantos() > 0) {
       <div class="flex items-center gap-1 flex-wrap mr-1">
         <span class="text-[11px] text-ink-500 mr-1">
-          {{ t('admin.orders.bulk.selected').replace('{n}', cuantos().toString()) }}
+          {{ rotuloDeSeleccion() }}
         </span>
         @for (accion of acciones; track accion) {
           <button
@@ -62,6 +62,11 @@ export class AccionesEnLote {
 
   protected readonly acciones = ACCIONES;
   protected readonly t = inject(TraduccionService).t;
+
+  /** El rótulo con la cifra, armado una vez por cambio y no en cada repintado. */
+  protected readonly rotuloDeSeleccion = computed(() =>
+    this.t('admin.orders.bulk.selected').replace('{n}', String(this.cuantos())),
+  );
 
   protected readonly iconos = {
     forward: faPaperPlane,

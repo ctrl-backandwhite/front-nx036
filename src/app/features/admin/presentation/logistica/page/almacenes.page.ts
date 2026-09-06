@@ -51,7 +51,7 @@ import { FormularioDeAlmacen } from '../component/formulario-de-almacen';
           @if (seleccion.hayAlguno()) {
             <div class="flex items-center gap-1 flex-wrap mr-1">
               <span class="text-[11px] text-ink-500 mr-1">
-                {{ t('admin.bulk.selected').replace('{n}', seleccion.cuantos().toString()) }}
+                {{ rotuloDeSeleccion() }}
               </span>
               <button
                 type="button"
@@ -213,6 +213,11 @@ export class AlmacenesPage {
   protected readonly borrador = signal<DatosDeAlmacen>(almacenEnBlanco());
   protected readonly guardando = signal(false);
   protected readonly enLote = signal(false);
+
+  /** El rótulo con la cifra, armado una vez por cambio y no en cada repintado. */
+  protected readonly rotuloDeSeleccion = computed(() =>
+    this.t('admin.bulk.selected').replace('{n}', String(this.seleccion.cuantos())),
+  );
 
   protected readonly identificadores = computed(() => this.almacenes().map((a) => a.id));
   protected readonly todosMarcados = computed(() =>

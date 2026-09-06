@@ -16,6 +16,7 @@ import { routes } from './app.routes';
 import { proveeNucleo } from './composition/nucleo.providers';
 import { proveeAuth } from '@features/auth/auth.providers';
 import { proveeCarrito } from '@features/cart/cart.providers';
+import { proveeAtribucionDeReferido } from '@features/affiliate/affiliate.providers';
 import { proveeNotifications } from '@features/notifications/notifications.providers';
 import { proveeSupport } from '@features/support/support.providers';
 import { PrecargaSelectiva } from '@core/performance/precarga-selectiva';
@@ -103,5 +104,12 @@ export const appConfig: ApplicationConfig = {
     // pasa por ellas para ver la campana.
     proveeNotifications(),
     proveeSupport(),
+
+    // La atribución de referidos va en la raíz porque un enlace de afiliado puede caer en CUALQUIER
+    // página: quien lo comparte manda la ficha de un producto o la portada, no la pantalla de
+    // afiliados. Colgada de esa ruta no se enteraría de casi ninguna visita, que es justo lo que
+    // pasaba: ni sus proveedores ni el componente estaban montados en ninguna parte, así que el
+    // programa de referidos no atribuía nada.
+    proveeAtribucionDeReferido(),
   ],
 };

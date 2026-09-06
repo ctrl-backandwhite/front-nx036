@@ -85,10 +85,10 @@ const ICONO: Readonly<Record<string, IconDefinition>> = {
         <div class="rounded-xl border border-red-300 bg-red-50 p-4" role="alert">
           <p class="flex items-center gap-2 font-medium text-red-800">
             <fa-icon [icon]="iconos.aviso" />
-            {{ t('admin.purchases.at_risk_title').replace('{n}', enPeligro().length.toString()) }}
+            {{ rotuloDeRiesgo() }}
           </p>
           <p class="mt-1 text-sm text-red-700">
-            {{ t('admin.purchases.at_risk_help').replace('{d}', diasHastaDestruccion.toString()) }}
+            {{ ayudaDeRiesgo() }}
           </p>
           <ul class="mt-2 space-y-1 text-sm">
             @for (compra of enPeligro(); track compra.id) {
@@ -106,7 +106,7 @@ const ICONO: Readonly<Record<string, IconDefinition>> = {
           <!-- Se cuentan PEDIDOS, no incidencias: uno solo puede acumular varios motivos, y decir
                «2 pedidos» cuando es uno con dos fallos hace buscar un pedido que no existe. -->
           <summary class="cursor-pointer font-medium text-amber-900">
-            {{ t('admin.purchases.issues_title').replace('{n}', bloqueados().toString()) }}
+            {{ rotuloDeIncidencias() }}
           </summary>
           <ul class="mt-2 space-y-1 text-sm text-amber-800">
             @for (incidencia of incidencias(); track $index) {
@@ -185,7 +185,6 @@ const ICONO: Readonly<Record<string, IconDefinition>> = {
   `,
 })
 export class ComprasPage {
-  protected readonly diasHastaDestruccion = DIAS_HASTA_DESTRUCCION;
   protected readonly t = inject(TraduccionService).t;
 
   protected readonly iconos = {
@@ -233,6 +232,18 @@ export class ComprasPage {
   protected readonly incidencias = computed(() => this.avance()?.incidencias ?? []);
   protected readonly bloqueados = computed(() => pedidosBloqueados(this.incidencias()));
   protected readonly enPeligro = computed(() => enRiesgo(this.compras()));
+
+  // Los rótulos con cifra se arman UNA vez por cambio. En la plantilla se rehacían en cada repintado,
+  // y además escondían el número dentro de una cadena imposible de encontrar buscando por el rótulo.
+  protected readonly rotuloDeRiesgo = computed(() =>
+    this.t('admin.purchases.at_risk_title').replace('{n}', String(this.enPeligro().length)),
+  );
+  protected readonly ayudaDeRiesgo = computed(() =>
+    this.t('admin.purchases.at_risk_help').replace('{d}', String(DIAS_HASTA_DESTRUCCION)),
+  );
+  protected readonly rotuloDeIncidencias = computed(() =>
+    this.t('admin.purchases.issues_title').replace('{n}', String(this.bloqueados())),
+  );
 
   constructor() {
     void this.recarga();

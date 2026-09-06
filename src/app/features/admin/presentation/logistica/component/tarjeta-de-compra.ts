@@ -49,7 +49,7 @@ import {
         >
           <span class="inline-flex items-center gap-1">
             <fa-icon [icon]="iconos.hoja" />
-            {{ t('admin.purchases.exported_on').replace('{date}', exportado) }}
+            {{ rotuloDeExportacion() }}
           </span>
           @if (reexportable()) {
             <button
@@ -193,6 +193,11 @@ export class TarjetaDeCompra {
     copia: faCopy,
     caja: faBoxOpen,
   };
+
+  /** El rótulo con la fecha, armado una vez por cambio y no en cada repintado. */
+  protected readonly rotuloDeExportacion = computed(() =>
+    this.t('admin.purchases.exported_on').replace('{date}', this.compra().exportadoEl ?? ''),
+  );
 
   protected readonly paso = computed(() => pasoQueToca(this.compra().estado));
   protected readonly reexportable = computed(() => puedeReexportarse(this.compra()));

@@ -39,17 +39,20 @@ import { InsigniaEstado } from './insignia-estado';
 
         @if (bultos().length > 0) {
           <div class="space-y-4">
-            @for (bulto of bultos(); track bulto.secuencia) {
+            @for (bulto of bultos(); track bulto.bulto.secuencia) {
+              @let bultoDelEnvio = bulto.bulto;
               <div class="border-t border-ink-100 pt-3">
                 <div class="flex flex-wrap items-center gap-2 text-[12px]">
                   <fa-icon [icon]="iconoCaja" class="text-ink-400" />
-                  <span class="font-medium">{{ t('tracking.parcel') }} {{ bulto.secuencia }}</span>
-                  @if (bulto.numeroDeSeguimiento; as guia) {
+                  <span class="font-medium">
+                    {{ t('tracking.parcel') }} {{ bultoDelEnvio.secuencia }}
+                  </span>
+                  @if (bultoDelEnvio.numeroDeSeguimiento; as guia) {
                     <span class="font-mono text-ink-500">{{ guia }}</span>
                   }
                 </div>
                 <ol class="mt-2 space-y-2">
-                  @for (paso of pasosDe(bulto.eventos); track $index) {
+                  @for (paso of bulto.pasos; track $index) {
                     <li class="flex gap-2 text-[12px]">
                       <fa-icon [icon]="iconoLugar" class="mt-0.5 text-ink-300" />
                       <span>
@@ -97,7 +100,13 @@ export class RastroDelEnvio {
   protected readonly iconoCaja = faBoxOpen;
   protected readonly t = inject(TraduccionService).t;
 
-  protected readonly bultos = computed(() => this.envio().bultos);
+  /**
+   * Los bultos con sus pasos ya ordenados. Antes cada repintado volvía a recorrer los sucesos de
+   * cada bulto desde la plantilla para pintar exactamente la misma escalera.
+   */
+  protected readonly bultos = computed(() =>
+    this.envio().bultos.map((bulto) => ({ bulto, pasos: pasosDelEnvio(bulto.eventos) })),
+  );
   protected readonly pasos = computed(() => pasosDelEnvio(this.envio().eventos));
 
   /** Sin guía y sin un solo paso no se pinta un recuadro vacío: se calla. */
@@ -108,7 +117,4 @@ export class RastroDelEnvio {
     );
   });
 
-  protected pasosDe(eventos: Seguimiento['eventos']) {
-    return pasosDelEnvio(eventos);
-  }
 }
