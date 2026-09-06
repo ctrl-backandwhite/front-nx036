@@ -42,6 +42,11 @@ que faltaba.
 | P-7 | La hoja de estilos se duplicó sin tocar una regla | Tailwind escaneaba 25.000 líneas de traducciones y confundía palabras sueltas con utilidades | Los ficheros de datos se excluyen del escaneo |
 | **P-8** | **El pago nunca se confirmaba.** Quien volvía de Stripe o de PayPal veía «No pudimos confirmar el pago · Falta la referencia del pago»: el cobro **no se cerraba del lado del servidor** y la cesta **no se vaciaba**. Sin error en ningún registro. | La confirmación se lanzaba desde el CONSTRUCTOR, y el enrutador enlaza los parámetros de la dirección **después** de construir el componente. Los dos identificadores valían siempre cadena vacía. | Lo que depende de un parámetro de la ruta se lee en un `effect`, nunca en el constructor |
 | P-9 | Seis bloques de contenido no aparecían nunca a quien llegaba navegando | `@defer` con solo disparador de hidratación | Declarar siempre los dos disparadores |
+| **P-10** | **La aplicación se servía sin cabecera, sin pie y sin cajón de cesta.** | El marco de página estaba escrito y probado, pero no lo montaba ninguna ruta | Una pieza con sus pruebas en verde puede no estar enchufada a nada |
+| **P-11** | **La portada llegaba vacía** (1.116 bytes) | Un `path: ''` con carga en diferido CONSUME el intento de resolución; si el grupo cargado no contiene la dirección, el enrutador no vuelve atrás | Las pantallas sueltas se montan por su camino propio, no bajo un camino vacío |
+| P-12 | Los planes y precios se servían vacíos | Marcados «cliente» porque el resto de su contexto lo es, siendo una página pública | El modo de generación se decide por página, no por contexto |
+| **P-13** | **Pantallas que revientan al abrirlas** con `NG0201` | 51 casos de uso declarados en el inyector RAÍZ dependen de puertos que se registran en la RUTA. Desde la raíz no se ven. **Ninguna prueba lo detecta**: en el banco de pruebas todo se provee junto | Lo que depende de un puerto de contexto se registra con ese contexto, nunca en la raíz |
+| P-14 | El panel de marca del acceso no cargaba | El adaptador pedía `/storefront/warehouses`; el endpoint es `/warehouses` | Comprobar cada ruta contra el módulo de API del original |
 
 ### Sobre P-8, que merece leerse dos veces
 
@@ -53,10 +58,24 @@ fallos producía verde.
 Es el mejor argumento a favor de certificar contra la aplicación funcionando y no solo contra la
 batería de pruebas.
 
+### Sobre P-13, y por qué la certificación en navegador no era opcional
+
+Los 51 casos de uso mal ubicados pasaban **todas** sus pruebas. En el banco de pruebas, los puertos y
+los casos de uso se registran juntos en el mismo inyector, así que la dependencia siempre se resuelve.
+En la aplicación de verdad no: el caso de uso vive en la raíz y el puerto en la ruta, y la pantalla
+revienta al abrirla.
+
+No lo veían las pruebas, ni el lint, ni la compilación, ni la comprobación de tipos. Apareció al abrir
+sesión con una cuenta real y navegar. Es, junto con P-8 y P-10, el argumento de que **la certificación
+tiene que ejecutar la aplicación**.
+
 ## C. Pendiente de decisión del titular
 
 1. **H-1**, arriba.
-2. **Papeles en el panel.** El React daba acceso uniforme a `ADMIN` y `OPERATOR` en todas las pantallas.
+2. **La ficha de producto no se prerenderiza** (7.729 productos: generar una página por cada uno no es
+   viable). Sus etiquetas para compartir, que el código ya escribe bien, no llegan a quien recibe el
+   enlace. O se deja como está —igual que el React hoy— o se prerenderizan solo las destacadas.
+3. **Papeles en el panel.** El React daba acceso uniforme a `ADMIN` y `OPERATOR` en todas las pantallas.
    Al portar se reservó a `ADMIN` lo que mueve dinero, cambia identidades, reparte credenciales o
    escribe a toda la base, dejando a `OPERATOR` el panel, soporte, academia, mentores, perfil y guía de
    estilo. **Es más restrictivo que el original**, así que conviene ratificarlo antes de certificar: si

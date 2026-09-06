@@ -16,7 +16,7 @@ export class ResumenDeAlmacenesHttpAdapter implements ResumenDeAlmacenesPort {
   private readonly api = inject(ApiService);
 
   async consulta(): Promise<Result<ResumenDeAlmacenes, AppError>> {
-    const respuesta = await this.api.get<AlmacenDto[]>('/storefront/warehouses');
+    const respuesta = await this.api.get<AlmacenDto[]>('/warehouses');
     return mapea(respuesta, (lista) => ({
       cuantos: lista.length,
       paises: [...new Set(lista.map((a) => a.country).filter((p): p is string => !!p))],
