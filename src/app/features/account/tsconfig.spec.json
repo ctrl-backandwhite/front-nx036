@@ -1,0 +1,18 @@
+/* Programa de TypeScript para correr SOLO las pruebas de «account».
+ *
+ * Sirve para verificar este contexto sin depender del `tsconfig.spec.json` de la raíz, que es un
+ * fichero compartido y varios equipos lo estrechan a su propio contexto mientras trabajan. Se usa así:
+ *
+ *   npx ng test --ts-config src/app/features/account/tsconfig.spec.json \
+ *               --include "src/app/features/account/**\/*.spec.ts"
+ *
+ * No sustituye al de la raíz: es una comodidad para el porte y se puede borrar cuando el proyecto
+ * corra la batería entera de una sola vez.
+ */
+{
+  "extends": "../../../../tsconfig.json",
+  "compilerOptions": {
+    "types": ["vitest/globals", "node", "@testing-library/jest-dom"]
+  },
+  "include": ["../../../**/*.d.ts", "./**/*.spec.ts", "../../../test-setup.ts"]
+}

@@ -1173,7 +1173,7 @@ const diccionario: Record<string, string> = {
   'admin.users.col.active': 'Activo',
   'admin.users.actions.reset': 'Restablecer contraseña',
   'admin.users.actions.reset_confirm': '¿Enviar enlace de restablecimiento a {email}?',
-  'admin.users.actions.reset_sent': 'Correo de restablecimiento enviado.',
+  'admin.users.actions.reset_sent': 'Correo de restablecimiento enviado a {email}.',
   'admin.users.actions.action_error': 'No se pudo completar la acción.',
   'admin.users.actions.edit': 'Editar usuario',
   'admin.users.actions.edit_soon': 'La edición en línea llega en la próxima versión.',

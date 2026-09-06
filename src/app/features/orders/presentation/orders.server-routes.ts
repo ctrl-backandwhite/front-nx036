@@ -1,17 +1,14 @@
-import { ServerRoute } from '@angular/ssr';
+import { RenderMode, ServerRoute } from '@angular/ssr';
 
 /**
- * Cómo se genera el HTML de las rutas de «orders».
+ * Cómo se genera el HTML de «orders».
  *
- * <p>Va PEGADO a las rutas del contexto y no en un fichero central a propósito: quien crea una pantalla
- * es quien sabe si su contenido es el mismo para todo el mundo —y entonces se escribe al construir— o
- * depende de quién mira —y entonces lo monta el navegador. En un fichero central, esa decisión se olvida,
- * y olvidarla del lado malo deja el esqueleto de una cuenta cacheado en el borde.
- *
- * <p>Va en un fichero aparte de `orders.routes.ts` para que al construir el HTML no se arrastren los
- * componentes: aquí solo hay datos.
- *
- * <p>Lo que no se declare cae en el comodín de `app.routes.server.ts`, que PRERENDERIZA. Es el valor
- * correcto por defecto para el escaparate; toda ruta con sesión tiene que aparecer aquí como `Client`.
+ * <p>`RenderMode.Client`, las dos. Un pedido depende por completo de quién mira: prerenderizarlo
+ * escribiría en el disco —y Cloudflare cachearía en el borde— el esqueleto de una zona privada, y en el
+ * peor caso serviría a alguien el armazón de la pantalla de otro. Aquí no hay nada público que ganar:
+ * estas direcciones no se comparten ni se indexan.
  */
-export const rutasDeServidor: ServerRoute[] = [];
+export const rutasDeServidor: ServerRoute[] = [
+  { path: 'orders', renderMode: RenderMode.Client },
+  { path: 'orders/:id', renderMode: RenderMode.Client },
+];

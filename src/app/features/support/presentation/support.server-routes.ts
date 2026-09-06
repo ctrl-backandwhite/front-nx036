@@ -1,4 +1,4 @@
-import { ServerRoute } from '@angular/ssr';
+import { RenderMode, ServerRoute } from '@angular/ssr';
 
 /**
  * Cómo se genera el HTML de las rutas de «support».
@@ -14,4 +14,14 @@ import { ServerRoute } from '@angular/ssr';
  * <p>Lo que no se declare cae en el comodín de `app.routes.server.ts`, que PRERENDERIZA. Es el valor
  * correcto por defecto para el escaparate; toda ruta con sesión tiene que aparecer aquí como `Client`.
  */
-export const rutasDeServidor: ServerRoute[] = [];
+export const rutasDeServidor: ServerRoute[] = [
+  /* Los tickets son de quien los abrió: su HTML no se puede compartir entre visitantes. */
+  { path: 'support', renderMode: RenderMode.Client },
+  { path: 'admin/support', renderMode: RenderMode.Client },
+  /*
+   * CONTACTO sí se prerenderiza: es una página pública del escaparate, la misma para todo el mundo. Lo
+   * único que depende de quién mira son dos campos ya rellenos, y eso lo resuelve el navegador al
+   * hidratar sin que el esqueleto guardado en el borde diga nada de nadie.
+   */
+  { path: 'contact', renderMode: RenderMode.Prerender },
+];

@@ -1,4 +1,4 @@
-import { ServerRoute } from '@angular/ssr';
+import { RenderMode, ServerRoute } from '@angular/ssr';
 
 /**
  * Cómo se genera el HTML de las rutas de «notifications».
@@ -14,4 +14,17 @@ import { ServerRoute } from '@angular/ssr';
  * <p>Lo que no se declare cae en el comodín de `app.routes.server.ts`, que PRERENDERIZA. Es el valor
  * correcto por defecto para el escaparate; toda ruta con sesión tiene que aparecer aquí como `Client`.
  */
-export const rutasDeServidor: ServerRoute[] = [];
+export const rutasDeServidor: ServerRoute[] = [
+  /*
+   * El BUZÓN depende por completo de quién mira: son SUS avisos. Su esqueleto cacheado en el borde no
+   * ahorraría nada y sería lo primero que vería otra persona antes de que llegaran sus datos.
+   */
+  { path: 'notifications', renderMode: RenderMode.Client },
+  { path: 'admin/notifications', renderMode: RenderMode.Client },
+  /*
+   * La BAJA del boletín sí se prerenderiza: el HTML es el mismo para todo el mundo y el testigo llega
+   * en la dirección, que resuelve el navegador al hidratar. Que se cachee es justo lo que se quiere:
+   * es la página a la que llega quien pulsa un enlace de un correo, a veces mucho después de enviarlo.
+   */
+  { path: 'newsletter/unsubscribe', renderMode: RenderMode.Prerender },
+];

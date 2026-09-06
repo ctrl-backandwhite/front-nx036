@@ -1,4 +1,4 @@
-import { ServerRoute } from '@angular/ssr';
+import { RenderMode, ServerRoute } from '@angular/ssr';
 
 /**
  * Cómo se genera el HTML de las rutas de «cart».
@@ -11,7 +11,7 @@ import { ServerRoute } from '@angular/ssr';
  * <p>Va en un fichero aparte de `cart.routes.ts` para que al construir el HTML no se arrastren los
  * componentes: aquí solo hay datos.
  *
- * <p>Lo que no se declare cae en el comodín de `app.routes.server.ts`, que PRERENDERIZA. Es el valor
- * correcto por defecto para el escaparate; toda ruta con sesión tiene que aparecer aquí como `Client`.
+ * <p>La cesta es de QUIEN MIRA: sus líneas, su lista guardada y sus importes en su divisa. Prerenderizarla
+ * dejaría en el borde el esqueleto de una cesta ajena, así que la monta el navegador.
  */
-export const rutasDeServidor: ServerRoute[] = [];
+export const rutasDeServidor: ServerRoute[] = [{ path: 'cart', renderMode: RenderMode.Client }];
