@@ -7,6 +7,17 @@ import { Recurso } from '@shared/resource/recurso';
 import { APP_CONFIG } from '../config/app-config';
 import { mapeaError } from './mapea-error';
 
+/**
+ * Cabeceras propias de UNA petición.
+ *
+ * <p>Existe por un motivo muy concreto: la clave de idempotencia. Cuando alguien pulsa dos veces el
+ * botón de pagar —o la red reintenta sola— el servidor necesita reconocer que las dos peticiones son la
+ * misma para no cobrar dos veces, y eso viaja en una cabecera distinta en cada intento de compra. Un
+ * cerrojo en el navegador ayuda, pero la protección de verdad es del servidor y sin esto no le llegaba
+ * lo que necesita para aplicarla.
+ */
+export type Cabeceras = Readonly<Record<string, string>>;
+
 /** Parámetros de consulta tal como los escribe quien llama: sin nulos ni indefinidos. */
 export type Parametros = Readonly<Record<string, string | number | boolean | undefined | null>>;
 
@@ -46,18 +57,31 @@ export class ApiService {
     );
   }
 
-  async post<T>(camino: string, cuerpo?: unknown, contexto?: HttpContext): Promise<Result<T, AppError>> {
+  async post<T>(
+    camino: string,
+    cuerpo?: unknown,
+    opciones?: { cabeceras?: Cabeceras; contexto?: HttpContext },
+  ): Promise<Result<T, AppError>> {
     return this.envuelve(
-      firstValueFrom(this.http.post<T>(this.ruta(camino), cuerpo ?? {}, { context: contexto })),
+      firstValueFrom(
+        this.http.post<T>(this.ruta(camino), cuerpo ?? {}, {
+          context: opciones?.contexto,
+          headers: opciones?.cabeceras,
+        }),
+      ),
     );
   }
 
-  async put<T>(camino: string, cuerpo?: unknown): Promise<Result<T, AppError>> {
-    return this.envuelve(firstValueFrom(this.http.put<T>(this.ruta(camino), cuerpo ?? {})));
+  async put<T>(camino: string, cuerpo?: unknown, cabeceras?: Cabeceras): Promise<Result<T, AppError>> {
+    return this.envuelve(
+      firstValueFrom(this.http.put<T>(this.ruta(camino), cuerpo ?? {}, { headers: cabeceras })),
+    );
   }
 
-  async patch<T>(camino: string, cuerpo?: unknown): Promise<Result<T, AppError>> {
-    return this.envuelve(firstValueFrom(this.http.patch<T>(this.ruta(camino), cuerpo ?? {})));
+  async patch<T>(camino: string, cuerpo?: unknown, cabeceras?: Cabeceras): Promise<Result<T, AppError>> {
+    return this.envuelve(
+      firstValueFrom(this.http.patch<T>(this.ruta(camino), cuerpo ?? {}, { headers: cabeceras })),
+    );
   }
 
   async delete<T>(camino: string, parametros?: Parametros): Promise<Result<T, AppError>> {

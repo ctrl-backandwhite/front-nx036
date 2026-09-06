@@ -5,6 +5,7 @@ interface CuerpoDeError {
   message?: string;
   code?: string;
   errors?: Record<string, string>;
+  details?: Record<string, unknown>;
 }
 
 function tipoSegunEstado(estado: number): TipoDeError {
@@ -47,5 +48,6 @@ export function mapeaError(error: unknown): AppError {
     codigo: cuerpo.code,
     estado: error.status,
     porCampo: cuerpo.errors,
+    detalles: cuerpo.details,
   });
 }

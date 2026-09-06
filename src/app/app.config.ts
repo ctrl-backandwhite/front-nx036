@@ -15,6 +15,7 @@ import {
 import { routes } from './app.routes';
 import { proveeNucleo } from './composition/nucleo.providers';
 import { proveeAuth } from '@features/auth/auth.providers';
+import { proveeCarrito } from '@features/cart/cart.providers';
 import { PrecargaSelectiva } from '@core/performance/precarga-selectiva';
 import { authInterceptor } from '@core/http/interceptor/auth.interceptor';
 import { captchaInterceptor } from '@core/http/interceptor/captcha.interceptor';
@@ -89,5 +90,10 @@ export const appConfig: ApplicationConfig = {
 
     // La sesión es transversal: la consultan los guardianes de todas las zonas privadas.
     proveeAuth(),
+
+    // La cesta también: la pintan el cajón lateral y la insignia de la cabecera, que están en el marco
+    // de página, y la usa la pantalla de pago, que es OTRO contexto. Colgada de la ruta de la cesta,
+    // entrar directamente a pagar dejaba el puerto sin proveedor.
+    proveeCarrito(),
   ],
 };

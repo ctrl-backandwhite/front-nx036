@@ -39,6 +39,14 @@ export interface AppError {
   readonly estado?: number;
   /** Errores por campo de un formulario rechazado. */
   readonly porCampo?: Readonly<Record<string, string>>;
+  /**
+   * El detalle que acompaña al error, cuando el backend lo manda.
+   *
+   * <p>Hace falta para poder reaccionar y no solo informar: «una línea de tu cesta ha caducado» sin
+   * decir CUÁL obliga a quien compra a repasarla entera. El mensaje sigue viniendo traducido del
+   * servidor; esto es el dato con el que la pantalla decide qué señalar.
+   */
+  readonly detalles?: Readonly<Record<string, unknown>>;
 }
 
 export function creaError(
