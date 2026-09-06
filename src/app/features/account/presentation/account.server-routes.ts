@@ -27,7 +27,11 @@ import { RenderMode, ServerRoute } from '@angular/ssr';
 export const rutasDeServidor: ServerRoute[] = [
   { path: 'profile', renderMode: RenderMode.Client },
   { path: 'addresses', renderMode: RenderMode.Client },
-  { path: 'pricing', renderMode: RenderMode.Client },
+  /* La página de planes es PÚBLICA, aunque viva en el contexto de la cuenta: es la que ve alguien que
+   * todavía no se ha registrado y está decidiendo si le interesa. Se prerenderiza como el resto del
+   * escaparate — marcada como «cliente» llegaba vacía, y es de las pocas que de verdad tiene que
+   * convencer a quien la abre por primera vez. */
+  { path: 'pricing', renderMode: RenderMode.Prerender },
   // Los caminos alternativos solo redirigen: no tienen HTML propio que escribir al construir.
   { path: 'precios', renderMode: RenderMode.Client },
   { path: 'prices', renderMode: RenderMode.Client },

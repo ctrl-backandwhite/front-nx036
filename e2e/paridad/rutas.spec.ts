@@ -45,7 +45,9 @@ test.describe('paridad de rutas', () => {
    * Los alias son la parte que más se olvida al portar, y la que más se usa: son las direcciones que la
    * gente tiene guardadas y las que aparecen en los correos enviados hace meses.
    */
-  for (const alias of [...ALIAS_DE_ESCAPARATE, ...ALIAS_DE_PANEL]) {
+  // Sin duplicar: algunos alias («/precios») están en las dos listas del enrutador original, y el
+  // ejecutor rechaza dos pruebas con el mismo nombre.
+  for (const alias of [...new Set([...ALIAS_DE_ESCAPARATE, ...ALIAS_DE_PANEL])]) {
     test(`el alias ${alias} lleva al mismo sitio en los dos`, async ({ page }) => {
       await page.goto(`${REACT}${alias}`, { waitUntil: 'networkidle' });
       const destinoReact = new URL(page.url()).pathname;

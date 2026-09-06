@@ -18,6 +18,18 @@ export interface AppConfig {
    */
   readonly apiBase: string;
   readonly produccion: boolean;
+
+  /**
+   * La dirección pública de este entorno, absoluta.
+   *
+   * <p>La necesitan las etiquetas que leen los buscadores y las aplicaciones de mensajería al compartir
+   * un enlace: tienen que llevar dominio, y al generar el HTML durante la compilación no hay ningún
+   * navegador del que deducirlo.
+   */
+  readonly urlPublica: string;
+
+  /** Cómo se llama este entorno. Aparece en diagnósticos. */
+  readonly entorno: string;
 }
 
 export const APP_CONFIG = new InjectionToken<AppConfig>('AppConfig', {
@@ -25,5 +37,7 @@ export const APP_CONFIG = new InjectionToken<AppConfig>('AppConfig', {
   factory: (): AppConfig => ({
     apiBase: String(environment.apiBase ?? '').replace(/\/+$/, ''),
     produccion: environment.produccion,
+    urlPublica: String(environment.urlPublica ?? '').replace(/\/+$/, ''),
+    entorno: environment.nombre,
   }),
 });
