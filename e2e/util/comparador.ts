@@ -70,17 +70,21 @@ export async function importes(page: Page): Promise<string[]> {
 /**
  * Las claves de traducción sin traducir que se hayan colado en la pantalla.
  *
- * <p>Cuando falta una clave, el servicio devuelve la clave misma: se ve `login.title` escrito donde
- * debería ir un texto. Es deliberado —un hueco en blanco pasa desapercibido en una revisión y esto no—,
- * y por eso la certificación lo busca en los OCHO idiomas.
+ * <p>Cuando falta una clave, el servicio devuelve la CLAVE misma: se ve `login.title` escrito donde
+ * debería ir un texto. Es deliberado —un hueco en blanco pasa desapercibido en una revisión y esto no—
+ * y aquí es donde se caza, en los ocho idiomas: los huecos casi nunca están en español.
+ *
+ * <p>Solo se marca lo que ADEMÁS existe en el diccionario. La primera versión buscaba cualquier cosa
+ * con forma de `algo.algo` y señalaba `shop.sync`, `catalog.read` y `orders.write` en la página de
+ * desarrolladores: no eran claves sin traducir, eran los ÁMBITOS de la API, que se documentan a
+ * propósito. Un detector que marca lo correcto acaba ignorándose entero, así que la pregunta correcta
+ * no es «¿esto parece una clave?» sino «¿esto ES una de nuestras claves, escrita donde debería ir su
+ * traducción?».
  */
-export async function clavesSinTraducir(page: Page): Promise<string[]> {
+export async function clavesSinTraducir(page: Page, conocidas: ReadonlySet<string>): Promise<string[]> {
   const texto = await page.locator('body').innerText();
-  const patron = /\b[a-z][a-z0-9]*(?:\.[a-z][a-z0-9_]*){1,4}\b/g;
-  const candidatas = texto.match(patron) ?? [];
-  // Los nombres de fichero y los dominios también casan con el patrón: se descartan por su final.
-  const finalesInocentes = /\.(com|net|org|es|io|dev|local|test|png|jpg|jpeg|webp|svg|pdf|json|ts|js|css|html)$/i;
-  return [...new Set(candidatas.filter((c) => !finalesInocentes.test(c)))];
+  const candidatas = texto.match(/\b[a-z][a-z0-9]*(?:\.[a-z][a-z0-9_]*){1,4}\b/g) ?? [];
+  return [...new Set(candidatas.filter((c) => conocidas.has(c)))];
 }
 
 /** Los errores de JavaScript que la página haya lanzado. Se engancha ANTES de navegar. */

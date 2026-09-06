@@ -30,7 +30,21 @@ export default defineConfig({
     timezoneId: 'Europe/Madrid',
   },
   projects: [
-    { name: 'movil', use: { ...devices['iPhone 13'] } },
+    /**
+     * El móvil se certifica sobre Chromium a la anchura de un móvil, no sobre Safari.
+     *
+     * <p>Es una decisión con un hueco declarado, no un descuido. El perfil de iPhone arranca WebKit, y
+     * este equipo no tiene las bibliotecas de sistema que necesita: se instala el navegador pero no
+     * llega a lanzarse, y con él la mitad de la certificación NO SE EJECUTABA — dando cientos de fallos
+     * que no eran del código. Chrome sobre Android es además la mayor parte del tráfico móvil real.
+     *
+     * <p>Lo que se certifica aquí es el diseño en pantalla estrecha: una columna, sin desplazamiento
+     * horizontal, objetivos que se pueden pulsar con el dedo. Eso no depende del motor.
+     *
+     * <p>HUECO CONOCIDO: las diferencias propias de Safari en iOS no quedan cubiertas. Se cierra con
+     * `npx playwright install-deps webkit` y devolviendo aquí el perfil de iPhone.
+     */
+    { name: 'movil', use: { ...devices['Pixel 7'] } },
     { name: 'escritorio', use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } } },
   ],
 });

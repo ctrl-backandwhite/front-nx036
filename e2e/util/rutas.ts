@@ -45,16 +45,18 @@ export const RUTAS_PRIVADAS: readonly string[] = [
   '/wallet/recharge/return',
 ];
 
-/** Exigen sesión Y papel de administrador u operador. */
+/**
+ * Exigen sesión Y papel de administrador u operador.
+ *
+ * <p>Se quitaron cuatro entradas que no son rutas: el comodín literal `/admin/*` y tres caminos que
+ * salían de concatenar mal el prefijo del panel al extraerlas del enrutador original. Comprobar que
+ * «protegen» una dirección que no existe no prueba nada y ensucia el informe.
+ */
 export const RUTAS_DE_PANEL: readonly string[] = [
   '/admin',
-  '/admin/*',
   '/admin/academy',
-  '/admin/admin',
-  '/admin/affiliate',
   '/admin/affiliates',
   '/admin/billing',
-  '/admin/browse',
   '/admin/browse/:slug',
   '/admin/carrier-limits',
   '/admin/catalog',

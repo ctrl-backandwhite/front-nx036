@@ -8,6 +8,10 @@ import {
   textoVisible,
 } from '../util/comparador';
 import { RUTAS_PUBLICAS } from '../util/rutas';
+import diccionarioEs from '../../src/app/shared/i18n/dictionary/es';
+
+/** Las claves que el proyecto conoce. Si una aparece escrita en pantalla, es que falta su traducción. */
+const CLAVES_CONOCIDAS: ReadonlySet<string> = new Set(Object.keys(diccionarioEs));
 
 /**
  * Dimensión B: paridad de contenido.
@@ -83,7 +87,7 @@ test.describe('paridad de contenido', () => {
       const encontradas: string[] = [];
       for (const ruta of RUTAS_PUBLICAS.filter(sinParametro)) {
         await page.goto(`${ANGULAR}${ruta}`, { waitUntil: 'networkidle' });
-        for (const clave of await clavesSinTraducir(page)) {
+        for (const clave of await clavesSinTraducir(page, CLAVES_CONOCIDAS)) {
           encontradas.push(`${ruta} → ${clave}`);
         }
       }

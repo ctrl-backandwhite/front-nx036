@@ -30,7 +30,7 @@ const diccionario: Record<string, string> = {
   'register.have_account': '¿Ya tienes cuenta?',
   'register.error.weak_password': 'La contraseña no es lo bastante segura',
   'register.error.generic': 'No se ha podido crear la cuenta',
-  'reset.title': 'Restablecer la contraseña',
+  'reset.title': 'Restablecer contraseña',
   'reset.subtitle': 'Te enviamos un enlace para volver a entrar',
   'reset.new_title': 'Nueva contraseña',
   'reset.new_subtitle': 'Elige una contraseña nueva para tu cuenta',

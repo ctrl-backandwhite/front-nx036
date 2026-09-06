@@ -23,9 +23,11 @@ test.describe('el HTML llega pintado', () => {
       await page.goto(`${ANGULAR}${ruta}`, { waitUntil: 'domcontentloaded' });
       const texto = (await page.locator('body').innerText()).trim();
 
-      // Un umbral bajo a propósito: no se afirma qué dice la página, solo que dice ALGO. Un esqueleto
-      // vacío se queda en dos o tres palabras del pie.
-      expect(texto.length, `${ruta} llega vacía: no se está prerenderizando`).toBeGreaterThan(200);
+      /* Un umbral bajo a propósito: no se afirma qué DICE la página, solo que dice algo. El primer
+       * intento pedía 200 caracteres y marcaba la pantalla de restablecer contraseña, que llega
+       * legítimamente con 115 porque es un formulario de un solo campo. Lo que hay que distinguir es
+       * «llegó pintada» de «llegó el esqueleto vacío», y un esqueleto no pasa de dos o tres palabras. */
+      expect(texto.length, `${ruta} llega vacía: no se está prerenderizando`).toBeGreaterThan(80);
     });
   }
 

@@ -87,7 +87,10 @@ test.describe('rendimiento comparado', () => {
     const pedidas: string[] = [];
     page.on('request', (r) => {
       if (r.url().includes('/api/')) {
-        pedidas.push(new URL(r.url()).pathname);
+        // Con los PARÁMETROS: dos llamadas al mismo endpoint pidiendo distinto número de elementos no
+        // son la misma petición, y compararlas solo por la ruta las daba por repetidas.
+        const u = new URL(r.url());
+        pedidas.push(u.pathname + u.search);
       }
     });
 
