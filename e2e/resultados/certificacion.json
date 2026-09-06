@@ -87,7 +87,7 @@
         {
           "title": "React · recorrido con sesión",
           "file": "flujo/con-sesion.spec.ts",
-          "line": 74,
+          "line": 126,
           "column": 8,
           "specs": [
             {
@@ -107,7 +107,7 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-858b02877fb395a35845",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 75,
+              "line": 127,
               "column": 9
             },
             {
@@ -127,7 +127,7 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-f7b05cd0a33f4797b16b",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 83,
+              "line": 136,
               "column": 9
             },
             {
@@ -147,7 +147,7 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-23dc17659745944b1971",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 93,
+              "line": 146,
               "column": 9
             },
             {
@@ -167,7 +167,7 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-8bdf4d990a83293dfa31",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 115,
+              "line": 168,
               "column": 11
             },
             {
@@ -187,7 +187,7 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-836ca1ca785823085c23",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 115,
+              "line": 168,
               "column": 11
             },
             {
@@ -207,7 +207,7 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-588faf49fa1d5d624274",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 115,
+              "line": 168,
               "column": 11
             },
             {
@@ -227,11 +227,11 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-27d63d2e2af1778b3a23",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 115,
+              "line": 168,
               "column": 11
             },
             {
-              "title": "sin sesión, la zona de cliente manda a la pantalla de acceso",
+              "title": "sin sesión, la zona de cliente no enseña nada de nadie",
               "ok": true,
               "tags": [],
               "tests": [
@@ -245,9 +245,9 @@
                   "status": "skipped"
                 }
               ],
-              "id": "3aa2df1a12ab0c5e5571-f4c0cb05ae1aed263316",
+              "id": "3aa2df1a12ab0c5e5571-82cc7a4cfd2a81367975",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 130,
+              "line": 183,
               "column": 9
             },
             {
@@ -267,7 +267,7 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-c813fc88e7d560b54609",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 135,
+              "line": 205,
               "column": 9
             },
             {
@@ -287,7 +287,7 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-89a503960f4032a7f478",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 145,
+              "line": 215,
               "column": 9
             },
             {
@@ -307,7 +307,7 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-125e43e68f8af5fb7b55",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 75,
+              "line": 127,
               "column": 9
             },
             {
@@ -327,7 +327,7 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-6d08ba486b9b7f8e6a7b",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 83,
+              "line": 136,
               "column": 9
             },
             {
@@ -347,7 +347,7 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-eee83afdbf5a7e946f10",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 93,
+              "line": 146,
               "column": 9
             },
             {
@@ -367,7 +367,7 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-df4aa19b787fce383f4d",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 115,
+              "line": 168,
               "column": 11
             },
             {
@@ -387,7 +387,7 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-f00f1216ffed2cc4c5d3",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 115,
+              "line": 168,
               "column": 11
             },
             {
@@ -407,7 +407,7 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-6a79da3d84ee01d235b3",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 115,
+              "line": 168,
               "column": 11
             },
             {
@@ -427,11 +427,11 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-a0337575feed66cd9676",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 115,
+              "line": 168,
               "column": 11
             },
             {
-              "title": "sin sesión, la zona de cliente manda a la pantalla de acceso",
+              "title": "sin sesión, la zona de cliente no enseña nada de nadie",
               "ok": true,
               "tags": [],
               "tests": [
@@ -445,9 +445,9 @@
                   "status": "skipped"
                 }
               ],
-              "id": "3aa2df1a12ab0c5e5571-12ab7c220a9c396212ca",
+              "id": "3aa2df1a12ab0c5e5571-638800f00c7bf3314616",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 130,
+              "line": 183,
               "column": 9
             },
             {
@@ -467,7 +467,7 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-f35f06ba09d526cfd5f1",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 135,
+              "line": 205,
               "column": 9
             },
             {
@@ -487,7 +487,7 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-52d39b298e1cc5f41379",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 145,
+              "line": 215,
               "column": 9
             }
           ]
@@ -495,7 +495,7 @@
         {
           "title": "Angular · recorrido con sesión",
           "file": "flujo/con-sesion.spec.ts",
-          "line": 74,
+          "line": 126,
           "column": 8,
           "specs": [
             {
@@ -515,7 +515,7 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-8ca563f46b3aae562be1",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 75,
+              "line": 127,
               "column": 9
             },
             {
@@ -535,7 +535,7 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-a03aac98f97a6fe519d9",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 83,
+              "line": 136,
               "column": 9
             },
             {
@@ -555,7 +555,7 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-802f6efc47b060aa5592",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 93,
+              "line": 146,
               "column": 9
             },
             {
@@ -575,7 +575,7 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-580fd283091a2be2563b",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 115,
+              "line": 168,
               "column": 11
             },
             {
@@ -595,7 +595,7 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-a99871fc94250c9c18af",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 115,
+              "line": 168,
               "column": 11
             },
             {
@@ -615,7 +615,7 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-c5f7db6dd6d8024ae4b6",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 115,
+              "line": 168,
               "column": 11
             },
             {
@@ -635,11 +635,11 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-7b5ce6abc48bd4148707",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 115,
+              "line": 168,
               "column": 11
             },
             {
-              "title": "sin sesión, la zona de cliente manda a la pantalla de acceso",
+              "title": "sin sesión, la zona de cliente no enseña nada de nadie",
               "ok": true,
               "tags": [],
               "tests": [
@@ -653,9 +653,9 @@
                   "status": "skipped"
                 }
               ],
-              "id": "3aa2df1a12ab0c5e5571-779cea412219f2ef9e3e",
+              "id": "3aa2df1a12ab0c5e5571-f90206b2b31799b802a0",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 130,
+              "line": 183,
               "column": 9
             },
             {
@@ -675,7 +675,7 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-b1605380cba8e0a3eb0c",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 135,
+              "line": 205,
               "column": 9
             },
             {
@@ -695,7 +695,7 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-5a764cb617c3fe2c40c2",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 145,
+              "line": 215,
               "column": 9
             },
             {
@@ -715,7 +715,7 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-2cf56dc84e02dbeac416",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 75,
+              "line": 127,
               "column": 9
             },
             {
@@ -735,7 +735,7 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-c010c6f66245025a5779",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 83,
+              "line": 136,
               "column": 9
             },
             {
@@ -755,7 +755,7 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-9686aa0f9927d86f1d08",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 93,
+              "line": 146,
               "column": 9
             },
             {
@@ -775,7 +775,7 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-c9cca302166901bc2ade",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 115,
+              "line": 168,
               "column": 11
             },
             {
@@ -795,7 +795,7 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-94bc5e4f380e9dcfca7b",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 115,
+              "line": 168,
               "column": 11
             },
             {
@@ -815,7 +815,7 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-43c44302a814340d0875",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 115,
+              "line": 168,
               "column": 11
             },
             {
@@ -835,11 +835,11 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-aa99fca344d74031051b",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 115,
+              "line": 168,
               "column": 11
             },
             {
-              "title": "sin sesión, la zona de cliente manda a la pantalla de acceso",
+              "title": "sin sesión, la zona de cliente no enseña nada de nadie",
               "ok": true,
               "tags": [],
               "tests": [
@@ -853,9 +853,9 @@
                   "status": "skipped"
                 }
               ],
-              "id": "3aa2df1a12ab0c5e5571-7675bb00869c137fa1c9",
+              "id": "3aa2df1a12ab0c5e5571-6de0ca2ca185d668bd52",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 130,
+              "line": 183,
               "column": 9
             },
             {
@@ -875,7 +875,7 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-cf0809bd5948705649bd",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 135,
+              "line": 205,
               "column": 9
             },
             {
@@ -895,8 +895,2913 @@
               ],
               "id": "3aa2df1a12ab0c5e5571-bca880c13c2ebeb7797b",
               "file": "flujo/con-sesion.spec.ts",
-              "line": 145,
+              "line": 215,
               "column": 9
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "flujo/panel-admin.spec.ts",
+      "file": "flujo/panel-admin.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Angular · panel de administración",
+          "file": "flujo/panel-admin.spec.ts",
+          "line": 61,
+          "column": 8,
+          "specs": [
+            {
+              "title": "/admin abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-7e4b37ab5dd3dd4ee77d",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/academy abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-103a0df86e36e4e26821",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/affiliates abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-52693d4ad03ab0cecc48",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/billing abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-faa27730bb9484e2e907",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/carrier-limits abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-29f6955e2a05336d23f8",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/catalog abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-65d09158dd28e7f9d2c3",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/categories abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-5edeea0a3dabaa27c33c",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/compliance abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-723345718a7f615215ea",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/currencies abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-a8299145f7d5bf2662d1",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/declaration-groups abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-c3e5c341108f69123a50",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/intelligence abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-b5f77a34632e7d6a37b3",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/languages abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-e7f499763783ba230d05",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/legal abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-5d2be45bf9d703f2f2ea",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/mentors abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-69186fd4a6f349d20d0f",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/newsletter abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-12e0fc599b8f4ebac9ea",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/notifications abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-9a26cb0609fdc8d5fca2",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/odm abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-74e2af24cb48c0024af5",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/operator/earnings abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-30079f77751ddb7d8cdf",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/operators abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-5d62f068ff5975748bf2",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/orders abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-a51cd8693c72ed329408",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/partners abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-ab38a97bdc286835b90d",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/pod abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-5cc5178d8c268509d298",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/pricing abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-f35cd56528bf6b6ba542",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/product-groups abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-f6495765b7d504baac70",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/profile abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-6bb74aa6e8ade5d109a8",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/promotions abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-e74fb0982205df775204",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/purchases abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-f1a846116f50ecc4875b",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/shops abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-197507f0a30c1b4a2850",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/sourcing abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-afe3273099383608ebc4",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/styleguide abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-c8d4497924cd44c9fd81",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/suppliers abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-738a2e9f9d0d717ccff4",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/support abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-6fe4b3d12fccda5112a9",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/taxes abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-d734a72f121a8df6abdb",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/users abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-1aa8d410dc7893fe99de",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/wallets abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-e76ebbbdb849cfb40b27",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/warehouses abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-23d0a9189384ef17de35",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-848e2641b32419b20a0b",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/academy abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-52016c9d8f36505b63d9",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/affiliates abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-7e7ca51b297ce6789401",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/billing abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-12ea98be55a7f9a82b95",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/carrier-limits abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-0f391eb5d2bd898394f2",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/catalog abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-befbc36240f7ab1bab1f",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/categories abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-a6772a1ac3a9f83dcf83",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/compliance abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-a3a4cd7197bcdb6ff25a",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/currencies abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-aac0b86c99353833771e",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/declaration-groups abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-056e0b2f2c382561530b",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/intelligence abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-e61da8753b1ecbfe631d",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/languages abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-72cc3639ecd0e0b870ce",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/legal abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-039abe973952afd7c93c",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/mentors abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-50357daec4a499d687fc",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/newsletter abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-d3e1c11759cd61fc0f18",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/notifications abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-daf69fe8d6f89d305903",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/odm abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-4160b1fd6526db05f88a",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/operator/earnings abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-2ec1ca0f8dd7f1841c17",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/operators abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-6a40d641a0240fe922ce",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/orders abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-8ebefd09e8d05fd610c2",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/partners abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-3599f4a1db88e1958f05",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/pod abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-e6fc2ff56bd0f8a508eb",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/pricing abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-e9538287eb3cab7d81c2",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/product-groups abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-60d322cdc6ec2bc90fdd",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/profile abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-4ba52e039d5c967b1cef",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/promotions abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-6141010717e91f0e22da",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/purchases abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-5a8480799da892ca0135",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/shops abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-d862b394c863044ef01e",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/sourcing abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-8d36779e864484cc41da",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/styleguide abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-effa905b8e4bde35f775",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/suppliers abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-2a7a776731c0cf126ea8",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/support abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-02e7ba1683b9aa19a3b9",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/taxes abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-b6b23579141f63fecabb",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/users abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-6eba32dcdd838fa0c1cc",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/wallets abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-8a1c0662fa605e670273",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/warehouses abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-4e3db1a2f5e122d4835a",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            }
+          ]
+        },
+        {
+          "title": "React · panel de administración",
+          "file": "flujo/panel-admin.spec.ts",
+          "line": 61,
+          "column": 8,
+          "specs": [
+            {
+              "title": "/admin abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-7f7ecf1fa1f7d3ede984",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/academy abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-7197baa1cddf44d821f3",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/affiliates abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-4e5f44b0aec6108df106",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/billing abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-4f16ef34aec6e8f55d3a",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/carrier-limits abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-0269c8676d9dcaad64fc",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/catalog abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-991073d4741b83d50c05",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/categories abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-2576943189cf2c0debca",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/compliance abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-a0a46ab43bbe444b9327",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/currencies abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-0ba1a9770fb29b30c8f8",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/declaration-groups abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-bb4ec6d7c0cc51a56496",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/intelligence abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-5c926df6ca0267ace15a",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/languages abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-f5b655d8797de761f886",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/legal abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-6bc5b736e2d25ce95a0c",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/mentors abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-cc0d0f869ad9a3fe62b4",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/newsletter abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-68b92f2c19ed891c9d63",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/notifications abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-12579929319450bcf502",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/odm abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-6ccdf4a5e720b0b9f837",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/operator/earnings abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-35ef4919259c7ba6c8f9",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/operators abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-b7199d8cf7cfbd17eb30",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/orders abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-f91405378c52d7061a22",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/partners abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-d242b20a79253b17b27d",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/pod abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-94d76edde9dd42866aec",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/pricing abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-00a0723de75f9d87e4f8",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/product-groups abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-6b88a21ff63f6398d367",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/profile abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-c62ea284c5253e92b886",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/promotions abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-8014171fafba10197454",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/purchases abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-8c4d75fa13e9659607f4",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/shops abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-abb9928b9e06bc659de3",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/sourcing abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-06414332afba52437b29",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/styleguide abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-32a3aa44675cd12d1849",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/suppliers abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-4761afa80e696bba443d",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/support abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-41aff6b9349bfc3fd538",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/taxes abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-58deed971f046a50b04a",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/users abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-50dd080f377768afde67",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/wallets abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-957296bf12ef51bed48f",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/warehouses abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-32dc5ceb44bb4a623149",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-efb23c3ad76695e7ec21",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/academy abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-e26c2452c7a268cad625",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/affiliates abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-0bb2ba1ca3ea23aa02f8",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/billing abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-9c0842a1798b785dc1e6",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/carrier-limits abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-5a151b9bf14e76d90d4c",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/catalog abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-09de96a76b197022c331",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/categories abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-944d437a9285b051c4ba",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/compliance abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-6217d5a90f42f25e76fa",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/currencies abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-0897a101b2a5f8f0b8b8",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/declaration-groups abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-5ef9082731e755dfbec9",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/intelligence abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-fe3da61dca59bc4b1e86",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/languages abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-8a4e9b516f1beb763832",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/legal abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-f541b1103c52d05fcbe6",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/mentors abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-6dcb11f4b0bf232244a3",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/newsletter abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-faceb379e4cb07dc0ac6",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/notifications abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-4b9e4278b625a189b6f0",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/odm abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-caea5f759393592898f0",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/operator/earnings abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-e97d9e56d692ceb3edf4",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/operators abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-84cd333df56effcb06db",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/orders abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-804f1e095db79955b97b",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/partners abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-eee59d7c1056ae7599ee",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/pod abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-e297f56664c1c4c0843f",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/pricing abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-7e9368eb26f25dcf9cc5",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/product-groups abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-8f23540b746e30da7b55",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/profile abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-5390fd2722fc188438f7",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/promotions abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-82142964ced6d9622f57",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/purchases abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-abb5e2f6e3179d04e604",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/shops abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-90e2d505c0e8aa80213d",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/sourcing abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-5c5be86425bc302e4bf2",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/styleguide abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-37c35bd6a8a14f0b4f54",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/suppliers abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-50abb74ed78d8268d32a",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/support abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-c331c91fcac14c40ced2",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/taxes abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-0302c9ec0e89369fbb4d",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/users abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-112eab3a201ea20aeb78",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/wallets abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-fa03e347932d1100a8af",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
+            },
+            {
+              "title": "/admin/warehouses abre",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cc53030197ca7740c856-7e44ee5d25beb2ae803a",
+              "file": "flujo/panel-admin.spec.ts",
+              "line": 63,
+              "column": 11
             }
           ]
         }
@@ -3097,6 +6002,663 @@
       ]
     },
     {
+      "title": "paridad/maqueta.spec.ts",
+      "file": "paridad/maqueta.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "paridad de maqueta",
+          "file": "paridad/maqueta.spec.ts",
+          "line": 76,
+          "column": 6,
+          "specs": [
+            {
+              "title": "/ tiene las mismas piezas",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-237c047ab09f771b1bc5",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 78,
+              "column": 9
+            },
+            {
+              "title": "/about tiene las mismas piezas",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-e04211a658c6fd564bda",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 78,
+              "column": 9
+            },
+            {
+              "title": "/pricing tiene las mismas piezas",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-eba00fa6525dc3d28169",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 78,
+              "column": 9
+            },
+            {
+              "title": "/contact tiene las mismas piezas",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-636ce7eea7338177d6c4",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 78,
+              "column": 9
+            },
+            {
+              "title": "/login tiene las mismas piezas",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-544521584180e9eeb8df",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 78,
+              "column": 9
+            },
+            {
+              "title": "/register tiene las mismas piezas",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-39eed42a27b73d7c7970",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 78,
+              "column": 9
+            },
+            {
+              "title": "/status tiene las mismas piezas",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-bbce40ee0ff379a3ed9a",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 78,
+              "column": 9
+            },
+            {
+              "title": "/developers tiene las mismas piezas",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-60bb0a4d7a6ff4352ab4",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 78,
+              "column": 9
+            },
+            {
+              "title": "/ reparte el espacio igual",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-a552a0cd1f52cd400caf",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 111,
+              "column": 9
+            },
+            {
+              "title": "/about reparte el espacio igual",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-5016e37e8d80a0a80a9a",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 111,
+              "column": 9
+            },
+            {
+              "title": "/pricing reparte el espacio igual",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-58a0187aab47452e0401",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 111,
+              "column": 9
+            },
+            {
+              "title": "/contact reparte el espacio igual",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-07a401ba36201d4441fe",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 111,
+              "column": 9
+            },
+            {
+              "title": "/login reparte el espacio igual",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-1317f325e2d38bfb4e8e",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 111,
+              "column": 9
+            },
+            {
+              "title": "/register reparte el espacio igual",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-25f2684ee88b81daee42",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 111,
+              "column": 9
+            },
+            {
+              "title": "/status reparte el espacio igual",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-f6b081fb0b77cc28b933",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 111,
+              "column": 9
+            },
+            {
+              "title": "/developers reparte el espacio igual",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-e56c502fe451a7f61f83",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 111,
+              "column": 9
+            },
+            {
+              "title": "/ tiene las mismas piezas",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-70ea23d80558cd22150a",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 78,
+              "column": 9
+            },
+            {
+              "title": "/about tiene las mismas piezas",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-0e1cdef9db3336105a95",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 78,
+              "column": 9
+            },
+            {
+              "title": "/pricing tiene las mismas piezas",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-a3cdd850ac151d4d6a95",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 78,
+              "column": 9
+            },
+            {
+              "title": "/contact tiene las mismas piezas",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-63f3b3d16513b075b8d2",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 78,
+              "column": 9
+            },
+            {
+              "title": "/login tiene las mismas piezas",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-b0a879c967a7d7c4960d",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 78,
+              "column": 9
+            },
+            {
+              "title": "/register tiene las mismas piezas",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-19800d51bf6c7b7be468",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 78,
+              "column": 9
+            },
+            {
+              "title": "/status tiene las mismas piezas",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-998bc891bc432e7378cd",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 78,
+              "column": 9
+            },
+            {
+              "title": "/developers tiene las mismas piezas",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-81d9d1072d6527f02829",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 78,
+              "column": 9
+            },
+            {
+              "title": "/ reparte el espacio igual",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-f379ecb3844f77d1c7fa",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 111,
+              "column": 9
+            },
+            {
+              "title": "/about reparte el espacio igual",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-1a8e57d5668e5f2acf8d",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 111,
+              "column": 9
+            },
+            {
+              "title": "/pricing reparte el espacio igual",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-2cbaea72a3a619ed69aa",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 111,
+              "column": 9
+            },
+            {
+              "title": "/contact reparte el espacio igual",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-d2243dc3adf5df042f70",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 111,
+              "column": 9
+            },
+            {
+              "title": "/login reparte el espacio igual",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-9d9ff7579950ccac28f6",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 111,
+              "column": 9
+            },
+            {
+              "title": "/register reparte el espacio igual",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-e8ede37b4d8edac83062",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 111,
+              "column": 9
+            },
+            {
+              "title": "/status reparte el espacio igual",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-33aad862f6a13387bea7",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 111,
+              "column": 9
+            },
+            {
+              "title": "/developers reparte el espacio igual",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2371c184e9b815157241-4fe1619b3a67708a3d22",
+              "file": "paridad/maqueta.spec.ts",
+              "line": 111,
+              "column": 9
+            }
+          ]
+        }
+      ]
+    },
+    {
       "title": "paridad/movil.spec.ts",
       "file": "paridad/movil.spec.ts",
       "column": 0,
@@ -3106,7 +6668,7 @@
         {
           "title": "la web en el móvil",
           "file": "paridad/movil.spec.ts",
-          "line": 16,
+          "line": 23,
           "column": 6,
           "specs": [
             {
@@ -3126,7 +6688,7 @@
               ],
               "id": "de845cbe14aee7665233-f67031c922c0d44e33bd",
               "file": "paridad/movil.spec.ts",
-              "line": 29,
+              "line": 36,
               "column": 9
             },
             {
@@ -3146,7 +6708,7 @@
               ],
               "id": "de845cbe14aee7665233-12f512a3575024e2019f",
               "file": "paridad/movil.spec.ts",
-              "line": 29,
+              "line": 36,
               "column": 9
             },
             {
@@ -3166,7 +6728,7 @@
               ],
               "id": "de845cbe14aee7665233-4951a2372890c6105666",
               "file": "paridad/movil.spec.ts",
-              "line": 29,
+              "line": 36,
               "column": 9
             },
             {
@@ -3186,7 +6748,7 @@
               ],
               "id": "de845cbe14aee7665233-65e36ea9745c52f3d448",
               "file": "paridad/movil.spec.ts",
-              "line": 29,
+              "line": 36,
               "column": 9
             },
             {
@@ -3206,7 +6768,7 @@
               ],
               "id": "de845cbe14aee7665233-5bf6fb2e089cc37e59b5",
               "file": "paridad/movil.spec.ts",
-              "line": 29,
+              "line": 36,
               "column": 9
             },
             {
@@ -3226,7 +6788,7 @@
               ],
               "id": "de845cbe14aee7665233-7df9289da46ff4ceb2ee",
               "file": "paridad/movil.spec.ts",
-              "line": 29,
+              "line": 36,
               "column": 9
             },
             {
@@ -3246,7 +6808,7 @@
               ],
               "id": "de845cbe14aee7665233-e5564873061d20c54c5f",
               "file": "paridad/movil.spec.ts",
-              "line": 29,
+              "line": 36,
               "column": 9
             },
             {
@@ -3266,7 +6828,7 @@
               ],
               "id": "de845cbe14aee7665233-0dbe6e8bba6219948898",
               "file": "paridad/movil.spec.ts",
-              "line": 29,
+              "line": 36,
               "column": 9
             },
             {
@@ -3286,7 +6848,7 @@
               ],
               "id": "de845cbe14aee7665233-68b4759e7d7bd309ad0c",
               "file": "paridad/movil.spec.ts",
-              "line": 29,
+              "line": 36,
               "column": 9
             },
             {
@@ -3306,7 +6868,7 @@
               ],
               "id": "de845cbe14aee7665233-a49e891cc3d86d53472d",
               "file": "paridad/movil.spec.ts",
-              "line": 29,
+              "line": 36,
               "column": 9
             },
             {
@@ -3326,7 +6888,7 @@
               ],
               "id": "de845cbe14aee7665233-1d8ec496ebcbd495ed89",
               "file": "paridad/movil.spec.ts",
-              "line": 36,
+              "line": 46,
               "column": 9
             },
             {
@@ -3346,7 +6908,7 @@
               ],
               "id": "de845cbe14aee7665233-11dacb2e5d5de551e265",
               "file": "paridad/movil.spec.ts",
-              "line": 36,
+              "line": 46,
               "column": 9
             },
             {
@@ -3366,7 +6928,7 @@
               ],
               "id": "de845cbe14aee7665233-8c7eed91e8b49d3e0ca9",
               "file": "paridad/movil.spec.ts",
-              "line": 36,
+              "line": 46,
               "column": 9
             },
             {
@@ -3386,7 +6948,7 @@
               ],
               "id": "de845cbe14aee7665233-8a1953249c4c07c8308f",
               "file": "paridad/movil.spec.ts",
-              "line": 36,
+              "line": 46,
               "column": 9
             },
             {
@@ -3406,7 +6968,7 @@
               ],
               "id": "de845cbe14aee7665233-c9bc32c43060b71ef39e",
               "file": "paridad/movil.spec.ts",
-              "line": 36,
+              "line": 46,
               "column": 9
             },
             {
@@ -3426,7 +6988,7 @@
               ],
               "id": "de845cbe14aee7665233-8e8daeb5ddda5a9fa3fe",
               "file": "paridad/movil.spec.ts",
-              "line": 36,
+              "line": 46,
               "column": 9
             },
             {
@@ -3446,7 +7008,7 @@
               ],
               "id": "de845cbe14aee7665233-3006758a8f70d0c861d2",
               "file": "paridad/movil.spec.ts",
-              "line": 36,
+              "line": 46,
               "column": 9
             },
             {
@@ -3466,7 +7028,7 @@
               ],
               "id": "de845cbe14aee7665233-02afafa2c596d168fc5a",
               "file": "paridad/movil.spec.ts",
-              "line": 36,
+              "line": 46,
               "column": 9
             },
             {
@@ -3486,7 +7048,7 @@
               ],
               "id": "de845cbe14aee7665233-cdbc0b421e3d92063cf5",
               "file": "paridad/movil.spec.ts",
-              "line": 36,
+              "line": 46,
               "column": 9
             },
             {
@@ -3506,7 +7068,7 @@
               ],
               "id": "de845cbe14aee7665233-2fdd956cbe7a7428471b",
               "file": "paridad/movil.spec.ts",
-              "line": 36,
+              "line": 46,
               "column": 9
             },
             {
@@ -3526,7 +7088,7 @@
               ],
               "id": "de845cbe14aee7665233-94b131bcd6c68104906e",
               "file": "paridad/movil.spec.ts",
-              "line": 29,
+              "line": 36,
               "column": 9
             },
             {
@@ -3546,7 +7108,7 @@
               ],
               "id": "de845cbe14aee7665233-aad2bd731ec4bdbc7a45",
               "file": "paridad/movil.spec.ts",
-              "line": 29,
+              "line": 36,
               "column": 9
             },
             {
@@ -3566,7 +7128,7 @@
               ],
               "id": "de845cbe14aee7665233-99c7754eb2ec04874eed",
               "file": "paridad/movil.spec.ts",
-              "line": 29,
+              "line": 36,
               "column": 9
             },
             {
@@ -3586,7 +7148,7 @@
               ],
               "id": "de845cbe14aee7665233-cb1b1f9f1abda3051e34",
               "file": "paridad/movil.spec.ts",
-              "line": 29,
+              "line": 36,
               "column": 9
             },
             {
@@ -3606,7 +7168,7 @@
               ],
               "id": "de845cbe14aee7665233-24fd85497a5aea2b4f4c",
               "file": "paridad/movil.spec.ts",
-              "line": 29,
+              "line": 36,
               "column": 9
             },
             {
@@ -3626,7 +7188,7 @@
               ],
               "id": "de845cbe14aee7665233-f07b07fcdacafc48a4a9",
               "file": "paridad/movil.spec.ts",
-              "line": 29,
+              "line": 36,
               "column": 9
             },
             {
@@ -3646,7 +7208,7 @@
               ],
               "id": "de845cbe14aee7665233-b9f7d648fe2c887fc3a5",
               "file": "paridad/movil.spec.ts",
-              "line": 29,
+              "line": 36,
               "column": 9
             },
             {
@@ -3666,7 +7228,7 @@
               ],
               "id": "de845cbe14aee7665233-b979dcafb6dc29575726",
               "file": "paridad/movil.spec.ts",
-              "line": 29,
+              "line": 36,
               "column": 9
             },
             {
@@ -3686,7 +7248,7 @@
               ],
               "id": "de845cbe14aee7665233-288bdfc60ffbc3843253",
               "file": "paridad/movil.spec.ts",
-              "line": 29,
+              "line": 36,
               "column": 9
             },
             {
@@ -3706,7 +7268,7 @@
               ],
               "id": "de845cbe14aee7665233-dbd26b3820804aa385b2",
               "file": "paridad/movil.spec.ts",
-              "line": 29,
+              "line": 36,
               "column": 9
             },
             {
@@ -3726,7 +7288,7 @@
               ],
               "id": "de845cbe14aee7665233-f1466435979e83d972a3",
               "file": "paridad/movil.spec.ts",
-              "line": 36,
+              "line": 46,
               "column": 9
             },
             {
@@ -3746,7 +7308,7 @@
               ],
               "id": "de845cbe14aee7665233-f090571ba2c058d497e7",
               "file": "paridad/movil.spec.ts",
-              "line": 36,
+              "line": 46,
               "column": 9
             },
             {
@@ -3766,7 +7328,7 @@
               ],
               "id": "de845cbe14aee7665233-8374bf76502f5d2b14d1",
               "file": "paridad/movil.spec.ts",
-              "line": 36,
+              "line": 46,
               "column": 9
             },
             {
@@ -3786,7 +7348,7 @@
               ],
               "id": "de845cbe14aee7665233-eabe742fb1e0de91c08a",
               "file": "paridad/movil.spec.ts",
-              "line": 36,
+              "line": 46,
               "column": 9
             },
             {
@@ -3806,7 +7368,7 @@
               ],
               "id": "de845cbe14aee7665233-7297f98fb87466a7055c",
               "file": "paridad/movil.spec.ts",
-              "line": 36,
+              "line": 46,
               "column": 9
             },
             {
@@ -3826,7 +7388,7 @@
               ],
               "id": "de845cbe14aee7665233-aee44c12ea7d234e67e3",
               "file": "paridad/movil.spec.ts",
-              "line": 36,
+              "line": 46,
               "column": 9
             },
             {
@@ -3846,7 +7408,7 @@
               ],
               "id": "de845cbe14aee7665233-c6cfcd01165068ebe57c",
               "file": "paridad/movil.spec.ts",
-              "line": 36,
+              "line": 46,
               "column": 9
             },
             {
@@ -3866,7 +7428,7 @@
               ],
               "id": "de845cbe14aee7665233-153088fed0f91f1d1094",
               "file": "paridad/movil.spec.ts",
-              "line": 36,
+              "line": 46,
               "column": 9
             },
             {
@@ -3886,7 +7448,7 @@
               ],
               "id": "de845cbe14aee7665233-c12e5abc6865847c4909",
               "file": "paridad/movil.spec.ts",
-              "line": 36,
+              "line": 46,
               "column": 9
             },
             {
@@ -3906,7 +7468,7 @@
               ],
               "id": "de845cbe14aee7665233-a341c7bbfdd9bba964bb",
               "file": "paridad/movil.spec.ts",
-              "line": 36,
+              "line": 46,
               "column": 9
             }
           ]
@@ -4143,7 +7705,7 @@
               ],
               "id": "0a017c2f0ff114578de2-a80e60f56622f29b85f5",
               "file": "paridad/prerenderizado.spec.ts",
-              "line": 34,
+              "line": 48,
               "column": 7
             },
             {
@@ -4163,7 +7725,7 @@
               ],
               "id": "0a017c2f0ff114578de2-b2f6dadf07bb841f6490",
               "file": "paridad/prerenderizado.spec.ts",
-              "line": 59,
+              "line": 73,
               "column": 9
             },
             {
@@ -4183,7 +7745,7 @@
               ],
               "id": "0a017c2f0ff114578de2-f84e5ad6d2918b96b3fe",
               "file": "paridad/prerenderizado.spec.ts",
-              "line": 59,
+              "line": 73,
               "column": 9
             },
             {
@@ -4203,7 +7765,7 @@
               ],
               "id": "0a017c2f0ff114578de2-0e5aefb7ca034da4546b",
               "file": "paridad/prerenderizado.spec.ts",
-              "line": 59,
+              "line": 73,
               "column": 9
             },
             {
@@ -4223,7 +7785,7 @@
               ],
               "id": "0a017c2f0ff114578de2-1e5b323d099bb2d87349",
               "file": "paridad/prerenderizado.spec.ts",
-              "line": 59,
+              "line": 73,
               "column": 9
             },
             {
@@ -4243,7 +7805,7 @@
               ],
               "id": "0a017c2f0ff114578de2-fe1159dc8e946e8e7578",
               "file": "paridad/prerenderizado.spec.ts",
-              "line": 59,
+              "line": 73,
               "column": 9
             },
             {
@@ -4263,7 +7825,7 @@
               ],
               "id": "0a017c2f0ff114578de2-f40b8f7b9831be3e85ff",
               "file": "paridad/prerenderizado.spec.ts",
-              "line": 59,
+              "line": 73,
               "column": 9
             },
             {
@@ -4483,7 +8045,7 @@
               ],
               "id": "0a017c2f0ff114578de2-ddce6641fae5bb3c2917",
               "file": "paridad/prerenderizado.spec.ts",
-              "line": 34,
+              "line": 48,
               "column": 7
             },
             {
@@ -4503,7 +8065,7 @@
               ],
               "id": "0a017c2f0ff114578de2-b9b9b6c1d98a47d8db9f",
               "file": "paridad/prerenderizado.spec.ts",
-              "line": 59,
+              "line": 73,
               "column": 9
             },
             {
@@ -4523,7 +8085,7 @@
               ],
               "id": "0a017c2f0ff114578de2-5c45d06e3b0b212371b7",
               "file": "paridad/prerenderizado.spec.ts",
-              "line": 59,
+              "line": 73,
               "column": 9
             },
             {
@@ -4543,7 +8105,7 @@
               ],
               "id": "0a017c2f0ff114578de2-0c4bfe9334ec40fd0e71",
               "file": "paridad/prerenderizado.spec.ts",
-              "line": 59,
+              "line": 73,
               "column": 9
             },
             {
@@ -4563,7 +8125,7 @@
               ],
               "id": "0a017c2f0ff114578de2-6fac01bf40a101efffc4",
               "file": "paridad/prerenderizado.spec.ts",
-              "line": 59,
+              "line": 73,
               "column": 9
             },
             {
@@ -4583,7 +8145,7 @@
               ],
               "id": "0a017c2f0ff114578de2-af559fbec5e2c0d3695d",
               "file": "paridad/prerenderizado.spec.ts",
-              "line": 59,
+              "line": 73,
               "column": 9
             },
             {
@@ -4603,7 +8165,7 @@
               ],
               "id": "0a017c2f0ff114578de2-26e89c1c48f9377c0032",
               "file": "paridad/prerenderizado.spec.ts",
-              "line": 59,
+              "line": 73,
               "column": 9
             }
           ]
@@ -8327,10 +11889,10 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-09-06T13:26:33.337Z",
-    "duration": 389.65100000000007,
+    "startTime": "2026-09-06T19:01:04.295Z",
+    "duration": 458.81000000000006,
     "expected": 0,
-    "skipped": 406,
+    "skipped": 582,
     "unexpected": 0,
     "flaky": 0
   }

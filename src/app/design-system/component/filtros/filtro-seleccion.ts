@@ -1,4 +1,5 @@
 import { Component, ElementRef, computed, inject, input, model, signal } from '@angular/core';
+import { FormField, form } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
   IconDefinition,
@@ -26,7 +27,7 @@ const OPCIONES_PARA_BUSCAR = 8;
  */
 @Component({
   selector: 'nx-filtro-seleccion',
-  imports: [FaIconComponent, EnfocaAlAparecer],
+  imports: [FaIconComponent, EnfocaAlAparecer, FormField],
   template: `
     <div class="relative">
       <button
@@ -65,8 +66,7 @@ const OPCIONES_PARA_BUSCAR = 8;
                 class="absolute left-4 top-1/2 -translate-y-1/2 text-[11px] text-ink-400"
               />
               <input
-                [value]="consulta()"
-                (input)="busca($event)"
+                [formField]="buscador.texto"
                 [placeholder]="t('filters.search')"
                 [attr.aria-label]="t('filters.search')"
                 nxEnfocaAlAparecer
@@ -150,7 +150,17 @@ export class FiltroSeleccion {
   protected readonly t = inject(TraduccionService).t;
 
   protected readonly abierto = signal(false);
-  protected readonly consulta = signal('');
+  /**
+   * Lo que se teclea en el buscador del panel.
+   *
+   * <p>Va por Signal Forms igual que el resto de campos de la aplicación. Estaba cableado a mano
+   * —`[value]` más `(input)`— y las normas del proyecto lo prohíben expresamente, aunque por dentro
+   * use signals: lo que se pierde es el estado de tocado y sucio, la validación declarativa y un solo
+   * sitio donde preguntar si se puede enviar. Aquí no hay nada que validar, pero la excepción es
+   * justamente lo que hace que la siguiente pantalla copie el atajo.
+   */
+  private readonly consulta = signal({ texto: '' });
+  protected readonly buscador = form(this.consulta);
 
   private readonly anfitrion = inject<ElementRef<HTMLElement>>(ElementRef);
 
@@ -174,7 +184,7 @@ export class FiltroSeleccion {
   );
 
   protected readonly filtradas = computed(() => {
-    const texto = this.consulta().trim().toLowerCase();
+    const texto = this.buscador.texto().value().trim().toLowerCase();
     if (!texto) {
       return this.opciones();
     }
@@ -195,9 +205,6 @@ export class FiltroSeleccion {
     }
   }
 
-  protected busca(evento: Event): void {
-    this.consulta.set((evento.target as HTMLInputElement).value);
-  }
 
   protected elige(valor: string | null): void {
     this.valor.set(valor);
