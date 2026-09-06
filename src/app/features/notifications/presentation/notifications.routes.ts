@@ -33,8 +33,24 @@ export const rutas: Routes = [
     data: { esDeLaCasa: true },
     loadComponent: () => import('./page/buzon.page').then((m) => m.BuzonPage),
   },
+];
+
+/**
+ * La baja del boletín va SIN el marco de la tienda.
+ *
+ * <p>Se llega a ella desde un enlace de un correo, casi siempre sin sesión y con una sola cosa que
+ * hacer. El front anterior la agrupa con las pantallas de acceso bajo el rótulo «páginas sueltas, sin
+ * el marco de la tienda», y el porte la había dejado dentro del escaparate: salía con cabecera, los dos
+ * pies y la barra inferior de navegación, es decir, invitando a seguir navegando a quien acaba de pedir
+ * que le dejen en paz. Se detectó comparando el marco de las seis rutas sueltas: era la única de las
+ * seis que no coincidía.
+ *
+ * <p>Va aparte y no en el grupo de arriba porque el grupo entero cuelga del componente del escaparate.
+ * Se monta desde la raíz de rutas, que es donde se decide qué marco lleva cada cosa.
+ */
+export const rutasSinMarco: Routes = [
   {
-    path: 'newsletter/unsubscribe',
+    path: '',
     providers: [proveeNotifications()],
     loadComponent: () => import('./page/baja-del-boletin.page').then((m) => m.BajaDelBoletinPage),
   },

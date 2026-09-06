@@ -37,6 +37,16 @@ export const routes: Routes = [
    * descargándose cuando se entra en ella, porque el diferido está en cada `loadComponent`. */
   ...rutasDeAcceso,
 
+  // La baja del boletín se agrupa aquí, con las pantallas de acceso: son las «páginas sueltas, sin el
+  // marco de la tienda» del front anterior. Ver el porqué en `notifications.routes.ts`.
+  {
+    path: 'newsletter/unsubscribe',
+    loadChildren: () =>
+      import('@features/notifications/presentation/notifications.routes').then(
+        (m) => m.rutasSinMarco,
+      ),
+  },
+
 
   /* ── Alias del panel ────────────────────────────────────────────────────────────────────────
    *
