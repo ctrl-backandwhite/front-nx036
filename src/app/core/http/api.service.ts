@@ -89,6 +89,39 @@ export class ApiService {
     };
   }
 
+  /**
+   * Pide un fichero, no un objeto: la factura en PDF, el volcado de datos personales, una exportación.
+   *
+   * <p>Va aquí y no en cada contexto porque tiene dos trampas que conviene resolver una sola vez. La
+   * primera es que hay que pedir la respuesta como binario; con la configuración normal, el cliente
+   * intenta interpretar el PDF como JSON y falla con un error que no dice nada de lo que pasa. La
+   * segunda es que debe seguir pasando por los interceptores —hace falta la credencial, y el idioma
+   * decide en qué lengua sale el documento—, así que no vale saltarse el cliente.
+   *
+   * <p>Devuelve el contenido y el nombre que propone el servidor en su cabecera, para no tener que
+   * inventarse uno en cada pantalla.
+   */
+  async descarga(
+    camino: string,
+    parametros?: Parametros,
+  ): Promise<Result<{ contenido: Blob; nombre: string | null }, AppError>> {
+    try {
+      const respuesta = await firstValueFrom(
+        this.http.get(this.ruta(camino), {
+          params: aHttpParams(parametros),
+          responseType: 'blob',
+          observe: 'response',
+        }),
+      );
+      return exito({
+        contenido: respuesta.body ?? new Blob(),
+        nombre: nombreSugerido(respuesta.headers.get('Content-Disposition')),
+      });
+    } catch (error) {
+      return fallo(mapeaError(error));
+    }
+  }
+
   private async envuelve<T>(promesa: Promise<T>): Promise<Result<T, AppError>> {
     try {
       return exito(await promesa);
@@ -96,4 +129,27 @@ export class ApiService {
       return fallo(mapeaError(error));
     }
   }
+}
+
+/**
+ * El nombre de fichero que propone el servidor.
+ *
+ * <p>Se lee primero la forma `filename*`, que es la que admite acentos y alfabetos no latinos: un
+ * pedido a nombre de alguien con eñe o con caracteres chinos llega bien por ahí y destrozado por la
+ * otra. Si no viene ninguna, decide la pantalla.
+ */
+function nombreSugerido(cabecera: string | null): string | null {
+  if (!cabecera) {
+    return null;
+  }
+  const codificado = /filename\*=UTF-8''([^;]+)/i.exec(cabecera);
+  if (codificado) {
+    try {
+      return decodeURIComponent(codificado[1]);
+    } catch {
+      /* Cabecera mal formada: se prueba con la forma sencilla. */
+    }
+  }
+  const sencillo = /filename="?([^";]+)"?/i.exec(cabecera);
+  return sencillo ? sencillo[1] : null;
 }
