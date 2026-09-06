@@ -15,7 +15,8 @@
     "coverage": "ng test --coverage",
     "lint": "ng lint",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
-    "e2e:certifica": "playwright test --config e2e/playwright.config.ts"
+    "e2e:certifica": "playwright test --config e2e/playwright.config.ts",
+    "e2e:tipos": "tsc --noEmit -p e2e/tsconfig.json"
   },
   "private": true,
   "packageManager": "npm@11.19.0",

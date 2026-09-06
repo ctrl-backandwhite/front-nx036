@@ -2,10 +2,10 @@ import { expect, test } from '@playwright/test';
 import {
   ANGULAR,
   REACT,
+  abre,
   abreEnAmbos,
   clavesSinTraducir,
   importes,
-  textoVisible,
 } from '../util/comparador';
 import { RUTAS_PUBLICAS } from '../util/rutas';
 import diccionarioEs from '../../src/app/shared/i18n/dictionary/es';

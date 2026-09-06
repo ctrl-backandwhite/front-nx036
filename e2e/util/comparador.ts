@@ -64,17 +64,30 @@ const RUIDO: readonly { patron: RegExp; sustituto: string; porque: string }[] = 
  */
 export async function abre(page: Page, url: string) {
   const respuesta = await page.goto(url, { waitUntil: 'domcontentloaded' });
+  const lee = () => page.evaluate(() => document.body?.innerText.length ?? 0).catch(() => 0);
+
+  /* Una pantalla VACÍA no está asentada, está cargando.
+   *
+   * La primera versión solo miraba si el número repetía, y una página que todavía no había pintado nada
+   * daba tres ceros seguidos y se daba por buena en 750 ms. El resultado fue peor que el problema que
+   * venía a resolver: 49 pruebas comparando pantallas en blanco contra pantallas en blanco. Así que
+   * primero se espera a que HAYA algo, y solo entonces se mira si ha dejado de cambiar. */
+  const limite = Date.now() + 20_000;
+  while (Date.now() < limite && (await lee()) === 0) {
+    await page.waitForTimeout(200);
+  }
+
   let anterior = -1;
   let iguales = 0;
-  const limite = Date.now() + 15_000;
-  while (Date.now() < limite && iguales < 2) {
+  while (Date.now() < limite && iguales < 3) {
     await page.waitForTimeout(250);
-    const actual = await page.evaluate(() => document.body?.innerText.length ?? 0).catch(() => -1);
+    const actual = await lee();
     iguales = actual === anterior ? iguales + 1 : 0;
     anterior = actual;
   }
   return respuesta;
 }
+
 
 /** El texto visible de la página, con el ruido normalizado. */
 export async function textoVisible(page: Page): Promise<string> {
