@@ -7,6 +7,16 @@
 // Se exporta por defecto para que el `import()` diferido del servicio de traducción no tenga que
 // conocer el nombre de la constante de cada idioma.
 const diccionario: Record<string, string> = {
+  'admin.catalog.detail.surcharge_dbl': 'Doble clic para editar el recargo',
+  'admin.create_product.section.pricing': 'Precio, marca y estado',
+  'admin.create_product.section.logistics': 'Logística y dimensiones',
+  'admin.create_product.section.advanced': 'Valoración y datos avanzados',
+  'admin.currencies.no_rate': 'sin tasa',
+  'admin.currencies.no_rate_block': 'No se pueden activar divisas sin tipo de cambio: la tienda enseñaría precios en dólares',
+  'admin.languages.untranslated_confirm': 'La interfaz no está traducida a estos idiomas ({langs}): quien los elija verá el menú, el carrito y el pago en inglés. ¿Activarlos igualmente?',
+  'admin.legal.publish_unsaved': 'Ojo: este documento tiene cambios sin guardar y NO se publicarán. Guarda el borrador antes de publicar.',
+  'operator.earnings.load_error': 'No se han podido cargar tus ganancias',
+  'operator.history.load_error': 'No se ha podido cargar el historial',
   'register.repeat_password': 'Repetir contraseña',
   'register.last_name1': 'Primer apellido',
   'register.last_name2': 'Segundo apellido',

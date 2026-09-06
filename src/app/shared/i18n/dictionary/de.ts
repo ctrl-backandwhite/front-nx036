@@ -7,6 +7,16 @@
 // Se exporta por defecto para que el `import()` diferido del servicio de traducción no tenga que
 // conocer el nombre de la constante de cada idioma.
 const diccionario: Record<string, string> = {
+  'admin.catalog.detail.surcharge_dbl': 'Doppelklick zum Bearbeiten des Aufschlags',
+  'admin.create_product.section.pricing': 'Preis, Marke und Status',
+  'admin.create_product.section.logistics': 'Logistik und Abmessungen',
+  'admin.create_product.section.advanced': 'Bewertung und erweiterte Daten',
+  'admin.currencies.no_rate': 'ohne Kurs',
+  'admin.currencies.no_rate_block': 'Währungen ohne Wechselkurs lassen sich nicht aktivieren: Der Shop würde die Preise in Dollar anzeigen',
+  'admin.languages.untranslated_confirm': 'Die Oberfläche ist nicht in diese Sprachen übersetzt ({langs}): Wer sie wählt, sieht Menü, Warenkorb und Bezahlung auf Englisch. Trotzdem aktivieren?',
+  'admin.legal.publish_unsaved': 'Achtung: Dieses Dokument hat ungespeicherte Änderungen, die NICHT veröffentlicht werden. Speichern Sie den Entwurf vor dem Veröffentlichen.',
+  'operator.earnings.load_error': 'Ihre Einnahmen konnten nicht geladen werden',
+  'operator.history.load_error': 'Der Verlauf konnte nicht geladen werden',
   'register.repeat_password': 'Passwort wiederholen',
   'register.last_name1': 'Erster Nachname',
   'register.last_name2': 'Zweiter Nachname',

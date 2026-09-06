@@ -7,6 +7,16 @@
 // Se exporta por defecto para que el `import()` diferido del servicio de traducción no tenga que
 // conocer el nombre de la constante de cada idioma.
 const diccionario: Record<string, string> = {
+  'admin.catalog.detail.surcharge_dbl': '双击编辑附加费',
+  'admin.create_product.section.pricing': '价格、品牌与状态',
+  'admin.create_product.section.logistics': '物流与尺寸',
+  'admin.create_product.section.advanced': '评价与高级数据',
+  'admin.currencies.no_rate': '无汇率',
+  'admin.currencies.no_rate_block': '没有汇率的货币无法启用：商店将以美元显示价格',
+  'admin.languages.untranslated_confirm': '界面尚未翻译成这些语言（{langs}）：选择它们的用户将看到英文的菜单、购物车和结账页面。仍要启用吗？',
+  'admin.legal.publish_unsaved': '注意：本文档有未保存的更改，这些更改不会被发布。请先保存草稿再发布。',
+  'operator.earnings.load_error': '无法加载您的收益',
+  'operator.history.load_error': '无法加载历史记录',
   'register.repeat_password': '再次输入密码',
   'register.last_name1': '姓氏',
   'register.last_name2': '第二姓氏',
