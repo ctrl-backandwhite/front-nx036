@@ -57,8 +57,11 @@ describe('ConectaTuTiendaPage', () => {
   it('enseña las tres notas del pie con sus direcciones de la API', async () => {
     await render(ConectaTuTiendaPage, SIN_DIFERIR);
 
-    expect(screen.getByText('Autenticación')).toBeInTheDocument();
-    expect(screen.getByText('Precios en vivo')).toBeInTheDocument();
-    expect(screen.getByText('/api/v1/partner/catalog')).toBeInTheDocument();
+    // Las notas viven en un `@defer (on idle; hydrate on viewport)`: llegan un instante DESPUÉS del
+    // montaje, cuando el navegador queda ocioso. `findByText` espera a que aparezcan; `getByText` mira
+    // el DOM tal como está en ese momento y no las encuentra.
+    expect(await screen.findByText('Autenticación')).toBeInTheDocument();
+    expect(await screen.findByText('Precios en vivo')).toBeInTheDocument();
+    expect(await screen.findByText('/api/v1/partner/catalog')).toBeInTheDocument();
   });
 });

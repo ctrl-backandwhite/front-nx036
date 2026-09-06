@@ -1,7 +1,7 @@
 import { DeferBlockBehavior } from '@angular/core/testing';
 import { Component } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { render, screen } from '@testing-library/angular';
+import { render, screen, waitFor } from '@testing-library/angular';
 import { Result, exito, fallo } from '@shared/result/result';
 import { AppError, creaError } from '@shared/error/app-error';
 import { DocumentoLegalPublicado } from '../../domain/model/documento-legal';
@@ -84,7 +84,9 @@ describe('DocumentoLegalPage', () => {
 
     expect(await screen.findByText('Condiciones recién publicadas')).toBeInTheDocument();
     expect(screen.getByText('Estas condiciones te vinculan.')).toBeInTheDocument();
-    expect(screen.getByText('Objeto')).toBeInTheDocument();
+    // El cuerpo del documento —los apartados— va en un `@defer (on idle; hydrate on viewport)` dentro
+    // de `nx-vista-de-documento`: llega después de la cabecera, así que hay que esperarlo.
+    expect(await screen.findByText('Objeto')).toBeInTheDocument();
   });
 
   it('la página de cookies añade la tabla con cada cookie concreta', async () => {
@@ -92,7 +94,9 @@ describe('DocumentoLegalPage', () => {
     // pone, para qué sirve y cuánto dura.
     const { container } = await monta('cookies', new DocumentosFalsos());
 
-    expect(container.querySelector('nx-tabla-cookies')).not.toBeNull();
+    // La tabla cierra la página en un `@defer (on idle; hydrate on viewport)`: aparece un instante
+    // después del montaje, así que se espera en vez de mirar el DOM recién montado.
+    await waitFor(() => expect(container.querySelector('nx-tabla-cookies')).not.toBeNull());
   });
 
   it('el resto de documentos NO la añaden', async () => {

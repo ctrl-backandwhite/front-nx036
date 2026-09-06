@@ -1,5 +1,5 @@
 import { DeferBlockBehavior } from '@angular/core/testing';
-import { render, screen } from '@testing-library/angular';
+import { render, screen, waitFor } from '@testing-library/angular';
 import { Result, exito, fallo } from '@shared/result/result';
 import { AppError, creaError } from '@shared/error/app-error';
 import { COMPONENTES_DEL_SERVICIO } from '../../domain/model/estado-del-servicio';
@@ -84,8 +84,13 @@ describe('EstadoDelServicioPage', () => {
     await monta(new ServicioFalso());
 
     expect(await screen.findByText(t('status.all_ok'))).toBeInTheDocument();
-    expect(screen.getAllByText(t('status.operational'))).toHaveLength(
-      COMPONENTES_DEL_SERVICIO.length,
+    // El titular llega pintado y vivo, pero la lista detallada va en un `@defer (on idle; …)` y sus
+    // insignias aparecen un instante después: se espera a que estén las seis en vez de contarlas al
+    // montar, que es cuando todavía no hay ninguna.
+    await waitFor(() =>
+      expect(screen.getAllByText(t('status.operational'))).toHaveLength(
+        COMPONENTES_DEL_SERVICIO.length,
+      ),
     );
   });
 
@@ -96,7 +101,10 @@ describe('EstadoDelServicioPage', () => {
     await monta(puerto);
 
     expect(await screen.findByText(t('status.degraded'))).toBeInTheDocument();
-    expect(screen.getAllByText(t('status.issues'))).toHaveLength(COMPONENTES_DEL_SERVICIO.length);
+    // Mismo motivo que arriba: las insignias viven en el bloque diferido.
+    await waitFor(() =>
+      expect(screen.getAllByText(t('status.issues'))).toHaveLength(COMPONENTES_DEL_SERVICIO.length),
+    );
   });
 
   it('el resumen se anuncia como estado para quien no ve la pantalla', async () => {

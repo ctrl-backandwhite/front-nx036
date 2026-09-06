@@ -40,6 +40,18 @@ que faltaba.
 | P-5 | `/checkout` fallaba al entrar directamente | Los proveedores de la cesta colgaban de la ruta de la cesta | Lo que vive en el marco de página se provee en la raíz |
 | P-6 | El prerenderizado fallaba con `NG0203` | `esNavegador()` usaba `inject()` por dentro, así que solo valía en contexto de inyección; llamarla desde un `effect` fallaba **solo al construir** | Una función que inyecta por dentro es una trampa: mejor un servicio |
 | P-7 | La hoja de estilos se duplicó sin tocar una regla | Tailwind escaneaba 25.000 líneas de traducciones y confundía palabras sueltas con utilidades | Los ficheros de datos se excluyen del escaneo |
+| **P-8** | **El pago nunca se confirmaba.** Quien volvía de Stripe o de PayPal veía «No pudimos confirmar el pago · Falta la referencia del pago»: el cobro **no se cerraba del lado del servidor** y la cesta **no se vaciaba**. Sin error en ningún registro. | La confirmación se lanzaba desde el CONSTRUCTOR, y el enrutador enlaza los parámetros de la dirección **después** de construir el componente. Los dos identificadores valían siempre cadena vacía. | Lo que depende de un parámetro de la ruta se lee en un `effect`, nunca en el constructor |
+| P-9 | Seis bloques de contenido no aparecían nunca a quien llegaba navegando | `@defer` con solo disparador de hidratación | Declarar siempre los dos disparadores |
+
+### Sobre P-8, que merece leerse dos veces
+
+Tres pruebas de esa pantalla **estaban en verde antes del arreglo, y pasaban por el motivo equivocado**:
+comprobaban que sin identificadores se enseña un error, y los identificadores faltaban SIEMPRE. La
+prueba describía bien el comportamiento deseado, el código estaba mal, y la coincidencia entre los dos
+fallos producía verde.
+
+Es el mejor argumento a favor de certificar contra la aplicación funcionando y no solo contra la
+batería de pruebas.
 
 ## C. Pendiente de decisión del titular
 

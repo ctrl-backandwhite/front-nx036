@@ -7,6 +7,39 @@ import {
   ExportaSegmento,
 } from '../../../application/catalogo/use-case/exporta-productos.use-case';
 import { DialogoExportacion } from './dialogo-exportacion';
+import es from '@shared/i18n/dictionary/es';
+import en from '@shared/i18n/dictionary/en';
+
+/**
+ * El mismo texto que ve quien usa la aplicación.
+ *
+ * <p>Las claves técnicas ya NO se ven en pantalla: los diccionarios las cubren, así que buscar
+ * `admin.export.empty` no encuentra nada. Se consulta por el TEXTO, resuelto con la misma cadena de
+ * respaldo que el servicio —idioma activo, inglés, y si no, la clave—, de modo que la prueba sigue
+ * delatando el día que alguien escriba en la plantilla una clave que no existe.
+ */
+const t = (clave: string): string => es[clave] ?? en[clave] ?? clave;
+
+/**
+ * El texto de una clave como expresión, para cuando el elemento lleva algo más alrededor.
+ *
+ * <p>Se escapan los caracteres que significan otra cosa en una expresión regular, y los marcadores
+ * `{n}` se sustituyen por «lo que sea»: en pantalla ya llevan el número puesto.
+ */
+const rx = (clave: string): RegExp =>
+  new RegExp(
+    t(clave)
+      .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      .replace(/\\\{[a-zA-Z]+\\\}/g, '.+'),
+  );
+
+/**
+ * Las pruebas corren en ESPAÑOL: el idioma sale de la cookie de preferencias y, sin ella, el navegador
+ * de pruebas pide inglés. Fijarlo aquí deja las comprobaciones contra el diccionario real.
+ */
+beforeEach(() => {
+  document.cookie = 'nx036-locale=es';
+});
 
 const cuenta = { ejecuta: vi.fn() };
 const exportaSegmento = { ejecuta: vi.fn() };
@@ -56,7 +89,7 @@ describe('DialogoExportacion', () => {
   it('el filtro de certificación viaja al contador y a la descarga', async () => {
     await pinta();
 
-    await userEvent.selectOptions(screen.getByLabelText('admin.catalog.col.verified'), 'true');
+    await userEvent.selectOptions(screen.getByLabelText(t('admin.catalog.col.verified')), 'true');
 
     expect(cuenta.ejecuta).toHaveBeenLastCalledWith(expect.objectContaining({ verificado: true }));
   });
@@ -66,7 +99,7 @@ describe('DialogoExportacion', () => {
 
     await pinta();
 
-    expect(await screen.findByText('admin.export.empty')).toBeInTheDocument();
+    expect(await screen.findByText(t('admin.export.empty'))).toBeInTheDocument();
     expect(screen.queryByText(/1 – /)).toBeNull();
   });
 
@@ -75,7 +108,7 @@ describe('DialogoExportacion', () => {
     await pinta();
 
     await userEvent.click(
-      await screen.findByRole('button', { name: /admin.export.download_all_stream/ }),
+      await screen.findByRole('button', { name: rx('admin.export.download_all_stream') }),
     );
 
     expect(exportaTodo.ejecuta).toHaveBeenCalled();

@@ -1,5 +1,5 @@
 import { DeferBlockBehavior } from '@angular/core/testing';
-import { render, screen, within } from '@testing-library/angular';
+import { render, screen, waitFor, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { APARTADOS_DE_CATALOGO } from '../../domain/model/referencia-catalogo';
 import { DesarrolladoresPage } from './desarrolladores.page';
@@ -52,6 +52,11 @@ describe('DesarrolladoresPage', () => {
     // Las anclas son la navegación de esta página: el índice y los enlaces del pie apuntan a ellas.
     const { container } = await render(DesarrolladoresPage, SIN_DIFERIR);
 
+    // La mitad larga de la referencia va en un `@defer (on idle; hydrate on viewport)` y llega un
+    // instante DESPUÉS del montaje. Se espera al ÚLTIMO apartado del bloque —«support»— para tener la
+    // certeza de que ya está entero antes de recorrer las anclas.
+    await waitFor(() => expect(container.querySelector('#support')).not.toBeNull());
+
     for (const apartado of APARTADOS_DE_CATALOGO) {
       expect(container.querySelector(`#${apartado.id}`)).not.toBeNull();
     }
@@ -61,6 +66,10 @@ describe('DesarrolladoresPage', () => {
 
   it('documenta cada endpoint del catálogo una sola vez', async () => {
     const { container } = await render(DesarrolladoresPage, SIN_DIFERIR);
+
+    // Contar antes de que el bloque diferido termine mediría media página: se espera al último
+    // apartado, y solo entonces se cuenta cuántas veces está documentada la dirección.
+    await waitFor(() => expect(container.querySelector('#support')).not.toBeNull());
 
     const rutas = [...container.querySelectorAll('code')].map((c) => c.textContent);
     expect(rutas).toContain('/api/catalog/products');

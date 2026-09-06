@@ -29,6 +29,26 @@ import {
 } from '../../../domain/catalogo/port/transferencia-de-catalogo.port';
 import { CASOS_DE_USO_DE_CATALOGO } from '../../../application/catalogo/casos-de-uso';
 import { CatalogoPage } from './catalogo.page';
+import es from '@shared/i18n/dictionary/es';
+import en from '@shared/i18n/dictionary/en';
+
+/**
+ * El mismo texto que ve quien usa la aplicación.
+ *
+ * <p>Las claves técnicas ya NO se ven en pantalla: los diccionarios las cubren, así que buscar
+ * `admin.catalog.title` no encuentra nada. Se consulta por el TEXTO, resuelto con la misma cadena de
+ * respaldo que el servicio —idioma activo, inglés, y si no, la clave—, de modo que la prueba sigue
+ * delatando el día que alguien escriba en la plantilla una clave que no existe.
+ */
+const t = (clave: string): string => es[clave] ?? en[clave] ?? clave;
+
+/** El texto de una clave como expresión, para cuando el elemento lleva algo más alrededor. */
+const rx = (clave: string): RegExp =>
+  new RegExp(
+    t(clave)
+      .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      .replace(/\\\{[a-zA-Z]+\\\}/g, '.+'),
+  );
 
 const producto = {
   id: 'p1',
@@ -88,6 +108,10 @@ async function pinta() {
 
 describe('CatalogoPage', () => {
   beforeEach(() => {
+    // Las pruebas corren en ESPAÑOL: el idioma sale de la cookie de preferencias y, sin ella, del
+    // navegador —que en el banco de pruebas pide inglés—, y los rótulos cambiarían de una máquina a
+    // otra.
+    document.cookie = 'nx036-locale=es';
     vi.clearAllMocks();
     productos.lista.mockResolvedValue(
       exito({ productos: [producto], total: 1, paginas: 1, pagina: 0 }),
@@ -100,7 +124,7 @@ describe('CatalogoPage', () => {
   it('pinta el listado con el título y el producto que llega', async () => {
     await pinta();
 
-    expect(screen.getByRole('heading', { name: 'admin.catalog.title' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: t('admin.catalog.title') })).toBeInTheDocument();
     expect(await screen.findByText('Auricular inalámbrico')).toBeInTheDocument();
   });
 
@@ -128,12 +152,16 @@ describe('CatalogoPage', () => {
   it('las acciones en lote solo aparecen con algo marcado', async () => {
     const vista = await pinta();
 
-    expect(screen.queryByText(/admin.catalog.bulk_delete/)).toBeNull();
+    expect(screen.queryByText(rx('admin.catalog.bulk_delete'))).toBeNull();
 
-    await userEvent.click(await screen.findByLabelText('Auricular inalámbrico'));
+    // Se acota al `input`: el marcador de la imagen que falta es un `role="img"` con el MISMO
+    // `aria-label` —el título del producto—, así que sin el selector la consulta encuentra dos.
+    await userEvent.click(
+      await screen.findByLabelText('Auricular inalámbrico', { selector: 'input' }),
+    );
     vista.fixture.detectChanges();
 
-    expect(screen.getByText(/admin.catalog.bulk_delete/)).toBeInTheDocument();
+    expect(screen.getByText(rx('admin.catalog.bulk_delete'))).toBeInTheDocument();
   });
 
   /** El borrado pide confirmación: es lo que impide vaciar el catálogo por un clic de más. */
@@ -142,9 +170,13 @@ describe('CatalogoPage', () => {
     const vista = await pinta();
     vi.spyOn(TestBed.inject(DialogoStore), 'confirma').mockResolvedValue(false);
 
-    await userEvent.click(await screen.findByLabelText('Auricular inalámbrico'));
+    // Se acota al `input`: el marcador de la imagen que falta es un `role="img"` con el MISMO
+    // `aria-label` —el título del producto—, así que sin el selector la consulta encuentra dos.
+    await userEvent.click(
+      await screen.findByLabelText('Auricular inalámbrico', { selector: 'input' }),
+    );
     vista.fixture.detectChanges();
-    await userEvent.click(screen.getByText(/admin.catalog.bulk_delete/));
+    await userEvent.click(screen.getByText(rx('admin.catalog.bulk_delete')));
 
     expect(productos.elimina).not.toHaveBeenCalled();
     expect(masivos.eliminaEnLote).not.toHaveBeenCalled();
@@ -155,6 +187,6 @@ describe('CatalogoPage', () => {
 
     await pinta();
 
-    expect(await screen.findByText('filters.no_results')).toBeInTheDocument();
+    expect(await screen.findByText(t('filters.no_results'))).toBeInTheDocument();
   });
 });

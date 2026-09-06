@@ -3,6 +3,26 @@ import userEvent from '@testing-library/user-event';
 import { EjeDeVariacion } from '../../../../domain/catalogo/model/eje-de-variacion';
 import { ImagenDeProducto } from '../../../../domain/catalogo/model/imagen-de-producto';
 import { GaleriaDeFicha } from './galeria-de-ficha';
+import es from '@shared/i18n/dictionary/es';
+import en from '@shared/i18n/dictionary/en';
+
+/**
+ * El mismo texto que ve quien usa la aplicación.
+ *
+ * <p>Las claves técnicas ya NO se ven en pantalla: los diccionarios las cubren, así que buscar
+ * `admin.catalog.images.main` no encuentra nada. Se consulta por el TEXTO, resuelto con la misma
+ * cadena de respaldo que el servicio —idioma activo, inglés, y si no, la clave—, de modo que la prueba
+ * sigue delatando el día que alguien escriba en la plantilla una clave que no existe.
+ */
+const t = (clave: string): string => es[clave] ?? en[clave] ?? clave;
+
+/** El texto de una clave como expresión, para cuando el elemento lleva algo más alrededor. */
+const rx = (clave: string): RegExp =>
+  new RegExp(
+    t(clave)
+      .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      .replace(/\\\{[a-zA-Z]+\\\}/g, '.+'),
+  );
 
 const imagen = (id: string, url: string): ImagenDeProducto => ({
   id,
@@ -23,10 +43,18 @@ const ejeDeColor: EjeDeVariacion = {
 };
 
 describe('GaleriaDeFicha', () => {
+  /**
+   * Las pruebas corren en ESPAÑOL: el idioma sale de la cookie de preferencias y, sin ella, el
+   * navegador de pruebas pide inglés. Fijarlo aquí deja las comprobaciones contra el diccionario real.
+   */
+  beforeEach(() => {
+    document.cookie = 'nx036-locale=es';
+  });
+
   it('sin fotos se dice que la galería está vacía', async () => {
     await render(GaleriaDeFicha, { inputs: { imagenes: [], titulo: 'Auricular' } });
 
-    expect(screen.getByText('admin.catalog.detail.gallery_empty')).toBeInTheDocument();
+    expect(screen.getByText(t('admin.catalog.detail.gallery_empty'))).toBeInTheDocument();
   });
 
   /** El primero es la imagen principal: cambia con qué foto sale el producto en el escaparate. */
@@ -35,7 +63,7 @@ describe('GaleriaDeFicha', () => {
       inputs: { imagenes: [imagen('i1', 'https://a.jpg'), imagen('i2', 'https://b.jpg')] },
     });
 
-    expect(screen.getAllByText('admin.catalog.images.main').length).toBe(1);
+    expect(screen.getAllByText(t('admin.catalog.images.main')).length).toBe(1);
   });
 
   /**
@@ -50,7 +78,7 @@ describe('GaleriaDeFicha', () => {
       },
     });
 
-    expect(screen.getByText('admin.catalog.images.from_variants')).toBeInTheDocument();
+    expect(screen.getByText(t('admin.catalog.images.from_variants'))).toBeInTheDocument();
     expect(screen.getByAltText('Negro')).toBeInTheDocument();
     expect(screen.queryByAltText('Blanco')).toBeNull();
   });
@@ -63,7 +91,7 @@ describe('GaleriaDeFicha', () => {
       },
     });
 
-    expect(screen.queryByText('admin.catalog.images.from_variants')).toBeNull();
+    expect(screen.queryByText(t('admin.catalog.images.from_variants'))).toBeNull();
   });
 
   it('el botón de añadir se enciende solo cuando hay direcciones válidas', async () => {
@@ -72,13 +100,13 @@ describe('GaleriaDeFicha', () => {
       inputs: { imagenes: [] },
       on: { anade: (urls: readonly string[]) => anadidas.push([...urls]) },
     });
-    const campo = screen.getByLabelText('admin.catalog.images.url_ph');
-    const boton = screen.getByRole('button', { name: /admin.catalog.images.add_url/ });
+    const campo = screen.getByLabelText(t('admin.catalog.images.url_ph'));
+    const boton = screen.getByRole('button', { name: rx('admin.catalog.images.add_url') });
 
     expect(boton).toBeDisabled();
 
     await userEvent.type(campo, 'https://a.jpg https://b.jpg');
-    await userEvent.click(screen.getByRole('button', { name: /admin.catalog.images.add_url/ }));
+    await userEvent.click(screen.getByRole('button', { name: rx('admin.catalog.images.add_url') }));
 
     expect(anadidas).toEqual([['https://a.jpg', 'https://b.jpg']]);
   });
@@ -90,11 +118,11 @@ describe('GaleriaDeFicha', () => {
       on: { elimina: (ids: readonly string[]) => borradas.push([...ids]) },
     });
 
-    const casillas = screen.getAllByLabelText('admin.catalog.images.select');
+    const casillas = screen.getAllByLabelText(t('admin.catalog.images.select'));
     await userEvent.click(casillas[0]);
     await userEvent.click(casillas[1]);
     await userEvent.click(
-      screen.getByRole('button', { name: /admin.catalog.images.delete_selected/ }),
+      screen.getByRole('button', { name: rx('admin.catalog.images.delete_selected') }),
     );
 
     expect(borradas[0].sort()).toEqual(['i1', 'i2']);

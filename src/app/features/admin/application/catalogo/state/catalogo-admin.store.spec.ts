@@ -6,6 +6,11 @@ describe('CatalogoAdminStore', () => {
   let almacen: CatalogoAdminStore;
 
   beforeEach(() => {
+    // El idioma decide cómo se escribe un importe («9,20 €» o «€9.20»). Sale de la cookie de
+    // preferencias y, sin ella, del navegador —que en el banco de pruebas pide inglés—, así que sin
+    // fijarlo la misma prueba pasaría aquí y fallaría en otra máquina. Se fija ANTES de crear el
+    // almacén: las preferencias leen la cookie al construirse.
+    document.cookie = 'nx036-locale=es';
     TestBed.configureTestingModule({ providers: [CatalogoAdminStore] });
     almacen = TestBed.inject(CatalogoAdminStore);
     // La moneda de quien administra decide en qué se pinta el coste y contra qué se filtra.
@@ -34,8 +39,10 @@ describe('CatalogoAdminStore', () => {
   it('el precio tecleado se devuelve a yuanes con la misma tasa que pinta la columna', () => {
     almacen.precioMinimo.set('12,88');
 
-    // 12,88 € ÷ (1 CNY en euros) = 10 CNY, con USD como unidad intermedia.
-    expect(almacen.criterio().costeMinimo).toBeCloseTo(10, 2);
+    // 12,88 € ÷ (1 CNY en euros = 0,92 ÷ 7,2 = 0,127…) = 100,8 CNY, con USD como unidad intermedia.
+    // Es EXACTAMENTE la vuelta de lo que pinta la columna: `formatea(100.8, 'CNY')` da «12,88 €».
+    expect(almacen.criterio().costeMinimo).toBeCloseTo(100.8, 2);
+    expect(almacen.formatea(almacen.criterio().costeMinimo ?? 0, 'CNY')).toContain('12,88');
   });
 
   it('la tendencia se teclea sobre cien y viaja de cero a uno', () => {

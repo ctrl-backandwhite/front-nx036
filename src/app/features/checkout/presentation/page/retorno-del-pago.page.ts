@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, input, signal } from '@angular/core';
+import { Component, DestroyRef, effect, inject, input, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
@@ -82,23 +82,41 @@ export class RetornoDelPagoPage {
   protected readonly iconoAviso = faTriangleExclamation;
 
   private temporizador: ReturnType<typeof setTimeout> | undefined;
+  /** El pestillo: la confirmación cierra un COBRO y solo puede salir una vez por visita. */
+  private lanzada = false;
 
   constructor() {
     // Se cancela al salir: sin esto, quien navega a otro sitio durante la espera acaba en el pedido.
     inject(DestroyRef).onDestroy(() => clearTimeout(this.temporizador));
-    void this.confirma();
+    /*
+     * FALLO REAL. Esto estaba en el constructor, y allí las ENTRADAS todavía no están puestas: el
+     * enrutador las enlaza DESPUÉS de crear el componente (`RouterOutlet.activateWith` construye y solo
+     * entonces llama al enlazador). Se confirmaba con el pedido y el cobro VACÍOS, así que quien acababa
+     * de pagar en la pasarela volvía a un «No pudimos confirmar el pago · Falta la referencia del pago»,
+     * el cobro nunca se cerraba del lado del servidor y la cesta no se vaciaba. Es el mismo error que la
+     * vuelta de la recarga ya tenía corregido con un efecto.
+     *
+     * El efecto lee las entradas cuando ya han llegado; el pestillo impide que un repintado o un cambio
+     * de idioma disparen una segunda confirmación sobre el mismo cobro.
+     */
+    effect(() => {
+      const pedido = this.orderId();
+      const cobro = this.paymentId();
+      const cancelado = this.cancelled() === '1';
+      if (this.lanzada) {
+        return;
+      }
+      this.lanzada = true;
+      void this.confirma(pedido, cobro, cancelado);
+    });
   }
 
   protected proveedor(): string {
     return this.provider();
   }
 
-  private async confirma(): Promise<void> {
-    const resultado = await this.confirmaElPago.ejecuta(
-      this.orderId(),
-      this.paymentId(),
-      this.cancelled() === '1',
-    );
+  private async confirma(pedido: string, cobro: string, cancelado: boolean): Promise<void> {
+    const resultado = await this.confirmaElPago.ejecuta(pedido, cobro, cancelado);
     if (resultado.tipo === 'error') {
       this.situacion.set('error');
       this.error.set(resultado.mensaje);
@@ -106,7 +124,7 @@ export class RetornoDelPagoPage {
     }
     this.situacion.set('confirmado');
     this.temporizador = setTimeout(() => {
-      void this.router.navigate(['/orders', this.orderId()], {
+      void this.router.navigate(['/orders', pedido], {
         queryParams: { placed: 1, paid: 1 },
       });
     }, ESPERA_MS);

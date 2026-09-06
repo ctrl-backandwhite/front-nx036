@@ -273,7 +273,11 @@ describe('UsuariosPage', () => {
     );
 
     await waitFor(() => expect(puerto.reiniciaContrasena).toHaveBeenCalledWith('u1'));
-    expect(avisos.exito).toHaveBeenCalledWith('Correo de restablecimiento enviado.');
+    // El aviso dice A QUIÉN se le mandó: en un listado de cientos de filas, «enviado» a secas no deja
+    // comprobar que se pulsó en la que se quería.
+    expect(avisos.exito).toHaveBeenCalledWith(
+      'Correo de restablecimiento enviado a ana@marca.com.',
+    );
   });
 
   it('un fallo al restablecer se explica con el mensaje del servidor', async () => {

@@ -10,6 +10,33 @@ import { BloqueKpi } from './bloque-kpi';
  */
 vi.setConfig({ testTimeout: 30_000 });
 
+/**
+ * El contador de la cifra ANIMA salvo que el sistema pida movimiento reducido, y el DOM simulado
+ * responde que no lo pide: la cifra tarda 900 ms en llegar a su valor, y la comprobación dependía de
+ * ganarle la carrera al reloj —con la máquina cargada, la perdía—.
+ *
+ * <p>Aquí se finge que el sistema SÍ pide movimiento reducido, que es el caso que esta prueba dice
+ * comprobar: la cifra se pone de una vez. La animación en sí tiene su propia prueba en el sistema de
+ * diseño (`movimiento.spec.ts`), que es donde le corresponde.
+ */
+let restauraMedios: () => void;
+
+beforeEach(() => {
+  const previo = Object.getOwnPropertyDescriptor(window, 'matchMedia');
+  Object.defineProperty(window, 'matchMedia', {
+    configurable: true,
+    value: (consulta: string) => ({ matches: true, media: consulta }) as MediaQueryList,
+  });
+  restauraMedios = () => {
+    if (previo) {
+      Object.defineProperty(window, 'matchMedia', previo);
+    } else {
+      Reflect.deleteProperty(window, 'matchMedia');
+    }
+  };
+});
+
+afterEach(() => restauraMedios());
 
 describe('BloqueKpi', () => {
   it('enseña el rótulo y la cifra', async () => {
@@ -18,7 +45,7 @@ describe('BloqueKpi', () => {
     });
 
     expect(screen.getByText('Productos')).toBeInTheDocument();
-    // El contador anima hasta la cifra; con movimiento reducido —lo normal en pruebas— salta al final.
+    // Con movimiento reducido —lo que finge esta prueba— el contador salta directamente a la cifra.
     expect(await screen.findByText(/1.?240/)).toBeInTheDocument();
   });
 

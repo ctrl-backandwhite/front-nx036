@@ -24,6 +24,11 @@
 @source not "./app/shared/i18n";
 @source not "./app/shared/data";
 @source not "./app/shared/content";
+/* Los ficheros de PRUEBA tampoco: llevan nombres de clase dentro de aserciones y de marcado de
+ * ejemplo, y de ahí salen utilidades que no pinta ninguna pantalla real. */
+@source not "./app/**/*.spec.ts";
+@source not "./test-setup.ts";
+@source not "./test-providers.ts";
 
 /* Paleta NX036 "Aduana / Cargo" — identidad de comercio transfronterizo.
  * Cobalto profundo (acción/CTA) sobre neutros cálidos de arena + acento latón: la tensión

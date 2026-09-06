@@ -99,10 +99,20 @@ describe('DesgloseDelPedido', () => {
   });
 
   it('el impuesto solo se pinta cuando el destino lo tiene', async () => {
-    await monta({ cotizacion: cotizacion({ impuestoPuntosBasicos: 0, impuestoFormateado: '0,00 €' }) });
+    const vista = await monta({
+      cotizacion: cotizacion({ impuestoPuntosBasicos: 0, impuestoFormateado: '0,00 €' }),
+    });
     expect(screen.queryByText('0,00 €')).toBeNull();
 
-    await monta({ cotizacion: cotizacion({ impuestoPuntosBasicos: 2100, impuestoFormateado: '2,95 €' }) });
+    // Montar por segunda vez en la misma prueba revienta: el TestBed ya está instanciado. Se cambia la
+    // cotización sobre el mismo montaje, que es además lo que pasa de verdad al elegir otro destino.
+    await vista.rerender({
+      inputs: {
+        cotizacion: cotizacion({ impuestoPuntosBasicos: 2100, impuestoFormateado: '2,95 €' }),
+        subtotal: '100,00 €',
+        hayPais: true,
+      },
+    });
     expect(screen.getByText('2,95 €')).toBeInTheDocument();
   });
 

@@ -41,8 +41,11 @@ describe('OpcionesDeEnvio', () => {
   it('marca la más barata y la más rápida con su insignia', async () => {
     await monta([opcion('BARATA', 705, 20), opcion('RAPIDA', 1500, 5)]);
 
-    expect(screen.getByText(/más barata|barata|cheapest/i)).toBeInTheDocument();
-    expect(screen.getByText(/más rápida|rápida|fastest/i)).toBeInTheDocument();
+    // Las insignias rotulan el ENVÍO, así que el diccionario las escribe en masculino («El más barato»,
+    // «El más rápido»). El patrón admite los dos géneros para que un retoque de redacción no vuelva a
+    // tumbar la prueba sin que haya cambiado el comportamiento.
+    expect(screen.getByText(/m[áa]s barat[oa]|cheapest/i)).toBeInTheDocument();
+    expect(screen.getByText(/m[áa]s r[áa]pid[oa]|fastest/i)).toBeInTheDocument();
   });
 
   it('al elegir avisa con el código, que es lo que viaja de vuelta', async () => {
@@ -90,7 +93,7 @@ describe('OpcionesDeEnvio', () => {
   it('con una sola opción no hay insignias ni comparación', async () => {
     await monta([opcion('A', 705)]);
 
-    expect(screen.queryByText(/más barata|cheapest/i)).toBeNull();
+    expect(screen.queryByText(/m[áa]s barat[oa]|cheapest/i)).toBeNull();
     expect(screen.getAllByRole('radio')).toHaveLength(1);
   });
 

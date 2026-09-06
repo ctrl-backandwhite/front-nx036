@@ -28,6 +28,33 @@ instalaObservadorDeVisibilidad();
  */
 vi.setConfig({ testTimeout: 30_000 });
 
+/**
+ * Las cifras de cabecera las pinta un contador que ANIMA salvo que el sistema pida movimiento
+ * reducido, y el DOM simulado responde que no lo pide: cada cifra tarda 900 ms en llegar a su valor y
+ * la comprobación dependía de ganarle la carrera al reloj —con la máquina cargada, la perdía—.
+ *
+ * <p>Aquí se finge que el sistema SÍ pide movimiento reducido: las cifras se ponen de una vez. Lo que
+ * esta pantalla tiene que demostrar es QUÉ cifras enseña, no cuánto tarda en contarlas; la animación
+ * tiene su propia prueba en el sistema de diseño (`movimiento.spec.ts`).
+ */
+let restauraMedios: () => void;
+
+beforeEach(() => {
+  const previo = Object.getOwnPropertyDescriptor(window, 'matchMedia');
+  Object.defineProperty(window, 'matchMedia', {
+    configurable: true,
+    value: (consulta: string) => ({ matches: true, media: consulta }) as MediaQueryList,
+  });
+  restauraMedios = () => {
+    if (previo) {
+      Object.defineProperty(window, 'matchMedia', previo);
+    } else {
+      Reflect.deleteProperty(window, 'matchMedia');
+    }
+  };
+});
+
+afterEach(() => restauraMedios());
 
 const METRICAS = {
   activeProducts: 80, totalProducts: 100, draftProducts: 20, totalOrders: 12, totalUsers: 340,

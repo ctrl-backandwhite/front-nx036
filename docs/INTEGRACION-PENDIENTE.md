@@ -90,6 +90,21 @@ arrancaran, así que hay que recorrer las pantallas aplicándola:
 - [ ] `track` por identificador estable en todo `@for`.
 - [ ] `data: { precarga: true }` en las rutas que de verdad se visitan mucho.
 
+## 6 bis. La hoja de estilos pesa más que la del React — medirlo, no suponerlo
+
+266 kB en bruto (31 kB comprimidos) frente a los 58 kB (9,6 kB) del React. Se descartaron dos causas
+midiendo: no son los ficheros de datos (ya excluidos) ni los de prueba (excluirlos cambió 0,3 kB).
+
+Lo que queda arriba del todo son las variantes `sm:`, `md:` y `lg:` —187 reglas entre las tres— y los
+componentes de daisyUI que aquí se usan y allí no. La explicación más probable es que **es el precio de
+escribir mobile-first de verdad**: cada elemento lleva su clase base para el móvil y sus ampliaciones,
+donde el original resolvía con una sola. Si es eso, no es un defecto: es el requisito, y el coste está
+en la parte del CSS que mejor se comprime.
+
+- [ ] Confirmarlo en la certificación con la medida real de bytes transferidos por pantalla, que es lo
+      que se nota. Si la diferencia comprimida se sostiene, revisar si daisyUI está emitiendo
+      componentes que ninguna pantalla usa.
+
 ## 7. Verificación final, con la máquina libre
 
 Durante el porte la máquina llegó a **carga 74 con 50 procesos de prueba simultáneos**. En esas

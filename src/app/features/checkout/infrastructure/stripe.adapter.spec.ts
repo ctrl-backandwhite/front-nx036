@@ -11,9 +11,18 @@ vi.mock('@stripe/stripe-js', () => ({
 }));
 
 function monta(asignar = vi.fn()) {
-  const documento = {
-    defaultView: { location: { assign: asignar } },
-  } as unknown as Document;
+  // Lo único que hay que falsear es la salida del sitio (`defaultView.location.assign`). Sustituir el
+  // DOCUMENT entero por un objeto inventado deja sin documento a las piezas de la hidratación que
+  // aporta `test-providers.ts` —`TransferState` consulta `getElementById`, el modo de render mira
+  // `body`— y el inyector revienta antes de llegar al adaptador, con un error que no nombra a Stripe.
+  // Con un envoltorio, todo lo demás sigue siendo el documento de verdad. El receptor de `Reflect.get`
+  // es el documento real porque los métodos nativos exigen su propio `this`.
+  const documento = new Proxy(document, {
+    get: (real, propiedad) =>
+      propiedad === 'defaultView'
+        ? { location: { assign: asignar } }
+        : Reflect.get(real, propiedad, real),
+  }) as Document;
   TestBed.configureTestingModule({
     providers: [StripeAdapter, { provide: DOCUMENT, useValue: documento }],
   });

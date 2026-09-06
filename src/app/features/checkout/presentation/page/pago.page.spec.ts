@@ -1,7 +1,7 @@
 import { Component, signal } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
+import { DeferBlockBehavior, TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
-import { render, screen } from '@testing-library/angular';
+import { render, screen, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { ALMACEN_LOCAL } from '@core/storage/almacen.port';
 import { AlmacenMemoriaAdapter } from '@core/storage/almacen-memoria.adapter';
@@ -85,6 +85,12 @@ async function monta(opciones: Opciones = {}) {
   };
 
   const vista = await render(PagoPage, {
+    // El bloque del método de pago es `@defer (on interaction)`. `@testing-library/angular` monta los
+    // diferidos en modo «manual» por su cuenta —no hereda el «adelante» que trae el banco de pruebas de
+    // Angular—, y así el gesto no dispara nada y el selector no llega nunca. Con `Playthrough` el
+    // disparo ocurre de verdad, que es justo lo que esta pantalla tiene que demostrar: antes de tocarlo
+    // no se descarga, al tocarlo sí.
+    deferBlockBehavior: DeferBlockBehavior.Playthrough,
     providers: [
       provideRouter([{ path: '**', component: Vacia }]),
       { provide: ALMACEN_LOCAL, useClass: AlmacenMemoriaAdapter },
@@ -141,8 +147,13 @@ describe('PagoPage', () => {
   it('los importes de las líneas son los que escribe el servidor', async () => {
     await monta();
 
-    expect(screen.getByText(/0,14 €/)).toBeInTheDocument();
-    expect(screen.getByText('13,80 €')).toBeInTheDocument();
+    // Con una sola línea, el subtotal del resumen repite el mismo importe: buscar «13,80 €» en toda la
+    // página encuentra dos. Se mira DENTRO del apartado de productos, que es donde vive la línea y lo
+    // que esta prueba quiere comprobar.
+    const productos = screen.getByRole('heading', { name: /Productos/ }).closest('section')!;
+
+    expect(within(productos).getByText(/0,14 €/)).toBeInTheDocument();
+    expect(within(productos).getByText('13,80 €')).toBeInTheDocument();
   });
 
   /**
@@ -157,13 +168,40 @@ describe('PagoPage', () => {
     expect(carrito.cambiaCantidad).toHaveBeenCalled();
   });
 
-  it('el pedido mínimo se explica en vez de aplicarse a la fuerza', async () => {
+  /**
+   * En el pago, a diferencia de la cesta, el botón de bajar nace APAGADO cuando el mínimo lo impide
+   * (`[disabled]="!puedeBajar(linea)"` en `lineas-de-la-compra`). Lo que hay que garantizar aquí es que
+   * el mínimo NO se aplica a la fuerza: pulsar no baja la cantidad ni toca la cesta.
+   */
+  it('el pedido mínimo no se aplica a la fuerza: el control queda apagado', async () => {
     const { carrito, vista } = await monta({ lineas: [linea({ cantidad: 3, pedidoMinimo: 3 })] });
 
-    await userEvent.click(screen.getByRole('button', { name: 'Quitar una unidad' }));
+    const bajar = screen.getByRole('button', { name: 'Quitar una unidad' });
+    expect(bajar).toBeDisabled();
+
+    await userEvent.click(bajar);
     vista.fixture.detectChanges();
 
     expect(carrito.cambiaCantidad).not.toHaveBeenCalled();
+  });
+
+  /**
+   * El camino que la pantalla SÍ deja intentar es sacar la línea entera. Con dos variantes del mismo
+   * producto, quitar una dejaría al producto por debajo de su mínimo: entonces no se hace en silencio,
+   * se explica.
+   */
+  it('sacar una línea que dejaría el producto corto se explica', async () => {
+    const { carrito, vista } = await monta({
+      lineas: [
+        linea({ variantId: 'M', cantidad: 3, pedidoMinimo: 5 }),
+        linea({ variantId: 'L', cantidad: 2, pedidoMinimo: 5 }),
+      ],
+    });
+
+    await userEvent.click(screen.getAllByRole('button', { name: 'Eliminar' })[0]);
+    vista.fixture.detectChanges();
+
+    expect(carrito.quita).not.toHaveBeenCalled();
     expect(screen.getByRole('alert')).toBeInTheDocument();
   });
 
@@ -231,17 +269,17 @@ describe('PagoPage', () => {
    * descargarlo: el bloque del método de pago espera a un gesto.
    */
   it('el método de pago no se carga hasta que se toca, y el marcador dice cuál está elegido', async () => {
-    const { vista } = await monta();
+    await monta();
 
     expect(screen.queryByRole('button', { name: 'PayPal' })).toBeNull();
     const marcador = screen.getByRole('button', { name: 'Método de pago' });
     expect(marcador).toHaveTextContent('Tarjeta de crédito / débito');
 
     await userEvent.click(marcador);
-    await vista.fixture.whenStable();
-    vista.fixture.detectChanges();
 
-    expect(screen.getByRole('button', { name: 'PayPal' })).toBeInTheDocument();
+    // El bloque diferido baja su código al tocarlo, así que el selector llega un instante DESPUÉS del
+    // gesto: `findByRole` espera a que aparezca en vez de mirar el DOM justo en ese momento.
+    expect(await screen.findByRole('button', { name: 'PayPal' })).toBeInTheDocument();
   });
 
   it('el cupón solo viaja al pulsar aplicar', async () => {
@@ -252,7 +290,10 @@ describe('PagoPage', () => {
     vista.fixture.detectChanges();
     expect(estado.cupon()).toBe('');
 
-    await userEvent.click(screen.getByRole('button', { name: 'Aplicar' }));
+    // «Aplicar» lo llevan dos botones: el del cupón y el del referido. Se busca dentro del bloque del
+    // cupón para no pulsar el que no es.
+    const bloqueDelCupon = campo.closest('div')!;
+    await userEvent.click(within(bloqueDelCupon).getByRole('button', { name: 'Aplicar' }));
     vista.fixture.detectChanges();
 
     expect(estado.cupon()).toBe('VERANO10');

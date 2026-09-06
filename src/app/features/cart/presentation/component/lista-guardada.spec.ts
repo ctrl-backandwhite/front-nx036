@@ -66,11 +66,14 @@ describe('ListaGuardada', () => {
    * equipo — o peor, cuenta con ella y no está.
    */
   it('dice DÓNDE está guardado, según haya sesión o no', async () => {
-    const conCuenta = await monta(true);
-    expect(conCuenta.fixture.nativeElement.textContent).toMatch(/cuenta/i);
+    const vista = await monta(true);
+    expect(vista.fixture.nativeElement.textContent).toMatch(/cuenta/i);
 
-    const invitado = await monta(false);
-    expect(invitado.fixture.nativeElement.textContent).toMatch(/navegador/i);
+    // Un segundo `render` en la misma prueba revienta: el TestBed ya está instanciado y no admite otra
+    // configuración. Se cambia la entrada sobre el mismo montaje, que además es lo que ocurre de verdad
+    // cuando alguien inicia sesión con la lista delante.
+    await vista.rerender({ inputs: { lineas: [linea()], cotizacion: COTIZACION, enLaCuenta: false } });
+    expect(vista.fixture.nativeElement.textContent).toMatch(/navegador/i);
   });
 
   it('se puede devolver a la cesta y eliminar, con nombre accesible en el borrado', async () => {
