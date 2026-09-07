@@ -84,14 +84,23 @@ import { LineaDeCesta, SugerenciaParaLaCesta } from '@features/support/domain/mo
           cesta— se lo damos aquí, y lo que no pueden hacer solos —añadir a la cesta, abrir una ficha,
           pedir la guía— lo resolvemos aquí: son de otros contextos y ellos no pueden verlos.
         -->
-        <nx-asistencia-flotante
-          [lineasDeLaCesta]="lineasParaElAsistente()"
-          [enElPago]="enElPago()"
-          [anadiendo]="anadiendo()"
-          (anadeALaCesta)="anade($event)"
-          (abreFichaRapida)="fichaRapida.set($event)"
-          (pideLaGuia)="avatar.abreLaGuia()"
-        />
+        @if (usuario(); as quienMira) {
+          <!--
+            SOLO con sesión, como en el front anterior («if (!autenticado …) return null»). No es un
+            detalle: sin esta condición el asistente se le planta delante a quien acaba de llegar, con
+            su capa por encima de la página, y le tapa los botones antes de que haya hecho nada. Se
+            detectó porque las pruebas de acciones empezaron a agotar el tiempo pulsando controles que
+            estaban ahí y no se dejaban pulsar.
+          -->
+          <nx-asistencia-flotante
+            [lineasDeLaCesta]="lineasParaElAsistente()"
+            [enElPago]="enElPago()"
+            [anadiendo]="anadiendo()"
+            (anadeALaCesta)="anade($event)"
+            (abreFichaRapida)="fichaRapida.set($event)"
+            (pideLaGuia)="avatar.abreLaGuia()"
+          />
+        }
 
         <!--
           La ficha rápida. No se abre sola: la piden el asistente o el chat, que están aquí al lado.

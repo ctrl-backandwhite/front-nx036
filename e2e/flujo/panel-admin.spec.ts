@@ -88,8 +88,13 @@ for (const front of [{ nombre: 'Angular', base: ANGULAR }, { nombre: 'React', ba
           return (zona instanceof HTMLElement ? zona.innerText : '').replace(/\s+/g, ' ').trim();
         });
 
+        /* El «404» se busca con límites de palabra, y no es quisquillosería: la pantalla de monedas
+         * enseña la tasa del rupia india, 94.40425, y ahí dentro hay un «404». Sin límites, esa
+         * pantalla —y la de grupos de declaración, con sus partidas arancelarias— salían marcadas como
+         * página de error teniendo seis mil caracteres de tabla. Lo que se busca es el CÓDIGO, no la
+         * cifra. */
         expect(contenido, `${ruta} responde «no encontrada»`).not.toMatch(
-          /404|página no encontrada|not found/i,
+          /\b404\b|página no encontrada|not found/i,
         );
         expect(contenido.length, `${ruta} llega en blanco`).toBeGreaterThan(120);
 
