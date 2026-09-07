@@ -1,4 +1,14 @@
-import { Component, computed, effect, inject, resource, signal, untracked } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  computed,
+  effect,
+  inject,
+  resource,
+  signal,
+  untracked,
+  viewChild,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
@@ -6,14 +16,15 @@ import { faList, faRotateRight, faTableCells } from '@fortawesome/free-solid-svg
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { PreferenciasService } from '@core/preferences/preferencias';
 import { ALMACEN_LOCAL } from '@core/storage/almacen.port';
+import { Plataforma } from '@core/platform/plataforma';
 import { BotonSubir } from '@ds/component/desplazamiento/boton-subir';
 import { TAXONOMIA_PORT } from '../../domain/port/catalogo.port';
-import { ResumenDeProducto } from '../../domain/model/producto';
 import {
   CRITERIO_VACIO,
   CriterioDeBusqueda,
   GRUPO_DEL_CARRITO,
   aParametros,
+  barajaEfectiva,
   cuantosFiltros,
   desdeParametros,
   otraBaraja,
@@ -26,6 +37,7 @@ import { BuscaProductos, TAMANO_DE_PAGINA } from '../../application/use-case/bus
 import { RECUPERADOR_DE_SESION } from '@core/auth/recuperador-de-sesion.port';
 import { SesionActual } from '@core/auth/sesion-actual';
 import { AlternaFavorito } from '../../application/use-case/alterna-favorito.use-case';
+import { ListadoStore } from '../../application/state/listado.store';
 import { BarraDeFiltros } from '../component/barra-de-filtros';
 import { CuadriculaProductos } from '../component/cuadricula-productos';
 import { FilaListado } from '../component/fila-listado';
@@ -35,6 +47,15 @@ import { DistintivoFiltro } from '../component/distintivo-filtro';
 const CLAVE_DE_VISTA = 'nx036-catalog-view';
 
 type Vista = 'grid' | 'list';
+
+/**
+ * Píxeles de antelación mínimos del centinela.
+ *
+ * <p>Con la primera página aún corta —o en una pantalla muy alta— la mitad de lo cargado se queda en
+ * nada y el centinela solo dispararía al tocar el fondo. Este suelo garantiza que siempre se pida con
+ * algo de margen.
+ */
+const MARGEN_MINIMO = 300;
 
 /**
  * La baraja de ESTA carga de página.
@@ -173,23 +194,30 @@ let barajaDeLaVisita: number | null = null;
         </div>
       }
 
-      @if (vista() === 'grid') {
-        <nx-cuadricula-productos [productos]="productos()" [cargando]="cargando()" />
-      } @else {
-        @if (productos().length === 0 && !cargando()) {
-          <div class="card p-10 text-center">
-            <p class="text-sm text-ink-500">{{ t('catalog.empty') }}</p>
+      <!-- Envoltorio de los resultados: existe para poder MEDIR el alto de lo ya cargado, que es lo
+           que fija con cuánta antelación se pide la página siguiente. -->
+      <div #resultados>
+        @if (vista() === 'grid') {
+          <nx-cuadricula-productos [productos]="productos()" [cargando]="cargando()" />
+        } @else {
+          @if (productos().length === 0 && !cargando()) {
+            <div class="card p-10 text-center">
+              <p class="text-sm text-ink-500">{{ t('catalog.empty') }}</p>
+            </div>
+          }
+          <div class="space-y-2">
+            @for (producto of productos(); track producto.id) {
+              <nx-fila-listado [producto]="producto" />
+            }
           </div>
         }
-        <div class="space-y-2">
-          @for (producto of productos(); track producto.id) {
-            <nx-fila-listado [producto]="producto" />
-          }
-        </div>
-      }
+      </div>
 
       @if (hayMas()) {
-        <div class="flex items-center justify-center py-4">
+        <!-- Centinela del desplazamiento infinito Y respaldo a la vez. El botón SE QUEDA: es lo que
+             usa quien navega con el teclado y lo que salva la situación si el observador no llega a
+             dispararse (pestaña de fondo, navegador sin soporte, prerenderizado). -->
+        <div #centinela class="flex items-center justify-center py-4">
           <button type="button" (click)="cargaMas()" [disabled]="cargando()" class="btn btn-outline text-[12px]">
             {{ cargando() ? t('common.loading') : t('catalog.load_more') }}
           </button>
@@ -208,6 +236,8 @@ export class ListadoPage {
   private readonly preferencias = inject(PreferenciasService);
   private readonly almacen = inject(ALMACEN_LOCAL);
   private readonly favoritos = inject(AlternaFavorito);
+  private readonly plataforma = inject(Plataforma);
+  private readonly listado = inject(ListadoStore);
 
   protected readonly sesion = inject(SesionActual);
   protected readonly t = inject(TraduccionService).t;
@@ -232,13 +262,27 @@ export class ListadoPage {
   });
 
   protected readonly vista = signal<Vista>(this.vistaGuardada());
-  protected readonly paginasPedidas = signal(1);
   private readonly baraja = signal<number | null>(barajaDeLaVisita);
-
-  private readonly acumulado = signal<readonly ResumenDeProducto[]>([]);
-  private readonly totalDeElementos = signal(0);
-  private readonly totalDePaginas = signal(0);
   protected readonly cargando = signal(false);
+
+  /** El envoltorio de los resultados y el centinela del final, para medir y para observar. */
+  private readonly resultados = viewChild<ElementRef<HTMLElement>>('resultados');
+  private readonly centinela = viewChild<ElementRef<HTMLElement>>('centinela');
+
+  /**
+   * Qué búsqueda representa lo que hay guardado: criterio, idioma y baraja, en una sola cadena.
+   *
+   * <p>Es la llave de la memoria del listado. Mientras no cambie, volver de una ficha recupera las
+   * páginas cargadas; en cuanto cambia —otro filtro, otro orden, otro idioma o un refresco— lo
+   * guardado deja de servir y se pide desde la primera página.
+   */
+  private readonly huella = computed(() =>
+    JSON.stringify([
+      aParametros(this.criterio()),
+      this.preferencias.idioma(),
+      barajaEfectiva(this.criterio(), this.baraja()) ?? null,
+    ]),
+  );
 
   private readonly categorias = resource({
     params: () => ({ idioma: this.preferencias.idioma() }),
@@ -264,9 +308,9 @@ export class ListadoPage {
     return id ? ((this.categorias.value() ?? []).find((c) => c.id === id) ?? null) : null;
   });
 
-  protected readonly productos = this.acumulado.asReadonly();
-  protected readonly total = this.totalDeElementos.asReadonly();
-  protected readonly hayMas = computed(() => this.paginasPedidas() < this.totalDePaginas());
+  protected readonly productos = this.listado.productos;
+  protected readonly total = this.listado.total;
+  protected readonly hayMas = this.listado.hayMas;
   protected readonly cuantosFiltros = computed(() => cuantosFiltros(this.criterio()));
 
   /**
@@ -294,12 +338,62 @@ export class ListadoPage {
     // Cada cambio de criterio, de idioma o de baraja empieza el listado de cero. Lo hace un efecto y
     // no cada manejador porque los filtros entran también desde fuera —del cartel de rebajas, de una
     // tarjeta— sin que esta pantalla se entere de otra manera.
+    //
+    // Y al montar la pantalla NO siempre se pide: si lo guardado es de esta misma búsqueda —volver de
+    // una ficha—, se restaura tal cual. Es lo que devuelve al comprador donde estaba, porque la
+    // restauración de la posición del enrutador necesita que la página vuelva a ser igual de alta.
     effect(() => {
-      this.criterio();
-      this.preferencias.idioma();
-      this.baraja();
-      untracked(() => void this.recarga());
+      const huella = this.huella();
+      untracked(() => {
+        if (!this.listado.sirve(huella)) {
+          void this.recarga(huella);
+        }
+      });
     });
+
+    // El desplazamiento infinito.
+    //
+    // El centinela está abajo del todo, pero cuenta con un margen de MEDIA pantalla de resultados: así
+    // la página siguiente se pide al pasar por la mitad de lo ya cargado y, cuando el comprador termina
+    // de bajar por lo que hay, las tarjetas nuevas ya han llegado y no se ve el corte. Con un margen
+    // fijo de 300 px la petición salía prácticamente al tocar el fondo.
+    //
+    // El observador se rehace en cada cambio y se DESCONECTA en la limpieza del efecto —que corre
+    // también al destruir el componente—: sin eso quedaría uno vivo por cada visita al catálogo.
+    effect((alLimpiar) => {
+      const centinela = this.centinela()?.nativeElement;
+      // Al prerenderizar no hay observador ni pantalla a la que asomarse —tampoco alturas que medir—;
+      // ahí manda el botón. Por eso la comprobación va ANTES de tocar nada del navegador.
+      if (!this.plataforma.esNavegador || !centinela) {
+        return;
+      }
+      const margen = this.margenDeAnticipacion();
+      const observador = new IntersectionObserver(
+        (entradas) => {
+          if (entradas.some((entrada) => entrada.isIntersecting)) {
+            void this.cargaMas();
+          }
+        },
+        { rootMargin: `${margen}px` },
+      );
+      observador.observe(centinela);
+      alLimpiar(() => observador.disconnect());
+    });
+  }
+
+  /**
+   * Con cuánta antelación se pide la página siguiente: la mitad del alto de lo ya cargado.
+   *
+   * <p>Se MIDE en vez de fijar un número de píxeles porque el mismo listado ocupa alturas muy
+   * distintas según la vista —cuadrícula o lista— y el ancho de la pantalla: en un móvil una página
+   * es varias veces más alta que en un escritorio. Leer los productos y la vista aquí dentro es lo que
+   * hace que el efecto rehaga el observador cuando cualquiera de las dos cambia.
+   */
+  private margenDeAnticipacion(): number {
+    this.productos();
+    this.vista();
+    const alto = this.resultados()?.nativeElement.getBoundingClientRect().height ?? 0;
+    return Math.max(MARGEN_MINIMO, Math.round(alto / 2));
   }
 
   protected fija(criterio: CriterioDeBusqueda): void {
@@ -333,44 +427,36 @@ export class ListadoPage {
     this.almacen.guarda(CLAVE_DE_VISTA, vista);
   }
 
+  /** Trae la página siguiente. La piden el centinela y el botón, y con una en vuelo no se pide otra. */
   protected async cargaMas(): Promise<void> {
     if (this.cargando() || !this.hayMas()) {
       return;
     }
-    const siguiente = this.paginasPedidas();
-    await this.pide(siguiente, false);
-    this.paginasPedidas.set(siguiente + 1);
+    await this.pide(this.listado.paginasPedidas(), this.huella());
   }
 
-  private async recarga(): Promise<void> {
-    this.paginasPedidas.set(1);
+  private async recarga(huella: string): Promise<void> {
+    this.listado.empieza(huella);
     // La referencia del arancel solo se refresca con el listado en su primera página: cambiarla más
     // abajo tiraría todo lo cargado y devolvería al comprador al principio.
     await this.busca.refrescaLaReferencia();
-    await this.pide(0, true);
+    await this.pide(0, huella);
   }
 
-  private async pide(pagina: number, reemplaza: boolean): Promise<void> {
+  private async pide(pagina: number, huella: string): Promise<void> {
     this.cargando.set(true);
     try {
       const resultado = await this.busca.ejecuta({
         criterio: this.criterio(),
         pagina,
         tamano: TAMANO_DE_PAGINA,
-        baraja: this.criterio().texto ? undefined : (this.baraja() ?? undefined),
+        baraja: barajaEfectiva(this.criterio(), this.baraja()),
       });
-      if (!resultado.ok) {
-        if (reemplaza) {
-          this.acumulado.set([]);
-          this.totalDeElementos.set(0);
-          this.totalDePaginas.set(0);
-        }
-        return;
+      // Se guarda con la huella con la que se pidió: lo que llegue tarde de una búsqueda anterior se
+      // descarta en el estado en vez de colarse bajo el filtro nuevo.
+      if (resultado.ok) {
+        this.listado.guarda(huella, resultado.valor);
       }
-      const datos = resultado.valor;
-      this.acumulado.update((previos) => (reemplaza ? datos.items : [...previos, ...datos.items]));
-      this.totalDeElementos.set(datos.total);
-      this.totalDePaginas.set(datos.totalDePaginas);
     } finally {
       this.cargando.set(false);
     }

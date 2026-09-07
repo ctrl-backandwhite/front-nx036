@@ -24,6 +24,17 @@ import { rutasDeServidor as wallet } from '@features/wallet/presentation/wallet.
  * renderizado en servidor, sin volver a pagar su lentitud.
  */
 export const serverRoutes: ServerRoute[] = [
+  /* Las tres pantallas del ESCAPARATE que `app.routes.ts` compone dentro del marco del panel. Se
+   * declaran aquí y no en un contexto porque aquí es donde se componen: ninguno de los dos —«catalog»
+   * y «affiliate»— sabe que existen bajo `/admin`.
+   *
+   * Sin estas líneas el comodín del final se las traga y el build FALLA en seco: `admin/browse/:slug`
+   * lleva parámetro, y prerenderizar una ruta con parámetro exige decir cuáles. Y aunque no fallara,
+   * son pantallas de sesión: su HTML no puede escribirse al construir. */
+  { path: 'admin/browse', renderMode: RenderMode.Client },
+  { path: 'admin/browse/:slug', renderMode: RenderMode.Client },
+  { path: 'admin/affiliate', renderMode: RenderMode.Client },
+
   ...admin,
   ...auth,
   ...account,

@@ -1,40 +1,130 @@
+import { Provider } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { CIFRAS_DEL_SITIO_PORT } from '@features/catalog/domain/port/cifras-del-sitio.port';
 import { Router, provideRouter } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { exito, fallo } from '@shared/result/result';
 import { creaError } from '@shared/error/app-error';
 import { RECUPERADOR_DE_SESION } from '@core/auth/recuperador-de-sesion.port';
 import { ALMACEN_LOCAL } from '@core/storage/almacen.port';
+import { Plataforma } from '@core/platform/plataforma';
 import { CATALOGO_PORT, TAXONOMIA_PORT } from '../../domain/port/catalogo.port';
 import { CESTA_PORT } from '../../domain/port/cesta.port';
 import { FAVORITOS_PORT } from '../../domain/port/favoritos.port';
 import { PaginaDeProductos } from '../../domain/model/producto';
+import { ListadoStore } from '../../application/state/listado.store';
 import { ListadoPage } from './listado.page';
 import { APLICACION_DEL_CATALOGO } from '../../catalog.providers';
 
-function pagina(cuantos: number, totalDePaginas = 1): PaginaDeProductos {
+/**
+ * Doble CONTROLABLE del observador de visibilidad, que sustituye al de `test-setup.ts`.
+ *
+ * <p>El general avisa EN CUANTO se le da algo que observar, y aquí eso lo cambiaría todo: el centinela
+ * del desplazamiento infinito se dispararía solo en cada prueba y el listado se llenaría hasta el final
+ * antes de la primera comprobación. Con este, el aviso lo da la prueba cuando quiere, que es lo que
+ * permite distinguir «lo pidió el centinela» de «lo pidió el botón».
+ */
+interface ObservadorFalso {
+  readonly margen: string;
+  readonly avisa: () => void;
+  readonly dueno: object;
+  desconectado: boolean;
+}
+
+let observadores: ObservadorFalso[] = [];
+let observadorOriginal: typeof IntersectionObserver;
+
+beforeEach(() => {
+  observadores = [];
+  observadorOriginal = globalThis.IntersectionObserver;
+  class Controlable {
+    constructor(
+      private readonly llamada: IntersectionObserverCallback,
+      private readonly opciones?: IntersectionObserverInit,
+    ) {}
+
+    observe(objetivo: Element): void {
+      observadores.push({
+        margen: this.opciones?.rootMargin ?? '0px',
+        dueno: this,
+        desconectado: false,
+        avisa: () =>
+          this.llamada(
+            [{ isIntersecting: true, target: objetivo } as IntersectionObserverEntry],
+            this as unknown as IntersectionObserver,
+          ),
+      });
+    }
+
+    unobserve(): void {
+      this.disconnect();
+    }
+
+    disconnect(): void {
+      for (const registro of observadores) {
+        if (registro.dueno === this) {
+          registro.desconectado = true;
+        }
+      }
+    }
+
+    takeRecords(): IntersectionObserverEntry[] {
+      return [];
+    }
+  }
+  globalThis.IntersectionObserver = Controlable as unknown as typeof IntersectionObserver;
+});
+
+afterEach(() => {
+  globalThis.IntersectionObserver = observadorOriginal;
+});
+
+/** El único observador que sigue conectado: el que de verdad vigila el final de la lista. */
+function centinelaVivo(): ObservadorFalso | undefined {
+  return observadores.filter((observador) => !observador.desconectado).at(-1);
+}
+
+function resumen(id: string) {
   return {
-    items: Array.from({ length: cuantos }, (_, i) => ({
-      id: `p${i}`,
-      slug: `p${i}`,
-      titulo: `Producto ${i}`,
-      ventasMensuales: 0,
-      estado: 'ACTIVE',
-      precio: { formateado: '9,90 €' },
-      arancel: { centimosExtra: null, cubierto: false, grupo: 'g1' },
-      etiquetas: [],
-    })),
-    pagina: 0,
+    id,
+    slug: id,
+    titulo: `Producto ${id}`,
+    ventasMensuales: 0,
+    estado: 'ACTIVE',
+    precio: { formateado: '9,90 €' },
+    arancel: { centimosExtra: null, cubierto: false, grupo: 'g1' },
+    etiquetas: [],
+  };
+}
+
+function pagina(cuantos: number, totalDePaginas = 1, numero = 0): PaginaDeProductos {
+  return {
+    items: Array.from({ length: cuantos }, (_, i) => resumen(`p${numero * cuantos + i}`)),
+    pagina: numero,
     tamano: 36,
-    total: cuantos,
+    total: cuantos * totalDePaginas,
     totalDePaginas,
   };
 }
 
-async function monta(busca = vi.fn().mockResolvedValue(exito(pagina(2, 2)))) {
+/**
+ * Un doble que devuelve páginas DISTINTAS. Acumular dos veces la misma repetiría identificadores, y
+ * entonces la prueba mediría un fallo del doble en vez de la conducta del listado.
+ */
+function buscaPorPaginas(totalDePaginas = 3, porPagina = 2) {
+  return vi
+    .fn()
+    .mockImplementation(async (peticion: { pagina: number }) =>
+      exito(pagina(porPagina, totalDePaginas, peticion.pagina)),
+    );
+}
+
+async function monta(
+  busca = vi.fn().mockResolvedValue(exito(pagina(2, 2))),
+  extra: Provider[] = [],
+) {
   const memoria = new Map<string, string>();
   const vista = await render(ListadoPage, {
     providers: [
@@ -77,6 +167,7 @@ async function monta(busca = vi.fn().mockResolvedValue(exito(pagina(2, 2)))) {
         provide: CIFRAS_DEL_SITIO_PORT,
         useValue: { consulta: async () => exito({ idiomas: 8, divisas: 25, almacenes: 2 }) },
       },
+      ...extra,
     ],
   });
   await vista.fixture.whenStable();
@@ -87,7 +178,7 @@ async function monta(busca = vi.fn().mockResolvedValue(exito(pagina(2, 2)))) {
 describe('ListadoPage', () => {
   it('pinta los productos que devuelve la búsqueda', async () => {
     await monta();
-    expect(screen.getByText('Producto 0')).toBeInTheDocument();
+    expect(screen.getByText('Producto p0')).toBeInTheDocument();
   });
 
   /** El listado se conserva al ir a una ficha y volver, así que hace falta refrescar a mano. */
@@ -127,7 +218,7 @@ describe('ListadoPage', () => {
     );
     await vista.fixture.whenStable();
     vista.fixture.detectChanges();
-    expect(screen.queryByText('Producto 0')).toBeNull();
+    expect(screen.queryByText('Producto p0')).toBeNull();
   });
 
   it('con más páginas ofrece traer las siguientes', async () => {
@@ -204,5 +295,144 @@ describe('ListadoPage', () => {
     await userEvent.click(botones[1]);
     vista.fixture.detectChanges();
     expect(vista.container.querySelectorAll('nx-fila-listado').length).toBeGreaterThan(0);
+  });
+  /**
+   * DEFECTO REPORTADO: el listado solo traía más con el botón. Ahora, al pasar por la mitad de lo ya
+   * cargado, la página siguiente llega sola.
+   */
+  it('el centinela trae la página siguiente sin que nadie pulse nada', async () => {
+    const busca = buscaPorPaginas();
+    const { vista } = await monta(busca);
+    const antes = vista.container.querySelectorAll('nx-tarjeta-producto').length;
+    const peticiones = busca.mock.calls.length;
+
+    centinelaVivo()!.avisa();
+    await vista.fixture.whenStable();
+    vista.fixture.detectChanges();
+
+    expect(busca.mock.calls.length).toBe(peticiones + 1);
+    expect(busca.mock.calls.at(-1)?.[0].pagina).toBe(1);
+    expect(vista.container.querySelectorAll('nx-tarjeta-producto').length).toBeGreaterThan(antes);
+  });
+
+  /** El botón SE QUEDA: es el respaldo si el observador no dispara y lo que usa quien va con teclado. */
+  it('con el centinela puesto el botón de cargar más sigue estando', async () => {
+    const { vista } = await monta(buscaPorPaginas());
+    const centinela = vista.container.querySelector('.py-4');
+    expect(centinela?.querySelector('button')).not.toBeNull();
+  });
+
+  /** Con la lista aún corta el suelo manda: sin él el centinela solo dispararía al tocar el fondo. */
+  it('el margen del centinela nunca baja de 300 px', async () => {
+    await monta(buscaPorPaginas());
+    expect(centinelaVivo()?.margen).toBe('300px');
+  });
+
+  /**
+   * El margen se MIDE: es la mitad del alto real de lo cargado, no un número de píxeles fijo. Depende
+   * de la vista y del ancho, y en un móvil la misma página ocupa varias veces más alto.
+   */
+  it('el margen es la mitad del alto de lo ya cargado', async () => {
+    const { vista } = await monta(buscaPorPaginas());
+    const resultados = vista.container.querySelector('nx-cuadricula-productos')!.parentElement!;
+    vi.spyOn(resultados, 'getBoundingClientRect').mockReturnValue({ height: 2400 } as DOMRect);
+    // Cambiar de vista rehace el observador: es uno de los dos motivos por los que el alto cambia.
+    await userEvent.click(vista.container.querySelectorAll<HTMLElement>('.join button')[1]);
+    await vista.fixture.whenStable();
+    expect(centinelaVivo()?.margen).toBe('1200px');
+  });
+
+  /** REGLA: con una petición en el aire, el centinela no puede pedir otra. */
+  it('no duplica peticiones mientras una está en el aire', async () => {
+    let suelta: (valor: unknown) => void = () => undefined;
+    const busca = vi
+      .fn()
+      .mockResolvedValueOnce(exito(pagina(2, 3, 0)))
+      .mockImplementationOnce(() => new Promise((resuelve) => (suelta = resuelve)));
+    const { vista } = await monta(busca);
+    const peticiones = busca.mock.calls.length;
+
+    centinelaVivo()!.avisa();
+    centinelaVivo()!.avisa();
+    await vista.fixture.whenStable();
+
+    expect(busca.mock.calls.length).toBe(peticiones + 1);
+    suelta(exito(pagina(2, 3, 1)));
+  });
+
+  /** REGLA DURA: si el observador no se desconecta, cada visita al catálogo deja uno vivo. */
+  it('al destruir la pantalla no queda ningún observador conectado', async () => {
+    const { vista } = await monta(buscaPorPaginas());
+    expect(centinelaVivo()).toBeDefined();
+    vista.fixture.destroy();
+    expect(centinelaVivo()).toBeUndefined();
+  });
+
+  /** Al prerenderizar no hay observador ni pantalla a la que asomarse: ahí manda el botón. */
+  it('fuera del navegador no se observa nada', async () => {
+    await monta(buscaPorPaginas(), [
+      {
+        provide: Plataforma,
+        useValue: { esNavegador: false, documentoSiLoHay: null, ventanaSiLaHay: null },
+      },
+    ]);
+    expect(observadores).toHaveLength(0);
+  });
+
+  /**
+   * DEFECTO REPORTADO: al volver de una ficha el listado se reiniciaba —arriba del todo y con la
+   * primera página—. Lo cargado vive en el estado del contexto, que sobrevive a esa ida y vuelta; sin
+   * él la página volvía a ser corta y la restauración de la posición no tenía adónde volver.
+   */
+  it('volver al listado con la misma búsqueda recupera lo cargado sin volver a pedir', async () => {
+    const busca = buscaPorPaginas();
+    const { vista } = await monta(busca);
+    centinelaVivo()!.avisa();
+    await vista.fixture.whenStable();
+    vista.fixture.detectChanges();
+    const cargados = TestBed.inject(ListadoStore).productos().length;
+    const peticiones = busca.mock.calls.length;
+    expect(cargados).toBe(4);
+
+    // Ir a la ficha y volver: se destruye el componente y se crea otro con el MISMO inyector de ruta.
+    vista.fixture.destroy();
+    const segunda = TestBed.createComponent(ListadoPage);
+    segunda.detectChanges();
+    await segunda.whenStable();
+    segunda.detectChanges();
+
+    expect(busca.mock.calls.length).toBe(peticiones);
+    expect(segunda.nativeElement.querySelectorAll('nx-tarjeta-producto')).toHaveLength(cargados);
+    segunda.destroy();
+  });
+
+  /** Memoria rancia: un filtro nuevo no puede reaprovechar los productos del anterior. */
+  it('cambiar un filtro tira lo guardado y vuelve a empezar', async () => {
+    const busca = buscaPorPaginas();
+    const { vista } = await monta(busca);
+    centinelaVivo()!.avisa();
+    await vista.fixture.whenStable();
+    expect(TestBed.inject(ListadoStore).productos().length).toBe(4);
+
+    await TestBed.inject(Router).navigate([], { queryParams: { q: 'gorro' } });
+    await vista.fixture.whenStable();
+
+    expect(busca.mock.calls.at(-1)?.[0].pagina).toBe(0);
+    expect(TestBed.inject(ListadoStore).productos().length).toBe(2);
+  });
+
+  /** Y refrescar tampoco: es una petición explícita de traer lo que haya cambiado. */
+  it('refrescar tira lo guardado aunque los filtros no cambien', async () => {
+    const busca = buscaPorPaginas();
+    const { vista } = await monta(busca);
+    centinelaVivo()!.avisa();
+    await vista.fixture.whenStable();
+    expect(TestBed.inject(ListadoStore).productos().length).toBe(4);
+
+    const refrescar = vista.container.querySelector<HTMLElement>('button.btn-outline')!;
+    await userEvent.click(refrescar);
+    await vista.fixture.whenStable();
+
+    expect(TestBed.inject(ListadoStore).productos().length).toBe(2);
   });
 });
