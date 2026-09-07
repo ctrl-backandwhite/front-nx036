@@ -72,19 +72,28 @@ jobs:
           echo "api=$API" >> "$GITHUB_OUTPUT"
           echo "Rama $GITHUB_REF_NAME -> entorno $ENTORNO (API $API)"
 
-      - name: Comprobar el testigo del prerenderizado
-        # Se comprueba ANTES de construir, y con un mensaje que dice qué hacer.
-        # Sin él, la construcción llegaría hasta el final y se caería en
-        # `verifica:prerender` con «hay fichas con mensaje de error dentro», que
-        # es verdad pero no explica la causa: el backend limita el escaparate a
-        # 100 peticiones por minuto y por IP, y prerenderizar 300 fichas son
-        # ~1.200. Diez minutos de construcción para un mensaje que despista.
+      - name: Cuántas fichas se prerenderizan
+        # El cupo depende de si HAY testigo, y se decide aquí en vez de dejar que
+        # se descubra al final de la construcción.
+        #
+        # Con testigo caben 300: el backend aplica la regla `build.prerender`
+        # (1.200 peticiones por minuto) en vez de las 100 del escaparate. Sin él
+        # solo caben unas quince, y pedir 300 no da 300: da fichas con una página
+        # de error dentro, que es peor que no prerenderizarlas.
+        #
+        # La falta del testigo AVISA pero NO tumba la entrega, y es deliberado:
+        # esto es una mejora de las etiquetas para compartir, no el escaparate. Que
+        # una tienda no se pueda desplegar porque falta una optimización sería el
+        # tipo de puerta que acaba desactivándose entera.
+        id: fichas
         env:
           TESTIGO: ${{ secrets.NEXADROP_PRERENDER_TOKEN }}
         run: |
           if [ -z "$TESTIGO" ]; then
-            echo "::error::Falta el secreto NEXADROP_PRERENDER_TOKEN. Tiene que valer lo mismo que RATELIMIT_BUILD_TOKEN en el backend del entorno. Sin él solo caben ~15 fichas prerenderizadas y el resto salen con una página de error dentro."
-            exit 1
+            echo "::warning::Sin NEXADROP_PRERENDER_TOKEN: se prerenderizan 15 fichas en vez de 300. Para subirlo, crea el secreto con el MISMO valor que RATELIMIT_BUILD_TOKEN en el backend de este entorno (ver el README de nexadrop-deploy)."
+            echo "cuantas=15" >> "$GITHUB_OUTPUT"
+          else
+            echo "cuantas=300" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Construir y publicar
@@ -98,7 +107,7 @@ jobs:
           build-args: |
             ENTORNO=${{ steps.entorno.outputs.entorno }}
             NEXADROP_API_INTERNA=${{ steps.entorno.outputs.api }}
-            NEXADROP_FICHAS_PRERENDERIZADAS=300
+            NEXADROP_FICHAS_PRERENDERIZADAS=${{ steps.fichas.outputs.cuantas }}
             NEXADROP_PRERENDER_TOKEN=${{ secrets.NEXADROP_PRERENDER_TOKEN }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
