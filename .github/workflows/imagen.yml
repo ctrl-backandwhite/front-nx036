@@ -1,0 +1,146 @@
+name: Imagen
+
+# Cada rama entrega a su entorno, igual que el backend:
+#   features -> desarrollo
+#   develop  -> preproducción
+#   main     -> producción
+# El control de lo que llega a producción es la revisión del pull request hacia
+# main, no una puerta aquí.
+on:
+  push:
+    branches: [features, develop, main]
+  workflow_dispatch:
+
+concurrency:
+  # Si llegan dos empujones seguidos, el primero se cancela: publicar una imagen
+  # vieja encima de una nueva deja preproducción con lo que no toca.
+  group: imagen-frontend-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Preparar Node 22
+        uses: actions/setup-node@v4
+        with:
+          # 22 y no otra: Vitest 4 la exige, y por debajo la batería ni arranca.
+          node-version: '22'
+          cache: npm
+
+      - name: Instalar
+        # `npm ci` y no `npm install`: instala EXACTAMENTE lo que dice el candado
+        # y falla si candado y manifiesto no cuadran, en vez de arreglarlo por su
+        # cuenta y dejar versiones que nadie ha revisado.
+        run: npm ci --no-audit --no-fund
+
+      - name: Reglas de arquitectura y estilo
+        # El lint NO es cosmética aquí: es quien hace cumplir la arquitectura
+        # hexagonal (eslint-plugin-boundaries). Un contexto importando las
+        # tripas de otro se para en este paso, no en la revisión.
+        run: npm run lint
+
+      - name: Pruebas
+        # La puerta: si algo está en rojo, no se publica imagen.
+        run: npm test
+
+      - name: Entrar en el registro
+        uses: docker/login-action@v3
+        with:
+          registry: registry.nx036.com
+          username: ${{ secrets.HARBOR_USUARIO }}
+          password: ${{ secrets.HARBOR_SECRETO }}
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Decidir el entorno de esta rama
+        # El entorno lo decide la rama, no está escrito a fuego. Se resuelve aquí
+        # una sola vez porque lo necesitan DOS pasos —la construcción y la
+        # anotación en el repositorio de despliegue— y calcularlo dos veces es
+        # como acaban discrepando.
+        id: entorno
+        run: |
+          case "$GITHUB_REF_NAME" in
+            features) ENTORNO=des; API=https://api-dev.nx036.com ;;
+            develop)  ENTORNO=pre; API=https://api-pre.nx036.com ;;
+            main)     ENTORNO=pro; API=https://api.nx036.com ;;
+            *) echo "::error::La rama $GITHUB_REF_NAME no tiene entorno asignado"; exit 1 ;;
+          esac
+          echo "entorno=$ENTORNO" >> "$GITHUB_OUTPUT"
+          echo "api=$API" >> "$GITHUB_OUTPUT"
+          echo "Rama $GITHUB_REF_NAME -> entorno $ENTORNO (API $API)"
+
+      - name: Comprobar el testigo del prerenderizado
+        # Se comprueba ANTES de construir, y con un mensaje que dice qué hacer.
+        # Sin él, la construcción llegaría hasta el final y se caería en
+        # `verifica:prerender` con «hay fichas con mensaje de error dentro», que
+        # es verdad pero no explica la causa: el backend limita el escaparate a
+        # 100 peticiones por minuto y por IP, y prerenderizar 300 fichas son
+        # ~1.200. Diez minutos de construcción para un mensaje que despista.
+        env:
+          TESTIGO: ${{ secrets.NEXADROP_PRERENDER_TOKEN }}
+        run: |
+          if [ -z "$TESTIGO" ]; then
+            echo "::error::Falta el secreto NEXADROP_PRERENDER_TOKEN. Tiene que valer lo mismo que RATELIMIT_BUILD_TOKEN en el backend del entorno. Sin él solo caben ~15 fichas prerenderizadas y el resto salen con una página de error dentro."
+            exit 1
+          fi
+
+      - name: Construir y publicar
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          # El tag es el SHA y nunca "latest". Es lo que hace que revertir sea
+          # cambiar una línea, y que se sepa siempre qué código hay corriendo.
+          tags: registry.nx036.com/nexadrop/frontend:sha-${{ github.sha }}
+          build-args: |
+            ENTORNO=${{ steps.entorno.outputs.entorno }}
+            NEXADROP_API_INTERNA=${{ steps.entorno.outputs.api }}
+            NEXADROP_FICHAS_PRERENDERIZADAS=300
+            NEXADROP_PRERENDER_TOKEN=${{ secrets.NEXADROP_PRERENDER_TOKEN }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Apuntar la entrega en el repositorio de despliegue
+        env:
+          LLAVE: ${{ secrets.DESPLIEGUE_SSH }}
+          ENTORNO: ${{ steps.entorno.outputs.entorno }}
+        run: |
+          mkdir -p ~/.ssh
+          # printf con salto explícito: una llave privada SIN el salto de línea
+          # final hace que OpenSSH falle con "error in libcrypto", un mensaje que
+          # no menciona el salto por ningún lado y manda a buscar donde no es.
+          printf '%s\n' "$LLAVE" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          # Se valida antes de usarla, para que el fallo diga qué pasa de verdad.
+          if ! ssh-keygen -y -f ~/.ssh/id_ed25519 >/dev/null 2>&1; then
+            echo "::error::El secreto DESPLIEGUE_SSH no es una llave privada válida. Cópiala entera, desde -----BEGIN hasta -----END incluido."
+            exit 1
+          fi
+          ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null
+          git clone git@github.com:ctrl-backandwhite/nexadrop-deploy.git /tmp/despliegue
+          cd /tmp/despliegue
+          python3 - <<'PY'
+          import re, os
+          p = f"overlays/{os.environ['ENTORNO']}/kustomization.yaml"
+          s = open(p).read()
+          sha = os.environ['GITHUB_SHA']
+          s = re.sub(r'(name: registry\.nx036\.com/nexadrop/frontend\n    newTag: )\S+',
+                     r'\g<1>sha-' + sha, s)
+          open(p, 'w').write(s)
+          PY
+          git config user.name "entrega automática"
+          git config user.email "ci@nx036.com"
+          git commit -am "entrega($ENTORNO): frontend sha-${GITHUB_SHA}" || exit 0
+          # Reintento con rebase: si otra entrega escribió en el repositorio
+          # mientras esta construía, el empujón se rechaza con "cannot lock ref".
+          # Es una carrera normal entre cadenas, no un error que deba tumbar la
+          # entrega.
+          for i in 1 2 3 4 5; do
+            git push && break
+            echo "empujón rechazado, reintentando ($i)"
+            git pull --rebase
+            sleep 3
+          done

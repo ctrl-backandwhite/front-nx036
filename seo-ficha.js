@@ -387,16 +387,20 @@ async function ficha(r) {
   r.return(200, html);
 }
 
-export default { ficha };
-
-/*
- * Lo de abajo se exporta SOLO para poder probarlo. Nginx carga este fichero y usa `default`, así que
- * añadir nombres no le afecta en nada.
+/**
+ * Lo que ve nginx —`js_content seo.ficha`— y lo que ven las pruebas, en UN SOLO objeto.
  *
- * <p>Se exportan las funciones puras —escapar, recortar, elegir la foto, componer las etiquetas,
- * limpiar el `<head>`, resolver la dirección canónica— porque es donde está lo que puede salir mal sin
- * hacer ruido: una comilla sin escapar que parte un atributo, un `Host` inventado que se cuela en el
- * canónico, o una limpieza que se come el CSS crítico. Probarlas por la puerta de `ficha()` obligaría a
- * montar una petición entera de nginx para comprobar una sustitución de texto.
+ * <p>TRAMPA, y costó un contenedor que no arrancaba: njs NO admite `export { a, b, c };`. Es la forma
+ * natural de exponer funciones para probarlas, se escribió así, y el resultado fue nginx negándose a
+ * arrancar con «SyntaxError: 'as' expected» en la línea de ese export. Un fallo de ARRANQUE, o sea el
+ * escaparate entero caído, por una línea escrita para las pruebas. Lo destapó levantar la imagen: ni
+ * los tipos, ni el lint, ni las 28 pruebas de este fichero lo vieron, porque Vitest sí admite esa forma.
+ *
+ * <p>El export POR DEFECTO sí lo admite njs, así que las funciones puras cuelgan de aquí: escapar,
+ * recortar, elegir la foto, componer las etiquetas, limpiar el `<head>` y resolver la dirección
+ * canónica. Es donde está lo que puede salir mal sin hacer ruido —una comilla sin escapar que parte un
+ * atributo, un `Host` inventado que se cuela en el canónico, una limpieza que se come el CSS crítico— y
+ * probarlo por la puerta de `ficha()` obligaría a montar una petición entera de nginx para comprobar
+ * una sustitución de texto.
  */
-export { escapa, recorta, imagenPrincipal, etiquetas, limpia, inyecta, direccionCanonica, ficha };
+export default { ficha, escapa, recorta, imagenPrincipal, etiquetas, limpia, inyecta, direccionCanonica };

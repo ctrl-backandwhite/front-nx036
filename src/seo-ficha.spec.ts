@@ -1,12 +1,14 @@
-import {
-  direccionCanonica,
-  escapa,
-  etiquetas,
-  imagenPrincipal,
-  inyecta,
-  limpia,
-  recorta,
-} from '../seo-ficha.js';
+import seo from '../seo-ficha.js';
+
+/**
+ * Se importa el export POR DEFECTO y se desgrana aquí, en vez de importar cada función por su nombre.
+ *
+ * <p>No es estilo: njs —el intérprete que ejecuta este fichero dentro de nginx— NO admite
+ * `export { a, b, c };`. Cuando estas pruebas se escribieron así, nginx dejó de arrancar con
+ * «SyntaxError: 'as' expected» y el escaparate entero se habría quedado caído. Vitest sí admite esa
+ * forma, así que nada de aquí lo habría avisado: se vio levantando la imagen.
+ */
+const { direccionCanonica, escapa, etiquetas, imagenPrincipal, inyecta, limpia, recorta } = seo;
 
 /**
  * Las etiquetas para compartir que la PASARELA mete en el HTML de una ficha.

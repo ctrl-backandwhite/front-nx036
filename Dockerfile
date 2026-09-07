@@ -129,6 +129,21 @@ RUN npm run verifica:prerender
 # baja de cientos de megas a unas decenas.
 FROM nginx:alpine AS final
 
+# ── Por qué el servidor NO corre como root ────────────────────────────────────
+#
+# El pod del escaparate de React corría con `runAsNonRoot`, y este tiene que
+# seguir haciéndolo: es el proceso que da la cara a internet. La imagen oficial
+# de nginx arranca su maestro como root para poder atarse al puerto 80 y para
+# escribir su pid y sus temporales en directorios de root; nada de eso hace
+# falta aquí —se escucha en el 3003, muy por encima de los puertos
+# privilegiados— así que se le prepara el terreno al usuario `nginx` (101) y se
+# cambia a él antes de terminar.
+#
+# Lo que hay que mover es el PID: por omisión va a /var/run/nginx.pid, y con el
+# sistema de ficheros en solo lectura eso es un arranque fallido en bucle sin
+# más mensaje que «permission denied». Los temporales y la caché se resuelven
+# con volúmenes en el manifiesto, pero el pid lo decide la configuración.
+
 # La configuración va a `conf.d/default.conf`, PISANDO la de ejemplo que trae la
 # imagen. No es por comodidad: esa configuración de ejemplo publica esta misma
 # carpeta en el puerto 80 sin ninguna de nuestras reglas —sin el 403 a los
@@ -142,7 +157,9 @@ FROM nginx:alpine AS final
 # `nginx.conf` de la imagen; nuestro fichero se incluye más adentro, dentro de `http`, y allí ya no
 # se admite.
 RUN apk add --no-cache nginx-module-njs \
- && sed -i '1i load_module modules/ngx_http_js_module.so;' /etc/nginx/nginx.conf
+ && sed -i '1i load_module modules/ngx_http_js_module.so;' /etc/nginx/nginx.conf \
+ && sed -i 's#^pid .*#pid /tmp/nginx.pid;#' /etc/nginx/nginx.conf \
+ && sed -i '/^http {/a\    client_body_temp_path /tmp/nginx-client;\n    proxy_temp_path /tmp/nginx-proxy;\n    fastcgi_temp_path /tmp/nginx-fastcgi;\n    uwsgi_temp_path /tmp/nginx-uwsgi;\n    scgi_temp_path /tmp/nginx-scgi;' /etc/nginx/nginx.conf
 
 COPY seo-ficha.js /etc/nginx/njs/seo-ficha.js
 COPY nginx.conf /etc/nginx/conf.d/default.conf
@@ -160,6 +177,18 @@ RUN find /usr/share/nginx/html -type f \
       \( -name '*.js' -o -name '*.css' -o -name '*.html' -o -name '*.svg' \
          -o -name '*.json' -o -name '*.txt' -o -name '*.xml' \) \
       -size +1k -exec gzip -9 -k {} \;
+
+# TODO lo que nginx escribe va a /tmp, y por eso el manifiesto solo monta ese
+# volumen. Por omisión los temporales van a /var/cache/nginx, que pertenece a
+# root: con el sistema de ficheros en solo lectura y el proceso como 101, nginx
+# se niega a arrancar con «mkdir() /var/cache/nginx/client_temp failed (13:
+# Permission denied)» — comprobado levantando la imagen, no deducido—. Un
+# volumen más ahí tampoco basta: los efímeros nacen de root, así que habría que
+# añadir además un `fsGroup`. Con los temporales en /tmp no hace falta ninguna
+# de las dos cosas.
+RUN chmod 1777 /tmp
+
+USER 101
 
 # El mismo puerto que el escaparate de React, que es el que espera la pasarela
 # de delante. Está declarado en el `listen` del nginx.conf.
