@@ -19,6 +19,22 @@ interpretación.
 
 ---
 
+## 0. Construir CUENTA como certificación
+
+`npm run verifica` encadena las cuatro cosas, y el orden importa: lint, pruebas de unidad, **build** y
+certificación en el navegador.
+
+El build está en la lista por una avería concreta. Un cambio añadió tres rutas al panel sin declarar
+cómo se genera su HTML; el comodín intentó prerenderizar la que lleva parámetro y la compilación murió
+con «getPrerenderParams is missing». Lint en verde, 2.885 pruebas en verde, certificación en verde, y
+el repositorio **no se podía construir**: lo que se estaba certificando era un `dist` compilado antes,
+con el arreglo ya presente en el árbol de trabajo pero sin confirmar. En una máquina limpia —o en el
+despliegue— habría fallado a la primera.
+
+La lección se generaliza: **la certificación corre contra un artefacto, así que hay que certificar
+también que ese artefacto se puede producir desde lo confirmado.** Un `git status` limpio antes de
+compilar es parte de la comprobación, no una formalidad.
+
 ## 1. La regla que gobierna la certificación
 
 **No hay verde sin recuento.** El estado de una compilación, un código HTTP o un «todo correcto» no

@@ -16,7 +16,9 @@
     "lint": "ng lint",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
     "e2e:certifica": "playwright test --config e2e/playwright.config.ts",
-    "e2e:tipos": "tsc --noEmit -p e2e/tsconfig.json"
+    "e2e:tipos": "tsc --noEmit -p e2e/tsconfig.json",
+    "verifica": "npm run lint && npm test && npm run verifica:build && npm run e2e",
+    "verifica:build": "NEXADROP_API_INTERNA=${NEXADROP_API_INTERNA:-http://localhost:18082} ng build --configuration local --optimization --source-map=false --output-hashing=all"
   },
   "private": true,
   "packageManager": "npm@11.19.0",
