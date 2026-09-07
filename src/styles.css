@@ -1366,3 +1366,21 @@ video.video-sin-sonido::-webkit-media-controls-volume-control-container,
 video.video-sin-sonido::-webkit-media-controls-volume-slider-container {
   display: none !important;
 }
+
+/* El hueco de la barra de desplazamiento se reserva SIEMPRE.
+ *
+ * Sin esto, la portada saca una barra horizontal permanente en cuanto la página es lo bastante larga
+ * como para tener barra vertical. El motivo es que el mosaico del encabezado ocupa el ancho de la
+ * ventana con `w-screen`, y `100vw` mide la ventana ENTERA, barra vertical incluida: sobresale por la
+ * derecha los quince píxeles que ocupa la barra, y el navegador responde sacando una horizontal.
+ *
+ * `scrollbar-gutter: stable` reserva ese hueco de entrada, así que `100vw` y el ancho disponible
+ * coinciden y no hay nada que desbordar. De paso arregla algo que se nota aunque no se sepa nombrar: el
+ * salto lateral de toda la página al pasar de una pantalla corta a una larga, cuando la barra aparece.
+ *
+ * No se resuelve con `overflow-x: hidden` en el cuerpo, que es el atajo habitual: eso esconde el
+ * síntoma, convierte el cuerpo en contenedor de desplazamiento y desactiva `position: sticky` en todo
+ * lo que lleve dentro —el índice de la documentación, la cabecera del panel—. */
+html {
+  scrollbar-gutter: stable;
+}

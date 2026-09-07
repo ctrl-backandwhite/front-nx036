@@ -11,7 +11,6 @@ import { TablaAtributos } from './tabla-atributos';
 import { BasculaVariantes } from './bascula-variantes';
 import { Recomendados } from './recomendados';
 import { HistoricoDePrecios } from './historico-de-precios';
-import { EstimacionDeMargen } from './estimacion-de-margen';
 
 /**
  * La mitad de abajo de la ficha: seguridad, reseñas, atributos, báscula, descripción, cumplimiento y
@@ -36,7 +35,6 @@ import { EstimacionDeMargen } from './estimacion-de-margen';
     BasculaVariantes,
     Recomendados,
     HistoricoDePrecios,
-    EstimacionDeMargen,
   ],
   template: `
     <div class="space-y-10 mt-6">
@@ -91,14 +89,10 @@ import { EstimacionDeMargen } from './estimacion-de-margen';
               <div class="skeleton h-44 w-full"></div>
             }
 
-            <!-- El estimado de ganancia es SOLO del administrador: ni el código viaja al resto. -->
-            @if (sesion.esAdministrador()) {
-              @defer (on viewport) {
-                <nx-estimacion-de-margen [idDelProducto]="ficha().id" />
-              } @placeholder {
-                <div class="skeleton h-44 w-full"></div>
-              }
-            }
+            <!-- RETIRADA la «Estimación de rentabilidad», por decisión del titular el 7-sep-2026.
+                 Era una divergencia deliberada del front anterior, que sí la enseña a quien administra.
+                 Su componente y su caso de uso SE QUEDAN en el proyecto —siguen probados y con su
+                 puerto— para que volver a ponerla sea añadir esta línea, no rehacerla. -->
           </div>
         </div>
       </section>
