@@ -9,7 +9,11 @@ import { Migas } from '@ds/component/migas/migas';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
 import { DialogoStore } from '@ds/component/dialogo/dialogo.store';
 import { FichaDeProducto } from '../../domain/model/producto';
-import { galeriaVisible, posicionEnLaGaleria } from '../../domain/model/galeria';
+import {
+  fotoParaCompartir,
+  galeriaVisible,
+  posicionEnLaGaleria,
+} from '../../domain/model/galeria';
 import { AbreLaFicha } from '../../application/use-case/abre-la-ficha.use-case';
 import { AnadeALaCesta, esMotivoDeRechazo } from '../../application/use-case/anade-a-la-cesta.use-case';
 import { AlternaFavorito } from '../../application/use-case/alterna-favorito.use-case';
@@ -408,7 +412,7 @@ export class FichaPage {
     this.etiquetas.aplica({
       titulo: ficha.titulo,
       descripcion: ficha.descripcion ?? '',
-      imagen: ficha.imagenPrincipal || undefined,
+      imagen: fotoParaCompartir(ficha.imagenes),
       ruta: `/catalog/${ficha.slug}`,
       tipo: 'product',
     });

@@ -4,6 +4,7 @@ import {
   MAXIMO_DE_FOTOS_DEL_PASE,
   claveDeImagen,
   estaEnLaGaleria,
+  fotoParaCompartir,
   galeriaVisible,
   pasosDelPase,
   posicionEnLaGaleria,
@@ -80,5 +81,34 @@ describe('reordena', () => {
     expect(reordena(galeria, 1, 1)).toEqual(['a', 'b', 'c']);
     expect(reordena(galeria, -1, 0)).toEqual(['a', 'b', 'c']);
     expect(reordena(galeria, 0, 9)).toEqual(['a', 'b', 'c']);
+  });
+});
+
+describe('fotoParaCompartir', () => {
+  /** Es la foto de la vista previa en WhatsApp o en una red social: la principal manda. */
+  it('prefiere la marcada como principal, esté donde esté', () => {
+    const galeria = [imagen('a', 'a.jpg'), imagen('b', 'b.jpg', 'MAIN'), imagen('c', 'c.jpg')];
+
+    expect(fotoParaCompartir(galeria)).toBe('b.jpg');
+  });
+
+  it('sin principal, la primera de la galería', () => {
+    expect(fotoParaCompartir([imagen('a', 'a.jpg'), imagen('b', 'b.jpg')])).toBe('a.jpg');
+  });
+
+  /** El papel viaja tal cual lo manda el backend, y ahí conviven `MAIN` y `video`. */
+  it('no distingue mayúsculas en el papel', () => {
+    expect(fotoParaCompartir([imagen('a', 'a.jpg'), imagen('b', 'b.jpg', 'main')])).toBe('b.jpg');
+  });
+
+  /** El vídeo tiene su propio botón y no es una foto: compartirlo dejaría la vista previa rota. */
+  it('nunca devuelve el vídeo', () => {
+    expect(fotoParaCompartir([imagen('v', 'v.mp4', 'video'), imagen('a', 'a.jpg')])).toBe('a.jpg');
+  });
+
+  /** Sin foto es mejor no declarar ninguna que declarar una vacía: la vista previa sale con hueco gris. */
+  it('devuelve indefinido cuando no hay ninguna foto', () => {
+    expect(fotoParaCompartir([])).toBeUndefined();
+    expect(fotoParaCompartir([imagen('v', 'v.mp4', 'video')])).toBeUndefined();
   });
 });

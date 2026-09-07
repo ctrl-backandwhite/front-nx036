@@ -28,6 +28,7 @@ import { CestaHttpAdapter } from './infrastructure/cesta-http.adapter';
 import { GuiaDeBienvenidaHttpAdapter } from './infrastructure/guia-de-bienvenida-http.adapter';
 import { FavoritosStore } from './application/state/favoritos.store';
 import { ListadoStore } from './application/state/listado.store';
+import { TaxonomiaStore } from './application/state/taxonomia.store';
 import { ReferenciaDeCestaStore } from './application/state/referencia-de-cesta.store';
 import { AbreLaFicha } from './application/use-case/abre-la-ficha.use-case';
 import { AlternaFavorito } from './application/use-case/alterna-favorito.use-case';
@@ -49,6 +50,7 @@ import { PublicaResena } from './application/use-case/publica-resena.use-case';
 export const APLICACION_DEL_CATALOGO: Provider[] = [
   FavoritosStore,
   ListadoStore,
+  TaxonomiaStore,
   ReferenciaDeCestaStore,
   AbreLaFicha,
   AlternaFavorito,

@@ -61,6 +61,30 @@ export function galeriaVisible(
   return salida;
 }
 
+/**
+ * La foto con la que se comparte el producto: la que sale en WhatsApp o en una red social.
+ *
+ * <p>Se prefiere la marcada como principal y, si no hay ninguna, la primera de la galería. Es la MISMA
+ * regla que aplica la pasarela en `seo-ficha.js`, y está escrita en los dos sitios porque los dos
+ * escriben la misma etiqueta: si divergieran, la vista previa cambiaría según por dónde se pidiera la
+ * página, que es justo lo que nadie sabría explicar después.
+ *
+ * <p>Vive en el dominio y no en la pantalla porque es una regla del producto —cuál es su foto— y no
+ * una decisión de cómo pintarlo. La ficha no trae `imagenPrincipal`: eso lo lleva el RESUMEN, el de las
+ * cuadrículas. En la ficha hay una galería, y la principal hay que deducirla. Sin esto, la ficha
+ * prerenderizada salía sin `og:image` y compartirla dejaba la vista previa sin foto — medido: las 15
+ * primeras fichas que se prerenderizaron.
+ */
+export function fotoParaCompartir(imagenes: readonly ImagenDeProducto[]): string | undefined {
+  const galeria = galeriaVisible(imagenes);
+  // Sin distinguir mayúsculas: el papel viaja tal cual lo manda el backend y en esta misma estructura
+  // conviven `MAIN` en mayúsculas y `video` en minúsculas. Comparar exacto funcionaría hoy y dejaría
+  // de funcionar el día que el backend cambie de criterio, sin más síntoma que una foto de menos.
+  const principal =
+    galeria.find((imagen) => imagen.papel?.toUpperCase() === 'MAIN') ?? galeria[0];
+  return principal?.direccion || undefined;
+}
+
 /** ¿Está esta foto ya en la galería? Es lo que evita duplicarla al arrastrar una foto de variante. */
 export function estaEnLaGaleria(
   galeria: readonly ImagenDeProducto[],

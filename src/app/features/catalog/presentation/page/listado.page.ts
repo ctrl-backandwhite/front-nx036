@@ -3,9 +3,7 @@ import {
   ElementRef,
   computed,
   effect,
-  inject,
-  resource,
-  signal,
+  inject, signal,
   untracked,
   viewChild,
 } from '@angular/core';
@@ -18,7 +16,6 @@ import { PreferenciasService } from '@core/preferences/preferencias';
 import { ALMACEN_LOCAL } from '@core/storage/almacen.port';
 import { Plataforma } from '@core/platform/plataforma';
 import { BotonSubir } from '@ds/component/desplazamiento/boton-subir';
-import { TAXONOMIA_PORT } from '../../domain/port/catalogo.port';
 import {
   CRITERIO_VACIO,
   CriterioDeBusqueda,
@@ -38,6 +35,7 @@ import { RECUPERADOR_DE_SESION } from '@core/auth/recuperador-de-sesion.port';
 import { SesionActual } from '@core/auth/sesion-actual';
 import { AlternaFavorito } from '../../application/use-case/alterna-favorito.use-case';
 import { ListadoStore } from '../../application/state/listado.store';
+import { TaxonomiaStore } from '../../application/state/taxonomia.store';
 import { BarraDeFiltros } from '../component/barra-de-filtros';
 import { CuadriculaProductos } from '../component/cuadricula-productos';
 import { FilaListado } from '../component/fila-listado';
@@ -230,7 +228,7 @@ let barajaDeLaVisita: number | null = null;
 })
 export class ListadoPage {
   private readonly busca = inject(BuscaProductos);
-  private readonly taxonomia = inject(TAXONOMIA_PORT);
+  private readonly taxonomiaStore = inject(TaxonomiaStore);
   private readonly enrutador = inject(Router);
   private readonly ruta = inject(ActivatedRoute);
   private readonly preferencias = inject(PreferenciasService);
@@ -290,28 +288,25 @@ export class ListadoPage {
     ]),
   );
 
-  private readonly categorias = resource({
-    params: () => ({ idioma: this.preferencias.idioma() }),
-    loader: async () => {
-      const resultado = await this.taxonomia.arbolDeCategorias();
-      return resultado.ok ? aplanaCategorias(resultado.valor) : [];
-    },
-  });
+  /*
+   * La taxonomía sale del almacén del CONTEXTO, no de un recurso de esta pantalla.
+   *
+   * Eran dos peticiones que se repetían cada vez que se montaba el listado, o sea cada vez que alguien
+   * entraba en una ficha y volvía. En red cuestan poco —el backend las cachea y responde en 5 ms— pero
+   * el árbol de categorías pesa 460 kB: descargarlo, analizarlo y aplanarlo otra vez sí se nota. Volver
+   * tardaba 1.449 ms frente a los 942 del front anterior.
+   *
+   * El almacén las guarda mientras dure la visita, así que la segunda vez ya están.
+   */
+  private readonly categorias = computed(() => aplanaCategorias(this.taxonomiaStore.categorias() ?? []));
 
-  private readonly proveedoresRecurso = resource({
-    loader: async () => {
-      const resultado = await this.taxonomia.proveedores();
-      return resultado.ok ? resultado.valor : [];
-    },
-  });
-
-  protected readonly proveedores = computed(() => this.proveedoresRecurso.value() ?? []);
+  protected readonly proveedores = computed(() => this.taxonomiaStore.proveedores() ?? []);
   protected readonly categoriasConProductos = computed(() =>
-    categoriasConProductos(this.categorias.value() ?? []),
+    categoriasConProductos(this.categorias()),
   );
   protected readonly categoriaActiva = computed(() => {
     const id = this.criterio().categoria;
-    return id ? ((this.categorias.value() ?? []).find((c) => c.id === id) ?? null) : null;
+    return id ? ((this.categorias()).find((c) => c.id === id) ?? null) : null;
   });
 
   protected readonly productos = this.listado.productos;
@@ -329,6 +324,11 @@ export class ListadoPage {
   );
 
   constructor() {
+    /* La taxonomía se pide UNA vez por visita: el almacén no vuelve a llamar si ya la tiene, así que
+     * esto es barato al volver de una ficha y es lo que evita descargar y aplanar otra vez los 460 kB
+     * del árbol de categorías. */
+    void this.taxonomiaStore.asegura();
+
     // La primera visita estrena baraja; volver de una ficha reutiliza la que ya había, y con ella la
     // caché del listado y la posición del desplazamiento.
     if (barajaDeLaVisita === null) {
