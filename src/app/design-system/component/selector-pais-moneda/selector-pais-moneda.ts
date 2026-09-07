@@ -1,4 +1,4 @@
-import { Component, ElementRef, computed, inject, input, output, signal } from '@angular/core';
+import { Component, ElementRef, computed, inject, input, signal } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faChevronDown, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
 import { REGIONS, Region, findRegion } from '@shared/i18n/regions';
@@ -12,9 +12,20 @@ import { EnfocaAlAparecer } from '../../directive/enfoca-al-aparecer.directive';
  * <p>Estaban separados y era una fuente constante de incoherencias: la página en español y los precios
  * en dólares, porque nadie cambia dos desplegables seguidos. Una región es una decisión sola.
  *
- * <p>El cambio se guarda aquí —son preferencias de presentación, no negocio— y además se anuncia por la
- * salida: quien monta el selector es quien sabe si hay que volver a pedir los textos del catálogo al
- * backend, y eso ya no es asunto de una pieza del sistema de diseño.
+ * <p>El cambio se guarda aquí —son preferencias de presentación, no negocio— y no se anuncia a nadie.
+ *
+ * <p>POR QUÉ NO SE AVISA. Los precios los calcula el BACKEND, así que cambiar de divisa obliga a volver
+ * a pedir los datos. El front anterior lo resuelve recargando la página entera
+ * (`window.location.reload()`): tira también lo que no ha cambiado —sesión, cesta, posición del
+ * desplazamiento— y cuesta un arranque completo. Aquí el cambio viaja como SEÑAL: se escribe la
+ * preferencia y toda lectura que declare depender de `moneda()` o de `idioma()` se vuelve a pedir sola,
+ * sin recarga y sin tirar lo que ya estaba en pantalla.
+ *
+ * <p>Este componente TENÍA una salida `elegida` para que el marco de página avisara a quien tocaba, y era
+ * justo el fallo: había que acordarse de atarla en cada sitio donde se monta el selector, ninguno de los
+ * tres lo hacía, y los precios se quedaban en la divisa anterior hasta recargar a mano. Una salida que
+ * hay que recordar enlazar es un fallo esperando turno; una dependencia declarada en la lectura no se
+ * puede olvidar. Se retira, y con ella la forma de equivocarse.
  */
 @Component({
   selector: 'nx-selector-pais-moneda',
@@ -120,12 +131,6 @@ export class SelectorPaisMoneda {
   /** El botón ocupa todo el ancho. Útil en el cajón del móvil. */
   readonly anchoCompleto = input(false);
 
-  /**
-   * La región elegida. Se anuncia SIEMPRE, también cuando solo cambia el idioma: quien monta el
-   * selector es quien sabe si hay que volver a pedir los textos que sirve el backend.
-   */
-  readonly elegida = output<Region>();
-
   protected readonly iconoAbajo = faChevronDown;
   protected readonly iconoBuscar = faMagnifyingGlass;
   protected readonly t = inject(TraduccionService).t;
@@ -186,6 +191,5 @@ export class SelectorPaisMoneda {
     this.preferencias.cambiaMoneda(region.currency);
     this.abierto.set(false);
     this.consulta.set('');
-    this.elegida.emit(region);
   }
 }

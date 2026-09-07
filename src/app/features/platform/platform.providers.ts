@@ -8,7 +8,6 @@ import { DOCUMENTOS_LEGALES_PORT } from './domain/port/documentos-legales.port';
 import { ESTADO_DEL_SERVICIO_PORT } from './domain/port/estado-del-servicio.port';
 import { ALERTAS_DE_TENDENCIA_PORT, TENDENCIAS_PORT } from './domain/port/inteligencia.port';
 import { ESTADO_DE_PROYECTO_ODM_PORT, PROYECTOS_ODM_PORT } from './domain/port/odm.port';
-import { PAIS_DEL_DISPOSITIVO_PORT } from './domain/port/pais-del-dispositivo.port';
 import {
   DISENOS_PORT,
   GENERACION_DE_DISENO_PORT,
@@ -24,7 +23,6 @@ import {
   EstadoDeProyectoOdmHttpAdapter,
   ProyectosOdmHttpAdapter,
 } from './infrastructure/odm-http.adapter';
-import { PaisDelDispositivoAdapter } from './infrastructure/pais-del-dispositivo.adapter';
 import {
   DisenosHttpAdapter,
   GeneracionDeDisenoHttpAdapter,
@@ -35,20 +33,18 @@ import {
   PlataformasDeTiendaHttpAdapter,
   TiendasHttpAdapter,
 } from './infrastructure/tiendas-http.adapter';
-import { ConsentimientoDeCookiesStore } from './application/state/consentimiento-de-cookies.store';
 import { CompruebaEstadoDelServicio } from './application/use-case/comprueba-estado-del-servicio.use-case';
 import { ConectaTienda } from './application/use-case/conecta-tienda.use-case';
 import { ConsultaDocumentoLegal } from './application/use-case/consulta-documento-legal.use-case';
 import { CreaAlertaDeTendencia } from './application/use-case/crea-alerta-de-tendencia.use-case';
 import { CreaProyectoOdm } from './application/use-case/crea-proyecto-odm.use-case';
 import { CreaSolicitudDeAprovisionamiento } from './application/use-case/crea-solicitud-de-aprovisionamiento.use-case';
-import { DecideSobreCookies } from './application/use-case/decide-sobre-cookies.use-case';
 
 /**
  * Ata los puertos de «platform» con sus adaptadores.
  *
  * <p>Es el único sitio del contexto donde aparece una clase de infraestructura, y de un vistazo se ve
- * el reparto: DOCE puertos pequeños, no uno grande. El módulo del que salen —`api/platform.ts` del
+ * el reparto: ONCE puertos pequeños, no uno grande. El módulo del que salen —`api/platform.ts` del
  * front de React— era un cajón de sastre con sesenta y nueve endpoints de diez áreas distintas;
  * convertirlo en una sola interfaz habría dado el `ApiPort` de cuarenta métodos que prohíben las
  * normas, y cada doble de prueba habría tenido que fingir los cuarenta para probar dos.
@@ -122,11 +118,5 @@ export function proveePlatform(): EnvironmentProviders {
     // ── Divisas (provisional, hasta que `core` publique el suyo) ────────────────────────────
     TasasDeCambioHttpAdapter,
     { provide: TASAS_DE_CAMBIO_PORT, useFactory: () => inject(TasasDeCambioHttpAdapter) },
-
-    // ── Consentimiento de cookies ───────────────────────────────────────────────────────────
-    PaisDelDispositivoAdapter,
-    { provide: PAIS_DEL_DISPOSITIVO_PORT, useFactory: () => inject(PaisDelDispositivoAdapter) },
-    ConsentimientoDeCookiesStore,
-    DecideSobreCookies,
   ]);
 }

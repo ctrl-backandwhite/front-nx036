@@ -14,6 +14,33 @@ export interface ProductoAnadible {
   readonly imagen?: string;
   readonly precioMostrado?: number;
   readonly divisaMostrada?: string;
+  /** Lo que quien compra YA ha elegido. Ausente = elígelo tú. */
+  readonly eleccion?: EleccionDeCompra;
+}
+
+/**
+ * Variante y cantidad YA decididas por quien compra, tal como salen de la ficha.
+ *
+ * <p>Es opcional a propósito. Desde una tarjeta o desde una sugerencia no hay nada elegido y la cesta
+ * resuelve sola la primera variante con existencias; desde la ficha, en cambio, la elección ya está
+ * hecha —color, talla y unidades— y volver a resolverla aquí significaría dos cosas malas: pedir otra vez
+ * la ficha para redescubrir lo que se acaba de decidir, y arriesgarse a meter en la cesta una variante
+ * distinta de la que se estaba mirando.
+ */
+export interface EleccionDeCompra {
+  readonly varianteId?: string;
+  readonly sku?: string;
+  /** Etiqueta legible ya compuesta: «Negro / M». La compone quien conoce los ejes. */
+  readonly etiquetaDeVariante?: string;
+  /**
+   * Precio unitario de ESA variante, en la divisa que se le enseñó a quien compra. Importe y divisa
+   * viajan emparejados en `ProductoAnadible`: separarlos fue lo que una vez pintó «117,26 €» por algo
+   * que valía 14,90 €.
+   */
+  readonly precioUnitario?: number;
+  readonly cantidad: number;
+  /** Pedido mínimo del producto. Ausente equivale a uno. */
+  readonly pedidoMinimo?: number;
 }
 
 /**

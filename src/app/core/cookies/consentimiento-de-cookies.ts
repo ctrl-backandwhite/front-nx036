@@ -5,8 +5,8 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCookieBite } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { PaisDelUsuario } from '@core/http/pais-del-usuario';
-import { ConsentimientoDeCookiesStore } from '../../application/state/consentimiento-de-cookies.store';
-import { DecideSobreCookies } from '../../application/use-case/decide-sobre-cookies.use-case';
+import { ConsentimientoDeCookiesStore } from './consentimiento-de-cookies.store';
+import { DecideSobreCookies } from './decide-sobre-cookies';
 
 /**
  * El aviso de cookies y su panel de ajuste.
@@ -17,7 +17,8 @@ import { DecideSobreCookies } from '../../application/use-case/decide-sobre-cook
  * en los regímenes de oposición, y bastaba una detección de país fallida —que es lo habitual, porque
  * un navegador en «es» a secas no da región— para cargarlas sin consentimiento a alguien en Europa.
  *
- * <p>Va montado en el marco de la aplicación para que aparezca en toda la web.
+ * <p>Va montado en el ARMAZÓN —`app.ts`—, no en el marco de la tienda: tiene que salir también en el
+ * panel y en las pantallas de acceso, que no llevan marco. La ley no distingue por sección.
  *
  * <p>MOBILE FIRST: el aviso ocupa el ancho de la pantalla abajo del todo, con los botones envolviendo
  * en varias líneas si hace falta; el ancho máximo y el margen mayor solo llegan a partir de `sm`.

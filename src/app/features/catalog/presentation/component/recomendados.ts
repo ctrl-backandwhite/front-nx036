@@ -85,7 +85,12 @@ export class Recomendados {
   protected readonly paso = PASO_PX;
 
   private readonly datos = resource({
-    params: () => ({ id: this.idDelProducto(), idioma: this.preferencias.idioma() }),
+    // La moneda entra en la lectura: las tarjetas recomendadas traen su precio ya calculado.
+    params: () => ({
+      id: this.idDelProducto(),
+      idioma: this.preferencias.idioma(),
+      moneda: this.preferencias.moneda(),
+    }),
     loader: async ({ params }) => {
       const resultado = await this.catalogo.relacionados(params.id, 8);
       // Que no haya recomendaciones no puede romper la ficha: se pinta el texto de vacío y ya está.

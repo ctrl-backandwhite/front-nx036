@@ -7,6 +7,21 @@ import { EjeDeVariante, FichaDeProducto } from '../../domain/model/producto';
 import { SeleccionDeLaFicha } from '../seleccion-de-la-ficha';
 import { PanelDeCompra } from './panel-de-compra';
 import { APLICACION_DEL_CATALOGO } from '../../catalog.providers';
+import { ANADIR_AL_CARRITO_PORT } from '@features/cart/domain/port/carrito-compartido.port';
+
+/**
+ * La cesta es de OTRO contexto: aquí solo se conoce su puerto público, que es por donde el catálogo mete
+ * lo que se añade. Antes escribía por su cuenta contra el backend y la cesta de la aplicación —la que
+ * cuenta la insignia y pinta el carrito— no se enteraba; el doble mantiene esa frontera visible.
+ */
+const CESTA_DE_OTRO_CONTEXTO = {
+  provide: ANADIR_AL_CARRITO_PORT,
+  useValue: {
+    unidades: () => 0,
+    anade: async () => ({ estado: 'anadido', sugiereAhorroDeEnvio: false }),
+    abreElCajon: () => undefined,
+  },
+};
 
 function eje(nombre: string, valores: string[]): EjeDeVariante {
   return {
@@ -56,6 +71,7 @@ async function monta(entrada: FichaDeProducto, esAdministrador = false) {
     on: { anade, marcaFavorito },
     providers: [
       ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
       SeleccionDeLaFicha,
       { provide: EDICION_DE_FICHA_PORT, useValue: {} },
     ],
@@ -125,6 +141,7 @@ describe('PanelDeCompra', () => {
       on: { compraAhora },
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         SeleccionDeLaFicha,
         { provide: EDICION_DE_FICHA_PORT, useValue: {} },
       ],
@@ -143,6 +160,7 @@ describe('PanelDeCompra', () => {
       on: { marcaFavorito },
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         SeleccionDeLaFicha,
         { provide: EDICION_DE_FICHA_PORT, useValue: {} },
       ],
@@ -167,6 +185,7 @@ describe('PanelDeCompra', () => {
       on: { filtraPorGrupo },
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         SeleccionDeLaFicha,
         { provide: EDICION_DE_FICHA_PORT, useValue: {} },
       ],
@@ -195,6 +214,7 @@ describe('PanelDeCompra', () => {
       on: { eligeColor, cambia },
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         SeleccionDeLaFicha,
         { provide: EDICION_DE_FICHA_PORT, useValue: {} },
       ],

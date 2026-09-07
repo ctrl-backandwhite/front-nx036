@@ -1,7 +1,10 @@
 import { Routes } from '@angular/router';
 import { PaginaDeEscaparate } from './layout/escaparate/pagina-de-escaparate';
 import { PaginaDePanel } from './layout/admin/pagina-de-panel';
-import { proveeCatalogo } from '@features/catalog/catalog.providers';
+import {
+  proveeAcompanantesDelCatalogo,
+  proveeCatalogo,
+} from '@features/catalog/catalog.providers';
 import { proveeAfiliado } from '@features/affiliate/affiliate.providers';
 import { exigeRol } from '@core/auth/sesion.guard';
 import { rutas as rutasDeAcceso } from '@features/auth/presentation/auth.routes';
@@ -129,6 +132,11 @@ export const routes: Routes = [
   {
     path: '',
     component: PaginaDeEscaparate,
+    /* Lo que necesitan los ACOMPAÑANTES del marco —la guía de bienvenida y la vista rápida—, y solo
+     * ellos. Va en esta ruta y no dentro del catálogo porque los dos se pintan sobre cualquier pantalla
+     * del escaparate: quien entra por `/orders` también puede abrir la guía desde el asistente, y allí
+     * los proveedores del catálogo no existen. */
+    providers: [proveeAcompanantesDelCatalogo()],
     children: [
       {
         path: '',

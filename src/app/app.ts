@@ -3,6 +3,8 @@ import { RouterOutlet } from '@angular/router';
 import { CapturaDeReferido } from '@features/affiliate/presentation/component/captura-de-referido';
 import { Dialogo } from '@ds/component/dialogo/dialogo';
 import { Avisos } from '@ds/component/avisos/avisos';
+import { ConsentimientoDeCookies } from '@core/cookies/consentimiento-de-cookies';
+import { CajonDelCarrito } from '@features/cart/presentation/component/cajon-del-carrito';
 import { DOCUMENT } from '@angular/core';
 import { PreferenciasService } from '@core/preferences/preferencias';
 
@@ -16,7 +18,14 @@ import { PreferenciasService } from '@core/preferences/preferencias';
  */
 @Component({
   selector: 'nx-root',
-  imports: [RouterOutlet, CapturaDeReferido, Dialogo, Avisos],
+  imports: [
+    RouterOutlet,
+    CapturaDeReferido,
+    Dialogo,
+    Avisos,
+    ConsentimientoDeCookies,
+    CajonDelCarrito,
+  ],
   /**
    * La captura de referido no pinta nada: se limita a mirar la dirección y registrar de quién viene la
    * visita. Va aquí, en el armazón, porque un enlace de afiliado puede apuntar a cualquier página.
@@ -34,8 +43,24 @@ import { PreferenciasService } from '@core/preferences/preferencias';
    * <p>Van en el armazón porque los dos se pintan por encima de cualquier pantalla y ninguna en
    * concreto es su dueña. Es el mismo motivo por el que el marco de la tienda vive aquí y no dentro de
    * una página.
+   *
+   * <p>El AVISO DE COOKIES y el CAJÓN DE LA CESTA están aquí por lo mismo, y estaban igual de ausentes.
+   *
+   * <p>El de cookies es el grave: escrito, probado y sin montar, la web se servía sin ninguna forma de
+   * aceptar ni de rechazar nada. Eso no es una pieza que falta, es incumplir el RGPD en producción —y
+   * se veía a simple vista comparando con el front anterior, donde el aviso sí sale—. Va en el armazón
+   * y no en el marco de la tienda porque tiene que aparecer TAMBIÉN en el panel y en las pantallas
+   * sueltas de acceso, que no llevan marco: la ley no distingue por sección.
+   *
+   * <p>El cajón de la cesta va aquí porque lo abren los dos marcos —el icono del escaparate y el del
+   * panel— y su estado vive en el almacén de la cesta, que es de raíz. Montado dentro de un marco
+   * habría dos cajones, y al pasar del panel a la tienda se cerraría solo. Mientras no estuvo, el
+   * icono de la cesta se limitaba a navegar a `/cart`: llevaba a la página correcta, así que nadie lo
+   * leía como un fallo, pero era otra pantalla en vez del panel lateral del front anterior.
    */
-  template: '<router-outlet /><nx-captura-de-referido /><nx-dialogo /><nx-avisos />',
+  template:
+    '<router-outlet /><nx-captura-de-referido /><nx-dialogo /><nx-avisos />' +
+    '<nx-cajon-del-carrito /><nx-consentimiento-de-cookies />',
 })
 export class App {
   private readonly preferencias = inject(PreferenciasService);

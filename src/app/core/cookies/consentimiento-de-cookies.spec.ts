@@ -5,13 +5,13 @@ import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { ALMACEN_LOCAL, AlmacenPort } from '@core/storage/almacen.port';
 import { PaisDelUsuario } from '@core/http/pais-del-usuario';
-import { CLAVE_DEL_CONSENTIMIENTO } from '../../domain/model/consentimiento-de-cookies';
+import { CLAVE_DEL_CONSENTIMIENTO } from './regimen-de-cookies';
 import {
   PAIS_DEL_DISPOSITIVO_PORT,
   PaisDelDispositivoPort,
-} from '../../domain/port/pais-del-dispositivo.port';
-import { ConsentimientoDeCookiesStore } from '../../application/state/consentimiento-de-cookies.store';
-import { DecideSobreCookies } from '../../application/use-case/decide-sobre-cookies.use-case';
+} from './pais-del-dispositivo.port';
+import { ConsentimientoDeCookiesStore } from './consentimiento-de-cookies.store';
+import { DecideSobreCookies } from './decide-sobre-cookies';
 import { ConsentimientoDeCookies } from './consentimiento-de-cookies';
 import es from '@shared/i18n/dictionary/es';
 import en from '@shared/i18n/dictionary/en';

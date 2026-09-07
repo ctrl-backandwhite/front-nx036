@@ -270,16 +270,22 @@ export class ListadoPage {
   private readonly centinela = viewChild<ElementRef<HTMLElement>>('centinela');
 
   /**
-   * Qué búsqueda representa lo que hay guardado: criterio, idioma y baraja, en una sola cadena.
+   * Qué búsqueda representa lo que hay guardado: criterio, idioma, MONEDA y baraja, en una sola cadena.
    *
    * <p>Es la llave de la memoria del listado. Mientras no cambie, volver de una ficha recupera las
-   * páginas cargadas; en cuanto cambia —otro filtro, otro orden, otro idioma o un refresco— lo
-   * guardado deja de servir y se pide desde la primera página.
+   * páginas cargadas; en cuanto cambia —otro filtro, otro orden, otro idioma, otra divisa o un
+   * refresco— lo guardado deja de servir y se pide desde la primera página.
+   *
+   * <p>La moneda tiene que estar aquí. Los precios los calcula el BACKEND y llegan ya formateados en la
+   * divisa de la cabecera, así que las tarjetas guardadas son las de la divisa anterior: sin la moneda
+   * en la llave, cambiar de país dejaba el listado entero con los importes viejos —y encima los daba
+   * por buenos al volver de una ficha— hasta que alguien recargaba a mano.
    */
   private readonly huella = computed(() =>
     JSON.stringify([
       aParametros(this.criterio()),
       this.preferencias.idioma(),
+      this.preferencias.moneda(),
       barajaEfectiva(this.criterio(), this.baraja()) ?? null,
     ]),
   );

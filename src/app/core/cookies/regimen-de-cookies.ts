@@ -2,8 +2,12 @@
  * Consentimiento de cookies: qué régimen aplica y qué se ha autorizado.
  *
  * <p>Todo lo de este fichero son reglas PURAS. Leer el país del navegador o guardar la decisión toca
- * el entorno, y eso vive en la infraestructura: aquí solo se decide, para poder probar cada caso sin
- * montar nada.
+ * el entorno, y eso vive en el adaptador de al lado: aquí solo se decide, para poder probar cada caso
+ * sin montar nada.
+ *
+ * <p>Vive en el NÚCLEO y no en un contexto acotado porque el aviso se pinta por encima de la aplicación
+ * entera —escaparate, panel y pantallas sueltas de acceso—, y ninguno de esos sitios es su dueño. Estuvo
+ * dentro de «platform», y por eso desde el armazón no existía su puerto y el aviso no se podía montar.
  */
 export type RegimenDeCookies = 'gdpr' | 'uk' | 'lgpd' | 'ccpa' | 'default';
 

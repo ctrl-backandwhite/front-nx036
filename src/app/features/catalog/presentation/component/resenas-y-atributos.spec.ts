@@ -15,6 +15,21 @@ import { VisorGaleria } from './visor-galeria';
 import { BloqueEnvio } from './bloque-envio';
 import { TarjetaVendedor } from './tarjeta-vendedor';
 import { APLICACION_DEL_CATALOGO } from '../../catalog.providers';
+import { ANADIR_AL_CARRITO_PORT } from '@features/cart/domain/port/carrito-compartido.port';
+
+/**
+ * La cesta es de OTRO contexto: aquí solo se conoce su puerto público, que es por donde el catálogo mete
+ * lo que se añade. Antes escribía por su cuenta contra el backend y la cesta de la aplicación —la que
+ * cuenta la insignia y pinta el carrito— no se enteraba; el doble mantiene esa frontera visible.
+ */
+const CESTA_DE_OTRO_CONTEXTO = {
+  provide: ANADIR_AL_CARRITO_PORT,
+  useValue: {
+    unidades: () => 0,
+    anade: async () => ({ estado: 'anadido', sugiereAhorroDeEnvio: false }),
+    abreElCajon: () => undefined,
+  },
+};
 
 function ficha(cambios: Partial<FichaDeProducto> = {}): FichaDeProducto {
   return {
@@ -46,6 +61,7 @@ describe('SeccionResenas', () => {
       inputs: { idDelProducto: 'p1' },
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         { provide: RESENAS_PORT, useValue: { lista, publica } },
       ],
     });
@@ -194,6 +210,7 @@ describe('TablaAtributos', () => {
       inputs: { ficha: entrada },
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         { provide: CATALOGO_PORT, useValue: { especificaciones } },
       ],
     });
@@ -231,6 +248,7 @@ describe('Recomendados', () => {
       inputs: { idDelProducto: 'p1' },
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         provideRouter([]),
         {
           provide: CATALOGO_PORT,
@@ -264,6 +282,7 @@ describe('Recomendados', () => {
       inputs: { idDelProducto: 'p1' },
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         provideRouter([]),
         {
           provide: CATALOGO_PORT,
@@ -308,7 +327,8 @@ describe('piezas fijas de la ficha', () => {
 
   /** El cliente compra a la plataforma: los datos del proveedor de origen NO se enseñan. */
   it('la tarjeta de vendedor habla de NX036, no del proveedor', async () => {
-    await render(TarjetaVendedor, { providers: [...APLICACION_DEL_CATALOGO, provideRouter([])] });
+    await render(TarjetaVendedor, { providers: [...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO, provideRouter([])] });
     expect(screen.getByText('NX036')).toBeInTheDocument();
   });
 });
@@ -319,6 +339,7 @@ describe('Recomendados, desplazamiento', () => {
       inputs: { idDelProducto: 'p1' },
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         provideRouter([]),
         { provide: CATALOGO_PORT, useValue: { relacionados: async () => exito([]) } },
       ],

@@ -245,10 +245,3 @@ export function etiquetaDeVariante(variante: VarianteDeProducto | undefined): st
   }
   return Object.values(variante.opciones ?? {}).filter(Boolean).join(' / ') || undefined;
 }
-
-/** La primera variante activa CON existencias: la que se añade desde la tarjeta y la vista rápida. */
-export function primeraDisponible(
-  variantes: readonly VarianteDeProducto[],
-): VarianteDeProducto | undefined {
-  return variantes.find((variante) => variante.activa && variante.existencias > 0);
-}

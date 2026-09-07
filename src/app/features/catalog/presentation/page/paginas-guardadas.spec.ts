@@ -1,9 +1,11 @@
+import { inject } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
 import { describe, expect, it, vi } from 'vitest';
 import { exito, fallo } from '@shared/result/result';
 import { creaError } from '@shared/error/app-error';
 import { RECUPERADOR_DE_SESION } from '@core/auth/recuperador-de-sesion.port';
+import { SesionActual } from '@core/auth/sesion-actual';
 import { CATALOGO_PORT, PORTADA_PORT, TAXONOMIA_PORT } from '../../domain/port/catalogo.port';
 import { CESTA_PORT } from '../../domain/port/cesta.port';
 import { FAVORITOS_PORT } from '../../domain/port/favoritos.port';
@@ -15,6 +17,21 @@ import { FavoritosPage } from './favoritos.page';
 import { HistorialPage } from './historial.page';
 import { PortadaPage } from './portada.page';
 import { APLICACION_DEL_CATALOGO } from '../../catalog.providers';
+import { ANADIR_AL_CARRITO_PORT } from '@features/cart/domain/port/carrito-compartido.port';
+
+/**
+ * La cesta es de OTRO contexto: aquí solo se conoce su puerto público, que es por donde el catálogo mete
+ * lo que se añade. Antes escribía por su cuenta contra el backend y la cesta de la aplicación —la que
+ * cuenta la insignia y pinta el carrito— no se enteraba; el doble mantiene esa frontera visible.
+ */
+const CESTA_DE_OTRO_CONTEXTO = {
+  provide: ANADIR_AL_CARRITO_PORT,
+  useValue: {
+    unidades: () => 0,
+    anade: async () => ({ estado: 'anadido', sugiereAhorroDeEnvio: false }),
+    abreElCajon: () => undefined,
+  },
+};
 
 function pagina(cuantos: number, totalDePaginas = 1): PaginaDeProductos {
   return {
@@ -54,6 +71,7 @@ describe('FavoritosPage', () => {
     const vista = await render(FavoritosPage, {
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         ...PUERTOS_DE_LA_TARJETA,
         {
           provide: FAVORITOS_PORT,
@@ -71,6 +89,7 @@ describe('FavoritosPage', () => {
     const vista = await render(FavoritosPage, {
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         ...PUERTOS_DE_LA_TARJETA,
         {
           provide: FAVORITOS_PORT,
@@ -83,10 +102,71 @@ describe('FavoritosPage', () => {
     expect(vista.container.querySelector('a[href="/catalog"]')).not.toBeNull();
   });
 
+  /**
+   * EL FALLO QUE ARREGLÓ ESTA PRUEBA. Esta pantalla no traía los identificadores de favoritos, y el caso
+   * de uso decide entre marcar y desmarcar mirando ese conjunto. Con el conjunto vacío, en «Mis
+   * favoritos» —donde por definición TODO está marcado— los corazones salían apagados y pulsarlos volvía
+   * a AÑADIR lo que ya estaba: desde aquí no había forma de sacar nada de la lista.
+   */
+  it('enciende los corazones y desde aquí se DESMARCA, no se vuelve a añadir', async () => {
+    const quita = vi.fn().mockResolvedValue(exito(undefined));
+    const anade = vi.fn().mockResolvedValue(exito(undefined));
+    const identificadores = vi.fn().mockResolvedValue(exito(['p0']));
+    const vista = await render(FavoritosPage, {
+      providers: [
+        ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
+        provideRouter([]),
+        {
+          /* La sesión la publica el NÚCLEO al resolverla, y solo entonces se piden los favoritos: el
+           * ORDEN es justo lo que decide si al montar la pantalla hay a quién pedirle la lista.
+           *
+           * El almacén se toma con `inject` en la fábrica —no con `TestBed.inject` dentro del callback—
+           * porque las pruebas comparten hilo: para cuando corre el callback, el banco global puede ser
+           * ya el de otro fichero y la sesión se publicaría en un sitio que esta pantalla no mira. */
+          provide: RECUPERADOR_DE_SESION,
+          useFactory: () => {
+            const sesion = inject(SesionActual);
+            return {
+              asegura: async () =>
+                sesion.publica({ id: 'u1', rol: 'USER', nombreVisible: 'Ana', pais: 'ES' }),
+            };
+          },
+        },
+        { provide: CATALOGO_PORT, useValue: { ficha: vi.fn() } },
+        { provide: CESTA_PORT, useValue: { productosQueLleva: vi.fn() } },
+        {
+          provide: FAVORITOS_PORT,
+          useValue: { lista: async () => exito(pagina(1)), identificadores, anade, quita },
+        },
+      ],
+    });
+
+    // Lo que faltaba y provocaba el defecto: esta pantalla nunca pedía los identificadores, y el caso
+    // de uso decide entre marcar y desmarcar mirando ese conjunto.
+    await vi.waitFor(() => expect(identificadores).toHaveBeenCalled(), { timeout: 15_000 });
+
+    // Y con ellos, el corazón sale ENCENDIDO sobre un producto que por definición está marcado.
+    const corazon = await vi.waitFor(
+      () => {
+        vista.fixture.detectChanges();
+        const boton = vista.container.querySelector<HTMLElement>('button:has(.text-red-500)');
+        expect(boton).not.toBeNull();
+        return boton!;
+      },
+      { timeout: 15_000, interval: 50 },
+    );
+
+    corazon.click();
+    await vi.waitFor(() => expect(quita).toHaveBeenCalledWith('p0'), { timeout: 15_000 });
+    expect(anade).not.toHaveBeenCalled();
+  }, 40_000);
+
   it('un fallo del servidor no deja la pantalla rota', async () => {
     const vista = await render(FavoritosPage, {
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         ...PUERTOS_DE_LA_TARJETA,
         {
           provide: FAVORITOS_PORT,
@@ -108,6 +188,7 @@ describe('HistorialPage', () => {
     const vista = await render(HistorialPage, {
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         ...PUERTOS_DE_LA_TARJETA,
         {
           provide: HISTORIAL_PORT,
@@ -126,6 +207,7 @@ describe('HistorialPage', () => {
     const vista = await render(HistorialPage, {
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         ...PUERTOS_DE_LA_TARJETA,
         {
           provide: HISTORIAL_PORT,
@@ -144,6 +226,7 @@ describe('PortadaPage', () => {
     const vista = await render(PortadaPage, {
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         provideRouter([]),
         SESION_RESUELTA,
         {
@@ -208,6 +291,7 @@ describe('PortadaPage', () => {
     const vista = await render(PortadaPage, {
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         provideRouter([]),
         SESION_RESUELTA,
         {

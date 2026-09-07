@@ -1,27 +1,22 @@
 import { InjectionToken } from '@angular/core';
 import { Result } from '@shared/result/result';
 import { AppError } from '@shared/error/app-error';
-import { LineaDeCesta } from '../model/linea-de-cesta';
 
 /**
- * Lo que el CATÁLOGO necesita de la cesta, y nada más.
+ * Lo que el CATÁLOGO necesita SABER de la cesta.
  *
- * <p>La cesta es otro contexto acotado y sus casos de uso no son visibles desde aquí —con razón: si lo
- * fueran, los dos dejarían de poder evolucionar por separado—. Pero el catálogo tiene dos necesidades
- * reales con ella:
+ * <p>Solo una cosa: qué lleva ya, porque es la referencia contra la que el backend calcula cuánto
+ * arancel suma cada producto. Sin ella no hay distintivo que pintar.
  *
- * <ul>
- *   <li>añadir una línea desde la tarjeta, la vista rápida y la ficha;
- *   <li>saber QUÉ lleva ya, porque es la referencia contra la que el backend calcula cuánto arancel
- *       suma cada producto. Sin ella no hay distintivo que pintar.
- * </ul>
- *
- * <p>Así que se declara aquí el puerto pequeño con esas dos capacidades, tal y como hace «auth» con el
- * resumen de almacenes. Poca duplicación, cero acoplamiento.
+ * <p>AÑADIR ya no está aquí. Lo estuvo, con su propio `PUT /me/cart`, y por eso había dos cestas: la que
+ * escribía el catálogo y la que pintaba la aplicación —insignia de la cabecera y pantalla del carrito—,
+ * que no se enteraba. Meter cosas en la cesta es del contexto «cart» y se hace por su contrato público
+ * (`ANADIR_AL_CARRITO_PORT`), que además sabe guardar la cesta de quien todavía no ha entrado. Este
+ * puerto se queda con la única capacidad que de verdad es una consulta del catálogo, que es lo que pide
+ * la segregación de interfaces.
  */
 export interface CestaPort {
   productosQueLleva(): Promise<Result<readonly string[], AppError>>;
-  anade(linea: LineaDeCesta): Promise<Result<void, AppError>>;
 }
 
 export const CESTA_PORT = new InjectionToken<CestaPort>('CestaPort');

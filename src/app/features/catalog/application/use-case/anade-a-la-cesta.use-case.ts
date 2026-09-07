@@ -1,48 +1,67 @@
 import { Injectable, inject } from '@angular/core';
 import { Result, exito, fallo } from '@shared/result/result';
 import { AppError, creaError } from '@shared/error/app-error';
-import { CATALOGO_PORT } from '../../domain/port/catalogo.port';
-import { CESTA_PORT } from '../../domain/port/cesta.port';
-import { LineaDeCesta } from '../../domain/model/linea-de-cesta';
+import { ANADIR_AL_CARRITO_PORT } from '@features/cart/domain/port/carrito-compartido.port';
+import { ProductoAnadible } from '@features/cart/domain/model/producto-anadible';
 import { FichaDeProducto, ResumenDeProducto, VarianteDeProducto } from '../../domain/model/producto';
-import { etiquetaDeVariante, primeraDisponible } from '../../domain/model/seleccion-de-variante';
+import { etiquetaDeVariante } from '../../domain/model/seleccion-de-variante';
 
 /** Por qué no ha entrado en la cesta. */
 export type MotivoDeRechazo = 'sin-existencias' | 'sin-precio';
 
 /**
- * Meter un producto en la cesta desde cualquier sitio, con las MISMAS reglas.
+ * Meter un producto en la cesta desde cualquier sitio del catálogo, con las MISMAS reglas.
  *
- * <p>Estaba escrito dentro de la tarjeta del catálogo y hacía falta en dos sitios más —la vista rápida
- * y la ficha—. Copiarlo habría sido la forma segura de que dentro de un mes cada uno añadiera con un
- * precio distinto. Lo que resuelve, y por qué importa:
+ * <p>Estaba escrito dentro de la tarjeta y hacía falta en dos sitios más —la vista rápida y la ficha—.
+ * Copiarlo habría sido la forma segura de que dentro de un mes cada uno añadiera con un precio distinto.
+ *
+ * <p>QUIÉN GUARDA LA CESTA. Este caso de uso ya no escribe contra el backend por su cuenta. Lo hacía
+ * —un `PUT /me/cart` desde un adaptador propio— y era un fallo de bulto: la cesta de la aplicación, la
+ * que cuenta la insignia de la cabecera y la que pinta la pantalla del carrito, vive en el contexto
+ * «cart» y no se enteraba de nada. Se añadía un producto, el botón decía «Añadido», la insignia seguía
+ * marcando lo de antes y al entrar en la cesta —navegando, sin recargar— el producto no estaba. Eran dos
+ * cestas distintas escribiendo en el mismo sitio.
+ *
+ * <p>Ahora se añade por el PUERTO PÚBLICO de «cart» (`ANADIR_AL_CARRITO_PORT`), que es exactamente para
+ * lo que existe. El catálogo sigue sin ver las tripas del otro contexto —ni su almacén, ni sus casos de
+ * uso, ni sus adaptadores—: solo su contrato. Y de regalo, quien no ha iniciado sesión también puede
+ * llenar la cesta, porque «cart» sabe guardarla en el equipo; con el `PUT` directo recibía un 401 y un
+ * aviso de error.
+ *
+ * <p>Lo que sigue siendo de aquí son las REGLAS DEL CATÁLOGO sobre qué se añade:
  *
  * <ul>
  *   <li>El precio de partida es el de VENTA en la divisa activa, nunca el coste del proveedor: ese ya
  *       no viaja fuera del panel y dejaría la cesta a cero.
  *   <li>Importe y DIVISA van siempre emparejados: etiquetar el importe con la divisa equivocada es lo
  *       que una vez enseñó «117,26 €» por algo que valía 14,90 €.
- *   <li>Si hay variantes se coge la primera CON existencias; si no queda ninguna NO se añade nada y se
- *       dice. Añadir a ciegas acaba en pedidos con la talla equivocada.
+ *   <li>Si en la ficha no queda ninguna variante disponible NO se añade nada y se dice. Añadir a ciegas
+ *       acaba en pedidos con la talla equivocada.
  * </ul>
  */
 @Injectable()
 export class AnadeALaCesta {
-  private readonly catalogo = inject(CATALOGO_PORT);
-  private readonly cesta = inject(CESTA_PORT);
+  private readonly carrito = inject(ANADIR_AL_CARRITO_PORT);
 
   /**
-   * Añade desde una TARJETA, que no trae variantes: se consulta la ficha para resolver la primera
-   * variante disponible y su precio real.
+   * Añade desde una TARJETA, que no trae variantes ni cantidad.
+   *
+   * <p>No se resuelve la variante aquí: se deja al contexto de la cesta, que ya sabe pedir la ficha
+   * recortada a lo que necesita —pedido mínimo, precio y variantes— y quedarse con la primera con
+   * existencias. Resolverlo dos veces era pedir la ficha ENTERA, con su galería, sus reseñas y su bloque
+   * de cumplimiento, para acabar usando cuatro campos.
    */
   async desdeLaTarjeta(
     producto: ResumenDeProducto,
   ): Promise<Result<void, AppError | MotivoDeRechazo>> {
-    const ficha = await this.catalogo.ficha(producto.slug);
-    if (!ficha.ok) {
-      return fallo(ficha.error);
-    }
-    return this.conVariante(ficha.valor, this.varianteParaAnadirSola(ficha.valor), 1);
+    return this.mete({
+      id: producto.id,
+      slug: producto.slug,
+      titulo: producto.titulo,
+      imagen: producto.imagenPrincipal,
+      precioMostrado: producto.precio.importe,
+      divisaMostrada: producto.precio.divisa,
+    });
   }
 
   /**
@@ -63,36 +82,29 @@ export class AnadeALaCesta {
     if (importe == null) {
       return fallo('sin-precio');
     }
-    const linea: LineaDeCesta = {
-      productId: ficha.id,
-      variantId: variante?.id,
-      // El SKU se resuelve SIEMPRE: el de la variante si existe y, si no, el del producto. Así la
-      // cesta nunca queda sin una referencia visible.
-      sku: variante?.sku || ficha.sku,
-      variantLabel: etiquetaDeVariante(variante),
+    return this.mete({
+      id: ficha.id,
       slug: ficha.slug,
-      title: ficha.titulo,
-      image: ficha.imagenPrincipal,
-      unitPriceSource: Number(importe),
-      sourceCurrency: ficha.precio.divisa ?? 'USD',
-      quantity: cantidad,
-      moq: ficha.moq > 1 ? ficha.moq : undefined,
-    };
-    const resultado = await this.cesta.anade(linea);
-    return resultado.ok ? exito(undefined) : fallo(resultado.error);
+      titulo: ficha.titulo,
+      imagen: ficha.imagenPrincipal,
+      precioMostrado: Number(importe),
+      divisaMostrada: ficha.precio.divisa ?? 'USD',
+      eleccion: {
+        varianteId: variante?.id,
+        // El SKU se resuelve SIEMPRE: el de la variante si existe y, si no, el del producto. Así la
+        // cesta nunca queda sin una referencia visible.
+        sku: variante?.sku || ficha.sku,
+        etiquetaDeVariante: etiquetaDeVariante(variante),
+        precioUnitario: Number(importe),
+        cantidad,
+        pedidoMinimo: ficha.moq > 1 ? ficha.moq : undefined,
+      },
+    });
   }
 
-  /**
-   * Qué variante se lleva quien añade sin elegir. Si el producto TIENE variantes y ninguna queda
-   * disponible, se dice explícitamente: es preferible a un pedido con la talla equivocada.
-   */
-  private varianteParaAnadirSola(
-    ficha: FichaDeProducto,
-  ): VarianteDeProducto | undefined | 'ninguna-disponible' {
-    if (ficha.variantes.length === 0) {
-      return undefined;
-    }
-    return primeraDisponible(ficha.variantes) ?? 'ninguna-disponible';
+  private async mete(producto: ProductoAnadible): Promise<Result<void, AppError | MotivoDeRechazo>> {
+    const resultado = await this.carrito.anade(producto);
+    return resultado.estado === 'anadido' ? exito(undefined) : fallo('sin-existencias');
   }
 }
 

@@ -7,7 +7,7 @@ import { CATALOGO_PORT } from '../../domain/port/catalogo.port';
 import { HISTORIAL_PORT } from '../../domain/port/historial.port';
 import { CESTA_PORT } from '../../domain/port/cesta.port';
 import { RESENAS_PORT } from '../../domain/port/resenas.port';
-import { FichaDeProducto } from '../../domain/model/producto';
+import { FichaDeProducto, ResumenDeProducto } from '../../domain/model/producto';
 import { CRITERIO_VACIO } from '../../domain/model/criterio-de-busqueda';
 import { FavoritosStore } from '../state/favoritos.store';
 import { SesionActual } from '@core/auth/sesion-actual';
@@ -19,6 +19,21 @@ import { BuscaProductos } from './busca-productos.use-case';
 import { PublicaResena } from './publica-resena.use-case';
 import { ListaFavoritos, ListaHistorial } from './lista-guardados.use-case';
 import { APLICACION_DEL_CATALOGO } from '../../catalog.providers';
+import { ANADIR_AL_CARRITO_PORT } from '@features/cart/domain/port/carrito-compartido.port';
+
+/**
+ * La cesta es de OTRO contexto: aquí solo se conoce su puerto público, que es por donde el catálogo mete
+ * lo que se añade. Antes escribía por su cuenta contra el backend y la cesta de la aplicación —la que
+ * cuenta la insignia y pinta el carrito— no se enteraba; el doble mantiene esa frontera visible.
+ */
+const CESTA_DE_OTRO_CONTEXTO = {
+  provide: ANADIR_AL_CARRITO_PORT,
+  useValue: {
+    unidades: () => 0,
+    anade: async () => ({ estado: 'anadido', sugiereAhorroDeEnvio: false }),
+    abreElCajon: () => undefined,
+  },
+};
 
 function ficha(cambios: Partial<FichaDeProducto> = {}): FichaDeProducto {
   return {
@@ -47,7 +62,8 @@ function ficha(cambios: Partial<FichaDeProducto> = {}): FichaDeProducto {
 describe('AlternaFavorito', () => {
   function monta(puerto: Partial<Record<string, unknown>>, haySesion = true) {
     TestBed.configureTestingModule({
-      providers: [...APLICACION_DEL_CATALOGO, { provide: FAVORITOS_PORT, useValue: puerto }],
+      providers: [...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO, { provide: FAVORITOS_PORT, useValue: puerto }],
     });
     if (haySesion) {
       TestBed.inject(SesionActual).publica({
@@ -108,70 +124,121 @@ describe('AlternaFavorito', () => {
     await caso.carga();
     expect(identificadores).not.toHaveBeenCalled();
   });
+
+  /**
+   * EL PORQUÉ DEL DEFECTO DE «MIS FAVORITOS». La decisión entre marcar y desmarcar sale de este
+   * conjunto, no del servidor: sin haberlo traído, TODO parece sin marcar y el corazón vuelve a AÑADIR
+   * lo que ya estaba. Con él traído, pulsar sobre un favorito lo QUITA, que es lo que se espera desde
+   * una pantalla donde todo está marcado.
+   */
+  it('con los identificadores traídos, pulsar sobre un favorito lo QUITA', async () => {
+    const anade = vi.fn().mockResolvedValue(exito(undefined));
+    const quita = vi.fn().mockResolvedValue(exito(undefined));
+    const { caso, estado } = monta({
+      identificadores: vi.fn().mockResolvedValue(exito(['p0'])),
+      anade,
+      quita,
+    });
+
+    await caso.carga();
+    expect(estado.esFavorito('p0')).toBe(true);
+    await caso.ejecuta('p0');
+
+    expect(quita).toHaveBeenCalledWith('p0');
+    expect(anade).not.toHaveBeenCalled();
+    expect(estado.esFavorito('p0')).toBe(false);
+  });
 });
 
 describe('AnadeALaCesta', () => {
-  function monta(
-    fichaDevuelta: FichaDeProducto,
-    anade = vi.fn().mockResolvedValue(exito(undefined)),
-  ) {
+  /**
+   * El doble es el PUERTO PÚBLICO de «cart», no un cliente HTTP. Es justo lo que arregló el fallo: este
+   * caso de uso escribía un `PUT /me/cart` por su cuenta y la cesta de la aplicación —la que cuenta la
+   * insignia de la cabecera y la que pinta el carrito— no se enteraba de nada. Eran dos cestas.
+   */
+  function monta(estado: 'anadido' | 'sin-existencias' = 'anadido') {
+    const anade = vi.fn().mockResolvedValue({ estado, sugiereAhorroDeEnvio: false });
     TestBed.configureTestingModule({
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
+        { provide: CATALOGO_PORT, useValue: { ficha: vi.fn() } },
+        { provide: CESTA_PORT, useValue: { productosQueLleva: vi.fn() } },
         {
-          provide: CATALOGO_PORT,
-          useValue: { ficha: vi.fn().mockResolvedValue(exito(fichaDevuelta)) },
+          provide: ANADIR_AL_CARRITO_PORT,
+          useValue: { unidades: () => 0, anade, abreElCajon: vi.fn() },
         },
-        { provide: CESTA_PORT, useValue: { anade, productosQueLleva: vi.fn() } },
       ],
     });
     return { caso: TestBed.inject(AnadeALaCesta), anade };
   }
 
+  const tarjeta = (precio: ResumenDeProducto['precio']): ResumenDeProducto => ({
+    id: 'p1',
+    slug: 'gorro',
+    titulo: 'Gorro',
+    ventasMensuales: 0,
+    estado: 'ACTIVE',
+    precio,
+    arancel: { centimosExtra: null, cubierto: false },
+    etiquetas: [],
+  });
+
   /** El coste del proveedor ya no viaja fuera del panel: sin precio de venta la cesta quedaría a cero. */
-  it('congela el precio de venta con SU divisa', async () => {
-    const { caso, anade } = monta(ficha());
-    await caso.desdeLaTarjeta({
-      id: 'p1',
-      slug: 'gorro',
-      titulo: 'Gorro',
-      ventasMensuales: 0,
-      estado: 'ACTIVE',
-      precio: {},
-      arancel: { centimosExtra: null, cubierto: false },
-      etiquetas: [],
-    });
+  it('desde la tarjeta manda el precio de venta con SU divisa', async () => {
+    const { caso, anade } = monta();
+
+    await caso.desdeLaTarjeta(tarjeta({ formateado: '10,00 €', importe: 10, divisa: 'EUR' }));
+
     expect(anade).toHaveBeenCalledWith(
-      expect.objectContaining({ unitPriceSource: 10, sourceCurrency: 'EUR', quantity: 1 }),
+      expect.objectContaining({ id: 'p1', slug: 'gorro', precioMostrado: 10, divisaMostrada: 'EUR' }),
     );
   });
 
-  it('coge la primera variante CON existencias', async () => {
+  /**
+   * Desde una tarjeta no hay nada elegido y la variante la resuelve la cesta, que ya pide la ficha
+   * recortada a lo que necesita. Resolverla aquí obligaba a pedir la ficha ENTERA —galería, reseñas,
+   * cumplimiento— para acabar usando cuatro campos.
+   */
+  it('desde la tarjeta no impone ninguna variante', async () => {
+    const { caso, anade } = monta();
+
+    await caso.desdeLaTarjeta(tarjeta({}));
+
+    expect(anade.mock.calls[0][0].eleccion).toBeUndefined();
+  });
+
+  it('desde la ficha manda la variante ELEGIDA, sus unidades y su precio', async () => {
     const conVariantes = ficha({
       variantes: [
         { id: 'v1', existencias: 0, opciones: { Talla: 'S' }, activa: true },
-        { id: 'v2', existencias: 4, opciones: { Talla: 'M' }, activa: true, precio: 8 },
+        { id: 'v2', sku: 'SKU-2', existencias: 4, opciones: { Talla: 'M' }, activa: true, precio: 8 },
       ],
     });
-    const { caso, anade } = monta(conVariantes);
+    const { caso, anade } = monta();
+
     await caso.conVariante(conVariantes, conVariantes.variantes[1], 2);
+
     expect(anade).toHaveBeenCalledWith(
       expect.objectContaining({
-        variantId: 'v2',
-        variantLabel: 'M',
-        unitPriceSource: 8,
-        quantity: 2,
+        precioMostrado: 8,
+        eleccion: expect.objectContaining({
+          varianteId: 'v2',
+          sku: 'SKU-2',
+          etiquetaDeVariante: 'M',
+          precioUnitario: 8,
+          cantidad: 2,
+        }),
       }),
     );
   });
 
   /** Añadir a ciegas acaba en pedidos con la talla equivocada. */
-  it('no añade nada si el producto tiene variantes y ninguna queda', async () => {
-    const agotado = ficha({
-      variantes: [{ id: 'v1', existencias: 0, opciones: {}, activa: true }],
-    });
-    const { caso, anade } = monta(agotado);
-    const resultado = await caso.desdeLaTarjeta(agotado);
+  it('no añade nada si la ficha dice que no queda ninguna variante', async () => {
+    const { caso, anade } = monta();
+
+    const resultado = await caso.conVariante(ficha(), 'ninguna-disponible', 1);
+
     expect(resultado.ok).toBe(false);
     expect(!resultado.ok && esMotivoDeRechazo(resultado.error)).toBe(true);
     expect(anade).not.toHaveBeenCalled();
@@ -179,26 +246,23 @@ describe('AnadeALaCesta', () => {
 
   it('sin precio de venta no se añade: sería inventárselo', async () => {
     const sinPrecio = ficha({ precio: { divisa: 'EUR' } });
-    const { caso } = monta(sinPrecio);
+    const { caso, anade } = monta();
+
     const resultado = await caso.conVariante(sinPrecio, undefined, 1);
+
     expect(resultado.ok).toBe(false);
     expect(!resultado.ok && resultado.error).toBe('sin-precio');
+    expect(anade).not.toHaveBeenCalled();
   });
 
-  it('propaga el fallo de red de la ficha', async () => {
-    TestBed.configureTestingModule({
-      providers: [
-        ...APLICACION_DEL_CATALOGO,
-        {
-          provide: CATALOGO_PORT,
-          useValue: { ficha: vi.fn().mockResolvedValue(fallo(creaError('sin-conexion'))) },
-        },
-        { provide: CESTA_PORT, useValue: { anade: vi.fn(), productosQueLleva: vi.fn() } },
-      ],
-    });
-    const resultado = await TestBed.inject(AnadeALaCesta).desdeLaTarjeta(ficha());
+  /** Quien resuelve la variante es la cesta; si dice que no queda ninguna, se traduce a un rechazo. */
+  it('propaga como rechazo que la cesta no encuentre existencias', async () => {
+    const { caso } = monta('sin-existencias');
+
+    const resultado = await caso.desdeLaTarjeta(tarjeta({}));
+
     expect(resultado.ok).toBe(false);
-    expect(!resultado.ok && esMotivoDeRechazo(resultado.error)).toBe(false);
+    expect(!resultado.ok && esMotivoDeRechazo(resultado.error)).toBe(true);
   });
 });
 
@@ -207,6 +271,7 @@ describe('AbreLaFicha', () => {
     TestBed.configureTestingModule({
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         {
           provide: CATALOGO_PORT,
           useValue: { ficha: vi.fn().mockResolvedValue(exito(ficha())) },
@@ -249,6 +314,7 @@ describe('BuscaProductos', () => {
     TestBed.configureTestingModule({
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         { provide: CATALOGO_PORT, useValue: { busca } },
         {
           provide: CESTA_PORT,
@@ -291,6 +357,7 @@ describe('PublicaResena', () => {
     TestBed.configureTestingModule({
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         { provide: RESENAS_PORT, useValue: { publica, lista: vi.fn() } },
       ],
     });
@@ -317,6 +384,7 @@ describe('PublicaResena', () => {
     TestBed.configureTestingModule({
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         { provide: RESENAS_PORT, useValue: { publica, lista: vi.fn() } },
       ],
     });
@@ -338,6 +406,7 @@ describe('listas guardadas', () => {
     TestBed.configureTestingModule({
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         { provide: FAVORITOS_PORT, useValue: { lista } },
         { provide: HISTORIAL_PORT, useValue: { lista } },
       ],

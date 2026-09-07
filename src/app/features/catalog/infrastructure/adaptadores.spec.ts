@@ -195,24 +195,14 @@ describe('CestaHttpAdapter', () => {
     expect(resultado.ok && resultado.valor).toEqual(['a', 'b']);
   });
 
-  /** El backend FIJA la cantidad, no la suma: hay que mandar el total resultante. */
-  it('suma a lo que ya había en esa línea', async () => {
-    const promesa = TestBed.inject(CestaHttpAdapter).anade({
-      productId: 'p1',
-      slug: 'gorro',
-      title: 'Gorro',
-      unitPriceSource: 10,
-      sourceCurrency: 'EUR',
-      quantity: 2,
-    });
-    http.expectOne(`${BASE}/api/me/cart`).flush([{ productId: 'p1', quantity: 3 }]);
-    await cedeElTurno();
-    const guardado = http.expectOne((r) => r.method === 'PUT');
-    expect(guardado.request.body.quantity).toBe(5);
-    // «Sin variante» viaja como ausencia del campo: la cadena vacía no parsea como identificador.
-    expect(guardado.request.body.variantId).toBeUndefined();
-    guardado.flush([]);
-    expect((await promesa).ok).toBe(true);
+  /**
+   * Este adaptador solo LEE. Escribía —un `PUT /me/cart` propio— y por eso había dos cestas: la que
+   * llenaba el catálogo y la que pintaba la aplicación, que no se enteraba de nada. Añadir es del
+   * contexto «cart» y va por su puerto público.
+   */
+  it('no ofrece ninguna forma de escribir en la cesta', () => {
+    const adaptador = TestBed.inject(CestaHttpAdapter) as unknown as Record<string, unknown>;
+    expect(adaptador['anade']).toBeUndefined();
   });
 });
 

@@ -225,7 +225,12 @@ export class VistaRapida {
   protected readonly anadiendo = signal(false);
 
   protected readonly datos = resource({
-    params: () => ({ slug: this.slug(), idioma: this.preferencias.idioma() }),
+    // La moneda entra en la lectura por lo mismo que el idioma: el precio lo pone el backend.
+    params: () => ({
+      slug: this.slug(),
+      idioma: this.preferencias.idioma(),
+      moneda: this.preferencias.moneda(),
+    }),
     loader: async ({ params }) => {
       if (!params.slug) {
         return null;

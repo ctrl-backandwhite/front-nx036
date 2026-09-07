@@ -13,6 +13,21 @@ import { PanelDeOrigen } from './admin/panel-de-origen';
 import { DesgloseEditable } from './admin/desglose-editable';
 import { FotosDeVariante } from './admin/fotos-de-variante';
 import { APLICACION_DEL_CATALOGO } from '../../catalog.providers';
+import { ANADIR_AL_CARRITO_PORT } from '@features/cart/domain/port/carrito-compartido.port';
+
+/**
+ * La cesta es de OTRO contexto: aquí solo se conoce su puerto público, que es por donde el catálogo mete
+ * lo que se añade. Antes escribía por su cuenta contra el backend y la cesta de la aplicación —la que
+ * cuenta la insignia y pinta el carrito— no se enteraba; el doble mantiene esa frontera visible.
+ */
+const CESTA_DE_OTRO_CONTEXTO = {
+  provide: ANADIR_AL_CARRITO_PORT,
+  useValue: {
+    unidades: () => 0,
+    anade: async () => ({ estado: 'anadido', sugiereAhorroDeEnvio: false }),
+    abreElCajon: () => undefined,
+  },
+};
 
 function ficha(cambios: Partial<FichaDeProducto> = {}): FichaDeProducto {
   return {
@@ -45,7 +60,8 @@ describe('PanelDeOrigen', () => {
     const vista = await render(PanelDeOrigen, {
       inputs: { ficha: entrada },
       on: { cambiada, borrada },
-      providers: [...APLICACION_DEL_CATALOGO, { provide: EDICION_DE_FICHA_PORT, useValue: puerto }],
+      providers: [...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO, { provide: EDICION_DE_FICHA_PORT, useValue: puerto }],
     });
     return { vista, cambiada, borrada };
   }
@@ -143,6 +159,7 @@ describe('DesgloseEditable', () => {
       on: { cambiado },
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         { provide: EDICION_DE_FICHA_PORT, useValue: { guardaImporteEnYuanes: guarda } },
       ],
     });
@@ -233,6 +250,7 @@ describe('AccionesDeAdmin', () => {
     TestBed.configureTestingModule({
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         AccionesDeAdmin,
         { provide: EDICION_DE_FICHA_PORT, useValue: {} },
       ],
@@ -252,6 +270,7 @@ describe('AccionesDeAdmin', () => {
     TestBed.configureTestingModule({
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         AccionesDeAdmin,
         { provide: EDICION_DE_FICHA_PORT, useValue: { borraImagen } },
       ],
@@ -272,6 +291,7 @@ describe('AccionesDeAdmin', () => {
     TestBed.configureTestingModule({
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         AccionesDeAdmin,
         { provide: EDICION_DE_FICHA_PORT, useValue: { reordenaImagenes } },
       ],
@@ -288,6 +308,7 @@ describe('AccionesDeAdmin', () => {
     TestBed.configureTestingModule({
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         AccionesDeAdmin,
         { provide: EDICION_DE_FICHA_PORT, useValue: { anadeImagen } },
       ],
@@ -305,6 +326,7 @@ describe('AccionesDeAdmin', () => {
     TestBed.configureTestingModule({
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         AccionesDeAdmin,
         { provide: EDICION_DE_FICHA_PORT, useValue: { borraVideo, borraValorDeVariante } },
       ],

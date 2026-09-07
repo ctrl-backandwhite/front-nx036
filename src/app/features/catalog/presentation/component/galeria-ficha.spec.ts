@@ -87,9 +87,16 @@ describe('GaleriaFicha', () => {
     const botonDelVideo = vista.container.querySelector<HTMLElement>('button:has(video)');
     await userEvent.click(botonDelVideo!);
     vista.fixture.detectChanges();
-    const reproductor = vista.container.querySelector('video[controls]');
+    const reproductor = vista.container.querySelector<HTMLVideoElement>('video[controls]');
     expect(reproductor).not.toBeNull();
-    expect(reproductor?.hasAttribute('muted')).toBe(true);
+
+    /* Se mira la PROPIEDAD, no el atributo, y la diferencia no es teórica: así estaba antes y por eso
+     * esta prueba daba verde mientras los vídeos sonaban. Angular escribe `muted` como atributo, y el
+     * navegador solo lo consulta al crear el elemento; como la dirección llega por enlace, para
+     * entonces ya es tarde. Medido en el navegador: atributo puesto, `video.muted` en false y el
+     * volumen al máximo. Lo que hay que certificar es que no suena, no que la palabra esté escrita. */
+    expect(reproductor?.muted, 'el vídeo NO está mudo').toBe(true);
+    expect(reproductor?.volume, 'el vídeo conserva volumen').toBe(0);
   });
 
   it('con una sola foto no ofrece flechas ni contador', async () => {

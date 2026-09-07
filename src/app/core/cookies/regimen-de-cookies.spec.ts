@@ -5,7 +5,7 @@ import {
   escribeDecision,
   leeDecision,
   regimenPara,
-} from './consentimiento-de-cookies';
+} from './regimen-de-cookies';
 
 describe('regimenPara', () => {
   it('reconoce el Espacio Económico Europeo y Suiza como RGPD', () => {

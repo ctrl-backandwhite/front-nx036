@@ -7,6 +7,7 @@ import { creaError } from '@shared/error/app-error';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
 import { CATALOGO_PORT } from '../../domain/port/catalogo.port';
 import { CESTA_PORT } from '../../domain/port/cesta.port';
+import { ANADIR_AL_CARRITO_PORT } from '@features/cart/domain/port/carrito-compartido.port';
 import { FichaDeProducto } from '../../domain/model/producto';
 import { VistaRapida } from './vista-rapida';
 import { APLICACION_DEL_CATALOGO } from '../../catalog.providers';
@@ -41,9 +42,19 @@ function ficha(cambios: Partial<FichaDeProducto> = {}): FichaDeProducto {
 }
 
 async function monta(
-  opciones: { devuelve?: unknown; anade?: ReturnType<typeof vi.fn>; slug?: string | null } = {},
+  opciones: {
+    devuelve?: unknown;
+    /** Lo que contesta la cesta del OTRO contexto, que es quien resuelve la variante. */
+    respuestaDeLaCesta?: 'anadido' | 'sin-existencias';
+    slug?: string | null;
+  } = {},
 ) {
-  const anade = opciones.anade ?? vi.fn().mockResolvedValue(exito(undefined));
+  const anade = vi
+    .fn()
+    .mockResolvedValue({
+      estado: opciones.respuestaDeLaCesta ?? 'anadido',
+      sugiereAhorroDeEnvio: false,
+    });
   const cierra = vi.fn();
   const vista = await render(VistaRapida, {
     inputs: { slug: opciones.slug === undefined ? 'gorro' : opciones.slug },
@@ -55,7 +66,12 @@ async function monta(
         provide: CATALOGO_PORT,
         useValue: { ficha: async () => opciones.devuelve ?? exito(ficha()) },
       },
-      { provide: CESTA_PORT, useValue: { anade, productosQueLleva: vi.fn() } },
+      { provide: CESTA_PORT, useValue: { productosQueLleva: vi.fn() } },
+      // Meter en la cesta va por el puerto público de «cart»: es la MISMA cesta que cuenta la insignia.
+      {
+        provide: ANADIR_AL_CARRITO_PORT,
+        useValue: { unidades: () => 0, anade, abreElCajon: vi.fn() },
+      },
     ],
   });
   await vista.fixture.whenStable();
@@ -97,13 +113,20 @@ describe('VistaRapida', () => {
     expect(vista.fixture.debugElement.injector.get(AvisosStore).avisos()[0].tipo).toBe('success');
   });
 
-  /** Añadir a ciegas acaba en pedidos con la talla equivocada. */
-  it('sin variantes disponibles avisa y no añade', async () => {
+  /**
+   * Quién resuelve la variante es la CESTA, que ya pide la ficha recortada a lo que necesita. Aquí se
+   * comprueba lo que le toca a esta pantalla: contar en sus palabras que no queda ninguna, para que
+   * quien compra sepa que tiene que elegir otra en la ficha. Añadir a ciegas acaba en pedidos con la
+   * talla equivocada.
+   */
+  it('avisa cuando la cesta responde que no queda ninguna variante', async () => {
     const agotado = ficha({ variantes: [{ id: 'v', existencias: 0, opciones: {}, activa: true }] });
-    const { vista, anade } = await monta({ devuelve: exito(agotado) });
+    const { vista } = await monta({
+      devuelve: exito(agotado),
+      respuestaDeLaCesta: 'sin-existencias',
+    });
     await userEvent.click(vista.container.querySelector<HTMLElement>('button.btn-primary')!);
     await vista.fixture.whenStable();
-    expect(anade).not.toHaveBeenCalled();
     expect(vista.fixture.debugElement.injector.get(AvisosStore).avisos()[0].tipo).toBe('error');
   });
 

@@ -16,10 +16,26 @@ import { CESTA_PORT } from '../../domain/port/cesta.port';
 import { FAVORITOS_PORT } from '../../domain/port/favoritos.port';
 import { ResumenDeProducto } from '../../domain/model/producto';
 import { APLICACION_DEL_CATALOGO } from '../../catalog.providers';
+import { ANADIR_AL_CARRITO_PORT } from '@features/cart/domain/port/carrito-compartido.port';
+
+/**
+ * La cesta es de OTRO contexto: aquí solo se conoce su puerto público, que es por donde el catálogo mete
+ * lo que se añade. Antes escribía por su cuenta contra el backend y la cesta de la aplicación —la que
+ * cuenta la insignia y pinta el carrito— no se enteraba; el doble mantiene esa frontera visible.
+ */
+const CESTA_DE_OTRO_CONTEXTO = {
+  provide: ANADIR_AL_CARRITO_PORT,
+  useValue: {
+    unidades: () => 0,
+    anade: async () => ({ estado: 'anadido', sugiereAhorroDeEnvio: false }),
+    abreElCajon: () => undefined,
+  },
+};
 
 /** La cuadrícula monta tarjetas, y una tarjeta habla con tres puertos: aquí van sus dobles. */
 const PUERTOS_DE_LA_TARJETA = [
   ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
   provideRouter([]),
   { provide: CATALOGO_PORT, useValue: { ficha: espia.fn() } },
   { provide: CESTA_PORT, useValue: { anade: espia.fn(), productosQueLleva: espia.fn() } },
@@ -412,7 +428,8 @@ describe('FilaListado', () => {
   it('enseña el precio ya formateado por el backend', async () => {
     await render(FilaListado, {
       inputs: { producto: producto() },
-      providers: [...APLICACION_DEL_CATALOGO, provideRouter([])],
+      providers: [...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO, provideRouter([])],
     });
     expect(screen.getByText('9,90 €')).toBeInTheDocument();
   });
@@ -420,7 +437,8 @@ describe('FilaListado', () => {
   it('sin precio de venta pinta un guión, no el coste del proveedor', async () => {
     await render(FilaListado, {
       inputs: { producto: producto({ precio: {} }) },
-      providers: [...APLICACION_DEL_CATALOGO, provideRouter([])],
+      providers: [...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO, provideRouter([])],
     });
     expect(screen.getByText('—')).toBeInTheDocument();
   });
@@ -430,7 +448,8 @@ describe('CuadriculaProductos', () => {
   it('mientras carga enseña siluetas, no un vacío', async () => {
     const vista = await render(CuadriculaProductos, {
       inputs: { productos: [], cargando: true, cuantosHuecos: 4 },
-      providers: [...APLICACION_DEL_CATALOGO, provideRouter([])],
+      providers: [...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO, provideRouter([])],
     });
     expect(vista.container.querySelectorAll('.skeleton').length).toBeGreaterThan(0);
   });
@@ -438,7 +457,8 @@ describe('CuadriculaProductos', () => {
   it('sin resultados lo dice', async () => {
     const vista = await render(CuadriculaProductos, {
       inputs: { productos: [], cargando: false },
-      providers: [...APLICACION_DEL_CATALOGO, provideRouter([])],
+      providers: [...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO, provideRouter([])],
     });
     expect(vista.container.querySelector('.card')).not.toBeNull();
   });

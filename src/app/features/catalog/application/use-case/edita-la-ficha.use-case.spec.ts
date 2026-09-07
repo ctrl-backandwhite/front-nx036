@@ -4,6 +4,21 @@ import { exito } from '@shared/result/result';
 import { EDICION_DE_FICHA_PORT } from '../../domain/port/edicion-de-ficha.port';
 import { EditaLaFicha } from './edita-la-ficha.use-case';
 import { APLICACION_DEL_CATALOGO } from '../../catalog.providers';
+import { ANADIR_AL_CARRITO_PORT } from '@features/cart/domain/port/carrito-compartido.port';
+
+/**
+ * La cesta es de OTRO contexto: aquí solo se conoce su puerto público, que es por donde el catálogo mete
+ * lo que se añade. Antes escribía por su cuenta contra el backend y la cesta de la aplicación —la que
+ * cuenta la insignia y pinta el carrito— no se enteraba; el doble mantiene esa frontera visible.
+ */
+const CESTA_DE_OTRO_CONTEXTO = {
+  provide: ANADIR_AL_CARRITO_PORT,
+  useValue: {
+    unidades: () => 0,
+    anade: async () => ({ estado: 'anadido', sugiereAhorroDeEnvio: false }),
+    abreElCajon: () => undefined,
+  },
+};
 
 /**
  * El editor reenvía al puerto, pero es la ÚNICA puerta por la que se escribe una ficha: si mañana hay
@@ -28,7 +43,8 @@ describe('EditaLaFicha', () => {
   beforeEach(() => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
-      providers: [...APLICACION_DEL_CATALOGO, { provide: EDICION_DE_FICHA_PORT, useValue: puerto }],
+      providers: [...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO, { provide: EDICION_DE_FICHA_PORT, useValue: puerto }],
     });
     editor = TestBed.inject(EditaLaFicha);
   });

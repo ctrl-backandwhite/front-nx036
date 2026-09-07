@@ -5,6 +5,10 @@ import { AlmacenLocalAdapter } from '@core/storage/almacen-local.adapter';
 import { AlmacenMemoriaAdapter } from '@core/storage/almacen-memoria.adapter';
 import { ALTA_EN_EL_BOLETIN } from '@core/newsletter/alta-en-el-boletin.port';
 import { AltaEnElBoletinHttpAdapter } from '@core/newsletter/alta-en-el-boletin-http.adapter';
+import { PAIS_DEL_DISPOSITIVO_PORT } from '@core/cookies/pais-del-dispositivo.port';
+import { PaisDelDispositivoAdapter } from '@core/cookies/pais-del-dispositivo.adapter';
+import { ConsentimientoDeCookiesStore } from '@core/cookies/consentimiento-de-cookies.store';
+import { DecideSobreCookies } from '@core/cookies/decide-sobre-cookies';
 
 /**
  * La raíz de composición: el ÚNICO sitio donde se decide qué implementación cumple cada puerto.
@@ -24,6 +28,19 @@ export function proveeNucleo(): EnvironmentProviders {
      * es lo que le pasaba al formulario del pie, que no llegaba a ninguna parte. */
     AltaEnElBoletinHttpAdapter,
     { provide: ALTA_EN_EL_BOLETIN, useFactory: () => inject(AltaEnElBoletinHttpAdapter) },
+
+    /* El consentimiento de cookies va en la RAÍZ porque el aviso se pinta por encima de todo: el
+     * escaparate, el panel y las pantallas sueltas de acceso, que ni siquiera llevan marco. Vivía
+     * colgado de las rutas de «platform», así que desde el armazón —donde tiene que montarse— su
+     * puerto no existía («NG0201: No provider found for InjectionToken PaisDelDispositivoPort»). Es el
+     * mismo motivo por el que el alta en el boletín acabó aquí arriba.
+     *
+     * Y no es un detalle de arquitectura: sin este aviso montado no hay forma de aceptar ni de
+     * rechazar nada, que es incumplir el RGPD en producción. */
+    PaisDelDispositivoAdapter,
+    { provide: PAIS_DEL_DISPOSITIVO_PORT, useFactory: () => inject(PaisDelDispositivoAdapter) },
+    ConsentimientoDeCookiesStore,
+    DecideSobreCookies,
 
     AlmacenLocalAdapter,
     AlmacenMemoriaAdapter,

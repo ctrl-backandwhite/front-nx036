@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { esNavegador } from '@core/platform/plataforma';
-import { PaisDelDispositivoPort } from '../domain/port/pais-del-dispositivo.port';
+import { PaisDelDispositivoPort } from './pais-del-dispositivo.port';
 
 /**
  * El país sacado del idioma del navegador («es-ES» → «ES»).

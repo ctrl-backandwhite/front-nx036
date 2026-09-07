@@ -14,6 +14,21 @@ import { SeccionesPortada } from './secciones-portada';
 import { FondoHero } from './fondo-hero';
 import { CartelPromociones } from './cartel-promociones';
 import { APLICACION_DEL_CATALOGO } from '../../catalog.providers';
+import { ANADIR_AL_CARRITO_PORT } from '@features/cart/domain/port/carrito-compartido.port';
+
+/**
+ * La cesta es de OTRO contexto: aquí solo se conoce su puerto público, que es por donde el catálogo mete
+ * lo que se añade. Antes escribía por su cuenta contra el backend y la cesta de la aplicación —la que
+ * cuenta la insignia y pinta el carrito— no se enteraba; el doble mantiene esa frontera visible.
+ */
+const CESTA_DE_OTRO_CONTEXTO = {
+  provide: ANADIR_AL_CARRITO_PORT,
+  useValue: {
+    unidades: () => 0,
+    anade: async () => ({ estado: 'anadido', sugiereAhorroDeEnvio: false }),
+    abreElCajon: () => undefined,
+  },
+};
 
 function producto(id: string): ResumenDeProducto {
   return {
@@ -40,6 +55,7 @@ describe('SeccionesPortada', () => {
     return render(SeccionesPortada, {
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         ...PROVEEDORES_DE_TARJETA,
         { provide: PORTADA_PORT, useValue: { secciones } },
       ],
@@ -82,6 +98,7 @@ describe('FondoHero', () => {
     const vista = await render(FondoHero, {
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         {
           provide: PORTADA_PORT,
           useValue: {
@@ -107,6 +124,7 @@ describe('FondoHero', () => {
     const vista = await render(FondoHero, {
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         {
           provide: PORTADA_PORT,
           useValue: {
@@ -131,6 +149,7 @@ describe('CartelPromociones', () => {
     const vista = await render(CartelPromociones, {
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         provideRouter([]),
         { provide: PROMOCIONES_PORT, useValue: { vivas } },
       ],
@@ -212,6 +231,7 @@ describe('SeccionesPortada, más a fondo', () => {
     const vista = await render(SeccionesPortada, {
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         ...PROVEEDORES_DE_TARJETA,
         {
           provide: PORTADA_PORT,
@@ -247,6 +267,7 @@ describe('SeccionesPortada, más a fondo', () => {
     const vista = await render(SeccionesPortada, {
       providers: [
         ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
         ...PROVEEDORES_DE_TARJETA,
         {
           provide: PORTADA_PORT,

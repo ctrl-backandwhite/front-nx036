@@ -183,4 +183,53 @@ describe('AnadeAlCarrito', () => {
     expect(ficha.slugPedido).toBe('gorro-de-lana');
     expect(ficha.idiomaPedido).toBeTruthy();
   });
+
+  /**
+   * Quien añade DESDE LA FICHA ya ha elegido color, talla y unidades. Volver a resolverlo aquí sería
+   * pedir la ficha para redescubrir lo que se acaba de decidir —una espera antes de que la cesta se
+   * mueva— y, si esa variante se hubiera agotado entretanto, el resolutor elegiría OTRA: a la cesta
+   * iría una talla que nadie pidió.
+   */
+  it('con la elección hecha respeta variante y unidades, y NO vuelve a pedir la ficha', async () => {
+    const { ficha, caso, estado } = monta();
+
+    const resultado = await caso.ejecuta({
+      ...producto,
+      precioMostrado: 9.9,
+      divisaMostrada: 'EUR',
+      eleccion: {
+        varianteId: 'v7',
+        sku: 'SKU-7',
+        etiquetaDeVariante: 'Negro / L',
+        precioUnitario: 12.5,
+        cantidad: 4,
+        pedidoMinimo: 2,
+      },
+    });
+
+    expect(resultado.estado).toBe('anadido');
+    expect(ficha.slugPedido).toBe('');
+    const linea = estado.lineas()[0];
+    expect(linea.variantId).toBe('v7');
+    expect(linea.sku).toBe('SKU-7');
+    expect(linea.etiquetaDeVariante).toBe('Negro / L');
+    expect(linea.cantidad).toBe(4);
+    expect(linea.pedidoMinimo).toBe(2);
+    // El precio de la variante manda sobre el del encabezado, que puede venir de un tramo por cantidad.
+    expect(linea.precioUnitarioOrigen).toBe(12.5);
+    expect(linea.divisaDeOrigen).toBe('EUR');
+  });
+
+  /** Con pedido mínimo mayor que uno, la segunda unidad no es una decisión de quien compra. */
+  it('con la elección hecha, el ahorro de envío sigue la regla del pedido mínimo', async () => {
+    const { caso } = monta();
+    const base = { ...producto, precioMostrado: 5, divisaMostrada: 'EUR' };
+
+    expect(
+      (await caso.ejecuta({ ...base, eleccion: { cantidad: 1, pedidoMinimo: 1 } })).sugiereAhorroDeEnvio,
+    ).toBe(true);
+    expect(
+      (await caso.ejecuta({ ...base, eleccion: { cantidad: 1, pedidoMinimo: 5 } })).sugiereAhorroDeEnvio,
+    ).toBe(false);
+  });
 });

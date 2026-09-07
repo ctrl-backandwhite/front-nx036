@@ -171,9 +171,13 @@ export class SeccionesPortada {
   protected readonly porSeccion = POR_SECCION;
   protected readonly huecos = Array.from({ length: POR_SECCION }, (_, i) => i);
 
-  /** El idioma entra en la petición: al cambiarlo, los títulos de las hileras se vuelven a pedir. */
+  /**
+   * El idioma y la MONEDA entran en la petición: al cambiar cualquiera de los dos, las hileras se
+   * vuelven a pedir. La moneda hace falta porque cada tarjeta trae su precio ya calculado por el
+   * backend; sin ella la portada se quedaba con los importes de la divisa anterior.
+   */
   protected readonly portada = resource({
-    params: () => ({ idioma: this.preferencias.idioma() }),
+    params: () => ({ idioma: this.preferencias.idioma(), moneda: this.preferencias.moneda() }),
     loader: async () => {
       const resultado = await this.puerto.secciones(POR_SECCION);
       // Una portada que no carga no puede romper la página: se pinta lo que haya y ya está.

@@ -3,13 +3,13 @@ import { ALMACEN_LOCAL, AlmacenPort } from '@core/storage/almacen.port';
 import {
   CLAVE_DEL_CONSENTIMIENTO,
   VERSION_DEL_CONSENTIMIENTO,
-} from '../../domain/model/consentimiento-de-cookies';
+} from './regimen-de-cookies';
 import {
   PAIS_DEL_DISPOSITIVO_PORT,
   PaisDelDispositivoPort,
-} from '../../domain/port/pais-del-dispositivo.port';
-import { ConsentimientoDeCookiesStore } from '../state/consentimiento-de-cookies.store';
-import { DecideSobreCookies } from './decide-sobre-cookies.use-case';
+} from './pais-del-dispositivo.port';
+import { ConsentimientoDeCookiesStore } from './consentimiento-de-cookies.store';
+import { DecideSobreCookies } from './decide-sobre-cookies';
 
 /** Un almacén en memoria: el contrato dice que NUNCA lanza, ni siquiera en modo privado. */
 class AlmacenEnMemoria implements AlmacenPort {

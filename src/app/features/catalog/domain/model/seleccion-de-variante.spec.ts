@@ -9,7 +9,6 @@ import {
   impedimentoParaAnadir,
   minimoDelSelector,
   precioDestacado,
-  primeraDisponible,
   reajustaAlCambiarDeColor,
   tramoAplicable,
   unidadesQueFaltan,
@@ -254,7 +253,7 @@ describe('reajustaAlCambiarDeColor', () => {
   });
 });
 
-describe('etiquetaDeVariante y primeraDisponible', () => {
+describe('etiquetaDeVariante', () => {
   it('junta las opciones para que la cesta enseñe qué se lleva', () => {
     expect(etiquetaDeVariante(variante({ opciones: { Color: 'Rojo', Talla: 'XL' } }))).toBe(
       'Rojo / XL',
@@ -267,14 +266,5 @@ describe('etiquetaDeVariante y primeraDisponible', () => {
 
   it('sin opciones tampoco', () => {
     expect(etiquetaDeVariante(variante({ opciones: {} }))).toBeUndefined();
-  });
-
-  it('la primera disponible salta las agotadas y las desactivadas', () => {
-    const variantes = [
-      variante({ id: 'a', existencias: 0 }),
-      variante({ id: 'b', activa: false, existencias: 9 }),
-      variante({ id: 'c', existencias: 1 }),
-    ];
-    expect(primeraDisponible(variantes)?.id).toBe('c');
   });
 });

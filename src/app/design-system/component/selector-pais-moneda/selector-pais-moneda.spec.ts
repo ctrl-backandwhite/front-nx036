@@ -2,7 +2,6 @@ import { TestBed } from '@angular/core/testing';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { PreferenciasService } from '@core/preferences/preferencias';
-import { Region } from '@shared/i18n/regions';
 import { SelectorPaisMoneda } from './selector-pais-moneda';
 
 /**
@@ -25,10 +24,7 @@ describe('SelectorPaisMoneda', () => {
    */
   it('elegir una región fija a la vez el idioma y la moneda', async () => {
     const usuario = userEvent.setup({ delay: null });
-    const elegidas: Region[] = [];
-    const { fixture } = await render(SelectorPaisMoneda, {
-      on: { elegida: (r: Region) => elegidas.push(r) },
-    });
+    const { fixture } = await render(SelectorPaisMoneda);
     const preferencias = TestBed.inject(PreferenciasService);
     // Se parte de una región distinta a la que se va a elegir, para que el cambio se note de verdad.
     preferencias.cambiaIdioma('es');
@@ -38,11 +34,11 @@ describe('SelectorPaisMoneda', () => {
     await usuario.click(screen.getAllByRole('button')[0]);
     await usuario.click(screen.getByRole('button', { name: /United Kingdom/ }));
 
+    // El cambio se publica en las preferencias y NADA MÁS: no hay salida que el marco de página tenga
+    // que acordarse de atar. Quien pinta precios declara que depende de `moneda()` y se vuelve a pedir
+    // solo; era la salida sin atar lo que dejaba los importes en la divisa anterior hasta recargar.
     expect(preferencias.idioma()).toBe('en');
     expect(preferencias.moneda()).toBe('GBP');
-    // Se anuncia siempre: quien lo monta es quien sabe si hay que volver a pedir los textos al backend.
-    expect(elegidas).toHaveLength(1);
-    expect(elegidas[0].countryCode).toBe('GB');
   }, ESPERA_LARGA);
 
   it('el buscador acota la lista', async () => {

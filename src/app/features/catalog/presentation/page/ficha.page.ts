@@ -188,7 +188,14 @@ export class FichaPage {
   private readonly noEncontrada = signal(false);
 
   private readonly datos = resource({
-    params: () => ({ slug: this.slug(), idioma: this.preferencias.idioma() }),
+    // La MONEDA entra en la lectura igual que el idioma: los importes de la ficha —el destacado, el de
+    // cada variante y los tramos por cantidad— los calcula el backend, así que cambiar de país obliga a
+    // volver a pedirla. Sin la moneda aquí, la ficha seguía con los precios de la divisa anterior.
+    params: () => ({
+      slug: this.slug(),
+      idioma: this.preferencias.idioma(),
+      moneda: this.preferencias.moneda(),
+    }),
     loader: async ({ params }) => {
       const resultado = await this.abre.ejecuta(params.slug);
       this.noEncontrada.set(!resultado.ok && resultado.error.tipo === 'no-encontrado');

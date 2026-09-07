@@ -98,13 +98,25 @@ import { AccionesDeFicha } from './ficha-acciones';
             <!--
               El gestor de variantes y la pestaña de precios no se ven al abrir la ficha: viven en su
               pestaña. Diferirlos deja fuera del arranque su tabla editable y su glosario.
+
+              El disparador es «immediate» y NO puede faltar. Estos dos eran los únicos bloques
+              diferidos del proyecto sin disparador, y el resultado es que las pestañas «Inventario» y
+              «Precios» llegaban VACÍAS: con la hidratación incremental encendida, un bloque diferido
+              sin nada que lo dispare no se materializa nunca. No se podían gestionar ni las variantes
+              ni los tramos de precio, y sin un error por ningún lado.
+
+              «immediate» es justo lo que se quiere aquí: quien decide cuándo aparece es la pestaña —el
+              bloque no existe hasta que se abre—, así que en cuanto existe hay que traerlo. El bloque
+              diferido se queda para que su código siga viajando en un fragmento aparte, que era el
+              motivo de ponerlo.
             -->
-            @defer {
+            @defer (on immediate) {
               <nx-gestor-de-variantes [productoId]="id()" (cambiado)="ficha.reload()" />
             }
           }
           @case ('pricing') {
-            @defer {
+            <!-- Con disparador, por lo mismo que arriba: sin él esta pestaña no pintaba nada. -->
+            @defer (on immediate) {
             <nx-precios-de-ficha
               [ficha]="producto"
               [idioma]="idioma()"

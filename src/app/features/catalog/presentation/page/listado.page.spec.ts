@@ -10,6 +10,7 @@ import { creaError } from '@shared/error/app-error';
 import { RECUPERADOR_DE_SESION } from '@core/auth/recuperador-de-sesion.port';
 import { ALMACEN_LOCAL } from '@core/storage/almacen.port';
 import { Plataforma } from '@core/platform/plataforma';
+import { PreferenciasService } from '@core/preferences/preferencias';
 import { CATALOGO_PORT, TAXONOMIA_PORT } from '../../domain/port/catalogo.port';
 import { CESTA_PORT } from '../../domain/port/cesta.port';
 import { FAVORITOS_PORT } from '../../domain/port/favoritos.port';
@@ -17,6 +18,21 @@ import { PaginaDeProductos } from '../../domain/model/producto';
 import { ListadoStore } from '../../application/state/listado.store';
 import { ListadoPage } from './listado.page';
 import { APLICACION_DEL_CATALOGO } from '../../catalog.providers';
+import { ANADIR_AL_CARRITO_PORT } from '@features/cart/domain/port/carrito-compartido.port';
+
+/**
+ * La cesta es de OTRO contexto: aquí solo se conoce su puerto público, que es por donde el catálogo mete
+ * lo que se añade. Antes escribía por su cuenta contra el backend y la cesta de la aplicación —la que
+ * cuenta la insignia y pinta el carrito— no se enteraba; el doble mantiene esa frontera visible.
+ */
+const CESTA_DE_OTRO_CONTEXTO = {
+  provide: ANADIR_AL_CARRITO_PORT,
+  useValue: {
+    unidades: () => 0,
+    anade: async () => ({ estado: 'anadido', sugiereAhorroDeEnvio: false }),
+    abreElCajon: () => undefined,
+  },
+};
 
 /**
  * Doble CONTROLABLE del observador de visibilidad, que sustituye al de `test-setup.ts`.
@@ -129,6 +145,7 @@ async function monta(
   const vista = await render(ListadoPage, {
     providers: [
       ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
       provideRouter([{ path: '**', children: [] }]),
       { provide: RECUPERADOR_DE_SESION, useValue: { asegura: async () => undefined } },
       {
@@ -189,6 +206,25 @@ describe('ListadoPage', () => {
     await userEvent.click(refrescar);
     await vista.fixture.whenStable();
     expect(busca.mock.calls.length).toBeGreaterThan(antes);
+    expect(busca.mock.calls.at(-1)?.[0].pagina).toBe(0);
+  });
+
+  /**
+   * EL FALLO QUE ARREGLÓ ESTA PRUEBA. Los precios los calcula el BACKEND y llegan ya formateados en la
+   * divisa de la cabecera, pero la llave de la memoria del listado no incluía la moneda: cambiar de país
+   * dejaba las tarjetas con los importes de la divisa anterior —y encima los daba por buenos al volver
+   * de una ficha— hasta que alguien recargaba la página a mano.
+   */
+  it('cambiar de moneda vuelve a pedir el listado desde la primera página', async () => {
+    const { vista, busca } = await monta();
+    const antes = busca.mock.calls.length;
+
+    TestBed.inject(PreferenciasService).cambiaMoneda('MXN');
+    vista.fixture.detectChanges();
+
+    // La recarga la dispara un EFECTO, y lo que arranca dentro de un efecto no lo espera `whenStable`:
+    // hay que esperar al hecho —que la consulta haya salido—, no a un turno concreto del reloj.
+    await vi.waitFor(() => expect(busca.mock.calls.length).toBeGreaterThan(antes));
     expect(busca.mock.calls.at(-1)?.[0].pagina).toBe(0);
   });
 

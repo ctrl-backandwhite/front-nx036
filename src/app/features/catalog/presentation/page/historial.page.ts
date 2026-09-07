@@ -4,6 +4,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faClockRotateLeft } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { PreferenciasService } from '@core/preferences/preferencias';
+import { AlternaFavorito } from '../../application/use-case/alterna-favorito.use-case';
 import { ListaHistorial } from '../../application/use-case/lista-guardados.use-case';
 import { RECUPERADOR_DE_SESION } from '@core/auth/recuperador-de-sesion.port';
 import { CuadriculaProductos } from '../component/cuadricula-productos';
@@ -48,6 +49,7 @@ import { Paginador } from '../component/paginador';
 })
 export class HistorialPage {
   private readonly casoDeUso = inject(ListaHistorial);
+  private readonly favoritos = inject(AlternaFavorito);
   private readonly preferencias = inject(PreferenciasService);
 
   protected readonly t = inject(TraduccionService).t;
@@ -70,8 +72,10 @@ export class HistorialPage {
   protected readonly totalDePaginas = () => Math.max(1, this.lista.value()?.totalDePaginas ?? 1);
 
   constructor() {
-    // Saber quién mira es lo que enciende el corazón de cada tarjeta; sin ello la lista se pintaría
-    // entera sin marcar. Lo resuelve el NÚCLEO: aquí no se gestiona identidad, solo se pregunta.
-    void inject(RECUPERADOR_DE_SESION).asegura();
+    /* Mismo caso que «Mis favoritos»: sin los identificadores traídos, el corazón sale apagado sobre
+     * productos que SÍ están marcados y al pulsarlo se vuelve a añadir lo que ya estaba. */
+    void inject(RECUPERADOR_DE_SESION)
+      .asegura()
+      .then(() => this.favoritos.carga());
   }
 }

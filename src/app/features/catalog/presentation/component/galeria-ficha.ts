@@ -40,7 +40,14 @@ import { VisorGaleria } from './visor-galeria';
               class="aspect-square w-full border border-base-200 rounded-lg overflow-hidden relative hover:border-primary block"
               [attr.aria-label]="t('product.play_video')"
             >
-              <video [src]="video" muted playsinline class="w-full h-full object-cover"></video>
+              <video
+                [src]="video"
+                [muted]="true"
+                (loadedmetadata)="silencia($event)"
+                (volumechange)="silencia($event)"
+                playsinline
+                class="w-full h-full object-cover"
+              ></video>
               <span class="absolute inset-0 flex items-center justify-center bg-black/30 text-white">
                 <fa-icon [icon]="iconos.play" />
               </span>
@@ -126,8 +133,10 @@ import { VisorGaleria } from './visor-galeria';
               controlsList="nodownload noremoteplayback"
               disableRemotePlayback
               autoplay
-              muted
+              [muted]="true"
               playsinline
+              (loadedmetadata)="silencia($event)"
+              (play)="silencia($event)"
               (volumechange)="silencia($event)"
               class="video-sin-sonido w-full h-full object-contain bg-black"
             ></video>
@@ -275,11 +284,23 @@ export class GaleriaFicha {
     this.elige((this.activa() + paso + total) % total);
   }
 
+  /**
+   * Deja el vídeo mudo, de verdad.
+   *
+   * <p>Escribir `muted` en la plantilla NO BASTA, y es la trampa que dejó sonando los vídeos aunque
+   * pareciera resuelto: Angular lo pone como ATRIBUTO, y el navegador solo mira ese atributo al crear
+   * el elemento. Como la dirección del vídeo llega por enlace, para cuando existe ya es tarde: medido,
+   * el atributo estaba puesto y la propiedad valía `false`, con el volumen al máximo.
+   *
+   * <p>Por eso el silencio se declara por PROPIEDAD —`[muted]="true"`— y además se vuelve a imponer en
+   * cuanto el vídeo tiene metadatos, al empezar a reproducir y si alguien toca el volumen. Se pone el
+   * volumen a cero de paso: hay navegadores donde quitar el mudo recupera el volumen anterior, y
+   * entonces el primer sonido se cuela antes de que este código llegue a reaccionar.
+   */
   protected silencia(evento: Event): void {
     const video = evento.target as HTMLVideoElement;
-    if (!video.muted) {
-      video.muted = true;
-    }
+    video.muted = true;
+    video.volume = 0;
   }
 
   protected empiezaGesto(evento: TouchEvent): void {

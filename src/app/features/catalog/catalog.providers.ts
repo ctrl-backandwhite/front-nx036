@@ -61,6 +61,37 @@ export const APLICACION_DEL_CATALOGO: Provider[] = [
 ];
 
 /**
+ * Lo MÍNIMO del catálogo que necesitan los acompañantes del marco del escaparate: la guía de
+ * bienvenida y la vista rápida de una ficha.
+ *
+ * <p>Existe por un problema de inyección con una única solución razonable. Los dos componentes viven en
+ * el MARCO —salen sobre cualquier pantalla y su estado sobrevive al navegar—, pero `proveeCatalogo()`
+ * cuelga de las rutas del catálogo. Desde el marco, que es su padre, esos proveedores no existen: la
+ * guía reventaba con «NG0201: No provider found for InjectionToken GuiaDeBienvenidaPort» en cuanto
+ * alguien entraba por `/orders` o por `/wallet`.
+ *
+ * <p>La alternativa era subir `proveeCatalogo()` entero al marco, y eso daría un segundo juego de
+ * almacenes —listado, favoritos— por debajo del que ya montan las rutas del catálogo. Aquí se declara
+ * solo lo que los dos acompañantes piden de verdad: cinco proveedores, no veintidós.
+ *
+ * <p>Sigue siendo este fichero y no `app.routes.ts` quien nombra los adaptadores, que es la regla del
+ * contexto: fuera de aquí no aparece ninguna clase de infraestructura.
+ */
+export function proveeAcompanantesDelCatalogo(): EnvironmentProviders {
+  return makeEnvironmentProviders([
+    CatalogoHttpAdapter,
+    { provide: CATALOGO_PORT, useFactory: () => inject(CatalogoHttpAdapter) },
+
+    GuiaDeBienvenidaHttpAdapter,
+    { provide: GUIA_DE_BIENVENIDA_PORT, useFactory: () => inject(GuiaDeBienvenidaHttpAdapter) },
+
+    /* Ya no arrastra el puerto de la cesta: quien añade es el contrato público de «cart», que se
+     * declara en el arranque. Aquí basta con el caso de uso. */
+    AnadeALaCesta,
+  ]);
+}
+
+/**
  * Ata los puertos de «catalog» con sus adaptadores.
  *
  * <p>Es el ÚNICO sitio del contexto donde aparece una clase de infraestructura. Todo lo demás —casos de

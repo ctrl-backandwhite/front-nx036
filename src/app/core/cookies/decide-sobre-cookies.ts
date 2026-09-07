@@ -8,9 +8,9 @@ import {
   escribeDecision,
   leeDecision,
   regimenPara,
-} from '../../domain/model/consentimiento-de-cookies';
-import { PAIS_DEL_DISPOSITIVO_PORT } from '../../domain/port/pais-del-dispositivo.port';
-import { ConsentimientoDeCookiesStore } from '../state/consentimiento-de-cookies.store';
+} from './regimen-de-cookies';
+import { PAIS_DEL_DISPOSITIVO_PORT } from './pais-del-dispositivo.port';
+import { ConsentimientoDeCookiesStore } from './consentimiento-de-cookies.store';
 
 /**
  * Decidir sobre las cookies: arrancar, aceptar, rechazar, ajustar y retirar.

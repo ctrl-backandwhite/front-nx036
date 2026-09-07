@@ -6,9 +6,11 @@ import { exito, fallo } from '@shared/result/result';
 import { creaError } from '@shared/error/app-error';
 import { RECUPERADOR_DE_SESION } from '@core/auth/recuperador-de-sesion.port';
 import { SesionActual } from '@core/auth/sesion-actual';
+import { PreferenciasService } from '@core/preferences/preferencias';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
 import { CATALOGO_PORT } from '../../domain/port/catalogo.port';
 import { CESTA_PORT } from '../../domain/port/cesta.port';
+import { ANADIR_AL_CARRITO_PORT } from '@features/cart/domain/port/carrito-compartido.port';
 import { FAVORITOS_PORT } from '../../domain/port/favoritos.port';
 import { HISTORIAL_PORT } from '../../domain/port/historial.port';
 import { RESENAS_PORT } from '../../domain/port/resenas.port';
@@ -45,11 +47,17 @@ function ficha(cambios: Partial<FichaDeProducto> = {}): FichaDeProducto {
 async function monta(
   opciones: {
     devuelve?: unknown;
-    anade?: ReturnType<typeof vi.fn>;
+    /** Lo que contesta la cesta del otro contexto al meterle la línea. */
+    respuestaDeLaCesta?: 'anadido' | 'sin-existencias';
     esAdministrador?: boolean;
   } = {},
 ) {
-  const anade = opciones.anade ?? vi.fn().mockResolvedValue(exito(undefined));
+  const anade = vi
+    .fn()
+    .mockResolvedValue({
+      estado: opciones.respuestaDeLaCesta ?? 'anadido',
+      sugiereAhorroDeEnvio: false,
+    });
   const vista = await render(FichaPage, {
     inputs: { slug: 'gorro' },
     providers: [
@@ -66,7 +74,12 @@ async function monta(
         },
       },
       { provide: HISTORIAL_PORT, useValue: { anota: vi.fn(), lista: vi.fn() } },
-      { provide: CESTA_PORT, useValue: { anade, productosQueLleva: async () => exito([]) } },
+      { provide: CESTA_PORT, useValue: { productosQueLleva: async () => exito([]) } },
+      // La ficha mete en la MISMA cesta que la insignia de la cabecera: la de «cart», por su puerto.
+      {
+        provide: ANADIR_AL_CARRITO_PORT,
+        useValue: { unidades: () => 0, anade, abreElCajon: vi.fn() },
+      },
       { provide: FAVORITOS_PORT, useValue: { identificadores: async () => exito([]) } },
       {
         provide: RESENAS_PORT,
@@ -114,7 +127,15 @@ describe('FichaPage', () => {
     const anadir = botones.find((b) => b.classList.contains('btn-outline'))!;
     await userEvent.click(anadir);
     await vista.fixture.whenStable();
-    expect(anade).toHaveBeenCalled();
+    // Con la variante ya elegida en la ficha, la cesta recibe la ELECCIÓN entera —variante, unidades y
+    // el precio de esa variante— y no vuelve a resolverla: si lo hiciera podría meter otra talla.
+    expect(anade).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'p1',
+        slug: 'gorro',
+        eleccion: expect.objectContaining({ cantidad: 1 }),
+      }),
+    );
     expect(vista.fixture.debugElement.injector.get(AvisosStore).avisos()[0].tipo).toBe('success');
   });
 
@@ -122,13 +143,67 @@ describe('FichaPage', () => {
    * Confirmar una compra que no existe es peor que no confirmarla: quien se lo cree se va sin comprar.
    */
   it('si la cesta rechaza la línea, no se confirma nada', async () => {
-    const { vista } = await monta({
-      anade: vi.fn().mockResolvedValue(fallo(creaError('error-del-servidor'))),
-    });
+    const { vista } = await monta({ respuestaDeLaCesta: 'sin-existencias' });
     const botones = [...vista.container.querySelectorAll<HTMLElement>('button')];
     await userEvent.click(botones.find((b) => b.classList.contains('btn-outline'))!);
     await vista.fixture.whenStable();
     expect(vista.fixture.debugElement.injector.get(AvisosStore).avisos()[0].tipo).toBe('error');
+  });
+
+  /**
+   * El precio destacado, el de cada variante y los tramos por cantidad los calcula el backend con la
+   * divisa de la cabecera: cambiar de país obliga a volver a pedir la ficha. Sin la moneda en la
+   * lectura, la ficha se quedaba con los importes de la divisa anterior hasta recargar a mano.
+   */
+  it('cambiar de moneda vuelve a pedir la ficha', async () => {
+    const pedidas: string[] = [];
+    const vista = await render(FichaPage, {
+      inputs: { slug: 'gorro' },
+      providers: [
+        ...APLICACION_DEL_CATALOGO,
+        provideRouter([{ path: '**', children: [] }]),
+        { provide: RECUPERADOR_DE_SESION, useValue: { asegura: async () => undefined } },
+        {
+          provide: CATALOGO_PORT,
+          useValue: {
+            ficha: async (slug: string) => {
+              pedidas.push(slug);
+              return exito(ficha());
+            },
+            relacionados: async () => exito([]),
+            especificaciones: async () => exito([]),
+            busca: vi.fn(),
+          },
+        },
+        { provide: HISTORIAL_PORT, useValue: { anota: vi.fn(), lista: vi.fn() } },
+        { provide: CESTA_PORT, useValue: { productosQueLleva: async () => exito([]) } },
+        {
+          provide: ANADIR_AL_CARRITO_PORT,
+          useValue: { unidades: () => 0, anade: vi.fn(), abreElCajon: vi.fn() },
+        },
+        { provide: FAVORITOS_PORT, useValue: { identificadores: async () => exito([]) } },
+        {
+          provide: RESENAS_PORT,
+          useValue: {
+            lista: async () => exito({ items: [], total: 0, media: 0, reparto: {} }),
+            publica: vi.fn(),
+          },
+        },
+        {
+          provide: ANALITICA_DE_PRODUCTO_PORT,
+          useValue: { historicoDePrecios: async () => exito([]), estimacionDeMargen: vi.fn() },
+        },
+        { provide: EDICION_DE_FICHA_PORT, useValue: {} },
+      ],
+    });
+    await vista.fixture.whenStable();
+    const antes = pedidas.length;
+
+    vista.fixture.debugElement.injector.get(PreferenciasService).cambiaMoneda('MXN');
+    vista.fixture.detectChanges();
+    await vista.fixture.whenStable();
+
+    expect(pedidas.length).toBeGreaterThan(antes);
   });
 
   /** Ni el enlace al proveedor ni el código externo pueden llegar a quien compra. */
@@ -183,7 +258,11 @@ describe('FichaPage', () => {
         { provide: HISTORIAL_PORT, useValue: { anota: vi.fn(), lista: vi.fn() } },
         {
           provide: CESTA_PORT,
-          useValue: { anade: vi.fn(), productosQueLleva: async () => exito([]) },
+          useValue: { productosQueLleva: async () => exito([]) },
+        },
+        {
+          provide: ANADIR_AL_CARRITO_PORT,
+          useValue: { unidades: () => 0, anade: vi.fn(), abreElCajon: vi.fn() },
         },
         {
           provide: FAVORITOS_PORT,
@@ -295,7 +374,11 @@ describe('FichaPage', () => {
         { provide: HISTORIAL_PORT, useValue: { anota: vi.fn(), lista: vi.fn() } },
         {
           provide: CESTA_PORT,
-          useValue: { anade: vi.fn(), productosQueLleva: async () => exito([]) },
+          useValue: { productosQueLleva: async () => exito([]) },
+        },
+        {
+          provide: ANADIR_AL_CARRITO_PORT,
+          useValue: { unidades: () => 0, anade: vi.fn(), abreElCajon: vi.fn() },
         },
         { provide: FAVORITOS_PORT, useValue: { identificadores: async () => exito([]) } },
         {

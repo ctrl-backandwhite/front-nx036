@@ -4,7 +4,7 @@ import {
   NADA_ACEPTADO,
   RegimenDeCookies,
   claveDelAviso,
-} from '../../domain/model/consentimiento-de-cookies';
+} from './regimen-de-cookies';
 
 /**
  * Lo que se sabe del consentimiento de cookies, como estado reactivo.
