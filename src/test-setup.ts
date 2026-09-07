@@ -127,3 +127,33 @@ if (typeof Element.prototype.scrollIntoView !== 'function') {
     /* Sin efecto a propósito: ver la nota de arriba. */
   };
 }
+
+/**
+ * Las preferencias vuelven a su estado de fábrica ANTES DE CADA PRUEBA.
+ *
+ * <p>DEFECTO QUE CIERRA ESTO, y costó dos vueltas del corredor de integración: el idioma, la moneda y el
+ * tema viajan en COOKIE, y una cookie sobrevive al fichero de prueba que la escribió. Vitest reutiliza
+ * el mismo DOM simulado para varios ficheros del mismo proceso, así que lo que uno deja puesto se lo
+ * encuentra el siguiente.
+ *
+ * <p>No es teórico. `listado.page.spec.ts` cambia la moneda a MXN para comprobar que el listado se
+ * recarga, y eso ESCRIBE la cookie. Cuando a continuación le tocaba a `ficha.page.spec.ts` en el mismo
+ * proceso, su prueba equivalente arrancaba ya en MXN: cambiar a MXN no cambiaba nada, el recurso no se
+ * volvía a pedir y la prueba se caía tras quince segundos con «expected 1 to be greater than 1». Aquí
+ * pasaba —los ficheros caían en procesos distintos— y en el corredor, con dos núcleos y dos procesos,
+ * no. Se reprodujo poniendo la cookie a mano: mismo mensaje, mismo plazo agotado.
+ *
+ * <p>La misma fuga tumbó antes la prueba del aspa de la ventana modal, que buscaba el rótulo en español
+ * y solo lo encontraba si otro fichero había dejado el idioma puesto. Dos síntomas, una causa.
+ *
+ * <p>Va aquí y no en cada fichero porque el estado compartido no se arregla recordando limpiarlo: se
+ * arregla en el único sitio por el que pasan todas. Las pruebas que necesitan un idioma o una moneda
+ * concretos los fijan en su propio `beforeEach`, que corre DESPUÉS de este.
+ */
+const COOKIES_DE_PREFERENCIAS = ['nx036-locale', 'nx036-currency', 'nx036-theme', 'nx036-country'];
+
+beforeEach(() => {
+  for (const nombre of COOKIES_DE_PREFERENCIAS) {
+    document.cookie = `${nombre}=; Path=/; Max-Age=0`;
+  }
+});
