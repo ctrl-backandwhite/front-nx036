@@ -3,6 +3,7 @@ import {
   ANGULAR,
   REACT,
   abre,
+  apartaAlAsistente,
   bajaAlFondo,
   descartaElAvisoDeGalletas,
   objetivosTactilesPequenos,
@@ -153,6 +154,7 @@ test.describe('acciones del cliente en el móvil', () => {
     await entra(page, ANGULAR, CLIENTE);
     await abre(page, `${ANGULAR}/catalog`);
     await descartaElAvisoDeGalletas(page);
+    await apartaAlAsistente(page);
     await expect(page.locator('nx-tarjeta-producto').first()).toBeVisible();
   }
 
@@ -212,6 +214,7 @@ test.describe('acciones del cliente en el móvil', () => {
     await entra(page, ANGULAR, CLIENTE);
     await abre(page, `${ANGULAR}/`);
     await descartaElAvisoDeGalletas(page);
+    await apartaAlAsistente(page);
 
     await abreElCajon(page);
     await expect(elCajon(page).getByRole('link', { name: /Pedidos/i }).first()).toBeVisible();
@@ -453,6 +456,7 @@ test.describe('acciones del cliente en el móvil', () => {
     await preparaElMovil(page, REACT);
     await abre(page, `${REACT}/`);
     await descartaElAvisoDeGalletas(page);
+    await apartaAlAsistente(page);
     const enElOriginal = await page
       .locator('nav.fixed.bottom-0 a[href="/cart"], nav.fixed.bottom-0 button')
       .first()
@@ -462,6 +466,7 @@ test.describe('acciones del cliente en el móvil', () => {
     await preparaElMovil(page, ANGULAR);
     await abre(page, `${ANGULAR}/`);
     await descartaElAvisoDeGalletas(page);
+    await apartaAlAsistente(page);
     const enElPorte = await laBarraInferior(page)
       .locator('a[href="/cart"], button')
       .first()
@@ -640,11 +645,40 @@ test.describe('acciones del cliente en el móvil', () => {
     await entra(page, ANGULAR, CLIENTE);
     await abre(page, `${ANGULAR}/`);
     await descartaElAvisoDeGalletas(page);
+    await apartaAlAsistente(page);
     await bajaAlFondo(page);
 
-    /* El pie monta DOS altas al boletín y a 412 px una de ellas está escondida: `.last()` caía justo
-     * en la oculta y la prueba se pasaba un minuto esperando a que se pudiera escribir en algo que no
-     * se ve. Se acota a la que está a la vista, que es la que usaría una persona. */
+    /* PRIMERO: ¿se puede dar de alta a 412 px, siquiera?
+     *
+     * Medido en las dos aplicaciones: en el pie NO HAY NINGÚN campo de correo con caja a esta anchura
+     * —el porte pinta `nx-alta-boletin` con 0×0 y el front anterior sus dos `input[type=email]`
+     * también a 0×0—. O sea, el alta al boletín NO SE OFRECE en el móvil, y no es una diferencia del
+     * porte: es cómo está el diseño en las dos. Se comprueba contra el original en vez de darlo por
+     * hecho, porque si algún día el original sí lo ofreciera y el porte no, eso SÍ sería un defecto y
+     * tiene que salir en rojo, no saltarse. */
+    const camposVisibles = async () =>
+      page.locator('footer input[type="email"], nx-alta-boletin input[type="email"]').evaluateAll(
+        (campos) => campos.filter((c) => c.getBoundingClientRect().height > 0).length,
+      );
+    const enElPorte = await camposVisibles();
+
+    await preparaElMovil(page, REACT);
+    await abre(page, `${REACT}/`);
+    await descartaElAvisoDeGalletas(page);
+    await apartaAlAsistente(page);
+    await bajaAlFondo(page);
+    const enElOriginal = await camposVisibles();
+
+    expect(
+      enElPorte,
+      `el original ofrece ${enElOriginal} campo(s) de alta al boletín en el móvil y el porte ${enElPorte}`,
+    ).toBeGreaterThanOrEqual(enElOriginal);
+    test.skip(
+      enElPorte === 0,
+      'el alta al boletín NO SE OFRECE a 412 px en ninguna de las dos aplicaciones ' +
+        '(cero campos de correo con caja en el pie): a esta anchura no hay acción que certificar',
+    );
+
     const alta = page.locator('nx-alta-boletin:visible').last();
     await alta.locator('input[type="email"]').fill(correo);
     const boton = alta.getByRole('button', { name: /Suscribirse/i });
@@ -676,6 +710,7 @@ test.describe('acciones del cliente en el móvil', () => {
     await entra(page, ANGULAR, CLIENTE);
     await abre(page, `${ANGULAR}/profile`);
     await descartaElAvisoDeGalletas(page);
+    await apartaAlAsistente(page);
 
     const empresa = page.locator('#perfil-empresa');
     await expect(empresa).toBeVisible();
@@ -713,6 +748,7 @@ test.describe('acciones del cliente en el móvil', () => {
     await entra(page, ANGULAR, CLIENTE);
     await abre(page, `${ANGULAR}/addresses`);
     await descartaElAvisoDeGalletas(page);
+    await apartaAlAsistente(page);
 
     const tarjetas = page.locator('nx-tarjeta-de-direccion');
     const antes = await tarjetas.count();
@@ -756,6 +792,7 @@ test.describe('acciones del cliente en el móvil', () => {
     await entra(page, ANGULAR, CLIENTE);
     await abre(page, `${ANGULAR}/addresses`);
     await descartaElAvisoDeGalletas(page);
+    await apartaAlAsistente(page);
 
     const tarjetas = page.locator('nx-tarjeta-de-direccion');
     const antes = await tarjetas.count();
@@ -790,6 +827,7 @@ test.describe('acciones del cliente en el móvil', () => {
     await entra(page, ANGULAR, CLIENTE);
     await abre(page, `${ANGULAR}/`);
     await descartaElAvisoDeGalletas(page);
+    await apartaAlAsistente(page);
 
     await abreElCajon(page);
     const salir = elCajon(page).getByRole('button', { name: 'Cerrar sesión' }).first();
@@ -872,6 +910,7 @@ test.describe('acciones de administración en el móvil', () => {
     await entra(page, ANGULAR, ADMIN);
     await abre(page, `${ANGULAR}${ruta}`);
     await descartaElAvisoDeGalletas(page);
+    await apartaAlAsistente(page);
   }
 
   /** El identificador del primer producto del listado del panel. Se resuelve contra la base. */
@@ -1101,6 +1140,7 @@ test.describe('acciones de administración en el móvil', () => {
     await entra(page, ANGULAR, ADMIN);
     await abre(page, `${ANGULAR}/catalog`);
     await descartaElAvisoDeGalletas(page);
+    await apartaAlAsistente(page);
     const enlace = await page.locator('nx-tarjeta-producto a').first().getAttribute('href');
     const slug = (enlace ?? '').split('/').pop();
     expect(slug, 'el catálogo no trae ningún producto que verificar').toBeTruthy();
@@ -1332,6 +1372,7 @@ test.describe('acciones de administración en el móvil', () => {
     await entra(page, ANGULAR, ADMIN);
     await abre(page, `${ANGULAR}/catalog`);
     await descartaElAvisoDeGalletas(page);
+    await apartaAlAsistente(page);
 
     await abreLosFiltros(page);
     const antes = await contadorDeResultados(page);
@@ -1348,6 +1389,7 @@ test.describe('acciones de administración en el móvil', () => {
     await entra(page, ANGULAR, ADMIN);
     await abre(page, `${ANGULAR}/catalog`);
     await descartaElAvisoDeGalletas(page);
+    await apartaAlAsistente(page);
 
     const sinMarcar = page
       .locator('nx-tarjeta-producto')
@@ -1382,6 +1424,7 @@ test.describe('acciones de administración en el móvil', () => {
     await entra(page, ANGULAR, ADMIN);
     await abre(page, `${ANGULAR}/catalog`);
     await descartaElAvisoDeGalletas(page);
+    await apartaAlAsistente(page);
 
     const antes = await lineasEnLaBarra(page);
     const tarjetas = page.locator('nx-tarjeta-producto');
@@ -1441,12 +1484,20 @@ test.describe('acciones de administración en el móvil', () => {
         await abre(page, `${ANGULAR}${seccion}`);
       }
 
+      /* El umbral es MÁS BAJO que el de escritorio (120) y tiene que serlo.
+       *
+       * A 412 px el marco no aporta texto a `<main>` —no hay migas anchas ni rótulos auxiliares— así
+       * que una sección legítimamente vacía escribe menos. Medido: `/admin/support` sin tickets da 117
+       * caracteres («…Todos OPEN RESOLVED CLOSED No hay tickets») y el front anterior 123 en su
+       * equivalente. Con el umbral del escritorio, una pantalla perfectamente pintada salía marcada
+       * como «llega en blanco», que es justo el falso positivo que hace que se deje de mirar el
+       * informe. */
       await expect
         .poll(async () => (await contenidoPrincipal(page)).length, {
           timeout: 20_000,
           message: `${seccion} llega en blanco`,
         })
-        .toBeGreaterThan(120);
+        .toBeGreaterThan(80);
       const contenido = await contenidoPrincipal(page);
       /* «404» con límites de palabra: sin ellos, la partida arancelaria 640411 de «Grupos de
        * declaración» contiene la secuencia 404 y la sección salía marcada como página de error. */
@@ -1516,6 +1567,7 @@ test.describe('lo estético del móvil', () => {
     await entra(page, base, ADMIN);
     await abre(page, `${base}${ruta}`);
     await descartaElAvisoDeGalletas(page);
+    await apartaAlAsistente(page);
     await bajaAlFondo(page);
   }
 
@@ -1699,6 +1751,7 @@ test.describe('lo estético del móvil', () => {
     await entra(page, ANGULAR, CLIENTE);
     await abre(page, `${ANGULAR}/`);
     await descartaElAvisoDeGalletas(page);
+    await apartaAlAsistente(page);
     await abreElCajon(page);
     await retrata(page, 'porte-cajon-abierto');
 
@@ -1728,12 +1781,19 @@ test.describe('lo estético del móvil', () => {
    * <p>Se mide contra el nivel AA —24 px— que es el que el proyecto se fija, y se listan TODOS los que
    * no llegan en vez de parar en el primero: un informe que solo dice el primero obliga a repetir la
    * tanda tantas veces como defectos haya.
+   *
+   * <p>MEDIDO EL 7-SEP-2026, y conviene dejarlo escrito para que nadie persiga al porte por esto: los
+   * enlaces del cajón dan 99×23,6 px en el porte y 100×23,6 px en el FRONT ANTERIOR. O sea, el hueco de
+   * accesibilidad —medio píxel por debajo del mínimo AA— viene HEREDADO del diseño, no lo introduce el
+   * porte. Esta prueba sigue en rojo a propósito: el encargo pide las dos cosas, que no se empeore lo
+   * del original (se cumple) y que se llegue al nivel AA (no se llega, en ninguna de las dos).
    */
   test('los controles propios del móvil miden para un dedo', async ({ page }) => {
     await preparaElMovil(page, ANGULAR);
     await entra(page, ANGULAR, CLIENTE);
     await abre(page, `${ANGULAR}/catalog`);
     await descartaElAvisoDeGalletas(page);
+    await apartaAlAsistente(page);
 
     const cortos: string[] = [];
     const mide = async (control: Locator, comoSeLlama: string) => {
@@ -1775,12 +1835,18 @@ test.describe('lo estético del móvil', () => {
    * <p>Merece prueba propia porque son dos barras distintas —`nx-barra-de-filtros` en el escaparate y
    * `nx-barra-filtros` en el panel— que se pliegan igual pero no comparten código: la del escaparate
    * lleva `min-h-11` para el dedo y la del panel no, así que un arreglo en una no llega a la otra.
+   *
+   * <p>MEDIDO EL 7-SEP-2026: el rótulo del panel da 91,2×16,5 px en el porte y 86,5×16,5 px en el
+   * FRONT ANTERIOR. Misma altura, o sea, otro hueco HEREDADO y no una regresión del porte. Duele más
+   * que el del cajón porque a 412 px ese rótulo es la ÚNICA puerta a los filtros del panel: sin él no
+   * se puede buscar ni filtrar en el catálogo de administración.
    */
   test('los controles propios del móvil en el panel miden para un dedo', async ({ page }) => {
     await preparaElMovil(page, ANGULAR);
     await entra(page, ANGULAR, ADMIN);
     await abre(page, `${ANGULAR}/admin/catalog`);
     await descartaElAvisoDeGalletas(page);
+    await apartaAlAsistente(page);
 
     await mideParaUnDedo(
       page.getByRole('button', { name: 'Abrir menú' }).first(),
@@ -1808,6 +1874,7 @@ test.describe('lo estético del móvil', () => {
       await entra(page, base, ADMIN);
       await abre(page, `${base}/admin`);
       await descartaElAvisoDeGalletas(page);
+    await apartaAlAsistente(page);
       await page.getByRole('button', { name: 'Abrir menú' }).first().click();
       await page.waitForTimeout(900);
       const aspa = page.locator('aside').getByRole('button', { name: 'Cerrar menú' }).first();

@@ -1,5 +1,12 @@
 import { Page, expect, test } from '@playwright/test';
-import { ANGULAR, abre, bajaAlFondo, descartaElAvisoDeGalletas, vigilaLaConsola } from '../util/comparador';
+import {
+  ANGULAR,
+  abre,
+  apartaAlAsistente,
+  bajaAlFondo,
+  descartaElAvisoDeGalletas,
+  vigilaLaConsola,
+} from '../util/comparador';
 import { CLIENTE, entra, olvida } from '../util/sesion';
 import {
   buscaEnElCatalogo,
@@ -117,6 +124,7 @@ test.describe('acciones del cliente', () => {
     await entra(page, ANGULAR, CLIENTE);
     await abre(page, `${ANGULAR}/catalog`);
     await descartaElAvisoDeGalletas(page);
+    await apartaAlAsistente(page);
     await expect(page.locator('nx-tarjeta-producto').first()).toBeVisible();
   }
 
@@ -531,6 +539,7 @@ test.describe('acciones del cliente', () => {
     await entra(page, ANGULAR, CLIENTE);
     await abre(page, `${ANGULAR}/`);
     await descartaElAvisoDeGalletas(page);
+    await apartaAlAsistente(page);
     await bajaAlFondo(page);
 
     const alta = page.locator('nx-alta-boletin').last();
@@ -562,6 +571,7 @@ test.describe('acciones del cliente', () => {
     await entra(page, ANGULAR, CLIENTE);
     await abre(page, `${ANGULAR}/profile`);
     await descartaElAvisoDeGalletas(page);
+    await apartaAlAsistente(page);
 
     const empresa = page.locator('#perfil-empresa');
     await expect(empresa).toBeVisible();
@@ -596,6 +606,7 @@ test.describe('acciones del cliente', () => {
     await entra(page, ANGULAR, CLIENTE);
     await abre(page, `${ANGULAR}/addresses`);
     await descartaElAvisoDeGalletas(page);
+    await apartaAlAsistente(page);
 
     const tarjetas = page.locator('nx-tarjeta-de-direccion');
     const antes = await tarjetas.count();
@@ -639,6 +650,7 @@ test.describe('acciones del cliente', () => {
     await entra(page, ANGULAR, CLIENTE);
     await abre(page, `${ANGULAR}/addresses`);
     await descartaElAvisoDeGalletas(page);
+    await apartaAlAsistente(page);
 
     const tarjetas = page.locator('nx-tarjeta-de-direccion');
     const antes = await tarjetas.count();
@@ -670,6 +682,7 @@ test.describe('acciones del cliente', () => {
     await entra(page, ANGULAR, CLIENTE);
     await abre(page, `${ANGULAR}/`);
     await descartaElAvisoDeGalletas(page);
+    await apartaAlAsistente(page);
 
     /* Primero se comprueba que la pestaña TIENE sesión: sin esto, una sesión caducada pinta la
      * cabecera con «Iniciar sesión», el menú de la cuenta no existe y la prueba acusa al porte de un

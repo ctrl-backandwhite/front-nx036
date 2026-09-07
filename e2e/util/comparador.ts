@@ -224,6 +224,46 @@ export async function descartaElAvisoDeGalletas(page: Page): Promise<void> {
 }
 
 /**
+ * Aparta al asistente si se ha puesto delante.
+ *
+ * <p>En la primera visita CON SESIÓN, el asistente saluda ofreciendo la guía y lo hace con una capa
+ * que cubre la pantalla y captura los clics. Las DOS aplicaciones lo hacen igual —comprobado: el front
+ * anterior pone un `fixed inset-0 z-40` y el porte su equivalente— así que no es un defecto que haya
+ * que arreglar, es el comportamiento del producto.
+ *
+ * <p>Pero para una batería de acciones es el fin: el botón se localiza, se ve «visible, enabled and
+ * stable», y el clic no llega nunca porque lo recoge la capa. Salían diecinueve comprobaciones agotando
+ * su minuto cada una, con un mensaje que no menciona al asistente por ninguna parte.
+ *
+ * <p>Se aparta como lo haría cualquiera: diciéndole que ahora no. Si ese botón no está, se retira la
+ * capa, porque lo que se está certificando es otra cosa.
+ */
+export async function apartaAlAsistente(page: Page): Promise<void> {
+  const ahoraNo = page.getByRole('button', { name: /ahora no|not now|minimizar|minimize/i }).first();
+  if (await ahoraNo.count()) {
+    await ahoraNo.click({ timeout: 4_000 }).catch(() => undefined);
+    await page.waitForTimeout(300);
+  }
+
+  await page.evaluate(() => {
+    for (const el of Array.from(document.querySelectorAll('div'))) {
+      const s = getComputedStyle(el);
+      const c = el.getBoundingClientRect();
+      const cubreTodo =
+        s.position === 'fixed' &&
+        c.width >= window.innerWidth * 0.95 &&
+        c.height >= window.innerHeight * 0.95 &&
+        s.pointerEvents !== 'none';
+      // Solo la capa translúcida del saludo: un diálogo de verdad tiene contenido propio y hay que
+      // dejarlo en paz, que puede ser justo lo que la prueba viene a comprobar.
+      if (cubreTodo && (el.textContent ?? '').trim().length === 0) {
+        el.remove();
+      }
+    }
+  });
+}
+
+/**
  * Baja hasta el fondo y espera a que se monte lo que estaba diferido.
  *
  * <p>Hace falta porque el porte difiere todo lo que está por debajo del pliegue —el pie, entre otras

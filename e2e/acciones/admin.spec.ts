@@ -1,5 +1,11 @@
 import { Page, expect, test } from '@playwright/test';
-import { ANGULAR, abre, descartaElAvisoDeGalletas, vigilaLaConsola } from '../util/comparador';
+import {
+  ANGULAR,
+  abre,
+  apartaAlAsistente,
+  descartaElAvisoDeGalletas,
+  vigilaLaConsola,
+} from '../util/comparador';
 import { ADMIN, entra, olvida } from '../util/sesion';
 import { RUTAS_DE_PANEL } from '../util/rutas';
 import {
@@ -108,6 +114,7 @@ test.describe('acciones de administración', () => {
     await entra(page, ANGULAR, ADMIN);
     await abre(page, `${ANGULAR}${ruta}`);
     await descartaElAvisoDeGalletas(page);
+    await apartaAlAsistente(page);
   }
 
   /** El identificador del primer producto del listado del panel. Se resuelve contra la base, no se fija. */
@@ -296,6 +303,7 @@ test.describe('acciones de administración', () => {
     await entra(page, ANGULAR, ADMIN);
     await abre(page, `${ANGULAR}/catalog`);
     await descartaElAvisoDeGalletas(page);
+    await apartaAlAsistente(page);
     const enlace = await page.locator('nx-tarjeta-producto a').first().getAttribute('href');
     const slug = (enlace ?? '').split('/').pop();
     expect(slug, 'el catálogo no trae ningún producto que verificar').toBeTruthy();
@@ -525,6 +533,7 @@ test.describe('acciones de administración', () => {
     await entra(page, ANGULAR, ADMIN);
     await abre(page, `${ANGULAR}/catalog`);
     await descartaElAvisoDeGalletas(page);
+    await apartaAlAsistente(page);
 
     const antes = await contadorDeResultados(page);
     await buscaEnElCatalogo(page, 'vestido');
@@ -539,6 +548,7 @@ test.describe('acciones de administración', () => {
     await entra(page, ANGULAR, ADMIN);
     await abre(page, `${ANGULAR}/catalog`);
     await descartaElAvisoDeGalletas(page);
+    await apartaAlAsistente(page);
 
     const sinMarcar = page
       .locator('nx-tarjeta-producto')
@@ -568,6 +578,7 @@ test.describe('acciones de administración', () => {
     await entra(page, ANGULAR, ADMIN);
     await abre(page, `${ANGULAR}/catalog`);
     await descartaElAvisoDeGalletas(page);
+    await apartaAlAsistente(page);
 
     const antes = await lineasEnLaInsignia(page);
     const tarjetas = page.locator('nx-tarjeta-producto');

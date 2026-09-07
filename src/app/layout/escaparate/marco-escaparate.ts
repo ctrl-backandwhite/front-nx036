@@ -182,7 +182,13 @@ const RUTA_DE_FICHA = /^\/(catalog|admin\/browse)\/[^/]+$/;
       </header>
 
       @if (menu()) {
-        <div class="fixed inset-0 z-40 md:hidden">
+        <!-- Por ENCIMA de la barra inferior de pestañas, no al mismo nivel.
+             Las dos declaraban «z-40», y como la barra va después en la plantilla, ganaba: su primera
+             pestaña se colocaba justo encima del botón de cerrar sesión del cajón, que es el ÚNICO
+             sitio desde el que se puede salir de la sesión en el móvil. Se podía ver, no se podía
+             pulsar. Un cajón es una capa modal: mientras está abierto va por delante de todo lo que
+             cubre, y la barra es precisamente lo que cubre. -->
+        <div class="fixed inset-0 z-50 md:hidden">
           <!-- El fondo cierra el cajón desde su propia capa, marcada como decorativa: si el clic
                colgara del contenedor, cerraría también al pulsar dentro del propio cajón. -->
           <div class="absolute inset-0 bg-black/40" (click)="menu.set(false)" aria-hidden="true"></div>
