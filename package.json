@@ -18,7 +18,7 @@
     "e2e:certifica": "playwright test --config e2e/playwright.config.ts",
     "e2e:tipos": "tsc --noEmit -p e2e/tsconfig.json",
     "verifica": "npm run lint && npm run e2e:tipos && npm test && npm run verifica:build && npm run e2e:certifica",
-    "verifica:build": "NEXADROP_API_INTERNA=${NEXADROP_API_INTERNA:-http://localhost:18082} ng build --configuration local --optimization --source-map=false --output-hashing=all && npm run verifica:prerender",
+    "verifica:build": "NEXADROP_PRERENDER_TOKEN=${NEXADROP_PRERENDER_TOKEN:-$(grep -m1 '^NEXADROP_PRERENDER_TOKEN=' ../infra/docker/.env 2>/dev/null | cut -d= -f2-)} NEXADROP_API_INTERNA=${NEXADROP_API_INTERNA:-http://localhost:18082} ng build --configuration local --optimization --source-map=false --output-hashing=all && npm run verifica:prerender",
     "verifica:prerender": "node scripts/verifica-prerenderizado.mjs"
   },
   "private": true,

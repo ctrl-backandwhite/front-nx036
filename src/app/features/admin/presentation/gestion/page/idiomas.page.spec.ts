@@ -1,4 +1,3 @@
-import { DeferBlockBehavior } from '@angular/core/testing';
 import { render, screen, waitFor } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -48,9 +47,10 @@ describe('IdiomasPage', { timeout: PLAZO_MS }, () => {
 
   const monta = () =>
     render(IdiomasPage, {
-      // `Playthrough` pinta los bloques `@defer` como si ya se hubiera llegado a ellos: en las
-      // pruebas nadie se desplaza por la página.
-      deferBlockBehavior: DeferBlockBehavior.Playthrough,
+      // SIN `Playthrough`, y es a propósito. Esta pantalla no tiene ningún bloque diferido: su
+      // contenido se pinta al montar. Si alguien vuelve a esconderlo tras un `@defer`, estas pruebas
+      // se ponen en rojo, que es justo lo que NO pasó en /admin/partners —allí el `Playthrough` los
+      // pintaba a la fuerza y el defecto solo se vio midiendo en el navegador—.
       providers: [
         { provide: IDIOMAS_PORT, useValue: puerto },
         { provide: DialogoStore, useValue: dialogo },

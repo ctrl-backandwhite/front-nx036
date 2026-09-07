@@ -1,6 +1,5 @@
 import { AppError } from '@shared/error/app-error';
 import { Result } from '@shared/result/result';
-import { DeferBlockBehavior } from '@angular/core/testing';
 import { render, screen, waitFor } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -64,7 +63,10 @@ describe('SociosPage', () => {
 
   const monta = () =>
     render(SociosPage, {
-    deferBlockBehavior: DeferBlockBehavior.Playthrough,
+    // SIN `Playthrough`, y es a propósito. Esta pantalla no tiene ningún bloque diferido: sus tres
+    // tablas se pintan al montar. Si alguien vuelve a esconderlas tras un `@defer`, estas pruebas se
+    // ponen en rojo — que es justo lo que NO pasó cuando ocurrió: el `Playthrough` las pintaba a la
+    // fuerza y el defecto solo se vio midiendo la pantalla en el navegador.
       providers: [
         { provide: SOCIOS_PORT, useValue: puerto },
         { provide: DialogoStore, useValue: dialogo },
@@ -124,14 +126,7 @@ describe('SociosPage', () => {
    * vuelve a diferirlas, esto se pone en rojo.
    */
   it('enseña las tres tablas sin tener que bajar la página', async () => {
-    await render(SociosPage, {
-      providers: [
-        { provide: SOCIOS_PORT, useValue: puerto },
-        { provide: DialogoStore, useValue: dialogo },
-        { provide: AvisosStore, useValue: avisos },
-        ConsultaSocios, CreaElCliente, RotaElSecreto, BorraElCliente, PruebaLosWebhooks,
-      ],
-    });
+    await monta();
 
     expect(await screen.findByText('Clientes OAuth2 registrados')).toBeInTheDocument();
     expect(
@@ -313,7 +308,6 @@ async function montaConDobles(opciones: OpcionesDeSocios = {}) {
   );
 
   const vista = await render(SociosPage, {
-    deferBlockBehavior: DeferBlockBehavior.Playthrough,
     providers: [
       AvisosStore,
       DialogoStore,

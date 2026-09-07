@@ -124,10 +124,11 @@ const POR_PAGINA = 25;
       </section>
 
       <!--
-        Las suscripciones quedan por debajo del pliegue: al entrar se mira la tabla de planes, que es
-        lo que se edita. Diferirlas evita además su lectura al backend a quien solo venía a eso.
+        SIN DIFERIR, y aquí el comentario anterior decía algo que NO ERA CIERTO: que diferirlas evitaba
+        su lectura al backend. No la evitaba. El constructor pide planes y suscripciones a la vez, con
+        una sola tanda en paralelo, se baje o no se baje; lo único que el diferido retrasaba era pintar
+        lo que ya había llegado. O sea: se pagaba el coste —media pantalla en blanco— sin ahorro.
       -->
-      @defer (on viewport) {
       <section class="card overflow-hidden">
         <div class="card-header"><span>{{ t('admin.billing.subs') }}</span></div>
         <div class="p-3 border-b border-ink-100">
@@ -201,9 +202,6 @@ const POR_PAGINA = 25;
         </div>
         <nx-paginacion [pagina]="pagina()" [paginas]="paginas()" (cambia)="pagina.set($event)" />
       </section>
-      } @placeholder {
-        <section class="card h-64"></section>
-      }
 
       @if (editando(); as plan) {
         <nx-facturacion-editor-de-plan

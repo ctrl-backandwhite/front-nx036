@@ -59,7 +59,9 @@ function conClave(seccion: SeccionLegal): SeccionEditable {
  * <p>Se edita SOBRE el borrador si lo hay, no sobre lo publicado: al revés, el segundo guardado
  * perdería el primero y quien redacta no entendería por qué su trabajo desaparece.
  *
- * <p>RENDIMIENTO: el editor va bajo los selectores y se difiere con `on viewport`.
+ * <p>RENDIMIENTO: NADA se difiere en esta pantalla, y es deliberado. El editor estuvo tras un bloque
+ * diferido por aparición en pantalla y no ahorraba nada —los datos se piden al montar—, mientras que
+ * a cambio quien entraba se encontraba un hueco gris donde debía estar el contenido.
  *
  * <p>MOBILE FIRST: los selectores de documento e idioma envuelven en varias filas en pantalla estrecha
  * y los dos botones de la cabecera caen debajo del título en vez de estrujarlo.
@@ -119,9 +121,9 @@ function conClave(seccion: SeccionLegal): SeccionEditable {
       } @else if (!documento()) {
         <div class="card p-6 text-center text-[13px] opacity-70">{{ t('admin.legal.not_found') }}</div>
       } @else {
-        <!-- RENDIMIENTO: el editor queda bajo los selectores de documento e idioma; se difiere hasta
-             que se llega a él y mientras tanto se reserva su hueco. -->
-        @defer (on viewport) {
+        <!-- SIN DIFERIR: el editor es lo único que se hace en esta pantalla. El diferido por aparición
+             no ahorraba nada —el documento se pide al montar— y dejaba los dos selectores sobre un
+             hueco gris de 384 píxeles, que se lee como un editor que no ha cargado. -->
         <div class="card space-y-3 p-4">
           <div class="flex items-center gap-2 text-[11px] opacity-70">
             <span>v{{ documento()?.version }}</span>
@@ -174,9 +176,6 @@ function conClave(seccion: SeccionLegal): SeccionEditable {
             <fa-icon [icon]="iconos.anadir" /> {{ t('admin.legal.add_section') }}
           </button>
         </div>
-        } @placeholder {
-          <div class="card h-96"></div>
-        }
       }
     </div>
   `,

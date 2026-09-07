@@ -11,6 +11,19 @@ import { VentanaModal } from './ventana-modal';
  */
 vi.setConfig({ testTimeout: 30_000 });
 
+/**
+ * El idioma se fija AQUÍ, y hacía falta.
+ *
+ * <p>El aspa de la ventana se rotula con `common.close`, que está traducida en los ocho diccionarios.
+ * La comprobación busca «cerrar», o sea el texto ESPAÑOL, y este fichero no fijaba idioma ninguno: sin
+ * cookie, el navegador de pruebas pide inglés y el aspa se llama «Close». Pasaba de casualidad, porque
+ * otro fichero del mismo hilo había dejado la cookie puesta antes — y por eso en solitario fallaba y en
+ * conjunto dependía del orden en que el corredor repartiera los ficheros.
+ */
+beforeEach(() => {
+  document.cookie = 'nx036-locale=es; Path=/';
+});
+
 
 @Component({
   selector: 'nx-anfitriona',

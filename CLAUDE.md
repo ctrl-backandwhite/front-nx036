@@ -182,6 +182,18 @@ build: sale una web que parece prerenderizada y no lo está. Medido en la portad
 3.995 caracteres de texto y 24 precios; sin ella, 1.035 y ninguno. Es el mismo fallo que tuvo el front
 anterior con su renderizado en servidor.
 
+**Y hace falta `NEXADROP_PRERENDER_TOKEN`** para que quepan más de quince fichas. El backend limita el
+escaparate público a 100 peticiones por minuto y por IP —su defensa contra el volcado del catálogo— y
+prerenderizar es, visto desde ahí, exactamente un volcado: sin testigo caben unas quince y el resto se
+escriben con una página de error dentro, sin que nada falle. Con él, esas peticiones caen en la regla
+`build.prerender` del backend (1.200/min).
+
+El valor tiene que ser **el mismo** que `RATELIMIT_BUILD_TOKEN` en el backend contra el que se compila.
+En local los dos viven en `infra/docker/.env`, y `npm run verifica:build` lee de ahí la clave (no
+interpreta el fichero: es formato Compose y lleva valores con espacios sin comillas). Para la imagen se
+pasa como argumento de construcción; está documentado en el `Dockerfile` y en el README de
+`nexadrop-deploy`.
+
 ---
 
 ## 7. Rendimiento: no se replica lo lento

@@ -25,7 +25,9 @@ import {
  *
  * <p>El filtrado es LOCAL: son unas decenas de filas y no merece un viaje al servidor por cada letra.
  *
- * <p>RENDIMIENTO: la tabla va bajo el pliegue y se difiere con `on viewport`.
+ * <p>RENDIMIENTO: NADA se difiere en esta pantalla, y es deliberado. La tabla estuvo tras un bloque
+ * diferido por aparición en pantalla y no ahorraba nada —los datos se piden al montar—, mientras que
+ * a cambio quien entraba se encontraba un hueco gris donde debía estar el contenido.
  *
  * <p>MOBILE FIRST: los filtros arrancan plegados en el móvil (lo resuelve `nx-barra-filtros`) y la
  * tabla se desplaza en horizontal dentro de su tarjeta.
@@ -82,8 +84,11 @@ import {
           </div>
         }
 
-        <!-- RENDIMIENTO: la tabla va bajo la cabecera y los filtros; se difiere y se reserva el hueco. -->
-        @defer (on viewport) {
+        <!-- SIN DIFERIR, y con motivo: la tabla ES la pantalla. Estuvo tras un diferido por aparición
+             en pantalla y no ahorraba nada —las divisas se piden al montar, así que ya estaban en
+             memoria—, mientras que a cambio quien entraba veía la cabecera, los filtros y un hueco gris
+             de 256 píxeles donde deberían estar las divisas. Es el mismo defecto que se midió en
+             /admin/partners: un tercio del contenido del front anterior. -->
         <div class="card overflow-x-auto">
           <table class="table table-zebra text-sm">
             <thead>
@@ -131,9 +136,6 @@ import {
             </tbody>
           </table>
         </div>
-        } @placeholder {
-          <div class="card h-64"></div>
-        }
       </div>
     }
   `,

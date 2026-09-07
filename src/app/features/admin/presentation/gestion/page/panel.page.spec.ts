@@ -146,12 +146,18 @@ describe('PanelPage', () => {
   });
 
   /**
-   * Lo que va bajo el pliegue está en `@defer (on viewport)`: al entrar se pintan las cifras de
-   * cabecera y nada más. Aquí se monta SIN `Playthrough` —el comportamiento por defecto deja los
-   * bloques diferidos sin disparar— para comprobar que de verdad no llegan hasta que se baja. Sin esta
-   * prueba, quitar el diferido no rompería nada y la mejora se perdería en el siguiente cambio.
+   * Se difieren las GRÁFICAS, y solo ellas.
+   *
+   * <p>Ahí sí hay algo que ahorrar: el componente arrastra su biblioteca de dibujo, y quien entra a
+   * mirar las cifras de cabecera no tiene por qué descargarla. Se monta SIN `Playthrough` —el
+   * comportamiento por defecto deja los bloques diferidos sin disparar— para comprobar que de verdad
+   * no llegan hasta que se baja; sin esta prueba, quitar el diferido no rompería nada.
+   *
+   * <p>La TABLA de últimos pedidos ya no se difiere, y esta prueba lo fija: estuvo diferida con el
+   * argumento de que eran «dos peticiones más», y era falso —métricas y pedidos se piden juntos y en la
+   * misma tanda—, así que lo único que se conseguía era un hueco gris donde van los pedidos.
    */
-  it('al entrar no descarga las gráficas ni los últimos pedidos: van bajo el pliegue', async () => {
+  it('difiere las gráficas, pero no la tabla de últimos pedidos', async () => {
     const { container } = await render(PanelPage, {
       providers: [
         provideRouter([]),
@@ -171,8 +177,9 @@ describe('PanelPage', () => {
 
     // Las cifras de cabecera SÍ están: son lo que se mira al entrar.
     await waitFor(() => expect(screen.getByText(/340/)).toBeInTheDocument());
-    // Lo diferido, no: ni la tabla de pedidos ni las gráficas se han montado.
-    expect(container.querySelector('table')).toBeNull();
+    // La tabla de pedidos también: se pinta al entrar, sin bajar.
+    expect(container.querySelector('table')).not.toBeNull();
+    // Las gráficas NO: son lo único que sigue esperando a que alguien llegue hasta ellas.
     expect(container.querySelector('nx-graficas-del-panel')).toBeNull();
   });
 

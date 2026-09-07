@@ -36,7 +36,9 @@ const SILUETAS = [0, 1, 2, 3];
  * <p>Un rechazo del backend se ENSEÑA. Sin ello, la ventana se quedaba abierta y quieta: quien atendía
  * la cerraba dando el caso por resuelto y el cliente seguía esperando con el ticket abierto.
  *
- * <p>RENDIMIENTO: la bandeja va bajo la cabecera y se difiere con `on viewport`.
+ * <p>RENDIMIENTO: NADA se difiere en esta pantalla, y es deliberado. La bandeja estuvo tras un bloque
+ * diferido por aparición en pantalla y no ahorraba nada —los datos se piden al montar—, mientras que
+ * a cambio quien entraba se encontraba un hueco gris donde debía estar el contenido.
  *
  * <p>MOBILE FIRST: la cabecera envuelve y el filtro cae debajo del título en pantalla estrecha; las
  * tarjetas son de una columna en cualquier anchura, que es como se lee una bandeja.
@@ -74,9 +76,9 @@ const SILUETAS = [0, 1, 2, 3];
           <p>{{ t('admin.support.empty') }}</p>
         </div>
       } @else {
-        <!-- RENDIMIENTO: la bandeja va bajo la cabecera; se difiere y se reserva el hueco. La
-             conversación no: se abre en una ventana y para entonces ya hace falta entera. -->
-        @defer (on viewport) {
+        <!-- SIN DIFERIR: la bandeja de tickets es la pantalla. El diferido por aparición no ahorraba
+             nada —los tickets se piden al montar— y quien abría soporte veía la cabecera y un hueco
+             gris donde debía estar la lista de lo que hay que atender. -->
         <div class="space-y-2">
           @for (ticket of tickets(); track ticket.id) {
             <button type="button" (click)="abre(ticket)"
@@ -99,9 +101,6 @@ const SILUETAS = [0, 1, 2, 3];
             </button>
           }
         </div>
-        } @placeholder {
-          <div class="card h-64"></div>
-        }
       }
 
       @if (seleccionado(); as ticket) {

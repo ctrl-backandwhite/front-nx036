@@ -97,10 +97,11 @@ import {
       </section>
 
       <!--
-        El histórico de envíos queda por debajo del pliegue: se baja a él para comprobar qué se mandó,
-        no al entrar a redactar. Diferirlo deja el formulario y su vista previa sin competencia.
+        SIN DIFERIR. Estaba tras un diferido por aparición en pantalla con el argumento de que se baja
+        al histórico para comprobar qué se mandó, no al entrar a redactar. Cierto, pero no ahorraba
+        nada: los envíos se piden al montar la pantalla, así que lo único que se retrasaba era
+        pintarlos, y a cambio el histórico no existía hasta que alguien bajara.
       -->
-      @defer (on viewport) {
       <section class="card overflow-hidden">
         <div class="card-header"><span>{{ t('admin.newsletter.history') }}</span></div>
         <div class="overflow-x-auto">
@@ -136,9 +137,6 @@ import {
           </table>
         </div>
       </section>
-      } @placeholder {
-        <section class="card h-40"></section>
-      }
     </div>
   `,
 })

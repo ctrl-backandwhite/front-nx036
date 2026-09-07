@@ -41,8 +41,9 @@ const CODIGO_DE_IDIOMA = /^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})?$/;
  * cuenta, así que la ficha se vería traducida y el menú, el carrito y el pago en inglés. Ese mestizaje
  * hay que avisarlo, no descubrirlo en la tienda.
  *
- * <p>RENDIMIENTO: la tabla va bajo el pliegue y se difiere con `on viewport`; lo primero que se pinta
- * es la cabecera y el alta, que es a lo que se entra.
+ * <p>RENDIMIENTO: NADA se difiere en esta pantalla, y es deliberado. La tabla estuvo tras un bloque
+ * diferido por aparición en pantalla y no ahorraba nada —los datos se piden al montar—, mientras que
+ * a cambio quien entraba se encontraba un hueco gris donde debía estar el contenido.
  *
  * <p>MOBILE FIRST: el alta se apila en el móvil (`flex-wrap`) y la tabla se desplaza en horizontal
  * dentro de su tarjeta en vez de estrujar las columnas.
@@ -113,9 +114,9 @@ const CODIGO_DE_IDIOMA = /^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})?$/;
         </button>
       </div>
 
-      <!-- RENDIMIENTO: la tabla queda bajo la cabecera y el alta, así que se difiere hasta que se
-           llega a ella. El hueco se reserva para que la página no dé un salto al aparecer. -->
-      @defer (on viewport) {
+      <!-- SIN DIFERIR: la tabla de idiomas es lo que se viene a ver aquí. El diferido por aparición
+           en pantalla no ahorraba ninguna petición —se piden al montar— y dejaba la pantalla con la
+           cabecera, el alta y un hueco gris debajo. -->
       <div class="card overflow-hidden">
         <div class="overflow-x-auto">
           <table class="table table-sm">
@@ -172,9 +173,6 @@ const CODIGO_DE_IDIOMA = /^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})?$/;
           </table>
         </div>
       </div>
-      } @placeholder {
-        <div class="card h-64"></div>
-      }
     </div>
   `,
 })

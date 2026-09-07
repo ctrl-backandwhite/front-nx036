@@ -26,9 +26,12 @@ const PUBLICADO_SANO = 80;
  * <p>Espera a que la sesión esté RESUELTA antes de pedir nada: al arrancar en frío las peticiones
  * salían antes de que hubiera credenciales y volvían con un rechazo que se pintaba como «sin datos».
  *
- * <p>RENDIMIENTO: lo que hay bajo el pliegue —las gráficas y los últimos pedidos— va en `@defer (on
- * viewport)`. Son dos peticiones más y el código de las gráficas; diferirlos deja que las cifras de
- * cabecera, que es lo que se mira al entrar, lleguen sin competencia.
+ * <p>RENDIMIENTO: se difieren las GRÁFICAS, y solo ellas. Ahí sí hay algo que ahorrar —el componente
+ * arrastra su biblioteca de dibujo— y quien entra a mirar las cifras de cabecera no la descarga.
+ *
+ * <p>Los últimos pedidos estaban diferidos también y ya no: no ahorraban nada. La afirmación de que
+ * eran «dos peticiones más» era falsa, porque métricas y pedidos se piden juntos y en la misma tanda,
+ * se baje o no se baje. Lo único que el diferido conseguía era un hueco gris donde van los pedidos.
  *
  * <p>MOBILE FIRST: los indicadores se apilan en el móvil (`stats-vertical`) y pasan a fila desde `sm`;
  * las tarjetas de facturación van a una columna y a dos desde `md`.
@@ -101,7 +104,11 @@ const PUBLICADO_SANO = 80;
         <section class="grid grid-cols-1 md:grid-cols-2 gap-4 h-36"></section>
       }
 
-      @defer (on viewport) {
+      <!-- SIN DIFERIR, al contrario que las gráficas de arriba. La diferencia está en QUÉ hay
+           detrás: allí, un componente con su biblioteca de dibujo, que sí vale la pena no
+           descargar si nadie baja. Aquí solo marcado, y los pedidos ya se han pedido al montar,
+           junto con las métricas y en la misma tanda. Diferirlo no ahorraba ni una petición ni un
+           kilobyte: solo dejaba un hueco gris donde van los últimos pedidos. -->
       <section class="card overflow-hidden">
         <div class="card-header"><span>{{ t('admin.dashboard.recent_orders') }}</span></div>
         <div class="overflow-x-auto">
@@ -140,9 +147,6 @@ const PUBLICADO_SANO = 80;
           </table>
         </div>
       </section>
-      } @placeholder {
-        <section class="card h-48"></section>
-      }
     </div>
   `,
 })
