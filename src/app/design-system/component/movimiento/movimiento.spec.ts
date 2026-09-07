@@ -72,12 +72,20 @@ describe('Revela', () => {
 });
 
 describe('ContadorAnimado', () => {
-  /** Con movimiento reducido la cifra se pone directamente: para mucha gente esto marea. */
+  /**
+   * Con movimiento reducido la cifra se pone directamente: para mucha gente esto marea.
+   *
+   * <p>Se compara con `toLocaleString()`, no con el literal «1234», y esa es la diferencia entre una
+   * prueba y una lotería. El componente separa los miles con el idioma de la MÁQUINA, y el español no
+   * separa los números de cuatro cifras: aquí «1234» salía tal cual y la prueba pasaba, pero en el
+   * corredor de integración —en inglés— sale «1,234» y fallaba. Un fallo que no existía en el código y
+   * que solo aparecía al cambiar de ordenador.
+   */
   it('con movimiento reducido enseña la cifra final sin contar', async () => {
     const deshaz = fingeMovimiento(true);
     try {
       await render(ContadorAnimado, { inputs: { valor: 1234 } });
-      expect(screen.getByText('1234')).toBeInTheDocument();
+      expect(screen.getByText((1234).toLocaleString())).toBeInTheDocument();
     } finally {
       deshaz();
     }

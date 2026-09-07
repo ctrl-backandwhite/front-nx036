@@ -203,10 +203,20 @@ describe('FichaPage', () => {
     vista.fixture.detectChanges();
 
     /* La recarga la dispara un EFECTO, y lo que arranca dentro de un efecto no lo espera `whenStable`:
-     * hay que esperar al HECHO —que la consulta haya salido—, no a un turno concreto del reloj. El
-     * plazo va explícito porque el de por defecto es un segundo, y con la suite entera corriendo a la
-     * vez la petición nueva puede tardar más solo por esperar turno de CPU. */
-    await vi.waitFor(() => expect(pedidas.length).toBeGreaterThan(antes), { timeout: 15_000 });
+     * hay que esperar al HECHO —que la consulta haya salido—, no a un turno concreto del reloj.
+     *
+     * El `detectChanges()` va DENTRO de la espera, y es lo que faltaba. Sin zonas, un efecto solo corre
+     * cuando corre la detección de cambios; `waitFor` por su cuenta se limita a repetir la comprobación,
+     * así que sin esto la espera podía dar quince vueltas sin que el efecto llegara a ejecutarse nunca.
+     * Aquí pasaba de largo porque alguna otra tarea acababa disparando la detección, pero en el corredor
+     * de integración —dos núcleos— no llegaba a tiempo y la prueba se caía. Verde por casualidad. */
+    await vi.waitFor(
+      () => {
+        vista.fixture.detectChanges();
+        expect(pedidas.length).toBeGreaterThan(antes);
+      },
+      { timeout: 15_000 },
+    );
   });
 
   /** Ni el enlace al proveedor ni el código externo pueden llegar a quien compra. */
