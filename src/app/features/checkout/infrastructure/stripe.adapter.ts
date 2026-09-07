@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { InjectionToken, Injectable, inject } from '@angular/core';
 import { Stripe } from '@stripe/stripe-js';
 import { loadStripe } from '@stripe/stripe-js/pure';
 import { DOCUMENT } from '@angular/core';
@@ -42,9 +42,28 @@ import { PasarelaDePagoPort } from '../domain/port/pasarela-de-pago.port';
  * y vigila la página entera; cargarlo al arrancar lo pagaría todo el mundo, incluido quien solo mira el
  * catálogo. Y no se carga al PRERENDERIZAR: allí no hay navegador y la descarga fallaría al construir.
  */
+/**
+ * CÓMO se descarga Stripe.
+ *
+ * <p>El comportamiento en producción no cambia: la fábrica devuelve el `loadStripe` de `/pure`, con su
+ * carga perezosa intacta. Lo que aporta el testigo es una costura.
+ *
+ * <p>Hacía falta una. La prueba del adaptador sustituía el MÓDULO, y esa sustitución solo se aplica
+ * cuando el empaquetador deja el import como externo — algo que depende de cómo se esté compilando en
+ * esa pasada. Cuando no se aplicaba, la prueba llamaba a la biblioteca de verdad, que se pone a esperar
+ * un guion que el DOM simulado nunca descarga: la batería se colgaba hasta agotar el plazo, sin decir
+ * en ningún momento que Stripe tenía algo que ver. Con el testigo, quien prueba pone su doble y no hay
+ * nada que adivinar.
+ */
+export const CARGADOR_DE_STRIPE = new InjectionToken<(clave: string) => Promise<Stripe | null>>(
+  'CargadorDeStripe',
+  { providedIn: 'root', factory: () => loadStripe },
+);
+
 @Injectable()
 export class StripeAdapter implements PasarelaDePagoPort {
   private readonly documento = inject(DOCUMENT);
+  private readonly cargaStripe = inject(CARGADOR_DE_STRIPE);
   private readonly enNavegador = esNavegador();
 
   /** La carga en curso o ya resuelta. Se guarda la PROMESA, no el resultado: así dos llamadas casi
@@ -64,7 +83,7 @@ export class StripeAdapter implements PasarelaDePagoPort {
     // guarda la clave con la que nació.
     if (!this.carga || this.clave !== clavePublica) {
       this.clave = clavePublica;
-      this.carga = loadStripe(clavePublica).catch(() => null);
+      this.carga = this.cargaStripe(clavePublica).catch(() => null);
     }
     return (await this.carga) ? exito(undefined) : fallo(creaError('sin-conexion', ''));
   }

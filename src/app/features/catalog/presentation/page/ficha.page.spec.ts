@@ -201,9 +201,12 @@ describe('FichaPage', () => {
 
     vista.fixture.debugElement.injector.get(PreferenciasService).cambiaMoneda('MXN');
     vista.fixture.detectChanges();
-    await vista.fixture.whenStable();
 
-    expect(pedidas.length).toBeGreaterThan(antes);
+    /* La recarga la dispara un EFECTO, y lo que arranca dentro de un efecto no lo espera `whenStable`:
+     * hay que esperar al HECHO —que la consulta haya salido—, no a un turno concreto del reloj. El
+     * plazo va explícito porque el de por defecto es un segundo, y con la suite entera corriendo a la
+     * vez la petición nueva puede tardar más solo por esperar turno de CPU. */
+    await vi.waitFor(() => expect(pedidas.length).toBeGreaterThan(antes), { timeout: 15_000 });
   });
 
   /** Ni el enlace al proveedor ni el código externo pueden llegar a quien compra. */

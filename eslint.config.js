@@ -54,6 +54,23 @@ module.exports = defineConfig([
       // El tipo `any` desactiva justo la barrera que sostiene el contrato entre capas.
       '@typescript-eslint/no-explicit-any': 'error',
 
+      /*
+       * Un argumento que no se usa se marca, SALVO que empiece por guion bajo.
+       *
+       * <p>La excepción hace falta para los dobles de prueba. Un doble tiene que declarar la firma
+       * ENTERA del método al que sustituye —si no, TypeScript no sabe qué tipo tienen los argumentos
+       * recogidos y `mock.calls[0][0]` deja de comprobarse—, y sin embargo casi ninguno los usa por
+       * dentro. Sin esta excepción, la salida era escribir dobles sin tipar, que es peor: la prueba
+       * seguiría compilando el día que el método cambie de argumentos.
+       *
+       * <p>El guion bajo es la marca explícita de «esto sobra a propósito», que es justo lo que
+       * distingue un argumento decorativo de uno que se ha olvidado usar.
+       */
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
+      ],
+
       // Nada de decoradores heredados ni de APIs retiradas: el proyecto nace en Angular 22 y no
       // arrastra el estilo de las versiones anteriores.
       '@angular-eslint/prefer-standalone': 'error',

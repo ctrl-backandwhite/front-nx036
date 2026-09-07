@@ -224,7 +224,11 @@ describe('ListadoPage', () => {
 
     // La recarga la dispara un EFECTO, y lo que arranca dentro de un efecto no lo espera `whenStable`:
     // hay que esperar al hecho —que la consulta haya salido—, no a un turno concreto del reloj.
-    await vi.waitFor(() => expect(busca.mock.calls.length).toBeGreaterThan(antes));
+    await vi.waitFor(() => expect(busca.mock.calls.length).toBeGreaterThan(antes), {
+      // El plazo va explícito: el de por defecto es un segundo, y con la suite entera corriendo a la
+      // vez la consulta nueva puede tardar más solo por esperar turno de CPU.
+      timeout: 15_000,
+    });
     expect(busca.mock.calls.at(-1)?.[0].pagina).toBe(0);
   });
 

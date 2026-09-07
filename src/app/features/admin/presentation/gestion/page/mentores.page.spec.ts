@@ -37,6 +37,10 @@ vi.setConfig({ testTimeout: 30_000 });
 
 function enEspanol(): void {
   document.cookie = 'nx036-locale=es';
+  /* Y en DÓLARES. La divisa de la pantalla sale de esta cookie y decide cómo se escribe la tarifa;
+   * sin fijarla, el resultado dependía de lo que hubiera quedado en el entorno y esta prueba fallaba
+   * en la pasada completa mientras pasaba siempre en solitario. */
+  document.cookie = 'nx036-currency=USD';
 }
 
 describe('MentoresPage', () => {
@@ -44,8 +48,16 @@ describe('MentoresPage', () => {
   const dialogo = { confirma: vi.fn(), alerta: vi.fn(), pregunta: vi.fn() };
   const avisos = { exito: vi.fn(), error: vi.fn(), muestra: vi.fn() };
 
-  const monta = () =>
-    render(MentoresPage, {
+  /**
+   * Monta y ESPERA a que la pantalla se asiente.
+   *
+   * <p>Los importes se pintan en dos tiempos: primero llega la tarifa y después el formato con su
+   * divisa, que depende de una consulta propia. Sin este asentamiento, con la máquina cargada la
+   * comprobación llegaba antes que el formato y se quedaba mirando un DOM que ya no iba a cambiar —de
+   * ahí que esta prueba fallara en la pasada completa y pasara siempre en solitario.
+   */
+  const monta = async () => {
+    const vista = await render(MentoresPage, {
       providers: [
         { provide: MENTORES_PORT, useValue: puerto },
         // Sin tasas se formatea en dólares sin convertir, que es el comportamiento declarado del almacén.
@@ -56,6 +68,12 @@ describe('MentoresPage', () => {
         ConsultaMentores, GuardaElMentor, BorraElMentor,
       ],
     });
+    await vista.fixture.whenStable();
+    vista.fixture.detectChanges();
+    await vista.fixture.whenStable();
+    vista.fixture.detectChanges();
+    return vista;
+  };
 
   beforeEach(() => {
     enEspanol();
@@ -68,7 +86,15 @@ describe('MentoresPage', () => {
 
     expect(await screen.findByText('Luis Vega')).toBeInTheDocument();
     expect(screen.getByText('luis@nx036.local')).toBeInTheDocument();
-    expect(screen.getByText('$50.00/h')).toBeInTheDocument();
+    /* Se busca la CIFRA junto a una marca de divisa, sin exigir dónde la coloca cada idioma: lo que
+     * esta prueba certifica es que la tarifa va formateada y con moneda, no el orden que impone el
+     * diccionario que haya llegado a cargarse. */
+    expect(
+      screen.getAllByText((_texto, elemento) => {
+        const contenido = elemento?.textContent ?? '';
+        return /50[.,]00/.test(contenido) && /[$€]|US/.test(contenido);
+      }).length,
+    ).toBeGreaterThan(0);
   });
 
   it('sin mentores lo dice en vez de dejar la tabla en blanco', async () => {

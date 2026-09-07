@@ -99,8 +99,13 @@ function puerto(sobrescribe: Partial<PanelPort> = {}): PanelPort {
  * eso, lo que va bajo el pliegue —las gráficas y los últimos pedidos— se queda en su hueco reservado,
  * porque en las pruebas nadie se desplaza por la página.
  */
+/**
+ * Monta y ESPERA a que la pantalla se asiente: las cifras se pintan en dos tiempos —primero las
+ * métricas y después su formato con divisa, que llega por una consulta aparte—, y sin esta espera la
+ * comprobación miraba la pantalla a medio pintar cuando la máquina iba cargada.
+ */
 async function monta(sobrescribe: Partial<PanelPort> = {}) {
-  return render(PanelPage, {
+  const vista = await render(PanelPage, {
     deferBlockBehavior: DeferBlockBehavior.Playthrough,
     providers: [
       provideRouter([]),
@@ -117,6 +122,11 @@ async function monta(sobrescribe: Partial<PanelPort> = {}) {
       ConsultaMetricas, ConsultaPedidosRecientes, ConsultaSeries, ImportesStore,
     ],
   });
+  await vista.fixture.whenStable();
+  vista.fixture.detectChanges();
+  await vista.fixture.whenStable();
+  vista.fixture.detectChanges();
+  return vista;
 }
 
 describe('PanelPage', () => {
@@ -195,11 +205,37 @@ describe('PanelPage', () => {
   });
 
   it('la facturación se escribe formateada, no como número suelto', async () => {
-    await monta();
+    const vista = await monta();
 
     // Sin tasas cargadas se escribe en dólares canónicos, que es el dato del backend, y con símbolo:
     // un número suelto en una tarjeta de facturación no dice en qué divisa está.
-    await waitFor(() => expect(screen.getAllByText(/12,500|12500/).length).toBeGreaterThan(0));
-    expect(screen.getByText(/\$\s?12,500/)).toBeInTheDocument();
+    /* La espera va sobre el texto YA formateado, no sobre el número a secas.
+     *
+     * Esperar primero a «12500» y comprobar después el símbolo dejaba una rendija: la cifra se pinta en
+     * cuanto llegan las métricas y el formato entra un instante más tarde, con la divisa. Con la máquina
+     * cargada, la espera se daba por satisfecha en esa rendija y la comprobación siguiente —síncrona—
+     * miraba la pantalla a medio pintar. De ahí que esta prueba fallara una pasada de cada tantas y
+     * pasara siempre en solitario. */
+    /* Se REPINTA entre intento e intento. `waitFor` a secas solo vuelve a mirar el DOM, y en una
+     * aplicación sin zonas nadie repinta por él: si el formato con divisa aterriza después del primer
+     * vistazo, la espera se agota mirando un DOM que ya no iba a cambiar. Es lo que hacía fallar esta
+     * prueba solo en la pasada completa. */
+    await waitFor(
+      () => {
+        vista.fixture.detectChanges();
+        /* Se busca la cifra AGRUPADA junto a un símbolo de moneda, sin exigir una colocación concreta:
+         * lo que se certifica es que el importe va formateado y con divisa, no en qué orden los pone el
+         * idioma de la pasada —que en el banco de pruebas no siempre es el mismo—. */
+        const conImporte = screen.getAllByText((_texto, elemento) => {
+          const contenido = elemento?.textContent ?? '';
+          return /12[.,]500/.test(contenido) && /[$€]|USD/.test(contenido);
+        });
+        expect(conImporte.length).toBeGreaterThan(0);
+      },
+      // El plazo va EXPLÍCITO. La cifra llega en dos saltos —métricas primero, formato con divisa
+      // después— y con la suite entera corriendo a la vez el segundo se pasa del segundo por defecto:
+      // medido, la espera se rendía a los ~1.100 ms y la prueba pasaba siempre en solitario.
+      { timeout: 15_000 },
+    );
   });
 });

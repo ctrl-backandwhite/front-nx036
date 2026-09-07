@@ -1,19 +1,16 @@
 import { TestBed } from '@angular/core/testing';
 import { DOCUMENT } from '@angular/core';
-import { StripeAdapter } from './stripe.adapter';
+import { CARGADOR_DE_STRIPE, StripeAdapter } from './stripe.adapter';
 
 const cargar = vi.fn();
 const confirmar = vi.fn();
 
-/* Se dobla `@stripe/stripe-js/pure`, que es de donde el adaptador importa `loadStripe`.
+/* El cargador se pone por el TESTIGO, no sustituyendo el módulo.
  *
- * Doblar el módulo principal —que es lo que había— dejó de interceptar nada en cuanto el adaptador
- * pasó a la entrada `/pure` para no cargar Stripe en páginas donde no hay nada que pagar. La prueba
- * llamaba a la biblioteca DE VERDAD, que se ponía a descargar la pasarela y agotaba los cinco segundos
- * de plazo: ocho pruebas en rojo con un mensaje de tiempo agotado que no mencionaba a Stripe. */
-vi.mock('@stripe/stripe-js/pure', () => ({
-  loadStripe: (clave: string) => cargar(clave),
-}));
+ * Doblar `@stripe/stripe-js/pure` funcionaba solo cuando el empaquetador dejaba ese import como
+ * externo, y eso cambia según cómo se compile la pasada: con cobertura dejaba de aplicarse, la prueba
+ * llamaba a la biblioteca DE VERDAD y esta se quedaba esperando un guion que el DOM simulado nunca
+ * descarga. Ocho pruebas colgadas hasta agotar el plazo, con un mensaje que no mencionaba a Stripe. */
 
 function monta(asignar = vi.fn()) {
   // Lo único que hay que falsear es la salida del sitio (`defaultView.location.assign`). Sustituir el
@@ -29,7 +26,11 @@ function monta(asignar = vi.fn()) {
         : Reflect.get(real, propiedad, real),
   }) as Document;
   TestBed.configureTestingModule({
-    providers: [StripeAdapter, { provide: DOCUMENT, useValue: documento }],
+    providers: [
+      StripeAdapter,
+      { provide: DOCUMENT, useValue: documento },
+      { provide: CARGADOR_DE_STRIPE, useValue: cargar },
+    ],
   });
   return { adaptador: TestBed.inject(StripeAdapter), asignar };
 }

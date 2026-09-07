@@ -13,6 +13,14 @@ async function migasEn(direccion: string) {
     providers: [provideRouter([{ path: '**', component: Vacia }])],
   });
   await TestBed.inject(Router).navigateByUrl(direccion);
+  /* Un turno de macrotarea antes de mirar: la navegación resuelve su promesa y DESPUÉS publica la
+   * dirección nueva, y con la máquina cargada esas dos cosas caen en tics distintos. */
+  await new Promise((sigue) => setTimeout(sigue, 0));
+  /* La navegación termina en su propia microtarea y las migas se derivan de ella: sin dejar que el
+   * componente se asiente, con la máquina cargada se comprobaba el rastro de la dirección ANTERIOR. */
+  await vista.fixture.whenStable();
+  vista.fixture.detectChanges();
+  await vista.fixture.whenStable();
   vista.fixture.detectChanges();
   return vista;
 }

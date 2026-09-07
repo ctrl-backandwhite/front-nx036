@@ -188,10 +188,15 @@
           "options": {
             "tsConfig": "tsconfig.spec.json",
             "runner": "vitest",
+            "runnerConfig": true,
             "setupFiles": [
               "src/test-setup.ts"
             ],
             "coverage": false,
+            "coverageInclude": [
+              "src/app/**/*.ts",
+              "src/main.ts"
+            ],
             "coverageReporters": [
               "text",
               "lcov"

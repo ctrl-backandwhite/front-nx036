@@ -11,7 +11,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { PreferenciasService } from '@core/preferences/preferencias';
-import { esNavegador } from '@core/platform/plataforma';
+import { Plataforma } from '@core/platform/plataforma';
 import { ConversacionStore } from '../../application/state/conversacion.store';
 import { PreguntaAlAsistente } from '../../application/use-case/pregunta-al-asistente.use-case';
 
@@ -140,6 +140,15 @@ export class WidgetDeChat {
   private readonly preferencias = inject(PreferenciasService);
   private readonly pregunta = inject(PreguntaAlAsistente);
   private readonly router = inject(Router);
+  /**
+   * El servicio, y NO el ayudante `esNavegador()`.
+   *
+   * <p>Aquél llama a `inject()` por dentro, así que solo vale desde un contexto de inyección; se estaba
+   * usando desde el manejador del clic que abre el chat, y ahí lanza `NG0203`. El panel se abría igual
+   * —la línea anterior ya lo había marcado como abierto— pero la conversación guardada NO se recuperaba
+   * NUNCA, y el error quedaba en la consola sin que nada en pantalla lo delatara.
+   */
+  private readonly plataforma = inject(Plataforma);
 
   protected readonly conversacion = inject(ConversacionStore);
   protected readonly t = this.traduccion.t;
@@ -200,7 +209,7 @@ export class WidgetDeChat {
     this.abierto.set(true);
     // Lo guardado se lee DESPUÉS del primer pintado, nunca durante: en navegación privada el
     // almacenamiento lanza al tocarlo y tumbaría la pantalla entera antes de pintar nada.
-    if (esNavegador()) {
+    if (this.plataforma.esNavegador) {
       this.conversacion.hidrata();
     }
   }

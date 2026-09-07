@@ -1,3 +1,5 @@
+import { AppError } from '@shared/error/app-error';
+import { Result } from '@shared/result/result';
 import { DeferBlockBehavior } from '@angular/core/testing';
 import { render, screen, waitFor } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
@@ -7,9 +9,14 @@ import { creaError } from '@shared/error/app-error';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
 import { DialogoStore } from '@ds/component/dialogo/dialogo.store';
 import { SOCIOS_PORT } from '../../../domain/gestion/port/socios.port';
-import { ClienteOauth } from '../../../domain/gestion/model/socios';
+import { ClienteOauth, SecretoEmitido } from '../../../domain/gestion/model/socios';
 import {
-  BorraElCliente, ConsultaSocios, CreaElCliente, PruebaLosWebhooks, RotaElSecreto,
+  BorraElCliente,
+  ConsultaSocios,
+  CreaElCliente,
+  PanoramaDeSocios,
+  PruebaLosWebhooks,
+  RotaElSecreto,
 } from '../../../application/gestion/use-case/socios.use-case';
 import { SociosPage } from './socios.page';
 import { instalaObservadorDeVisibilidad } from '../pruebas/visibilidad';
@@ -211,5 +218,257 @@ describe('SociosPage', () => {
 
     expect(puerto.pruebaWebhooks).toHaveBeenCalled();
     expect(avisos.error).toHaveBeenCalledWith('No se pudo enviar el webhook de prueba.');
+  });
+});
+
+/**
+ * Los socios de integración: sus credenciales y sus entregas de webhook.
+ *
+ * <p>Todo lo delicado de esta pantalla gira alrededor de una idea: **el secreto solo se ve una vez**.
+ * De ahí las dos reglas que se fijan aquí:
+ *
+ * <ul>
+ *   <li>rotar PREGUNTA antes, porque invalida el anterior al instante y la integración que lo use deja
+ *       de entrar hasta que alguien actualice su configuración;
+ *   <li>y el secreto nuevo sale en un diálogo que hay que cerrar A MANO — un aviso que se desvanece
+ *       solo se llevaría por delante la única oportunidad de copiarlo.
+ * </ul>
+ */
+const CLIENTE_BASE: ClienteOauth = {
+  id: 'c1',
+  identificador: 'nx-partner-1',
+  nombre: 'Tienda de Ana',
+  concesiones: 'client_credentials',
+  permisos: 'catalog:read',
+};
+
+const SECRETO_EMITIDO: SecretoEmitido = { identificador: 'nx-partner-1', secreto: 's3cr3t' };
+
+interface OpcionesDeSocios {
+  panorama?: PanoramaDeSocios;
+  rotar?: 'falla';
+  borrar?: 'falla';
+  probar?: 'falla';
+}
+
+async function montaConDobles(opciones: OpcionesDeSocios = {}) {
+  const consulta = vi.fn(
+    async (): Promise<PanoramaDeSocios> =>
+      opciones.panorama ?? {
+        clientes: [CLIENTE_BASE],
+        aplicaciones: [],
+        entregas: [
+          { id: 'e1', evento: 'ORDER_CREATED', estado: 'FAILED', intentos: 3, codigoDeRespuesta: 502 },
+        ],
+      },
+  );
+  const rota = vi.fn(
+    async (_id: string): Promise<Result<SecretoEmitido, AppError>> =>
+      opciones.rotar === 'falla'
+        ? fallo(creaError('conflicto', 'No se pudo rotar'))
+        : exito(SECRETO_EMITIDO),
+  );
+  const borra = vi.fn(
+    async (_id: string): Promise<Result<void, AppError>> =>
+      opciones.borrar === 'falla'
+        ? fallo(creaError('conflicto', 'Tiene integraciones vivas'))
+        : exito(undefined),
+  );
+  const prueba = vi.fn(
+    async (): Promise<Result<number, AppError>> =>
+      opciones.probar === 'falla' ? fallo(creaError('error-del-servidor')) : exito(4),
+  );
+
+  const vista = await render(SociosPage, {
+    deferBlockBehavior: DeferBlockBehavior.Playthrough,
+    providers: [
+      AvisosStore,
+      DialogoStore,
+      { provide: ConsultaSocios, useValue: { ejecuta: consulta } },
+      { provide: RotaElSecreto, useValue: { ejecuta: rota } },
+      { provide: BorraElCliente, useValue: { ejecuta: borra } },
+      { provide: PruebaLosWebhooks, useValue: { ejecuta: prueba } },
+      { provide: CreaElCliente, useValue: { ejecuta: async () => exito(SECRETO_EMITIDO) } },
+    ],
+  });
+  await vista.fixture.whenStable();
+  vista.fixture.detectChanges();
+  await vista.fixture.whenStable();
+  vista.fixture.detectChanges();
+
+  const asienta = async () => {
+    await new Promise((sigue) => setTimeout(sigue, 0));
+    await vista.fixture.whenStable();
+    vista.fixture.detectChanges();
+    await vista.fixture.whenStable();
+    vista.fixture.detectChanges();
+  };
+
+  const pantalla = vista.fixture.componentInstance as unknown as Record<
+    string,
+    (...args: never[]) => Promise<void> | void
+  >;
+
+  return {
+    vista,
+    asienta,
+    pantalla,
+    consulta,
+    rota,
+    borra,
+    prueba,
+    avisos: vista.fixture.debugElement.injector.get(AvisosStore),
+    dialogo: vista.fixture.debugElement.injector.get(DialogoStore),
+  };
+}
+
+describe('SociosPage · rotación, borrado y prueba de webhooks', () => {
+  beforeEach(() => {
+    document.cookie = 'nx036-locale=es';
+  });
+
+  it('carga el panorama al entrar', async () => {
+    const { consulta } = await montaConDobles();
+
+    expect(consulta).toHaveBeenCalled();
+    expect(screen.getByText('nx-partner-1')).toBeInTheDocument();
+  });
+
+  /** El secreto nunca se pinta: solo su identificador y un marcador. */
+  it('el secreto no se enseña con la lista, solo se puede revelar', async () => {
+    const { vista } = await montaConDobles();
+
+    expect((vista.fixture.nativeElement.textContent as string)).not.toContain('s3cr3t');
+  });
+
+  describe('rotar el secreto', () => {
+    /** Rotar invalida el anterior al instante: quien lo use deja de entrar hasta que se actualice. */
+    it('PREGUNTA antes, y si se dice que no no se rota', async () => {
+      const { pantalla, rota, dialogo, asienta } = await montaConDobles();
+
+      const enCurso = pantalla['rota']('nx-partner-1' as never);
+      await asienta();
+
+      expect(dialogo.actual()?.clase).toBe('confirm');
+      expect(dialogo.actual()?.mensaje).toContain('nx-partner-1');
+      dialogo.cierra(false);
+      await enCurso;
+      expect(rota).not.toHaveBeenCalled();
+    });
+
+    /** Es la ÚNICA vez que el secreto va a verse: tiene que quedarse hasta que se cierre a mano. */
+    it('al confirmar, el secreto nuevo sale en un diálogo que hay que cerrar', async () => {
+      const { pantalla, rota, dialogo, asienta } = await montaConDobles();
+
+      const enCurso = pantalla['rota']('nx-partner-1' as never);
+      await asienta();
+      dialogo.cierra(true);
+      await asienta();
+
+      expect(rota).toHaveBeenCalledWith('nx-partner-1');
+      expect(dialogo.actual()?.clase).toBe('alert');
+      expect(dialogo.actual()?.mensaje).toContain('s3cr3t');
+
+      dialogo.cierra(true);
+      await enCurso;
+    });
+
+    it('si el servidor lo rechaza, se dice y no se enseña ningún secreto', async () => {
+      const { pantalla, avisos, dialogo, asienta } = await montaConDobles({ rotar: 'falla' });
+
+      const enCurso = pantalla['rota']('nx-partner-1' as never);
+      await asienta();
+      dialogo.cierra(true);
+      await enCurso;
+      await asienta();
+
+      expect(avisos.avisos().at(-1)).toMatchObject({ tipo: 'error', mensaje: 'No se pudo rotar' });
+      expect(dialogo.actual()).toBeNull();
+    });
+  });
+
+  describe('borrar un cliente', () => {
+    it('PREGUNTA con el identificador delante', async () => {
+      const { pantalla, borra, dialogo, asienta } = await montaConDobles();
+
+      const enCurso = pantalla['borra']('nx-partner-1' as never);
+      await asienta();
+
+      expect(dialogo.actual()?.mensaje).toContain('nx-partner-1');
+      dialogo.cierra(false);
+      await enCurso;
+      expect(borra).not.toHaveBeenCalled();
+    });
+
+    it('y al confirmar borra y vuelve a leer', async () => {
+      const { pantalla, borra, consulta, dialogo, asienta } = await montaConDobles();
+      consulta.mockClear();
+
+      const enCurso = pantalla['borra']('nx-partner-1' as never);
+      await asienta();
+      dialogo.cierra(true);
+      await enCurso;
+      await asienta();
+
+      expect(borra).toHaveBeenCalledWith('nx-partner-1');
+      expect(consulta).toHaveBeenCalled();
+    });
+
+    it('si el servidor se niega, se enseña SU motivo', async () => {
+      const { pantalla, avisos, dialogo, asienta } = await montaConDobles({ borrar: 'falla' });
+
+      const enCurso = pantalla['borra']('nx-partner-1' as never);
+      await asienta();
+      dialogo.cierra(true);
+      await enCurso;
+
+      expect(avisos.avisos().at(-1)?.mensaje).toBe('Tiene integraciones vivas');
+    });
+  });
+
+  describe('probar los webhooks', () => {
+    /**
+     * Entre disparar la prueba y releer la tabla se espera al drenaje de la cola: releer al instante
+     * enseñaría la tabla igual que antes y parecería que la prueba no salió.
+     */
+    it('espera al drenaje antes de releer, y dice a cuántos se disparó', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      try {
+        const { pantalla, prueba, consulta, avisos } = await montaConDobles();
+        consulta.mockClear();
+
+        const enCurso = pantalla['pruebaWebhooks']();
+        await vi.advanceTimersByTimeAsync(2000);
+        await enCurso;
+
+        expect(prueba).toHaveBeenCalled();
+        expect(consulta).toHaveBeenCalled();
+        expect(avisos.avisos().at(-1)?.mensaje).toContain('4');
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('si falla, se dice y el botón se suelta sin esperar al drenaje', async () => {
+      const { pantalla, consulta, avisos, asienta } = await montaConDobles({ probar: 'falla' });
+      consulta.mockClear();
+
+      await pantalla['pruebaWebhooks']();
+      await asienta();
+
+      expect(avisos.avisos().at(-1)?.tipo).toBe('error');
+      /* No hay nada que drenar: releer la tabla sería esperar segundo y medio para nada. */
+      expect(consulta).not.toHaveBeenCalled();
+    });
+  });
+
+  it('el alta cierra el formulario y vuelve a leer', async () => {
+    const { pantalla, consulta, asienta } = await montaConDobles();
+    consulta.mockClear();
+
+    pantalla['altaHecha']();
+    await asienta();
+
+    expect(consulta).toHaveBeenCalled();
   });
 });

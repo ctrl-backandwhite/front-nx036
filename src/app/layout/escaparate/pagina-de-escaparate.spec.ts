@@ -85,6 +85,32 @@ describe('PaginaDeEscaparate', () => {
 
     expect(container.querySelector('nx-guia-de-bienvenida')).not.toBeNull();
     expect(container.querySelector('nx-vista-rapida')).not.toBeNull();
+  });
+
+  /**
+   * El asistente flotante SOLO con sesión, igual que en el front anterior.
+   *
+   * <p>Esta prueba nació al revés: daba por hecho que el asistente estaba siempre y por eso se quedó en
+   * verde mientras, sin sesión, su capa se plantaba encima de la página y tapaba los botones a quien
+   * acababa de llegar. Se descubrió con las pruebas de acciones, que empezaron a agotar el tiempo
+   * pulsando controles que estaban a la vista y no se dejaban pulsar.
+   */
+  it('el asistente flotante no aparece sin sesión, y sí aparece con ella', async () => {
+    const { container, detectChanges } = await monta();
+
+    expect(
+      container.querySelector('nx-asistencia-flotante'),
+      'sin sesión el asistente tapa la página a quien acaba de llegar',
+    ).toBeNull();
+
+    TestBed.inject(SesionActual).publica({
+      id: 'u1',
+      nombreVisible: 'Ana',
+      rol: 'USER',
+      pais: 'ES',
+    });
+    detectChanges();
+
     expect(container.querySelector('nx-asistencia-flotante')).not.toBeNull();
   });
 

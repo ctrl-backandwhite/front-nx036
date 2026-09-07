@@ -1,4 +1,16 @@
 import '@testing-library/jest-dom/vitest';
+import { configure } from '@testing-library/dom';
+
+/**
+ * El plazo de las esperas asíncronas: cinco segundos en vez del segundo por defecto.
+ *
+ * <p>No es taparle la boca a nada. Las 348 pruebas corren en paralelo sobre la misma máquina, y lo que
+ * esperan casi siempre encadena dos saltos —llega el dato, y después el formato con la divisa—. Con un
+ * segundo de plazo, bajo carga fallaba una o dos pruebas DISTINTAS en cada pasada y todas ellas pasaban
+ * en solitario: la firma de un plazo apurado, no de un defecto. El coste de subirlo es cero cuando todo
+ * va bien —la espera termina en cuanto aparece lo esperado— y solo se nota en la prueba que ya falla.
+ */
+configure({ asyncUtilTimeout: 5000 });
 
 /**
  * Preparación común de las pruebas.
@@ -98,4 +110,20 @@ if (typeof globalThis.requestIdleCallback === 'undefined') {
   globalThis.requestIdleCallback = ((tarea: IdleRequestCallback) =>
     setTimeout(() => tarea({ didTimeout: false, timeRemaining: () => 50 }), 0) as unknown as number) as typeof globalThis.requestIdleCallback;
   globalThis.cancelIdleCallback = ((id: number) => clearTimeout(id)) as typeof globalThis.cancelIdleCallback;
+}
+
+/**
+ * Doble de `scrollIntoView`.
+ *
+ * <p>El DOM simulado no lo trae, y no falla al llamarlo: lanza. Lo usan las piezas que bajan la vista al
+ * contenido nuevo —el chat al recibir respuesta, los hilos de soporte—, así que sin esto la prueba de
+ * esas pantallas revienta con un «no es una función» que no menciona el desplazamiento.
+ *
+ * <p>No hace nada, y no debe: en una prueba no hay ventana que desplazar. Lo que se comprueba es qué se
+ * pinta, no cuánto se ha bajado.
+ */
+if (typeof Element.prototype.scrollIntoView !== 'function') {
+  Element.prototype.scrollIntoView = function desplazaHasta(): void {
+    /* Sin efecto a propósito: ver la nota de arriba. */
+  };
 }

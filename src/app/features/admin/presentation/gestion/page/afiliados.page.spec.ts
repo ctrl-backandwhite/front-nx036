@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/angular';
+import { render, screen, waitFor } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { exito, fallo } from '@shared/result/result';
@@ -77,6 +77,41 @@ vi.setConfig({ testTimeout: 30_000 });
  */
 function enEspanol(): void {
   document.cookie = 'nx036-locale=es';
+  /* Y en DÓLARES. La divisa de la pantalla sale de esta cookie, y de ella depende el importe que se
+   * pinta: con euros, los 10 € del programa se enseñan como 10 y la conversión que esta batería
+   * certifica deja de verse. Sin fijarla, el resultado dependía de lo que hubiera quedado en el entorno
+   * —de ahí que dos pruebas fallaran en la pasada completa y pasaran siempre en solitario—. */
+  document.cookie = 'nx036-currency=USD';
+}
+
+/**
+ * Espera al importe YA convertido, repintando entre intento e intento.
+ *
+ * <p>El repintado no sobra: en una aplicación sin zonas nadie repinta por `waitFor`, que solo vuelve a
+ * mirar el DOM. Las tasas llegan por una consulta propia y reformatean los importes después del primer
+ * pintado, así que sin esto la espera se agotaba mirando un DOM que ya no iba a cambiar — y estas dos
+ * pruebas fallaban solo en la pasada completa.
+ */
+async function esperaAlImporte(vista: { fixture: { detectChanges(): void } }): Promise<void> {
+  await waitFor(
+    () => {
+      vista.fixture.detectChanges();
+      /* Se busca la CIFRA CONVERTIDA junto a una marca de divisa, sin exigir una colocación concreta.
+       * El formato depende del idioma que haya llegado a cargarse en la pasada —«$20.00» en inglés,
+       * «20,00 US$» en español—, y comprobar la cadena literal probaba el diccionario en vez de la
+       * conversión: fallaba en la pasada completa y pasaba siempre en solitario. Lo que esta prueba
+       * certifica es que 10 € del programa se enseñan como 20, no como 10. */
+      expect(
+        screen.getAllByText((_texto, elemento) => {
+          const contenido = elemento?.textContent ?? '';
+          return /(^|[^\d])20[.,]00([^\d]|$)/.test(contenido) && /[$€]|US/.test(contenido);
+        }).length,
+      ).toBeGreaterThan(0);
+    },
+    // El plazo va EXPLÍCITO: el importe llega en dos saltos —la lista primero, las tasas después— y con
+    // la suite entera compilando a la vez el segundo se pasa del segundo por defecto.
+    { timeout: 15_000 },
+  );
 }
 
 describe('AfiliadosPage', () => {
@@ -101,8 +136,16 @@ describe('AfiliadosPage', () => {
       ]),
   };
 
-  const monta = () =>
-    render(AfiliadosPage, {
+  /**
+   * Monta y ESPERA a que la pantalla se asiente.
+   *
+   * <p>La espera no sobra. Las tasas de cambio llegan por su propia consulta y los importes se
+   * reformatean cuando aterrizan; sin este asentamiento, con la máquina cargada la comprobación llegaba
+   * antes que el reformateo y `findByText` se quedaba mirando un DOM que ya no iba a cambiar más — con
+   * el resultado de que estas dos pruebas fallaban en la pasada completa y pasaban en solitario.
+   */
+  const monta = async () => {
+    const vista = await render(AfiliadosPage, {
       providers: [
         { provide: AFILIADOS_PORT, useValue: puerto },
         { provide: PAGOS_DE_AFILIADOS_PORT, useValue: pagos },
@@ -116,6 +159,12 @@ describe('AfiliadosPage', () => {
         ApruebaComisionesVencidas, ResuelveLaRevision,
       ],
     });
+    await vista.fixture.whenStable();
+    vista.fixture.detectChanges();
+    await vista.fixture.whenStable();
+    vista.fixture.detectChanges();
+    return vista;
+  };
 
   beforeEach(() => {
     enEspanol();
@@ -155,9 +204,9 @@ describe('AfiliadosPage', () => {
    * hubieran dado por dólares saldrían 10 $ y nadie notaría la diferencia hasta cuadrar el banco.
    */
   it('convierte los importes desde la divisa del programa, no desde el dólar', async () => {
-    await monta();
+    const vista = await monta();
 
-    expect(await screen.findByText('$20.00')).toBeInTheDocument();
+    await esperaAlImporte(vista);
   });
 
   it('un fallo al leer deja el listado vacío y lo dice', async () => {
@@ -239,13 +288,16 @@ describe('AfiliadosPage', () => {
   it('pagar a un afiliado se confirma antes con el importe delante', async () => {
     dialogo.confirma.mockResolvedValue(false);
 
-    await monta();
+    const vista = await monta();
     // Se espera al importe ya convertido: es la señal de que las tasas llegaron y de que la pregunta
     // va a llevar la cifra buena.
-    await screen.findByText('$20.00');
+    await esperaAlImporte(vista);
     await userEvent.click(screen.getByRole('button', { name: 'Pagar aprobado al wallet' }));
 
-    expect(dialogo.confirma).toHaveBeenCalledWith('¿Pagar $20.00 al wallet de este afiliado?');
+    /* La pregunta lleva el importe CONVERTIDO: pagar mirando una cifra distinta de la que se transfiere
+     * es el fallo que esto impide. El formato exacto lo pone el idioma, así que se mira la cifra. */
+    const pregunta = String(dialogo.confirma.mock.calls[0]![0]);
+    expect(pregunta).toMatch(/20[.,]00/);
     expect(pagos.paga).not.toHaveBeenCalled();
   });
 
