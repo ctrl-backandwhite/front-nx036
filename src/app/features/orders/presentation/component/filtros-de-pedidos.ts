@@ -1,7 +1,7 @@
 import { Component, computed, inject, input, model } from '@angular/core';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { BarraFiltros } from '@ds/component/filtros/barra-filtros';
-import { FiltroSeleccion, OpcionFiltro } from '@ds/component/filtros/filtro-seleccion';
+import { FiltroDesplegable, OpcionDeFiltro } from '@ds/component/filtros/filtro-desplegable';
 import { CampoBusqueda } from '@ds/component/campo-busqueda/campo-busqueda';
 import { ESTADOS_DE_PEDIDO } from '../../domain/model/pedido';
 import {
@@ -23,7 +23,7 @@ function capitaliza(texto: string): string {
  */
 @Component({
   selector: 'nx-filtros-de-pedidos',
-  imports: [BarraFiltros, FiltroSeleccion, CampoBusqueda],
+  imports: [BarraFiltros, FiltroDesplegable, CampoBusqueda],
   template: `
     <nx-barra-filtros
       [activos]="puestos()"
@@ -36,28 +36,28 @@ function capitaliza(texto: string): string {
         [marcador]="t('orders.filter.search_ph')"
         clase="w-full sm:min-w-[220px]"
       />
-      <nx-filtro-seleccion
+      <nx-filtro-desplegable
         [etiqueta]="t('orders.filter.status')"
         [valor]="criterio().estado"
         (valorChange)="cambia('estado', $event)"
         [opciones]="opcionesDeEstado()"
         [marcador]="t('orders.filter.all')"
       />
-      <nx-filtro-seleccion
+      <nx-filtro-desplegable
         [etiqueta]="t('orders.filter.year')"
         [valor]="criterio().ano"
         (valorChange)="cambia('ano', $event)"
         [opciones]="opcionesDeAno()"
         [marcador]="t('orders.filter.all')"
       />
-      <nx-filtro-seleccion
+      <nx-filtro-desplegable
         [etiqueta]="t('orders.filter.month')"
         [valor]="criterio().mes"
         (valorChange)="cambia('mes', $event)"
         [opciones]="opcionesDeMes()"
         [marcador]="t('orders.filter.all')"
       />
-      <nx-filtro-seleccion
+      <nx-filtro-desplegable
         [etiqueta]="t('orders.filter.day')"
         [valor]="criterio().dia"
         (valorChange)="cambia('dia', $event)"
@@ -100,27 +100,27 @@ export class FiltrosDePedidos {
 
   protected readonly puestos = computed(() => filtrosPuestos(this.criterio()));
 
-  protected readonly opcionesDeEstado = computed<readonly OpcionFiltro[]>(() =>
+  protected readonly opcionesDeEstado = computed<readonly OpcionDeFiltro[]>(() =>
     ESTADOS_DE_PEDIDO.map((estado) => ({
-      value: estado,
-      label: this.t(`orders.status.${estado}`),
+      valor: estado,
+      etiqueta: this.t(`orders.status.${estado}`),
     })),
   );
 
-  protected readonly opcionesDeAno = computed<readonly OpcionFiltro[]>(() =>
-    this.anos().map((ano) => ({ value: ano, label: ano })),
+  protected readonly opcionesDeAno = computed<readonly OpcionDeFiltro[]>(() =>
+    this.anos().map((ano) => ({ valor: ano, etiqueta: ano })),
   );
 
-  protected readonly opcionesDeMes = computed<readonly OpcionFiltro[]>(() => {
+  protected readonly opcionesDeMes = computed<readonly OpcionDeFiltro[]>(() => {
     const idioma = this.traduccion.idioma();
     return Array.from({ length: 12 }, (_, mes) => ({
-      value: String(mes + 1),
-      label: capitaliza(new Date(2000, mes, 1).toLocaleString(idioma, { month: 'long' })),
+      valor: String(mes + 1),
+      etiqueta: capitaliza(new Date(2000, mes, 1).toLocaleString(idioma, { month: 'long' })),
     }));
   });
 
-  protected readonly opcionesDeDia = computed<readonly OpcionFiltro[]>(() =>
-    Array.from({ length: 31 }, (_, dia) => ({ value: String(dia + 1), label: String(dia + 1) })),
+  protected readonly opcionesDeDia = computed<readonly OpcionDeFiltro[]>(() =>
+    Array.from({ length: 31 }, (_, dia) => ({ valor: String(dia + 1), etiqueta: String(dia + 1) })),
   );
 
   protected cambia(campo: 'texto' | 'estado' | 'ano' | 'mes' | 'dia', valor: string | null): void {

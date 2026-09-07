@@ -11,7 +11,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { CategoriaAdmin, estaVaciaYActiva } from '../../../domain/catalogo/model/categoria-admin';
-import { EsqueletoDeFila } from './esqueleto-de-fila';
+import { EsqueletoDeFila } from '@ds/component/marcador/esqueleto-de-fila';
 
 /**
  * La tabla de categorías.

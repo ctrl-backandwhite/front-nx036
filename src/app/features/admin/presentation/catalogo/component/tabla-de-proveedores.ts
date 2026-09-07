@@ -15,7 +15,7 @@ import {
   ProveedorAdmin,
   ubicacionDeProveedor,
 } from '../../../domain/catalogo/model/proveedor-admin';
-import { EsqueletoDeFila } from './esqueleto-de-fila';
+import { EsqueletoDeFila } from '@ds/component/marcador/esqueleto-de-fila';
 
 /**
  * La tabla de proveedores.

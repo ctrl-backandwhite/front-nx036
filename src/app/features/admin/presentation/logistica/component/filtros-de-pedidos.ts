@@ -2,16 +2,16 @@ import { Component, computed, inject, input, model } from '@angular/core';
 import { FormField, form } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { PreferenciasService } from '@core/preferences/preferencias';
-import { FiltroSeleccion, OpcionFiltro } from '@ds/component/filtros/filtro-seleccion';
+import { FiltroDesplegable, OpcionDeFiltro } from '@ds/component/filtros/filtro-desplegable';
 import { EstadoPedido } from '../../../domain/logistica/model/pedido';
 // Las dos fechas viajan JUNTAS: son un intervalo, y el dominio ya tiene el tipo para decirlo. Tenerlas
 // como dos campos sueltos obligaba a coordinarlas desde fuera, una a una.
 import { RangoDeFechas } from '../../../domain/logistica/model/operador';
 
 /** Los treinta y un días. Se listan todos: no se sabe de qué mes se filtrará. */
-const DIAS: readonly OpcionFiltro[] = Array.from({ length: 31 }, (_, indice) => ({
-  value: String(indice + 1),
-  label: String(indice + 1),
+const DIAS: readonly OpcionDeFiltro[] = Array.from({ length: 31 }, (_, indice) => ({
+  valor: String(indice + 1),
+  etiqueta: String(indice + 1),
 }));
 
 /**
@@ -22,27 +22,27 @@ const DIAS: readonly OpcionFiltro[] = Array.from({ length: 31 }, (_, indice) => 
  */
 @Component({
   selector: 'nx-filtros-de-pedidos',
-  imports: [FiltroSeleccion, FormField],
+  imports: [FiltroDesplegable, FormField],
   template: `
-    <nx-filtro-seleccion
+    <nx-filtro-desplegable
       [etiqueta]="t('filters.status')"
       [(valor)]="estado"
       [opciones]="opcionesDeEstado()"
       [marcador]="t('filters.all')"
     />
-    <nx-filtro-seleccion
+    <nx-filtro-desplegable
       [etiqueta]="t('orders.filter.year')"
       [(valor)]="anio"
       [opciones]="opcionesDeAnio()"
       [marcador]="t('orders.filter.all')"
     />
-    <nx-filtro-seleccion
+    <nx-filtro-desplegable
       [etiqueta]="t('orders.filter.month')"
       [(valor)]="mes"
       [opciones]="meses()"
       [marcador]="t('orders.filter.all')"
     />
-    <nx-filtro-seleccion
+    <nx-filtro-desplegable
       [etiqueta]="t('orders.filter.day')"
       [(valor)]="dia"
       [opciones]="dias"
@@ -90,25 +90,25 @@ export class FiltrosDePedidos {
   protected readonly t = this.traduccion.t;
 
   /** Sin traducción se enseña el código: así un estado nuevo del backend se ve en vez de quedar vacío. */
-  protected readonly opcionesDeEstado = computed<readonly OpcionFiltro[]>(() =>
+  protected readonly opcionesDeEstado = computed<readonly OpcionDeFiltro[]>(() =>
     this.estados().map((estado) => {
       const clave = `orders.status.${estado}`;
       const etiqueta = this.traduccion.t(clave);
-      return { value: estado, label: etiqueta === clave ? estado : etiqueta };
+      return { valor: estado, etiqueta: etiqueta === clave ? estado : etiqueta };
     }),
   );
 
-  protected readonly opcionesDeAnio = computed<readonly OpcionFiltro[]>(() =>
-    this.anios().map((anio) => ({ value: anio, label: anio })),
+  protected readonly opcionesDeAnio = computed<readonly OpcionDeFiltro[]>(() =>
+    this.anios().map((anio) => ({ valor: anio, etiqueta: anio })),
   );
 
-  protected readonly meses = computed<readonly OpcionFiltro[]>(() => {
+  protected readonly meses = computed<readonly OpcionDeFiltro[]>(() => {
     const idioma = this.preferencias.idioma();
     return Array.from({ length: 12 }, (_, indice) => {
       const nombre = new Date(2000, indice, 1).toLocaleString(idioma, { month: 'long' });
       return {
-        value: String(indice + 1),
-        label: nombre.charAt(0).toUpperCase() + nombre.slice(1),
+        valor: String(indice + 1),
+        etiqueta: nombre.charAt(0).toUpperCase() + nombre.slice(1),
       };
     });
   });

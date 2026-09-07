@@ -85,10 +85,19 @@ describe('SeccionesPortada', () => {
     expect(vista.container.querySelectorAll('section')).toHaveLength(0);
   });
 
-  it('una portada que no carga no rompe la página', async () => {
+  /**
+   * Cuando la portada no carga se OFRECE REINTENTAR, que es lo que antes faltaba.
+   *
+   * <p>Se quedaba en blanco a propósito —«no rompe la página»—, y el resultado era una portada sin
+   * productos, sin explicación y sin salida: quien entra con la red floja ve una tienda vacía y se va.
+   * El aviso de contenido no disponible ya existía en el proyecto y no lo montaba nadie.
+   */
+  it('una portada que no carga ofrece reintentar', async () => {
     const vista = await monta(async () => fallo(creaError('sin-conexion')));
     await vista.fixture.whenStable();
-    expect(vista.container.textContent?.trim()).toBe('');
+
+    expect(vista.container.querySelector('nx-contenido-no-disponible')).not.toBeNull();
+    expect(vista.container.textContent?.trim(), 'la portada se queda muda').not.toBe('');
   });
 });
 

@@ -112,11 +112,17 @@ const ESPERA_DEL_DRENAJE_MS = 1500;
       </section>
 
       <!--
-        Las aplicaciones conectadas y las entregas de webhook quedan por debajo del pliegue: se baja a
-        ellas para diagnosticar, no al entrar. Diferirlas deja que la tabla de clientes —lo que de
-        verdad se administra aquí— llegue sin competencia.
+        Las tres tablas se pintan a la vez, y ninguna se difiere.
+
+        DEFECTO CERRADO: estas dos colgaban de un bloque diferido por aparición en pantalla y quedaban
+        invisibles hasta que alguien bajaba la página. Diferirlas no ahorraba NADA, y esto es lo que
+        no se vio al escribirlo: el caso de uso pide las TRES listas nada más montar y en paralelo, de
+        modo que los datos ya estaban en memoria y lo único que se retrasaba era pintarlos. A cambio,
+        la pantalla enseñaba un tercio del contenido del front anterior —3.558 caracteres frente a
+        12.557— y en su lugar un hueco vacío de 320 píxeles que parecía un fallo de maquetación. En
+        una pantalla de diagnóstico eso sale carísimo: se entra aquí justamente a mirar las entregas
+        de webhook que fallaron.
       -->
-      @defer (on viewport) {
       <section class="card overflow-hidden">
         <div class="card-header"><span>{{ t('admin.partners.section.apps') }}</span></div>
         <div class="overflow-x-auto">
@@ -198,14 +204,6 @@ const ESPERA_DEL_DRENAJE_MS = 1500;
         </div>
       </section>
 
-      } @placeholder {
-        <!-- UN solo elemento raíz: es el que el disparador observa. Reserva el alto de las dos tablas
-             para que la página no dé un salto cuando llegan. -->
-        <section class="h-80"></section>
-      }
-
-      <!-- El alta va FUERA del diferido: la abre un botón de la cabecera, así que tiene que existir
-           aunque nadie haya bajado la página. -->
       @if (creando()) {
         <nx-socios-alta (cierra)="creando.set(false)" (creado)="altaHecha()" />
       }

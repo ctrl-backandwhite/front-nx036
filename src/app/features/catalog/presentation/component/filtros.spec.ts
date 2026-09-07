@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { CRITERIO_VACIO } from '../../domain/model/criterio-de-busqueda';
-import { FiltroDesplegable } from './filtro-desplegable';
+import { FiltroDesplegable } from '@ds/component/filtros/filtro-desplegable';
 import { FiltroInterruptor } from './filtro-interruptor';
 import { DistintivoFiltro } from './distintivo-filtro';
 import { BarraDeFiltros } from './barra-de-filtros';

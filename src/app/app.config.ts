@@ -20,10 +20,12 @@ import { proveeAtribucionDeReferido } from '@features/affiliate/affiliate.provid
 import { proveeNotifications } from '@features/notifications/notifications.providers';
 import { proveeSupport } from '@features/support/support.providers';
 import { PrecargaSelectiva } from '@core/performance/precarga-selectiva';
+import { filtraLaCacheDeTransferencia } from '@core/http/cache-de-transferencia';
 import { authInterceptor } from '@core/http/interceptor/auth.interceptor';
 import { captchaInterceptor } from '@core/http/interceptor/captcha.interceptor';
 import { preferenciasInterceptor } from '@core/http/interceptor/preferencias.interceptor';
 import { reintentoAlConstruirInterceptor } from '@core/http/interceptor/reintento-al-construir.interceptor';
+import { testigoDeCompilacionInterceptor } from '@core/http/interceptor/testigo-de-compilacion.interceptor';
 import { respuestaHtmlInterceptor } from '@core/http/interceptor/respuesta-html.interceptor';
 
 export const appConfig: ApplicationConfig = {
@@ -51,12 +53,14 @@ export const appConfig: ApplicationConfig = {
       // y el navegador las reaproveche al hidratar, en vez de repetirlas nada más arrancar.
       withFetch(),
       // El ORDEN es el de ejecución. El reintento del 429 va EL PRIMERO porque su reintento tiene que
-      // rehacer la petición entera —con sus preferencias, su captcha y su credencial—, no repetir una
-      // petición a medio montar; en el navegador se aparta solo y no cuesta nada. Después las
+      // rehacer la petición entera —con sus preferencias, su testigo, su captcha y su credencial—, no
+      // repetir una petición a medio montar; en el navegador se aparta solo y no cuesta nada. Justo
+      // después el testigo de compilación, para que cada reintento vuelva a llevarlo. Luego las
       // preferencias, porque las necesitan todas; el captcha antes que la credencial porque puede
       // tardar; y la guardia de HTML la última, para ver la respuesta ya definitiva.
       withInterceptors([
         reintentoAlConstruirInterceptor,
+        testigoDeCompilacionInterceptor,
         preferenciasInterceptor,
         captchaInterceptor,
         authInterceptor,
@@ -86,10 +90,15 @@ export const appConfig: ApplicationConfig = {
        * vez los mismos datos, con el parpadeo correspondiente. `includePostRequests` se deja apagado a
        * propósito —una petición que escribe no se puede servir de una caché— y las cabeceras no se
        * incluyen porque llevan la credencial.
+       *
+       * <p>El FILTRO es lo que impide servir precios de otra persona: lo guardado se calculó en español
+       * y a dólares, y la clave de la caché no mira las cabeceras donde viajan el idioma y la moneda.
+       * Está explicado con detalle en el propio filtro.
        */
       withHttpTransferCacheOptions({
         includePostRequests: false,
         includeHeaders: [],
+        filter: filtraLaCacheDeTransferencia,
       }),
     ),
 

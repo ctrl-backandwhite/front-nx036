@@ -127,4 +127,55 @@ describe('GaleriaDeFicha', () => {
 
     expect(borradas[0].sort()).toEqual(['i1', 'i2']);
   });
+
+  /**
+   * El equivalente TÁCTIL del arrastre.
+   *
+   * <p>Reordenar la galería solo se podía hacer arrastrando, y el arrastre HTML5 no existe en una
+   * pantalla táctil: el gesto lo interpreta el navegador como desplazamiento. Desde una tableta no
+   * había forma de elegir la imagen principal, que es lo que de verdad se decide al reordenar —es la
+   * foto con la que el producto sale en el escaparate y en los correos—.
+   */
+  it('las flechas reordenan sin arrastrar', async () => {
+    const orden: (readonly string[])[] = [];
+    await render(GaleriaDeFicha, {
+      inputs: { imagenes: [imagen('i1', 'https://a.jpg'), imagen('i2', 'https://b.jpg')] },
+      on: { reordena: (ids: readonly string[]) => orden.push(ids) },
+    });
+
+    const despues = screen.getAllByRole('button', { name: t('admin.catalog.images.move_next') });
+    await userEvent.click(despues[0]);
+
+    expect(orden).toEqual([['i2', 'i1']]);
+  });
+
+  /** En los extremos no hay a dónde mover, y un botón que no hace nada se apaga en vez de mentir. */
+  it('en los extremos las flechas están apagadas', async () => {
+    await render(GaleriaDeFicha, {
+      inputs: { imagenes: [imagen('i1', 'https://a.jpg'), imagen('i2', 'https://b.jpg')] },
+    });
+
+    const antes = screen.getAllByRole('button', { name: t('admin.catalog.images.move_prev') });
+    const despues = screen.getAllByRole('button', { name: t('admin.catalog.images.move_next') });
+
+    expect(antes[0], 'la primera no puede subir más').toBeDisabled();
+    expect(despues.at(-1), 'la última no puede bajar más').toBeDisabled();
+    expect(despues[0]).toBeEnabled();
+  });
+
+  /** Copiar la foto de un color a la galería era también un gesto de ratón, y solo de ratón. */
+  it('la foto de un color se añade a la galería con un botón', async () => {
+    const copiadas: string[] = [];
+    await render(GaleriaDeFicha, {
+      inputs: { imagenes: [], ejes: [ejeDeColor] },
+      on: { copiaDeVariante: (url: string) => copiadas.push(url) },
+    });
+
+    const botones = screen.getAllByRole('button', {
+      name: t('admin.catalog.images.use_in_gallery'),
+    });
+    await userEvent.click(botones[0]);
+
+    expect(copiadas).toEqual(['https://cdn/O1CN0001.jpg']);
+  });
 });

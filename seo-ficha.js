@@ -7,7 +7,8 @@
  * `core/seo/etiquetas.service.ts`— así que llegan tarde para todo el mundo salvo para un navegador de
  * verdad. Resultado: cada enlace compartido salía con el título genérico del sitio y sin foto.
  *
- * POR QUÉ NO SE PRERENDERIZA. Es la respuesta obvia y no vale, por tres motivos que se midieron:
+ * POR QUÉ NO SE PRERENDERIZAN LAS 7.729. Es la respuesta obvia y no vale entera, por tres motivos que
+ * se midieron:
  *
  *   1. Hay 7.729 productos y un HTML pintado pesa entre 105 y 466 kB. Serían del orden de 1,5 GB
  *      dentro de la imagen.
@@ -27,14 +28,54 @@
  * Se sirve lo MISMO a todo el mundo, robots y personas. Servir una cosa a los robots y otra a las
  * personas tiene nombre —encubrimiento— y lo penalizan los buscadores; además obligaría a mantener dos
  * caminos. Aquí solo se rellena el `<head>`: el cuerpo es idéntico y la aplicación arranca igual.
+ *
+ * ── AÑADIDO 7-sep-2026 · CONVIVENCIA CON EL PRERENDERIZADO PARCIAL ──────────────────────────────
+ *
+ * Los tres motivos de arriba descartan prerenderizar las 7.729, no prerenderizar UNAS CUANTAS. Desde
+ * hoy, `catalog/:slug` se compila con `RenderMode.Prerender` y un cupo —las de la portada y las más
+ * vendidas, ver `src/app/features/catalog/presentation/fichas-a-prerenderizar.ts`—, así que en el
+ * disco conviven dos cosas para la misma dirección:
+ *
+ *   · `/usr/share/nginx/html/catalog/<slug>/index.html`  la ficha YA PINTADA, si entró en el cupo.
+ *   · `/usr/share/nginx/html/index.csr.html`             el esqueleto vacío, para todas las demás.
+ *
+ * Y este fichero seguía sirviendo SIEMPRE el esqueleto, porque su `location` de nginx atrapa toda
+ * `/catalog/<algo>` antes de que nadie mire el disco. Es decir: sin este añadido, prerenderizar las
+ * fichas se pagaba entero —tiempo de compilación y megas en la imagen— y no se cobraba NADA, porque
+ * el HTML pintado no llegaba a servirse nunca. No habría dado ningún error; simplemente no habría
+ * servido para nada.
+ *
+ * La solución es de una línea de idea: la PLANTILLA deja de ser fija. Si esa ficha está
+ * prerenderizada, se usa su HTML como base; si no, el esqueleto de siempre. Sobre esa base se inyecta
+ * el `<head>` exactamente igual que antes. Se queda lo mejor de los dos:
+ *
+ *   · el CUERPO viene ya pintado en las fichas del cupo —el robot ve el producto entero, no solo el
+ *     `<head>`, y quien entra la ve antes—;
+ *   · el `<head>` sigue resolviéndose EN LA PETICIÓN, así que un cambio de título o de precio se ve
+ *     al instante aunque la ficha se compilara hace una semana, y la dirección canónica sigue
+ *     saliendo del dominio por el que se ha entrado y no de la compilación.
+ *
+ * Ojo con una consecuencia: el HTML pintado ya trae SUS etiquetas, puestas por la aplicación al
+ * generarlo (`ficha.page.ts`). Si se inyectaran las nuestras encima quedarían DUPLICADAS —dos
+ * `og:title`, dos `og:image`— y cada robot elige una distinta: la vista previa saldría bien en unos
+ * sitios y mal en otros, que es el mismo fallo que ya se corrigió con el `<title>`. Por eso, antes de
+ * inyectar, se limpian del `<head>` las etiquetas que este fichero va a escribir.
+ *
+ * Y las dos mitades se pueden desplegar por separado sin romper nada: una imagen con este fichero
+ * pero sin fichas prerenderizadas cae siempre en el esqueleto —el comportamiento de antes—, y una con
+ * fichas prerenderizadas pero con el fichero viejo sirve el esqueleto con las etiquetas —también el
+ * comportamiento de antes, solo que desaprovechando el HTML pintado.
  */
 
 import fs from 'fs';
 
-/** El HTML base, leído una vez por proceso. Es el mismo para todas las fichas. */
+/** El esqueleto vacío, leído una vez por proceso. Es el mismo para todas las fichas SIN prerenderizar. */
 let plantilla = null;
 
-const RUTA_HTML = '/usr/share/nginx/html/index.csr.html';
+/** La raíz que publica nginx. De aquí cuelgan tanto el esqueleto como las fichas prerenderizadas. */
+const RAIZ_WEB = '/usr/share/nginx/html';
+
+const RUTA_HTML = RAIZ_WEB + '/index.csr.html';
 
 /**
  * Escapa lo que va DENTRO de un atributo HTML.
@@ -117,15 +158,101 @@ function etiquetas(producto, url) {
 }
 
 /**
+ * Las etiquetas que ESTE fichero escribe. Se listan para poder quitar del `<head>` las que ya
+ * estuvieran puestas antes de añadir las nuestras.
+ *
+ * <p>La lista se escribe a mano y no se deduce del bloque generado a propósito: hay etiquetas que solo
+ * se emiten a veces —`og:image` únicamente si hay foto, `product:price:*` únicamente si hay precio— y
+ * si la limpieza dependiera de lo generado, una ficha sin foto conservaría la `og:image` que hubiera
+ * escrito la aplicación al prerenderizar y se compartiría con la imagen equivocada.
+ */
+const META_POR_NOMBRE = [
+  'description',
+  'twitter:card',
+  'twitter:title',
+  'twitter:description',
+  'twitter:image',
+];
+const META_POR_PROPIEDAD = [
+  'og:type',
+  'og:site_name',
+  'og:title',
+  'og:description',
+  'og:url',
+  'og:image',
+  'product:price:amount',
+  'product:price:currency',
+];
+
+/** Escapa lo que va dentro de una expresión regular. Los nombres llevan `:` y `.`, que son especiales. */
+function escapaParaRegExp(texto) {
+  return texto.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Quita del `<head>` lo que vamos a volver a escribir.
+ *
+ * <p>Hace falta desde que hay fichas prerenderizadas: su HTML ya trae `<title>`, `description`,
+ * `og:title`, `og:description`, `og:type` y `og:image`, puestas por la aplicación al generarlo. Sin
+ * esta limpieza el documento saldría con cada una DOS veces, y ante etiquetas repetidas cada robot
+ * elige una distinta: la vista previa saldría bien en unos sitios y mal en otros. Es el mismo fallo
+ * que ya obligó a sustituir el `<title>` en vez de añadir otro, extendido al resto.
+ */
+function limpia(cabeza) {
+  // El `<head>` de una página prerenderizada lleva dentro un bloque de CSS crítico de decenas de
+  // kilobytes, puesto por el compilador. Lo que haya AHÍ DENTRO es texto, no marcado: si una regla
+  // llevara `<title>` o `<meta …>` dentro de una cadena, la limpieza de abajo se lo comería y la
+  // página saldría con el estilo roto. Se probó con una regla así y en efecto se la comía. Así que los
+  // bloques `<style>` y `<script>` se apartan, se limpia lo que queda —que ya es solo marcado— y se
+  // devuelven a su sitio.
+  //
+  // La marca es un COMENTARIO de HTML con un nombre propio. Tenía que ser algo que no pueda aparecer
+  // por casualidad en el documento: con una marca de texto corriente bastaría que un atributo la
+  // contuviera para que al recomponer se le colara dentro un bloque de CSS entero.
+  const apartados = [];
+  let texto = cabeza.replace(/<(style|script)\b[\s\S]*?<\/\1>/gi, function (bloque) {
+    apartados.push(bloque);
+    return '<!--nx-apartado-' + (apartados.length - 1) + '-->';
+  });
+
+  texto = texto.replace(/<title>[\s\S]*?<\/title>/gi, '');
+  texto = texto.replace(/<link[^>]+rel=["']?canonical["']?[^>]*>/gi, '');
+  const quita = function (atributo, nombres) {
+    for (let i = 0; i < nombres.length; i++) {
+      // El atributo puede ir antes o después de `content`, así que se acepta cualquier orden dentro de
+      // la etiqueta; `[^>]*` no cruza a la siguiente porque `>` la cierra.
+      const patron = new RegExp(
+        '<meta[^>]*\\s' + atributo + '=["\']' + escapaParaRegExp(nombres[i]) + '["\'][^>]*>',
+        'gi',
+      );
+      texto = texto.replace(patron, '');
+    }
+  };
+  quita('name', META_POR_NOMBRE);
+  quita('property', META_POR_PROPIEDAD);
+
+  return texto.replace(/<!--nx-apartado-(\d+)-->/g, function (_, indice) {
+    return apartados[Number(indice)];
+  });
+}
+
+/**
  * Mete las etiquetas en el HTML.
  *
- * <p>Se sustituye el `<title>` que ya trae la plantilla en vez de añadir otro: dos títulos en un
- * documento son marcado inválido y cada robot elige uno distinto, así que la vista previa saldría bien
- * en unos sitios y mal en otros.
+ * <p>Solo se toca el `<head>`: el documento se parte por el primer `</head>` y la limpieza se aplica
+ * únicamente a esa mitad. No es cosmética. En una ficha prerenderizada el cuerpo lleva dentro la
+ * respuesta del backend en JSON —cientos de kilobytes con títulos y descripciones de proveedores— y
+ * una expresión regular suelta por todo el documento podría morder ahí. Acotándola al `<head>` eso no
+ * puede pasar, y de paso se recorre una fracción del documento en vez de entero.
  */
 function inyecta(html, bloque) {
-  const sinTitulo = html.replace(/<title>[\s\S]*?<\/title>/i, '');
-  return sinTitulo.replace(/<head>/i, '<head>\n' + bloque);
+  const fin = html.search(/<\/head>/i);
+  if (fin === -1) {
+    // Sin `</head>` no hay dónde acotar: se hace lo mínimo seguro, que es lo que se hacía antes.
+    return html.replace(/<title>[\s\S]*?<\/title>/i, '').replace(/<head>/i, '<head>\n' + bloque);
+  }
+  const cabeza = limpia(html.slice(0, fin));
+  return cabeza.replace(/<head([^>]*)>/i, '<head$1>\n' + bloque) + html.slice(fin);
 }
 
 /**
@@ -163,7 +290,7 @@ function direccionCanonica(r, slug) {
   return esquema + '://' + host + '/catalog/' + encodeURIComponent(slug);
 }
 
-/** Lee la plantilla del disco. Si no se puede, se dice y se sigue: nunca se deja la ficha sin servir. */
+/** Lee el esqueleto del disco. Si no se puede, se dice y se sigue: nunca se deja la ficha sin servir. */
 function leePlantilla(r) {
   if (plantilla !== null) {
     return plantilla;
@@ -178,6 +305,41 @@ function leePlantilla(r) {
 }
 
 /**
+ * Qué se considera un `slug` con el que se puede tocar el disco.
+ *
+ * <p>Es la parte de esto que hay que mirar dos veces: con el prerenderizado parcial, un trozo de la
+ * dirección que escribe QUIEN PIDE pasa a formar parte de una ruta de fichero. Nginx ya normaliza el
+ * `..` antes de que esto se ejecute y la expresión del `location` no admite barras, pero eso son dos
+ * defensas de otro fichero: si mañana alguien cambia el `location`, la protección se evaporaría en
+ * silencio. Así que aquí se valida por lista blanca —lo que de verdad puede ser un `slug` del
+ * catálogo, comprobado contra los 7.729— y lo que no encaje ni se busca en el disco.
+ */
+const SLUG_VALIDO = /^[A-Za-z0-9._~-]{1,200}$/;
+
+/**
+ * El HTML ya pintado de esta ficha, si entró en el cupo del prerenderizado; si no, `null`.
+ *
+ * <p>NO se guarda en memoria lo leído, y es a propósito. Guardarlo por `slug` significaría un mapa que
+ * crece con cada dirección pedida: con fichas de 105 a 466 kB, unas pocas miles de peticiones a
+ * direcciones inventadas se comerían la memoria del proceso. Leer del disco cuesta lo que cuesta una
+ * copia desde la caché de páginas del sistema —el fichero acaba de servirse mil veces—, y por delante
+ * hay cinco minutos de caché en el borde, así que a la mayoría de las peticiones ni les llega el
+ * turno. El esqueleto sí se guarda porque es UNO y lo comparten todas.
+ */
+function plantillaPrerenderizada(r, slug) {
+  if (!SLUG_VALIDO.test(slug) || slug === '.' || slug === '..') {
+    return null;
+  }
+  try {
+    return fs.readFileSync(RAIZ_WEB + '/catalog/' + slug + '/index.html', 'utf8');
+  } catch (e) {
+    // Lo NORMAL es que no exista: solo unas cientos de las 7.729 entran en el cupo. No se anota nada
+    // para no llenar el registro con una línea por visita.
+    return null;
+  }
+}
+
+/**
  * Punto de entrada. Lo llama nginx para `/catalog/<slug>`.
  *
  * <p>La regla es que esto NUNCA puede tumbar una ficha. Si el backend no responde, tarda o el producto
@@ -186,13 +348,17 @@ function leePlantilla(r) {
  * página.
  */
 async function ficha(r) {
-  const base = leePlantilla(r);
+  const slug = decodeURIComponent((r.uri.match(/^\/catalog\/([^/]+)\/?$/) || [])[1] || '');
+
+  // La plantilla: el HTML ya pintado de esta ficha si entró en el cupo del prerenderizado, y el
+  // esqueleto de siempre para las demás. Es lo único que cambia entre una ficha del cupo y el resto:
+  // de aquí para abajo el camino es el mismo, así que no hay dos comportamientos que mantener.
+  const base = plantillaPrerenderizada(r, slug) || leePlantilla(r);
   if (!base) {
     r.internalRedirect('@aplicacion');
     return;
   }
 
-  const slug = decodeURIComponent((r.uri.match(/^\/catalog\/([^/]+)\/?$/) || [])[1] || '');
   const url = direccionCanonica(r, slug);
 
   let html = base;
@@ -222,3 +388,15 @@ async function ficha(r) {
 }
 
 export default { ficha };
+
+/*
+ * Lo de abajo se exporta SOLO para poder probarlo. Nginx carga este fichero y usa `default`, así que
+ * añadir nombres no le afecta en nada.
+ *
+ * <p>Se exportan las funciones puras —escapar, recortar, elegir la foto, componer las etiquetas,
+ * limpiar el `<head>`, resolver la dirección canónica— porque es donde está lo que puede salir mal sin
+ * hacer ruido: una comilla sin escapar que parte un atributo, un `Host` inventado que se cuela en el
+ * canónico, o una limpieza que se come el CSS crítico. Probarlas por la puerta de `ficha()` obligaría a
+ * montar una petición entera de nginx para comprobar una sustitución de texto.
+ */
+export { escapa, recorta, imagenPrincipal, etiquetas, limpia, inyecta, direccionCanonica, ficha };

@@ -62,6 +62,7 @@ test.describe('acciones de administración', () => {
     try {
       if (enLaCesta) {
         await page.goto(`${ANGULAR}/cart`, { waitUntil: 'domcontentloaded' });
+    await apartaAlAsistente(page);
         const fila = page.locator('nx-tabla-del-carrito tbody tr').filter({ hasText: enLaCesta }).first();
         if (await fila.count()) {
           await fila.getByRole('button', { name: /^Eliminar$/i }).click();
@@ -113,6 +114,7 @@ test.describe('acciones de administración', () => {
     vigilaLasConsultasDelCatalogo(page);
     await entra(page, ANGULAR, ADMIN);
     await abre(page, `${ANGULAR}${ruta}`);
+    await apartaAlAsistente(page);
     await descartaElAvisoDeGalletas(page);
     await apartaAlAsistente(page);
   }
@@ -243,6 +245,7 @@ test.describe('acciones de administración', () => {
     const errores = vigilaLaConsola(page);
     const ruta = await primeraFicha(page);
     await abre(page, `${ANGULAR}${ruta}`);
+    await apartaAlAsistente(page);
 
     const fila = page.locator('nx-fila-de-yuanes').filter({ hasText: etiqueta }).first();
     await expect(fila, `la ficha no enseña la fila «${etiqueta}»`).toBeVisible();
@@ -302,6 +305,7 @@ test.describe('acciones de administración', () => {
     const errores = vigilaLaConsola(page);
     await entra(page, ANGULAR, ADMIN);
     await abre(page, `${ANGULAR}/catalog`);
+    await apartaAlAsistente(page);
     await descartaElAvisoDeGalletas(page);
     await apartaAlAsistente(page);
     const enlace = await page.locator('nx-tarjeta-producto a').first().getAttribute('href');
@@ -309,6 +313,7 @@ test.describe('acciones de administración', () => {
     expect(slug, 'el catálogo no trae ningún producto que verificar').toBeTruthy();
 
     await abre(page, `${ANGULAR}/admin/browse/${slug}`);
+    await apartaAlAsistente(page);
     const panel = page.locator('nx-panel-de-origen');
     await expect(panel, 'la ficha vista por el panel no trae el bloque de origen').toBeVisible();
     const casilla = panel.locator('input[type="checkbox"]');
@@ -341,6 +346,7 @@ test.describe('acciones de administración', () => {
     await prohibeBorrar(page);
     const ruta = await primeraFicha(page);
     await abre(page, `${ANGULAR}${ruta}`);
+    await apartaAlAsistente(page);
 
     const peticiones = vigilaLasPeticiones(page);
     await page.locator('nx-cabecera-de-ficha').getByRole('button', { name: /^Eliminar$/ }).click();
@@ -370,6 +376,7 @@ test.describe('acciones de administración', () => {
     await prohibeBorrar(page);
     const ruta = await primeraFicha(page);
     await abre(page, `${ANGULAR}${ruta}`);
+    await apartaAlAsistente(page);
 
     await page.getByRole('button', { name: 'Inventario', exact: true }).click();
     const gestor = page.locator('nx-gestor-de-variantes');
@@ -411,6 +418,7 @@ test.describe('acciones de administración', () => {
     await prohibeBorrar(page);
     const ruta = await primeraFicha(page);
     await abre(page, `${ANGULAR}${ruta}`);
+    await apartaAlAsistente(page);
 
     const galeria = page.locator('nx-galeria-de-ficha');
     await expect(galeria).toBeVisible();
@@ -447,6 +455,7 @@ test.describe('acciones de administración', () => {
     await prohibeBorrar(page);
     const ruta = await primeraFicha(page);
     await abre(page, `${ANGULAR}${ruta}`);
+    await apartaAlAsistente(page);
 
     await page.getByRole('button', { name: 'Precios', exact: true }).click();
     const precios = page.locator('nx-precios-de-ficha');
@@ -490,6 +499,7 @@ test.describe('acciones de administración', () => {
 
     const ruta = await primeraFicha(page);
     await abre(page, `${ANGULAR}${ruta}`);
+    await apartaAlAsistente(page);
 
     const fotos = page.locator('nx-galeria-de-ficha [draggable="true"]');
     test.skip((await fotos.count()) < 2, 'este producto tiene menos de dos imágenes: no hay nada que reordenar');
@@ -515,6 +525,7 @@ test.describe('acciones de administración', () => {
     // Y la prueba de que no se ha tocado nada: al volver a pedir la ficha, el orden es el de siempre.
     await page.unroute('**/images/order');
     await abre(page, `${ANGULAR}${ruta}`);
+    await apartaAlAsistente(page);
     const ordenGuardado = await page
       .locator('nx-galeria-de-ficha [draggable="true"] img')
       .evaluateAll((imgs) => imgs.map((i) => (i as HTMLImageElement).getAttribute('src') ?? ''));
@@ -532,6 +543,7 @@ test.describe('acciones de administración', () => {
     vigilaLasConsultasDelCatalogo(page);
     await entra(page, ANGULAR, ADMIN);
     await abre(page, `${ANGULAR}/catalog`);
+    await apartaAlAsistente(page);
     await descartaElAvisoDeGalletas(page);
     await apartaAlAsistente(page);
 
@@ -547,6 +559,7 @@ test.describe('acciones de administración', () => {
     const errores = vigilaLaConsola(page);
     await entra(page, ANGULAR, ADMIN);
     await abre(page, `${ANGULAR}/catalog`);
+    await apartaAlAsistente(page);
     await descartaElAvisoDeGalletas(page);
     await apartaAlAsistente(page);
 
@@ -561,6 +574,7 @@ test.describe('acciones de administración', () => {
     const tarjeta = page.locator('nx-tarjeta-producto').filter({ has: page.locator(`a[href="${enlace}"]`) });
     await tarjeta.getByRole('button', { name: 'Añadir a favoritos' }).click();
     await abre(page, `${ANGULAR}/favorites`);
+    await apartaAlAsistente(page);
     await expect(page.locator(`nx-tarjeta-producto a[href="${enlace}"]`)).toHaveCount(1);
 
     await page
@@ -577,6 +591,7 @@ test.describe('acciones de administración', () => {
     const errores = vigilaLaConsola(page);
     await entra(page, ANGULAR, ADMIN);
     await abre(page, `${ANGULAR}/catalog`);
+    await apartaAlAsistente(page);
     await descartaElAvisoDeGalletas(page);
     await apartaAlAsistente(page);
 
@@ -598,6 +613,7 @@ test.describe('acciones de administración', () => {
     expect(titulo, 'ninguna tarjeta dejó añadir a la cesta con la cuenta de administración').not.toBe('');
 
     await abre(page, `${ANGULAR}/cart`);
+    await apartaAlAsistente(page);
     const fila = page.locator('tbody tr').filter({ hasText: titulo }).first();
     await expect(fila).toHaveCount(1);
     await fila.getByRole('button', { name: /^Eliminar$/i }).click();
@@ -631,6 +647,7 @@ test.describe('acciones de administración', () => {
       } else {
         // Sin entrada de menú no hay gesto que certificar; se llega por la dirección y queda dicho.
         await abre(page, `${ANGULAR}${seccion}`);
+    await apartaAlAsistente(page);
       }
 
       await expect
@@ -660,6 +677,7 @@ test.describe('acciones de administración', () => {
     olvida(ANGULAR, ADMIN.correo);
 
     await abre(page, `${ANGULAR}/admin`);
+    await apartaAlAsistente(page);
     expect(new URL(page.url()).pathname, 'con la sesión cerrada se sigue entrando en el panel').toContain(
       '/login',
     );

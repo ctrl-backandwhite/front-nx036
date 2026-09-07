@@ -61,7 +61,60 @@ ENV NG_CLI_ANALYTICS=false
 ARG NEXADROP_API_INTERNA=http://backend:18082
 ENV NEXADROP_API_INTERNA=${NEXADROP_API_INTERNA}
 
+# CUÁNTAS fichas de producto se escriben al construir.
+#
+# Prerenderizar las 7.729 no cabe: un HTML de ficha pesa entre 105 y 466 kB —lleva dentro la respuesta
+# del backend para que el navegador no la vuelva a pedir— y serían del orden de 1,5 GB. Así que se
+# escribe un CUPO con las que más se comparten: las de la portada primero y las más vendidas después
+# (el criterio, en `src/app/features/catalog/presentation/fichas-a-prerenderizar.ts`). El resto —y todo
+# lo que se cargue DESPUÉS de construir— se sigue sirviendo como hasta ahora, montado por el navegador,
+# con sus etiquetas para compartir resueltas por `seo-ficha.js`. Ninguna ficha deja de verse.
+#
+# Es un argumento para poder subirlo o bajarlo por despliegue sin tocar código. Medido en esta imagen,
+# con optimización y `.gz` incluidos:
+#
+#   cupo   fichas   tiempo de compilación   peso de `browser/`
+#      0        0             ~54 s               6,5 MiB      (comportamiento anterior)
+#    100      100             ~74 s              19,5 MiB
+#    300      300             ~99 s              45,6 MiB
+#    500      500            ~127 s              72,0 MiB
+#
+# 300 es el valor por defecto: cubre las 78 de la portada más las 222 más vendidas, cuesta unos 45
+# segundos de compilación y 39 MiB de imagen. Subirlo sale lineal —unos 0,15 s y 130 kiB por ficha—,
+# así que el techo lo pone la paciencia de quien despliega, no ningún salto. Con 0 no se prerenderiza
+# ninguna: es la marcha atrás si algún día estorba.
+ARG NEXADROP_FICHAS_PRERENDERIZADAS=300
+ENV NEXADROP_FICHAS_PRERENDERIZADAS=${NEXADROP_FICHAS_PRERENDERIZADAS}
+
+# TESTIGO con el que esta compilación se identifica ante el backend.
+#
+# Es lo que hace que las 300 de arriba quepan. El backend limita el escaparate público a 100 peticiones
+# por minuto y por IP —su defensa contra el volcado masivo del catálogo— y prerenderizar fichas es,
+# visto desde ahí, exactamente un volcado: con ese cupo no caben más de unas quince y las demás se
+# escriben con una página de error dentro. Con el testigo, el limitador aplica la regla `build.prerender`
+# (1.200/min) en vez de la del escaparate.
+#
+# Lo que concede es un CUPO MÁS ALTO, no la ausencia de límite, y solo para los GET del catálogo
+# público: ni escribe, ni toca la autenticación, ni la API de socios. Está en el `RateLimitFilter` del
+# backend con sus pruebas.
+#
+# Tiene que valer lo mismo que `RATELIMIT_BUILD_TOKEN` en el backend del entorno contra el que se
+# compila. VACÍO por defecto: sin él todo se comporta como antes y el cupo real vuelve a ser el del
+# escaparate, así que conviene bajar `NEXADROP_FICHAS_PRERENDERIZADAS` si no se configura.
+#
+# No queda en la imagen final: esta etapa es la de compilación y no se copia al servidor de estáticos.
+ARG NEXADROP_PRERENDER_TOKEN=
+ENV NEXADROP_PRERENDER_TOKEN=${NEXADROP_PRERENDER_TOKEN}
+
 RUN npm run build:${ENTORNO}
+
+# PUERTA. `ng build` no mira lo que queda DENTRO de las páginas que escribe: si el backend contesta un
+# 429 —su límite anti-volcado son 100 peticiones por minuto y por IP, y una ficha son unas cuatro— la
+# aplicación pinta su pantalla de «no se ha podido cargar este producto», el compilador la da por
+# prerenderizada y termina en verde. Medido: en la primera prueba con 300 fichas, 278 quedaron con el
+# mensaje de error dentro y nada falló. Esto lo convierte en un fallo ruidoso, que es donde tiene que
+# fallar: al construir la imagen, no en producción.
+RUN npm run verifica:prerender
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Etapa 2 · Imagen final

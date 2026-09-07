@@ -1,5 +1,7 @@
 import { DeferBlockBehavior } from '@angular/core/testing';
 import { Component } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { Title } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { render, screen, waitFor } from '@testing-library/angular';
 import { Result, exito, fallo } from '@shared/result/result';
@@ -110,5 +112,66 @@ describe('DocumentoLegalPage', () => {
 
     expect(container.querySelector('nx-no-encontrada')).not.toBeNull();
     expect(screen.getByText('404')).toBeInTheDocument();
+  });
+
+  /**
+   * Las etiquetas para compartir.
+   *
+   * <p>Estas cuatro direcciones son las que se enlazan desde el pie de cualquier página, desde un
+   * correo o desde el aviso de galletas, y las que un buscador indexa por separado. Sin título propio
+   * salían las cuatro como «NX036» a secas: ni quien las comparte distingue la privacidad de las
+   * condiciones, ni el buscador ve otra cosa que cuatro páginas con el mismo nombre.
+   */
+  it('escribe el título y la descripción del documento que se está leyendo', async () => {
+    await monta('privacy', new DocumentosFalsos());
+
+    const titulo = TestBed.inject(Title).getTitle();
+    expect(titulo, 'sigue saliendo el título genérico del sitio').not.toBe('NX036');
+    expect(titulo).toContain('NX036');
+
+    const descripcion = document.head
+      .querySelector('meta[name="description"]')
+      ?.getAttribute('content');
+    expect(descripcion, 'sin descripción, la vista previa sale con el enlace pelado').toBeTruthy();
+  });
+
+  /**
+   * La canónica lleva el documento concreto.
+   *
+   * <p>Es lo que distingue una etiqueta escrita de verdad de una escrita a medias: el título podría
+   * coincidir por casualidad, pero la dirección solo sale bien si la página sabe cuál de los cuatro
+   * documentos está pintando.
+   */
+  it('la dirección canónica apunta al documento, no a la raíz', async () => {
+    await monta('cookies', new DocumentosFalsos());
+
+    const canonica = document.head.querySelector('link[rel="canonical"]')?.getAttribute('href');
+    expect(canonica).toContain('/legal/cookies');
+    expect(document.head.querySelector('meta[property="og:url"]')?.getAttribute('content')).toBe(
+      canonica,
+    );
+  });
+
+  /** Es un texto con fecha, no la portada de un sitio: la vista previa tiene que tratarlo como documento. */
+  it('se anuncia como artículo, no como sitio web', async () => {
+    await monta('terms', new DocumentosFalsos());
+
+    expect(document.head.querySelector('meta[property="og:type"]')?.getAttribute('content')).toBe(
+      'article',
+    );
+  });
+
+  /**
+   * Un documento que no existe no debe reescribir nada.
+   *
+   * <p>La página pinta un 404 y ahí no hay título ni texto que anunciar. Si lo escribiera igual, el
+   * buscador se llevaría una página de error indexada como si fuera contenido legal.
+   */
+  it('el 404 no anuncia un documento legal', async () => {
+    await monta('loquesea', new DocumentosFalsos());
+
+    const canonica = document.head.querySelector('link[rel="canonical"]')?.getAttribute('href');
+    expect(canonica ?? '').not.toContain('/legal/loquesea');
+    expect(TestBed.inject(Title).getTitle()).not.toContain('loquesea');
   });
 });

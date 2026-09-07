@@ -3,7 +3,7 @@ import { fireEvent } from '@testing-library/dom';
 import { ImagenSegura } from './imagen-segura';
 import { Esqueleto } from './esqueleto';
 import { EsqueletoTarjetaProducto } from './esqueleto-tarjeta-producto';
-import { EsqueletoFilaTabla } from '../../directive/esqueleto-fila-tabla.directive';
+import { EsqueletoDeFila } from './esqueleto-de-fila';
 
 describe('ImagenSegura', () => {
   it('pinta la foto cuando hay dirección', async () => {
@@ -81,11 +81,21 @@ describe('Esqueletos', () => {
   });
 
   it('la fila de tabla pinta tantas celdas como columnas se le pidan', async () => {
-    const { container } = await render(
-      '<table><tbody><tr [nxEsqueletoFilaTabla]="4"></tr></tbody></table>',
-      { imports: [EsqueletoFilaTabla] },
-    );
+    const { container } = await render(EsqueletoDeFila, { inputs: { columnas: 4 } });
 
     expect(container.querySelectorAll('td')).toHaveLength(4);
+  });
+
+  /**
+   * La fila es DECORACIÓN, y se anuncia como tal: quien escucha la página no tiene por qué oír diez
+   * celdas vacías mientras llega la tabla.
+   */
+  it('la fila de tabla no se lee en voz alta', async () => {
+    const { fixture } = await render(EsqueletoDeFila, { inputs: { columnas: 3 } });
+
+    const anfitrion = fixture.nativeElement as HTMLElement;
+    expect(anfitrion.getAttribute('aria-hidden')).toBe('true');
+    // Se maqueta como fila aunque no sea un `tr`: sin esto, la tabla se descuadra al cargar.
+    expect(anfitrion.classList.contains('table-row')).toBe(true);
   });
 });

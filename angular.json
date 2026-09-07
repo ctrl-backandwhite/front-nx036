@@ -195,7 +195,8 @@
             "coverage": false,
             "coverageInclude": [
               "src/app/**/*.ts",
-              "src/main.ts"
+              "src/main.ts",
+              "seo-ficha.js"
             ],
             "coverageReporters": [
               "text",

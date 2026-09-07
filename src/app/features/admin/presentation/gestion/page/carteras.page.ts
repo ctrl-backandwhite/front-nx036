@@ -4,7 +4,7 @@ import { faRotateRight } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
 import { BarraFiltros } from '@ds/component/filtros/barra-filtros';
-import { FiltroSeleccion, OpcionFiltro } from '@ds/component/filtros/filtro-seleccion';
+import { FiltroDesplegable, OpcionDeFiltro } from '@ds/component/filtros/filtro-desplegable';
 import { CampoBusqueda } from '@ds/component/campo-busqueda/campo-busqueda';
 import {
   DIVISAS_DE_FILTRO,
@@ -57,7 +57,7 @@ const APUNTES_DEL_VISTAZO = 30;
   imports: [
     FaIconComponent,
     BarraFiltros,
-    FiltroSeleccion,
+    FiltroDesplegable,
     CampoBusqueda,
     Paginacion,
     CarterasTabla,
@@ -92,13 +92,13 @@ const APUNTES_DEL_VISTAZO = 30;
           [marcador]="t('admin.wallets.search')"
           clase="min-w-[320px]"
         />
-        <nx-filtro-seleccion
+        <nx-filtro-desplegable
           [etiqueta]="t('admin.wallets.col.status')"
           [(valor)]="estado"
           [opciones]="opcionesDeEstado()"
           [marcador]="t('filters.all')"
         />
-        <nx-filtro-seleccion
+        <nx-filtro-desplegable
           [etiqueta]="t('admin.wallets.col.currency')"
           [(valor)]="divisa"
           [opciones]="opcionesDeDivisa"
@@ -171,14 +171,14 @@ export class CarterasPage {
   protected readonly movimientos = signal<readonly MovimientoDeCartera[]>([]);
   protected readonly cargandoHistorial = signal(false);
 
-  protected readonly opcionesDeEstado = computed<readonly OpcionFiltro[]>(() =>
-    ESTADOS_DE_CARTERA.map((e) => ({ value: e, label: this.t(`admin.wallets.status.${e}`) })),
+  protected readonly opcionesDeEstado = computed<readonly OpcionDeFiltro[]>(() =>
+    ESTADOS_DE_CARTERA.map((e) => ({ valor: e, etiqueta: this.t(`admin.wallets.status.${e}`) })),
   );
 
   /** Los códigos de divisa no se traducen: «EUR» es «EUR» en los ocho idiomas. */
-  protected readonly opcionesDeDivisa: readonly OpcionFiltro[] = DIVISAS_DE_FILTRO.map((d) => ({
-    value: d,
-    label: d,
+  protected readonly opcionesDeDivisa: readonly OpcionDeFiltro[] = DIVISAS_DE_FILTRO.map((d) => ({
+    valor: d,
+    etiqueta: d,
   }));
 
   protected readonly cuantosFiltros = computed(

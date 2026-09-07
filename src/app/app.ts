@@ -4,6 +4,7 @@ import { CapturaDeReferido } from '@features/affiliate/presentation/component/ca
 import { Dialogo } from '@ds/component/dialogo/dialogo';
 import { Avisos } from '@ds/component/avisos/avisos';
 import { ConsentimientoDeCookies } from '@core/cookies/consentimiento-de-cookies';
+import { PantallaError } from '@core/error/pantalla-error';
 import { CajonDelCarrito } from '@features/cart/presentation/component/cajon-del-carrito';
 import { DOCUMENT } from '@angular/core';
 import { PreferenciasService } from '@core/preferences/preferencias';
@@ -25,6 +26,7 @@ import { PreferenciasService } from '@core/preferences/preferencias';
     Avisos,
     ConsentimientoDeCookies,
     CajonDelCarrito,
+    PantallaError,
   ],
   /**
    * La captura de referido no pinta nada: se limita a mirar la dirección y registrar de quién viene la
@@ -57,10 +59,17 @@ import { PreferenciasService } from '@core/preferences/preferencias';
    * habría dos cajones, y al pasar del panel a la tienda se cerraría solo. Mientras no estuvo, el
    * icono de la cesta se limitaba a navegar a `/cart`: llevaba a la página correcta, así que nadie lo
    * leía como un fallo, pero era otra pantalla en vez del panel lateral del front anterior.
+   *
+   * <p>Y la PANTALLA DE ERROR, que es la que faltaba con peor consecuencia: el manejador propio de
+   * errores ya recogía cualquier excepción no atendida y la publicaba, pero no había NADIE pintando ese
+   * estado. O sea que un fallo al pintar dejaba exactamente lo mismo que sin manejador —la página en
+   * blanco, sin marca, sin salida y sin una pista de qué había pasado—, con el agravante de que el
+   * código daba la impresión de estar cubierto. Va aquí porque tiene que poder sustituir a CUALQUIER
+   * pantalla, incluidas las que no llevan marco.
    */
   template:
     '<router-outlet /><nx-captura-de-referido /><nx-dialogo /><nx-avisos />' +
-    '<nx-cajon-del-carrito /><nx-consentimiento-de-cookies />',
+    '<nx-cajon-del-carrito /><nx-consentimiento-de-cookies /><nx-pantalla-error />',
 })
 export class App {
   private readonly preferencias = inject(PreferenciasService);

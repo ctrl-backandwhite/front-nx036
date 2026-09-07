@@ -5,7 +5,7 @@ import { TraduccionService } from '@core/i18n/traduccion.service';
 import { CampoBusqueda } from '@ds/component/campo-busqueda/campo-busqueda';
 import { DialogoStore } from '@ds/component/dialogo/dialogo.store';
 import { BarraFiltros } from '@ds/component/filtros/barra-filtros';
-import { FiltroSeleccion, OpcionFiltro } from '@ds/component/filtros/filtro-seleccion';
+import { FiltroDesplegable, OpcionDeFiltro } from '@ds/component/filtros/filtro-desplegable';
 import { ImportesStore } from '../../../application/gestion/state/importes.store';
 import {
   ActualizaElPlan,
@@ -47,7 +47,7 @@ const POR_PAGINA = 25;
   imports: [
     FaIconComponent,
     BarraFiltros,
-    FiltroSeleccion,
+    FiltroDesplegable,
     CampoBusqueda,
     Paginacion,
     FacturacionEditorDePlan,
@@ -142,7 +142,7 @@ const POR_PAGINA = 25;
               [marcador]="t('admin.billing.subs_search')"
               clase="min-w-[280px]"
             />
-            <nx-filtro-seleccion
+            <nx-filtro-desplegable
               [etiqueta]="t('admin.billing.col.status')"
               [valor]="estado()"
               (valorChange)="cambiaEstado($event)"
@@ -251,10 +251,10 @@ export class FacturacionPage {
     () => (this.texto().trim() ? 1 : 0) + (this.estado() ? 1 : 0),
   );
 
-  protected readonly opcionesDeEstado = computed<readonly OpcionFiltro[]>(() =>
+  protected readonly opcionesDeEstado = computed<readonly OpcionDeFiltro[]>(() =>
     ESTADOS_DE_SUSCRIPCION.map((codigo) => ({
-      value: codigo,
-      label: this.etiquetaDeEstado(codigo),
+      valor: codigo,
+      etiqueta: this.etiquetaDeEstado(codigo),
     })),
   );
 

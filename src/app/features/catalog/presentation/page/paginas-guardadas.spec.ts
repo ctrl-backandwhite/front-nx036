@@ -1,4 +1,6 @@
 import { inject } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { Title } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
 import { describe, expect, it, vi } from 'vitest';
@@ -281,6 +283,38 @@ describe('PortadaPage', () => {
   it('con sesión lleva al catálogo', async () => {
     const vista = await monta(true);
     expect(vista.container.querySelector('a[href="/catalog"]')).not.toBeNull();
+  });
+
+  /**
+   * Las etiquetas para compartir de la PORTADA.
+   *
+   * <p>Es la página que más se enlaza y la que salía peor: el HTML prerenderizado llevaba
+   * `<title>NX036</title>` a secas y ninguna descripción, así que compartir la dirección de la tienda
+   * en cualquier mensajería enseñaba el nombre pelado. Las fichas sí las escribían desde el primer
+   * día; la portada y las páginas legales se quedaron fuera.
+   */
+  it('la portada escribe su propio título y descripción', async () => {
+    await monta(false);
+
+    const titulo = TestBed.inject(Title).getTitle();
+    expect(titulo, 'sigue saliendo el título genérico del sitio').not.toBe('NX036');
+    expect(titulo).toContain('NX036');
+
+    const descripcion = document.head
+      .querySelector('meta[name="description"]')
+      ?.getAttribute('content');
+    expect(descripcion?.length ?? 0).toBeGreaterThan(20);
+  });
+
+  /** La portada es la raíz del sitio y se anuncia como tal, no como un documento suelto. */
+  it('se anuncia como sitio web y su canónica es la raíz', async () => {
+    await monta(false);
+
+    expect(document.head.querySelector('meta[property="og:type"]')?.getAttribute('content')).toBe(
+      'website',
+    );
+    const canonica = document.head.querySelector('link[rel="canonical"]')?.getAttribute('href');
+    expect(canonica).toMatch(/\/$/);
   });
 
   /**

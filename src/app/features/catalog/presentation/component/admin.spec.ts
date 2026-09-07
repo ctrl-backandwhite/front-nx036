@@ -186,6 +186,33 @@ describe('DesgloseEditable', () => {
     expect(cambiado).toHaveBeenCalled();
   });
 
+  /**
+   * El equivalente TÁCTIL del doble clic.
+   *
+   * <p>Estos tres importes deciden el precio de venta, y hasta ahora solo se podían tocar con un doble
+   * clic. En una pantalla táctil ese gesto no existe —el doble toque lo interpreta el navegador como
+   * ampliar—, así que desde el móvil o una tableta no había manera de corregir un recargo. El lápiz lo
+   * arregla y, de paso, deja la edición al alcance del teclado: un div con doble clic no lo estaba.
+   */
+  it('el lápiz abre el mismo campo, sin doble clic', async () => {
+    // El rótulo del botón sale del diccionario, así que se fija el idioma: sin cookie, el navegador de
+    // pruebas pide inglés y la búsqueda dependería de la máquina donde se ejecute.
+    document.cookie = 'nx036-locale=es; Path=/';
+    const { vista, guarda } = await monta();
+
+    const lapices = [...vista.container.querySelectorAll<HTMLElement>('button[aria-label^="Editar"]')];
+    expect(lapices.length, 'no hay ningún botón de editar').toBeGreaterThan(0);
+    await userEvent.click(lapices[0]);
+    vista.fixture.detectChanges();
+
+    const campo = vista.container.querySelector<HTMLInputElement>('input[type=number]')!;
+    await userEvent.clear(campo);
+    await userEvent.type(campo, '4{enter}');
+    await vista.fixture.whenStable();
+
+    expect(guarda).toHaveBeenCalledWith('p1', 'surchargeCny', 4);
+  });
+
   /** Un subsidio en negativo cobraría de más: no se manda. */
   it('un importe imposible no llega al servidor', async () => {
     const { vista, guarda } = await monta();

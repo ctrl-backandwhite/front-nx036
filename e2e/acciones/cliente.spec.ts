@@ -73,6 +73,7 @@ test.describe('acciones del cliente', () => {
     try {
       if (enLaCesta) {
         await page.goto(`${ANGULAR}/cart`, { waitUntil: 'domcontentloaded' });
+    await apartaAlAsistente(page);
         const fila = page.locator('nx-tabla-del-carrito tbody tr').filter({ hasText: enLaCesta }).first();
         if (await fila.count()) {
           await fila.getByRole('button', { name: /^Eliminar$/i }).click();
@@ -123,6 +124,7 @@ test.describe('acciones del cliente', () => {
     vigilaLasConsultasDelCatalogo(page);
     await entra(page, ANGULAR, CLIENTE);
     await abre(page, `${ANGULAR}/catalog`);
+    await apartaAlAsistente(page);
     await descartaElAvisoDeGalletas(page);
     await apartaAlAsistente(page);
     await expect(page.locator('nx-tarjeta-producto').first()).toBeVisible();
@@ -158,6 +160,7 @@ test.describe('acciones del cliente', () => {
   /** Quita de la cesta la línea de un producto. Es la limpieza: cada prueba deja la cesta como estaba. */
   async function quitaDeLaCesta(page: Page, titulo: string): Promise<void> {
     await abre(page, `${ANGULAR}/cart`);
+    await apartaAlAsistente(page);
     const fila = page.locator('nx-tabla-del-carrito tbody tr').filter({ hasText: titulo }).first();
     if (await fila.count()) {
       await fila.getByRole('button', { name: /^Eliminar$/i }).click();
@@ -268,6 +271,7 @@ test.describe('acciones del cliente', () => {
 
     // El efecto de verdad: está en la lista de favoritos DE LA CUENTA, y sigue estando tras recargar.
     await abre(page, `${ANGULAR}/favorites`);
+    await apartaAlAsistente(page);
     await expect(
       page.locator(`nx-tarjeta-producto a[href="${enlace}"]`),
       'el favorito marcado no aparece en la lista',
@@ -300,6 +304,7 @@ test.describe('acciones del cliente', () => {
     const titulo = await anadeUnProducto(page);
 
     await abre(page, `${ANGULAR}/cart`);
+    await apartaAlAsistente(page);
     await expect(
       page.locator('nx-tabla-del-carrito tbody tr').filter({ hasText: titulo }),
       'el producto añadido no está en la cesta',
@@ -331,6 +336,7 @@ test.describe('acciones del cliente', () => {
     const titulo = await anadeUnProducto(page);
 
     await abre(page, `${ANGULAR}/cart`);
+    await apartaAlAsistente(page);
     const fila = page.locator('nx-tabla-del-carrito tbody tr').filter({ hasText: titulo }).first();
     const cantidad = fila.locator('.join span').first();
     const importe = fila.locator('td').nth(3);
@@ -363,6 +369,7 @@ test.describe('acciones del cliente', () => {
     const titulo = await anadeUnProducto(page);
 
     await abre(page, `${ANGULAR}/cart`);
+    await apartaAlAsistente(page);
     const fila = page.locator('nx-tabla-del-carrito tbody tr').filter({ hasText: titulo }).first();
     const cuantasAntes = await page.locator('nx-tabla-del-carrito tbody tr').count();
     await expect(fila).toHaveCount(1);
@@ -384,6 +391,7 @@ test.describe('acciones del cliente', () => {
     const titulo = await anadeUnProducto(page);
 
     await abre(page, `${ANGULAR}/cart`);
+    await apartaAlAsistente(page);
     const fila = page.locator('nx-tabla-del-carrito tbody tr').filter({ hasText: titulo }).first();
     await fila.getByRole('button', { name: /Guardar para más tarde/i }).click();
 
@@ -538,6 +546,7 @@ test.describe('acciones del cliente', () => {
 
     await entra(page, ANGULAR, CLIENTE);
     await abre(page, `${ANGULAR}/`);
+    await apartaAlAsistente(page);
     await descartaElAvisoDeGalletas(page);
     await apartaAlAsistente(page);
     await bajaAlFondo(page);
@@ -570,6 +579,7 @@ test.describe('acciones del cliente', () => {
     const errores = vigilaLaConsola(page);
     await entra(page, ANGULAR, CLIENTE);
     await abre(page, `${ANGULAR}/profile`);
+    await apartaAlAsistente(page);
     await descartaElAvisoDeGalletas(page);
     await apartaAlAsistente(page);
 
@@ -605,6 +615,7 @@ test.describe('acciones del cliente', () => {
     const errores = vigilaLaConsola(page);
     await entra(page, ANGULAR, CLIENTE);
     await abre(page, `${ANGULAR}/addresses`);
+    await apartaAlAsistente(page);
     await descartaElAvisoDeGalletas(page);
     await apartaAlAsistente(page);
 
@@ -649,6 +660,7 @@ test.describe('acciones del cliente', () => {
     const errores = vigilaLaConsola(page);
     await entra(page, ANGULAR, CLIENTE);
     await abre(page, `${ANGULAR}/addresses`);
+    await apartaAlAsistente(page);
     await descartaElAvisoDeGalletas(page);
     await apartaAlAsistente(page);
 
@@ -681,6 +693,7 @@ test.describe('acciones del cliente', () => {
     const errores = vigilaLaConsola(page);
     await entra(page, ANGULAR, CLIENTE);
     await abre(page, `${ANGULAR}/`);
+    await apartaAlAsistente(page);
     await descartaElAvisoDeGalletas(page);
     await apartaAlAsistente(page);
 
@@ -701,6 +714,7 @@ test.describe('acciones del cliente', () => {
     olvida(ANGULAR, CLIENTE.correo);
 
     await page.goto(`${ANGULAR}/orders`, { waitUntil: 'domcontentloaded' });
+    await apartaAlAsistente(page);
     // Se espera al rebote: el guardia decide después de montar, y leer la dirección al instante
     // sorprendía a la aplicación a medio camino.
     await expect

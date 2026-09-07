@@ -1,7 +1,7 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { BarraFiltros } from '@ds/component/filtros/barra-filtros';
-import { FiltroSeleccion, OpcionFiltro } from '@ds/component/filtros/filtro-seleccion';
+import { FiltroDesplegable, OpcionDeFiltro } from '@ds/component/filtros/filtro-desplegable';
 import { CampoBusqueda } from '@ds/component/campo-busqueda/campo-busqueda';
 import { CatalogoAdminStore } from '../../../application/catalogo/state/catalogo-admin.store';
 import {
@@ -11,6 +11,7 @@ import {
 import { CategoriaParaElegir } from '../../../domain/catalogo/port/categorias-admin.port';
 import { etiquetaDeEstado } from '../etiquetas';
 import { FiltroNumerico } from './filtro-numerico';
+import { RangoNumerico, RangoPublicado } from '@ds/component/filtros/rango-numerico';
 
 /**
  * La barra de filtros del catálogo.
@@ -24,7 +25,7 @@ import { FiltroNumerico } from './filtro-numerico';
  */
 @Component({
   selector: 'nx-filtros-de-catalogo',
-  imports: [BarraFiltros, FiltroSeleccion, CampoBusqueda, FiltroNumerico],
+  imports: [BarraFiltros, FiltroDesplegable, CampoBusqueda, FiltroNumerico, RangoNumerico],
   template: `
     <nx-barra-filtros
       [activos]="cuantosFiltros()"
@@ -37,38 +38,36 @@ import { FiltroNumerico } from './filtro-numerico';
         [marcador]="t('admin.catalog.search_placeholder')"
         clase="w-full md:min-w-[260px]"
       />
-      <nx-filtro-seleccion
+      <nx-filtro-desplegable
         [etiqueta]="t('admin.catalog.col.status')"
         [valor]="almacen.estado() ?? null"
         (valorChange)="cambiaEstado($event)"
         [opciones]="opcionesDeEstado()"
         [marcador]="t('filters.all')"
       />
-      <nx-filtro-seleccion
+      <nx-filtro-desplegable
         [etiqueta]="t('filters.category')"
         [valor]="almacen.categoriaId()"
         (valorChange)="cambiaCategoria($event)"
         [opciones]="opcionesDeCategoria()"
         [marcador]="t('filters.all')"
       />
-      <nx-filtro-seleccion
+      <nx-filtro-desplegable
         [etiqueta]="t('admin.catalog.col.verified')"
         [valor]="almacen.verificado() || null"
         (valorChange)="cambiaVerificado($event)"
         [opciones]="opcionesDeVerificacion()"
         [marcador]="t('filters.all')"
       />
-      <nx-filtro-numerico
-        [etiqueta]="t('admin.catalog.col.price') + ' ≥'"
-        [valor]="almacen.precioMinimo()"
-        (valorChange)="cambia(almacen.precioMinimo.set, $event)"
-        ancho="w-24"
-      />
-      <nx-filtro-numerico
-        [etiqueta]="t('admin.catalog.col.price') + ' ≤'"
-        [valor]="almacen.precioMaximo()"
-        (valorChange)="cambia(almacen.precioMaximo.set, $event)"
-        ancho="w-24"
+      <!-- El precio es un RANGO, y ahora se dice así: eran dos campos sueltos rotulados «≥» y «≤», sin
+           ninguna regla, de modo que teclear un mínimo por encima del máximo dejaba la tabla en blanco
+           sin explicar por qué. El componente del sistema de diseño trae ese aviso, y es el mismo que
+           usa el catálogo del escaparate. -->
+      <nx-rango-numerico
+        [etiqueta]="t('admin.catalog.col.price')"
+        [minimo]="almacen.precioMinimo()"
+        [maximo]="almacen.precioMaximo()"
+        (cambiado)="cambiaElPrecio($event)"
       />
       <nx-filtro-numerico
         [etiqueta]="t('admin.catalog.col.sales') + ' ≥'"
@@ -94,20 +93,20 @@ export class FiltrosDeCatalogo {
   protected readonly t = inject(TraduccionService).t;
   protected readonly almacen = inject(CatalogoAdminStore);
 
-  protected readonly opcionesDeEstado = computed<readonly OpcionFiltro[]>(() =>
+  protected readonly opcionesDeEstado = computed<readonly OpcionDeFiltro[]>(() =>
     ESTADOS_DE_PRODUCTO.map((estado) => ({
-      value: estado,
-      label: etiquetaDeEstado(this.t, estado),
+      valor: estado,
+      etiqueta: etiquetaDeEstado(this.t, estado),
     })),
   );
 
-  protected readonly opcionesDeCategoria = computed<readonly OpcionFiltro[]>(() =>
-    this.categorias().map((categoria) => ({ value: categoria.id, label: categoria.etiqueta })),
+  protected readonly opcionesDeCategoria = computed<readonly OpcionDeFiltro[]>(() =>
+    this.categorias().map((categoria) => ({ valor: categoria.id, etiqueta: categoria.etiqueta })),
   );
 
-  protected readonly opcionesDeVerificacion = computed<readonly OpcionFiltro[]>(() => [
-    { value: 'true', label: this.t('admin.catalog.verified.yes') },
-    { value: 'false', label: this.t('admin.catalog.verified.no') },
+  protected readonly opcionesDeVerificacion = computed<readonly OpcionDeFiltro[]>(() => [
+    { valor: 'true', etiqueta: this.t('admin.catalog.verified.yes') },
+    { valor: 'false', etiqueta: this.t('admin.catalog.verified.no') },
   ]);
 
   /** Cuántos filtros hay puestos: es el número que el móvil enseña sobre el botón de filtros. */
@@ -127,6 +126,14 @@ export class FiltrosDeCatalogo {
 
   protected cambia(fija: (valor: string) => void, valor: string): void {
     this.almacen.fijaFiltro(() => fija(valor));
+  }
+
+  /** Los dos extremos viajan juntos: son un solo filtro y se aplican en una sola relectura. */
+  protected cambiaElPrecio(rango: RangoPublicado): void {
+    this.almacen.fijaFiltro(() => {
+      this.almacen.precioMinimo.set(rango.minimo);
+      this.almacen.precioMaximo.set(rango.maximo);
+    });
   }
 
   protected cambiaTexto(valor: string): void {

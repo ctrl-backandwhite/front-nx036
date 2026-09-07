@@ -1,5 +1,7 @@
 import { Component, inject, input, output, signal } from '@angular/core';
 import { FormField, form, min, required } from '@angular/forms/signals';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { faPencil } from '@fortawesome/free-solid-svg-icons';
 import { GuiaPuntos } from '@ds/component/guia-puntos/guia-puntos';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { ImporteEnYuanes } from '../../../../domain/catalogo/model/ficha-de-producto';
@@ -16,7 +18,7 @@ import { ImporteEnYuanes } from '../../../../domain/catalogo/model/ficha-de-prod
  */
 @Component({
   selector: 'nx-fila-de-yuanes',
-  imports: [FormField, GuiaPuntos],
+  imports: [FormField, GuiaPuntos, FaIconComponent],
   template: `
     @if (editando()) {
       <div class="flex items-baseline text-[13px]">
@@ -42,6 +44,20 @@ import { ImporteEnYuanes } from '../../../../domain/catalogo/model/ficha-de-prod
         <span class="text-ink-500 whitespace-nowrap">{{ etiqueta() }}</span>
         <nx-guia-puntos />
         <span class="font-medium text-right whitespace-nowrap">{{ formateado() || '—' }}</span>
+        <!--
+          El lápiz es el equivalente TÁCTIL del doble clic, y de paso lo hace alcanzable con el
+          teclado. En una pantalla táctil el doble toque lo interpreta el navegador como ampliar, así
+          que desde el móvil estos importes —los que deciden el precio— no se podían tocar.
+        -->
+        <button
+          type="button"
+          class="ml-1.5 opacity-50 hover:opacity-100"
+          [title]="ayuda()"
+          [attr.aria-label]="t('actions.edit') + ': ' + etiquetaDelCampo()"
+          (click)="empieza()"
+        >
+          <fa-icon [icon]="iconoDeLapiz" class="text-[10px]" />
+        </button>
       </div>
     }
   `,
@@ -59,6 +75,7 @@ export class FilaDeYuanes {
   readonly guardado = output<{ campo: ImporteEnYuanes; importe: number }>();
 
   protected readonly t = inject(TraduccionService).t;
+  protected readonly iconoDeLapiz = faPencil;
   protected readonly editando = signal(false);
 
   protected readonly modelo = signal<{ importe: number | null }>({ importe: 0 });

@@ -111,6 +111,39 @@ describe('SociosPage', () => {
     expect(screen.getByText('••••••••')).toBeInTheDocument();
   });
 
+  /**
+   * Las TRES tablas al entrar, sin bajar la página.
+   *
+   * <p>Es una comprobación de regresión y se monta a propósito SIN `Playthrough`: las aplicaciones y
+   * las entregas de webhook estuvieron colgando de un bloque diferido por aparición en pantalla, así
+   * que quedaban invisibles hasta que alguien bajaba. Con `Playthrough` —que es como monta el resto de
+   * este fichero— los bloques diferidos se pintan enteros y el defecto no se veía: la pantalla enseñaba
+   * un tercio del contenido del front anterior y nadie se enteró hasta medirlo en el navegador.
+   *
+   * <p>El comportamiento por defecto de las pruebas deja el marcador de posición, así que si alguien
+   * vuelve a diferirlas, esto se pone en rojo.
+   */
+  it('enseña las tres tablas sin tener que bajar la página', async () => {
+    await render(SociosPage, {
+      providers: [
+        { provide: SOCIOS_PORT, useValue: puerto },
+        { provide: DialogoStore, useValue: dialogo },
+        { provide: AvisosStore, useValue: avisos },
+        ConsultaSocios, CreaElCliente, RotaElSecreto, BorraElCliente, PruebaLosWebhooks,
+      ],
+    });
+
+    expect(await screen.findByText('Clientes OAuth2 registrados')).toBeInTheDocument();
+    expect(
+      screen.getByText('Aplicaciones partner'),
+      'las aplicaciones vuelven a estar escondidas tras un diferido',
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Entregas de webhooks recientes'),
+      'las entregas de webhook vuelven a estar escondidas tras un diferido',
+    ).toBeInTheDocument();
+  });
+
   it('rotar el secreto se pregunta antes, porque invalida el anterior', async () => {
     dialogo.confirma.mockResolvedValue(false);
 

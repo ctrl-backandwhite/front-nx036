@@ -1,5 +1,4 @@
-import { Component, computed, inject, input, linkedSignal, model, output, signal } from '@angular/core';
-import { FieldTree, FormField, form, min, validate } from '@angular/forms/signals';
+import { Component, computed, inject, input, model, output, signal } from '@angular/core';
 import {
   faChevronDown,
   faChevronUp,
@@ -17,37 +16,14 @@ import {
   OrdenDelCatalogo,
   cuantosFiltros,
 } from '../../domain/model/criterio-de-busqueda';
-import { FiltroDesplegable, OpcionDeFiltro } from './filtro-desplegable';
+import { FiltroDesplegable, OpcionDeFiltro } from '@ds/component/filtros/filtro-desplegable';
 import { FiltroInterruptor } from './filtro-interruptor';
+import { RangoNumerico, RangoPublicado } from '@ds/component/filtros/rango-numerico';
 
 /** Países de origen que se ofrecen. Son los almacenes desde los que sale mercancía hoy. */
 const ORIGENES = ['CN', 'HK', 'US', 'ES', 'MX'];
 /** Certificaciones que el catálogo sabe filtrar. */
 const CERTIFICACIONES = ['CE', 'FCC', 'RoHS', 'FDA', 'EN71'];
-/**
- * El rango de precio tal y como lo maneja el formulario: dos números que SIEMPRE existen.
- *
- * <p>El criterio del negocio los guarda como texto opcional —así viajan en la dirección del navegador
- * y así los espera el backend—, pero Signal Forms construye un campo por cada clave que EXISTE en el
- * objeto: un criterio sin precio puesto no tiene la clave y la plantilla se quedaría sin nada a lo que
- * atarse. Aquí las dos claves están siempre, con el nulo como «sin poner».
- */
-interface RangoDePrecio {
-  readonly minimo: number | null;
-  readonly maximo: number | null;
-}
-
-/** El texto del criterio, como número para el campo. Lo que no sea un número es «sin poner». */
-function aNumero(texto: string | undefined): number | null {
-  const valor = Number(texto);
-  return texto && Number.isFinite(valor) ? valor : null;
-}
-
-/** Y al revés, para devolverlo al criterio: sin valor no se manda la clave, no una cadena vacía. */
-function aTexto(valor: number | null): string | undefined {
-  return valor === null ? undefined : String(valor);
-}
-
 const ORDENES: readonly OrdenDelCatalogo[] = [
   'best_match',
   'sales',
@@ -76,7 +52,13 @@ const ORDENES: readonly OrdenDelCatalogo[] = [
  */
 @Component({
   selector: 'nx-barra-de-filtros',
-  imports: [CampoBusqueda, FaIconComponent, FiltroDesplegable, FiltroInterruptor, FormField],
+  imports: [
+    CampoBusqueda,
+    FaIconComponent,
+    FiltroDesplegable,
+    FiltroInterruptor,
+    RangoNumerico,
+  ],
   template: `
     <div class="card p-3">
       <div class="flex flex-wrap items-center gap-2">
@@ -182,39 +164,14 @@ const ORDENES: readonly OrdenDelCatalogo[] = [
             (activoChange)="cambia({ conVideo: $event })"
           />
 
-          <!-- El envoltorio solo existe para poder colgar el aviso DEBAJO de la pastilla: dentro de
-               ella se metería entre el mínimo y el máximo. -->
-          <div>
-            <div
-              class="inline-flex items-center gap-1.5 text-[12px] rounded-full border border-ink-200 bg-white px-2 py-0.5"
-            >
-              <span class="text-ink-500 pl-1">{{ t('catalog.price_range') }}:</span>
-              <input
-                id="filtro-precio-min"
-                type="number"
-                inputmode="decimal"
-                class="w-14 px-1 py-1 min-h-11 sm:min-h-0 text-[12px] focus:outline-none bg-transparent"
-                [placeholder]="t('catalog.price_min')"
-                [attr.aria-label]="t('catalog.price_range') + ' ' + t('catalog.price_min')"
-                [formField]="formulario.minimo"
-                (change)="publicaElRango()"
-              />
-              <span aria-hidden="true" class="text-ink-300">–</span>
-              <input
-                id="filtro-precio-max"
-                type="number"
-                inputmode="decimal"
-                class="w-14 px-1 py-1 min-h-11 sm:min-h-0 text-[12px] focus:outline-none bg-transparent"
-                [placeholder]="t('catalog.price_max')"
-                [attr.aria-label]="t('catalog.price_range') + ' ' + t('catalog.price_max')"
-                [formField]="formulario.maximo"
-                (change)="publicaElRango()"
-              />
-            </div>
-            @if (falloDelRango(); as fallo) {
-              <span role="alert" class="text-xs text-error mt-1 block">{{ fallo }}</span>
-            }
-          </div>
+          <nx-rango-numerico
+            [etiqueta]="t('catalog.price_range')"
+            [minimo]="criterio().precioMinimo ?? ''"
+            [maximo]="criterio().precioMaximo ?? ''"
+            [marcadorMinimo]="t('catalog.price_min')"
+            [marcadorMaximo]="t('catalog.price_max')"
+            (cambiado)="publicaElRango($event)"
+          />
 
           <nx-filtro-desplegable
             [etiqueta]="t('catalog.sort')"
@@ -295,68 +252,20 @@ export class BarraDeFiltros {
     ORDENES.map((orden) => ({ valor: orden, etiqueta: this.t(`catalog.sort.${orden}`) })),
   );
 
-  /**
-   * El rango de precio, normalizado y con las dos claves puestas.
-   *
-   * <p>Se DERIVA del criterio que llega, así que «limpiar filtros» o un enlace compartido vacían los
-   * campos solos, sin sincronizar nada a mano.
-   */
-  private readonly rango = linkedSignal<RangoDePrecio>(() => ({
-    minimo: aNumero(this.criterio().precioMinimo),
-    maximo: aNumero(this.criterio().precioMaximo),
-  }));
-
-  /**
-   * Las dos reglas del rango, declaradas en vez de repartidas.
-   *
-   * <p>Un precio negativo no existe y solo devolvería la lista entera. Y un mínimo por encima del
-   * máximo no devuelve NADA: el catálogo se queda en blanco y quien busca no entiende por qué. Antes
-   * ninguna de las dos se decía en ninguna parte.
-   */
-  protected readonly formulario = form(this.rango, (ruta) => {
-    min(ruta.minimo, 0, { message: () => this.t('dialog.field.min') });
-    min(ruta.maximo, 0, { message: () => this.t('dialog.field.min') });
-    validate(ruta, ({ value }) => {
-      const { minimo, maximo } = value();
-      // `dialog.field.range` —«el final va antes que el principio»— es exactamente esto. Antes iba sin
-      // mensaje porque no existía la clave, y el filtro se quedaba en rojo sin decir qué pasaba.
-      return minimo !== null && maximo !== null && minimo > maximo
-        ? { kind: 'rango-invertido', message: this.t('dialog.field.range') }
-        : null;
-    });
-  });
-
-  /**
-   * Un solo aviso para el par: son un rango, y dos mensajes idénticos uno debajo de otro no dicen más
-   * que uno.
-   */
-  protected readonly falloDelRango = computed(
-    () => this.falloDe(this.formulario.minimo) ?? this.falloDe(this.formulario.maximo),
-  );
-
   protected alterna(): void {
     this.abierto.update((v) => !v);
   }
 
   /**
-   * El mensaje que toca enseñar bajo el par de campos, o nulo. Se calla hasta que el campo se ha
-   * TOCADO: pintar de rojo un filtro recién abierto acusa a quien todavía no ha escrito nada.
+   * El rango sube al SALIR del campo: de eso se encarga el propio componente de rango. Aquí solo se
+   * traduce el vacío a «sin clave», que es como el criterio dice «sin filtro» —una cadena vacía en la
+   * dirección del navegador dejaría un `precioMinimo=` colgando y el backend la recibiría igual—.
    */
-  private falloDe<T>(campo: FieldTree<T>): string | null {
-    const estado = campo();
-    return estado.touched() ? (estado.errors()[0]?.message ?? null) : null;
-  }
-
-  /**
-   * El rango sube al SALIR del campo, no en cada tecleada.
-   *
-   * <p>No es un detalle de estilo: el criterio acaba en la dirección del navegador, así que publicarlo
-   * por dígito sería una navegación —y una búsqueda entera— por cada tecla. El valor ya lo lleva el
-   * formulario; esto solo lo publica.
-   */
-  protected publicaElRango(): void {
-    const { minimo, maximo } = this.rango();
-    this.cambia({ precioMinimo: aTexto(minimo), precioMaximo: aTexto(maximo) });
+  protected publicaElRango(rango: RangoPublicado): void {
+    this.cambia({
+      precioMinimo: rango.minimo || undefined,
+      precioMaximo: rango.maximo || undefined,
+    });
   }
 
   protected cambia(parcial: Partial<CriterioDeBusqueda>): void {

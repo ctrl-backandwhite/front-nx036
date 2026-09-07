@@ -17,7 +17,13 @@ import { ManejadorErrores } from './manejador-errores';
   imports: [FaIconComponent],
   template: `
     @if (manejador.fallo(); as fallo) {
-      <div class="min-h-screen flex items-center justify-center p-6 bg-ink-50">
+      <!--
+        CUBRE la página en vez de añadirse debajo. Cuando algo revienta, lo que queda en pantalla es una
+        vista a medio pintar; dejarla a la vista con el aviso debajo invita a seguir pulsando en ella. El
+        índice va por encima del diálogo (1000) a propósito: si el fallo ocurre con una ventana abierta,
+        la salida tiene que quedar por delante de ella.
+      -->
+      <div class="fixed inset-0 z-[2000] overflow-y-auto flex items-center justify-center p-6 bg-ink-50">
         <div class="max-w-xl w-full card p-8 text-center">
           <span
             class="inline-flex w-12 h-12 items-center justify-center rounded-full bg-red-100 text-red-600"

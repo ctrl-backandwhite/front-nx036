@@ -14,7 +14,7 @@ import {
   faTrash,
 } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
-import { EsqueletoDeFila } from './esqueleto-de-fila';
+import { EsqueletoDeFila } from '@ds/component/marcador/esqueleto-de-fila';
 import { ImagenSegura } from '@ds/component/marcador/imagen-segura';
 import { CatalogoAdminStore } from '../../../application/catalogo/state/catalogo-admin.store';
 import {

@@ -1,12 +1,15 @@
 import { Component, computed, input } from '@angular/core';
-import { Esqueleto } from '@ds/component/marcador/esqueleto';
+import { Esqueleto } from './esqueleto';
 
 /**
  * La silueta de una fila de tabla mientras llegan los datos.
  *
- * <p>PIEZA PROVISIONAL en esta carpeta: le corresponde al sistema de diseño —la usan todas las tablas
- * del panel— y la que había allí desapareció mientras se portaba esta área. Cuando `@ds` vuelva a
- * publicarla, se sustituye y este fichero se borra.
+ * <p>La usan todas las tablas del panel, así que vive aquí y no en una de ellas.
+ *
+ * <p>Hubo un tiempo en que había DOS: esta y una directiva `tr[nxEsqueletoFilaTabla]` que creaba las
+ * celdas con `Renderer2`. Se quedó esta y la directiva se borró. Además de que la directiva no la
+ * usaba nadie, creaba las celdas en `afterNextRender`, o sea DESPUÉS de pintar: al prerenderizar, el
+ * HTML salía con la fila vacía. Esta se pinta con la plantilla, así que existe también en el servidor.
  *
  * <p>Es un elemento propio dentro del `<tbody>` con `display: table-row` (la utilidad `table-row`): así
  * el selector cumple la norma del proyecto —todo componente empieza por `nx-`— y la fila sigue

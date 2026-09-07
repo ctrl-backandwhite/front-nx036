@@ -5,7 +5,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { BarraFiltros } from '@ds/component/filtros/barra-filtros';
-import { FiltroSeleccion, OpcionFiltro } from '@ds/component/filtros/filtro-seleccion';
+import { FiltroDesplegable, OpcionDeFiltro } from '@ds/component/filtros/filtro-desplegable';
 import { CampoBusqueda } from '@ds/component/campo-busqueda/campo-busqueda';
 import { DialogoStore } from '@ds/component/dialogo/dialogo.store';
 import { Divisa } from '../../../domain/gestion/model/dinero';
@@ -32,7 +32,7 @@ import {
  */
 @Component({
   selector: 'nx-monedas-admin',
-  imports: [FaIconComponent, BarraFiltros, FiltroSeleccion, CampoBusqueda],
+  imports: [FaIconComponent, BarraFiltros, FiltroDesplegable, CampoBusqueda],
   template: `
     @if (cargando()) {
       <p class="text-sm text-ink-500">{{ t('common.loading') }}</p>
@@ -61,7 +61,7 @@ import {
                           (limpia)="limpiaFiltros()">
           <nx-campo-busqueda [(valor)]="texto" [marcador]="t('admin.currencies.search_ph')"
                              clase="w-full sm:min-w-[220px]" />
-          <nx-filtro-seleccion [etiqueta]="t('orders.filter.status')" [(valor)]="estado"
+          <nx-filtro-desplegable [etiqueta]="t('orders.filter.status')" [(valor)]="estado"
                                [marcador]="t('orders.filter.all')" [opciones]="opcionesDeEstado()" />
           <span class="text-[11px] text-ink-400 ml-auto">
             {{ tCon('admin.currencies.active_count', { a: activas(), t: divisas().length }) }}
@@ -169,9 +169,9 @@ export class MonedasPage {
   protected readonly filtrosPuestos = computed(
     () => (this.texto().trim() ? 1 : 0) + (this.estado() ? 1 : 0),
   );
-  protected readonly opcionesDeEstado = computed<readonly OpcionFiltro[]>(() => [
-    { value: 'active', label: this.t('admin.currencies.only_active') },
-    { value: 'inactive', label: this.t('admin.currencies.only_inactive') },
+  protected readonly opcionesDeEstado = computed<readonly OpcionDeFiltro[]>(() => [
+    { valor: 'active', etiqueta: this.t('admin.currencies.only_active') },
+    { valor: 'inactive', etiqueta: this.t('admin.currencies.only_inactive') },
   ]);
   protected readonly todasMarcadas = computed(() => {
     const filas = this.filtradas();

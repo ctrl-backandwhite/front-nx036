@@ -14,7 +14,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faCheck, faChevronDown, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
-import { EnfocaAlAparecer } from '@ds/directive/enfoca-al-aparecer.directive';
+import { EnfocaAlAparecer } from '../../directive/enfoca-al-aparecer.directive';
 
 export interface OpcionDeFiltro {
   readonly valor: string;
@@ -40,6 +40,13 @@ const TECLAS_DE_NAVEGACION = ['ArrowDown', 'ArrowUp', 'Home', 'End'];
  *
  * <p>El marcado y las clases son los del otro front: es el mismo diseño en dos tecnologías, y cualquier
  * desvío se ve al instante al poner los dos catálogos uno al lado del otro.
+ *
+ * <p>Vive en el sistema de diseño porque durante un tiempo hubo DOS: esta, que solo usaba el catálogo
+ * del escaparate, y otra casi idéntica aquí que usaban el panel y los pedidos. La copia del sistema de
+ * diseño se había quedado atrás en lo que menos se ve y más importa: sin papeles `option` ni
+ * `aria-selected`, sin recorrer las opciones con las flechas, sin abrir con la flecha abajo y con los
+ * blancos de ratón —quien filtra desde el móvil tenía que acertar en 24 píxeles—. Se quedó la buena y
+ * la otra se borró, así que las diez pantallas que montaban aquella heredan las cuatro cosas.
  */
 @Component({
   selector: 'nx-filtro-desplegable',

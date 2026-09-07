@@ -1,7 +1,7 @@
 import { Component, computed, inject, input, model } from '@angular/core';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { BarraFiltros } from '@ds/component/filtros/barra-filtros';
-import { FiltroSeleccion, OpcionFiltro } from '@ds/component/filtros/filtro-seleccion';
+import { FiltroDesplegable, OpcionDeFiltro } from '@ds/component/filtros/filtro-desplegable';
 import { CampoBusqueda } from '@ds/component/campo-busqueda/campo-busqueda';
 
 /**
@@ -18,7 +18,7 @@ import { CampoBusqueda } from '@ds/component/campo-busqueda/campo-busqueda';
  */
 @Component({
   selector: 'nx-usuarios-filtros',
-  imports: [BarraFiltros, FiltroSeleccion, CampoBusqueda],
+  imports: [BarraFiltros, FiltroDesplegable, CampoBusqueda],
   template: `
     <nx-barra-filtros [activos]="cuantos()" [hayActivos]="cuantos() > 0" (limpia)="limpia()">
       <nx-campo-busqueda
@@ -26,14 +26,14 @@ import { CampoBusqueda } from '@ds/component/campo-busqueda/campo-busqueda';
         [marcador]="t('admin.users.search_placeholder')"
         clase="min-w-[280px]"
       />
-      <nx-filtro-seleccion
+      <nx-filtro-desplegable
         [etiqueta]="t('filters.role')"
         [(valor)]="rol"
         [opciones]="roles()"
         [marcador]="t('filters.all')"
       />
       @if (paises().length > 0) {
-        <nx-filtro-seleccion
+        <nx-filtro-desplegable
           [etiqueta]="t('filters.country')"
           [(valor)]="pais"
           [opciones]="paises()"
@@ -51,8 +51,8 @@ export class UsuariosFiltros {
   readonly rol = model<string | null>(null);
   readonly pais = model<string | null>(null);
 
-  readonly roles = input<readonly OpcionFiltro[]>([]);
-  readonly paises = input<readonly OpcionFiltro[]>([]);
+  readonly roles = input<readonly OpcionDeFiltro[]>([]);
+  readonly paises = input<readonly OpcionDeFiltro[]>([]);
   readonly visibles = input(0);
   readonly total = input(0);
 

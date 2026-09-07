@@ -2,6 +2,7 @@ import {
   API_INTERNA_POR_DEFECTO,
   VARIABLE_API_INTERNA,
   baseDelBackendAlConstruir,
+  cabecerasDeCompilacion,
 } from '@core/config/backend-al-construir';
 
 /**
@@ -62,14 +63,18 @@ import {
  * (lo hizo, y está contado en `scripts/verifica-prerenderizado.mjs`).
  *
  * <p>O sea que este número NO es una medida de lo que conviene, es una medida de lo que deja el
- * backend. Lo que conviene son varios cientos: la portada sola son 78 fichas. Para llegar ahí hay que
- * eximir del límite al origen interno desde el que se compila —el que apunta `NEXADROP_API_INTERNA`—,
- * porque no es un extraño volcando el catálogo, somos nosotros. Es una decisión del backend, no de
- * aquí, y por eso este número se deja bajo y la variable a mano: el día que se exima, se sube sin
- * tocar código y la puerta de `verifica:prerender` avisa si no cabe.
+ * backend. Lo que conviene son varios cientos: la portada sola son 78 fichas.
+ *
+ * <p>CÓMO SE SUBE, que ya está resuelto: la compilación se identifica ante el backend con el testigo
+ * de `NEXADROP_PRERENDER_TOKEN` y entonces el limitador le concede un cupo alto —`build.prerender`, mil
+ * doscientas por minuto— en vez de las cien del escaparate. No es levantar el límite: sigue siendo un
+ * cupo, sigue siendo solo para los GET del catálogo público, y sin el testigo configurado no cambia
+ * absolutamente nada. Con él puesto, `NEXADROP_FICHAS_PRERENDERIZADAS=300` cabe; sin él, este 15 es lo
+ * que hay, y por eso sigue siendo el valor por defecto.
  *
  * <p>En el clúster el reparto puede ser distinto —allí el que compila no comparte IP con el resto—,
- * así que el techo real de cada entorno se descubre subiendo la variable hasta que la puerta proteste.
+ * así que el techo real de cada entorno se descubre subiendo la variable hasta que la puerta de
+ * `verifica:prerender` proteste.
  */
 export const FICHAS_POR_DEFECTO = 15;
 
@@ -208,7 +213,9 @@ function lectorHttp(base: string): LectorDeApi {
   return async (camino) => {
     for (let intento = 0; ; intento++) {
       const respuesta = await fetch(`${base}${camino}`, {
-        headers: { Accept: 'application/json' },
+        // El testigo de compilación va aquí también, y no solo en las peticiones de la aplicación: esta
+        // función se ejecuta ANTES, al extraer las rutas, y es la primera que se choca con el límite.
+        headers: { Accept: 'application/json', ...cabecerasDeCompilacion() },
         signal: AbortSignal.timeout(PLAZO_MS),
       });
       if (respuesta.ok) {

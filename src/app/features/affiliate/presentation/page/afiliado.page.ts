@@ -136,6 +136,15 @@ import { TarjetaIndicador } from '../component/tarjeta-indicador';
               (guarda)="guardaPerfil($event)"
             />
 
+            <!--
+              Hueco para el consentimiento de correo comercial, que va justo aquí —entre los datos de
+              cobro y las comisiones, igual que en el front anterior— y NO es de este contexto: decidir
+              qué correos recibe una cuenta es del buzón. Esta página no puede importarlo (el lint lo
+              impide, y esa prohibición es la que sostiene el diseño), así que declara el hueco y lo
+              rellena quien arma la ruta, que sí ve el mapa entero.
+            -->
+            <ng-content select="[correo-comercial]" />
+
             <nx-tabla-de-comisiones [comisiones]="datos.comisiones" />
           </div>
         }

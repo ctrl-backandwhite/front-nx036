@@ -1,6 +1,6 @@
 import { Component, computed, inject, input, output } from '@angular/core';
 import { TraduccionService } from '@core/i18n/traduccion.service';
-import { OpcionFiltro } from '@ds/component/filtros/filtro-seleccion';
+import { OpcionDeFiltro } from '@ds/component/filtros/filtro-desplegable';
 import { VentanaModal } from './ventana-modal';
 import { CambioDeRol } from './usuarios-tabla';
 
@@ -31,7 +31,7 @@ import { CambioDeRol } from './usuarios-tabla';
 export class UsuariosModalRol {
   readonly cambio = input.required<CambioDeRol>();
   /** Las opciones ya traducidas que compone la página: aquí solo se busca la etiqueta de cada código. */
-  readonly roles = input<readonly OpcionFiltro[]>([]);
+  readonly roles = input<readonly OpcionDeFiltro[]>([]);
 
   readonly cierra = output<void>();
   readonly confirma = output<void>();
@@ -50,6 +50,6 @@ export class UsuariosModalRol {
 
   /** Si el papel no estuviera en la lista se enseña su código: es mejor que un hueco en la frase. */
   private etiqueta(rol: string): string {
-    return this.roles().find((o) => o.value === rol)?.label ?? rol;
+    return this.roles().find((o) => o.valor === rol)?.etiqueta ?? rol;
   }
 }

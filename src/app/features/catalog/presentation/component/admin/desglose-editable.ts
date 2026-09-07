@@ -1,4 +1,6 @@
 import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { faPencil } from '@fortawesome/free-solid-svg-icons';
 import { EnfocaAlAparecer } from '@ds/directive/enfoca-al-aparecer.directive';
 import { FormField, form, min, required } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
@@ -29,7 +31,7 @@ interface FilaEditable {
  */
 @Component({
   selector: 'nx-desglose-editable',
-  imports: [FormField, GuiaPuntos, EnfocaAlAparecer],
+  imports: [FormField, GuiaPuntos, EnfocaAlAparecer, FaIconComponent],
   template: `
     <div class="mt-2 rounded-lg border border-dashed border-base-300 bg-base-200/40 px-3 py-2 text-[12px]">
       <div class="opacity-60 mb-1">{{ t('product.price.breakdown_admin') }}</div>
@@ -69,6 +71,21 @@ interface FilaEditable {
               />
             } @else {
               <span class="font-mono">{{ fila.mostrado }}</span>
+              <!--
+                El lápiz es el equivalente TÁCTIL del doble clic, y de paso lo hace alcanzable con el
+                teclado. En una pantalla táctil el doble toque lo interpreta el navegador como
+                ampliar, así que desde el móvil estos tres importes —los que deciden el precio— no se
+                podían tocar. Se deja el doble clic: quien ya lo tiene aprendido no pierde nada.
+              -->
+              <button
+                type="button"
+                class="ml-1.5 opacity-50 hover:opacity-100"
+                [title]="t(fila.claveDeAyuda)"
+                [attr.aria-label]="t('actions.edit') + ': ' + t(fila.clave)"
+                (click)="empiezaEdicion(fila)"
+              >
+                <fa-icon [icon]="iconoDeLapiz" class="text-[10px]" />
+              </button>
             }
           </div>
         }
@@ -90,6 +107,8 @@ export class DesgloseEditable {
   private readonly editor = inject(EditaLaFicha);
   private readonly avisos = inject(AvisosStore);
   protected readonly t = inject(TraduccionService).t;
+
+  protected readonly iconoDeLapiz = faPencil;
 
   protected readonly editando = signal<CampoEnYuanes | null>(null);
 

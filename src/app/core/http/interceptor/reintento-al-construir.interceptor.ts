@@ -32,12 +32,14 @@ import { retry, timer } from 'rxjs';
  * de error. Se mira el `Retry-After` que manda el propio backend, porque es él quien sabe cuándo se
  * rellena el cubo, pero se topa: ver abajo por qué el techo no lo ponemos nosotros.
  *
- * <p>OJO, y conviene decirlo aunque no se arregle desde aquí: esto hace la compilación LENTA a
- * propósito. A 100 peticiones por minuto, prerenderizar 300 fichas son varios minutos de espera pura.
- * La solución buena no es esta, es que el origen interno desde el que se compila —el que apunta
- * `NEXADROP_API_INTERNA`— quede exento del límite en el backend, porque no es un extraño volcando el
- * catálogo: somos nosotros mismos. Mientras esa decisión no se tome, esto es lo que evita publicar
- * fichas con una página de error dentro.
+ * <p>Esto era, además, LENTO a propósito: a 100 peticiones por minuto, prerenderizar 300 fichas son
+ * varios minutos de espera pura. Eso ya no hace falta pagarlo, porque la solución buena está puesta:
+ * la compilación se identifica con el testigo de `NEXADROP_PRERENDER_TOKEN` y el backend le concede un
+ * cupo alto en vez de las cien del escaparate (ver `testigo-de-compilacion.interceptor.ts`).
+ *
+ * <p>Y aun así esto se queda, porque es la red de debajo: si el testigo no está configurado, si se
+ * escribe mal, o si con el cupo alto se llegara al tope igualmente, la alternativa a esperar un poco es
+ * publicar fichas con una página de error dentro.
  */
 
 /**

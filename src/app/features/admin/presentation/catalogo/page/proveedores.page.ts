@@ -11,7 +11,7 @@ import {
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { DialogoStore } from '@ds/component/dialogo/dialogo.store';
 import { BarraFiltros } from '@ds/component/filtros/barra-filtros';
-import { FiltroSeleccion, OpcionFiltro } from '@ds/component/filtros/filtro-seleccion';
+import { FiltroDesplegable, OpcionDeFiltro } from '@ds/component/filtros/filtro-desplegable';
 import { CampoBusqueda } from '@ds/component/campo-busqueda/campo-busqueda';
 import { nombreDePais } from '@ds/component/pais/paises';
 import {
@@ -45,7 +45,7 @@ const POR_PAGINA = 20;
   imports: [
     FaIconComponent,
     BarraFiltros,
-    FiltroSeleccion,
+    FiltroDesplegable,
     CampoBusqueda,
     TablaDeProveedores,
     Paginacion,
@@ -122,14 +122,14 @@ const POR_PAGINA = 20;
           [marcador]="t('admin.suppliers.search_placeholder')"
           clase="w-full md:min-w-[260px]"
         />
-        <nx-filtro-seleccion
+        <nx-filtro-desplegable
           [etiqueta]="t('admin.suppliers.col.country')"
           [valor]="pais()"
           (valorChange)="cambiaPais($event)"
           [opciones]="opcionesDePais"
           [marcador]="t('filters.all')"
         />
-        <nx-filtro-seleccion
+        <nx-filtro-desplegable
           [etiqueta]="t('admin.suppliers.col.verified')"
           [valor]="verificado()"
           (valorChange)="cambiaVerificado($event)"
@@ -196,9 +196,9 @@ export class ProveedoresPage {
   protected readonly seleccion = signal<ReadonlySet<string>>(new Set());
 
   /** La lista de países es FIJA: derivarla de la página que se ve daría un desplegable distinto en cada una. */
-  protected readonly opcionesDePais: readonly OpcionFiltro[] = PAISES_DE_PROVEEDOR.map((codigo) => ({
-    value: codigo,
-    label: nombreDePais(codigo) || codigo,
+  protected readonly opcionesDePais: readonly OpcionDeFiltro[] = PAISES_DE_PROVEEDOR.map((codigo) => ({
+    valor: codigo,
+    etiqueta: nombreDePais(codigo) || codigo,
   }));
 
   private readonly criterio = computed<CriterioDeProveedores>(() => ({
@@ -221,9 +221,9 @@ export class ProveedoresPage {
   protected readonly paginas = computed(() => Math.max(1, this.proveedores.value().paginas));
   protected readonly marcados = computed(() => [...this.seleccion()]);
 
-  protected readonly opcionesDeVerificacion = computed<readonly OpcionFiltro[]>(() => [
-    { value: 'yes', label: this.t('admin.suppliers.yes') },
-    { value: 'no', label: this.t('admin.suppliers.no') },
+  protected readonly opcionesDeVerificacion = computed<readonly OpcionDeFiltro[]>(() => [
+    { valor: 'yes', etiqueta: this.t('admin.suppliers.yes') },
+    { valor: 'no', etiqueta: this.t('admin.suppliers.no') },
   ]);
 
   protected readonly cuantosFiltros = computed(

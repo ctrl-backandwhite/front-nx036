@@ -1,6 +1,7 @@
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { COOKIE_TABLE, CookieRow } from '@shared/content/legal-pages';
 import { DocContent, pick } from '@shared/content/site-pages';
+import { EtiquetasService } from '@core/seo/etiquetas.service';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { TablaCookies } from '@ds/component/cookies/tabla-cookies';
 import {
@@ -47,6 +48,7 @@ export class DocumentoLegalPage {
 
   private readonly traduccion = inject(TraduccionService);
   private readonly consulta = inject(ConsultaDocumentoLegal);
+  private readonly etiquetas = inject(EtiquetasService);
 
   protected readonly tipo = computed<TipoDeDocumentoLegal | null>(() => {
     // Se guarda en una constante para que el guardián de tipo estreche: llamar dos veces a la señal
@@ -85,6 +87,35 @@ export class DocumentoLegalPage {
         return;
       }
       void this.carga(tipo, idioma);
+    });
+
+    /*
+     * Las etiquetas para compartir del documento legal.
+     *
+     * <p>Faltaban, y aquí importan por un motivo distinto al de una ficha: estas cuatro direcciones son
+     * las que se enlazan desde fuera —en el pie de cualquier página, en un correo, en un aviso de
+     * cookies— y las que un buscador indexa por separado. Sin título propio, las cuatro salían como
+     * «NX036» a secas: quien las comparte no puede distinguir la política de privacidad de las
+     * condiciones, y el buscador ve cuatro páginas con el mismo nombre.
+     *
+     * <p>El TIPO es `article` y no `website`: es un texto con fecha de actualización, no la portada de
+     * un sitio, y es lo que hace que la vista previa lo trate como documento.
+     *
+     * <p>Depende del contenido, que cambia con el documento y con el idioma —y que además llega del
+     * servidor y sustituye al respaldo compilado—, así que va en un efecto: escrito una sola vez, se
+     * quedaría con el título del primer documento que se abriera.
+     */
+    effect(() => {
+      const contenido = this.contenido();
+      if (!contenido.title) {
+        return;
+      }
+      this.etiquetas.aplica({
+        titulo: contenido.title,
+        descripcion: contenido.intro,
+        ruta: `/legal/${this.doc()}`,
+        tipo: 'article',
+      });
     });
   }
 

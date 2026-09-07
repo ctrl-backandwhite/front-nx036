@@ -6,7 +6,7 @@ import { Result } from '@shared/result/result';
 import { AppError } from '@shared/error/app-error';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
 import { DialogoStore } from '@ds/component/dialogo/dialogo.store';
-import { OpcionFiltro } from '@ds/component/filtros/filtro-seleccion';
+import { OpcionDeFiltro } from '@ds/component/filtros/filtro-desplegable';
 import {
   CambiosDeUsuario,
   FiltroDeUsuarios,
@@ -203,13 +203,13 @@ export class UsuariosPage {
   protected readonly invitando = signal(false);
   protected readonly invitandoEnCurso = signal(false);
 
-  protected readonly opcionesDeRol = computed<readonly OpcionFiltro[]>(() =>
-    ROLES.map((r) => ({ value: r, label: this.etiquetaDeRol(r) })),
+  protected readonly opcionesDeRol = computed<readonly OpcionDeFiltro[]>(() =>
+    ROLES.map((r) => ({ valor: r, etiqueta: this.etiquetaDeRol(r) })),
   );
 
   /** Los países salen de la página que se está mirando: filtrar por ellos no cuesta otra petición. */
-  protected readonly opcionesDePais = computed<readonly OpcionFiltro[]>(() =>
-    paisesPresentes(this.usuarios()).map((p) => ({ value: p, label: p })),
+  protected readonly opcionesDePais = computed<readonly OpcionDeFiltro[]>(() =>
+    paisesPresentes(this.usuarios()).map((p) => ({ valor: p, etiqueta: p })),
   );
 
   /** Lo que se le pide al servidor. Se compone UNA vez: el efecto y la relectura miran el mismo sitio. */

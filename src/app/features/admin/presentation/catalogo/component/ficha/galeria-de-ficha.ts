@@ -2,7 +2,9 @@ import { Component, computed, inject, input, linkedSignal, output, signal } from
 import { NgOptimizedImage } from '@angular/common';
 import { FormField, form } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faImage, faMagnifyingGlassPlus, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import {
+  faArrowLeft, faArrowRight, faImage, faMagnifyingGlassPlus, faPlus, faTrash,
+} from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { EjeDeVariacion, esEjeDeColor, fotoDelValor } from '../../../../domain/catalogo/model/eje-de-variacion';
 import {
@@ -91,15 +93,23 @@ const LADO_DE_LA_MINIATURA = 400;
                 }
                 <button type="button" class="w-full h-full block" (click)="amplia.emit(direccion(imagen))">
                   <!--
-                    La PRIMERA foto se marca como prioritaria: es la principal de la ficha y la que
-                    decide cuándo se ve algo útil. Las demás se cargan al aparecer, que es lo que hace
-                    la imagen optimizada por omisión.
+                    Sin marcar la primera como PRIORITARIA, y no es un olvido.
+
+                    DEFECTO CERRADO: la primera miniatura llevaba la entrada de prioridad atada a su
+                    posición, y como las miniaturas se siguen por identificador, al reordenar Angular
+                    MUEVE el mismo elemento en vez de rehacerlo. Entonces esa entrada cambiaba de
+                    valor sobre una imagen ya cargada y la directiva de imagen optimizada lanzaba
+                    NG02953 en cada reordenación. En una
+                    compilación de producción la comprobación no corre y el aviso no sale, así que
+                    esto habría pasado desapercibido: lo destapó la prueba de las flechas.
+
+                    Y la prioridad tampoco hacía falta aquí: es el editor de la ficha, detrás del
+                    acceso, no una pantalla pública cuyo primer pintado haya que ganar.
                   -->
                   <img
                     [ngSrc]="direccion(imagen)"
                     [width]="LADO_DE_LA_MINIATURA"
                     [height]="LADO_DE_LA_MINIATURA"
-                    [priority]="i === 0"
                     [alt]="titulo() + ' — ' + (i + 1)"
                     class="w-full h-full object-cover rounded border border-ink-100"
                   />
@@ -118,6 +128,35 @@ const LADO_DE_LA_MINIATURA = 400;
                 >
                   <fa-icon [icon]="iconos.borrar" class="text-[10px]" />
                 </button>
+                <!--
+                  Las dos flechas son el equivalente TÁCTIL del arrastre, y de paso el teclado llega
+                  aquí. El arrastre HTML5 no existe en una pantalla táctil —el gesto lo interpreta el
+                  navegador como desplazamiento—, así que desde una tableta no había forma de decidir
+                  cuál es la imagen principal, que es lo que de verdad se está eligiendo al reordenar.
+                  Van SIEMPRE visibles y no al pasar el ratón: en táctil no hay ratón que pasar.
+                -->
+                <div class="absolute bottom-1 right-1 z-20 flex gap-0.5">
+                  <button
+                    type="button"
+                    class="btn btn-xs btn-square"
+                    [disabled]="i === 0"
+                    [title]="t('admin.catalog.images.move_prev')"
+                    [attr.aria-label]="t('admin.catalog.images.move_prev')"
+                    (click)="mueveA(i, i - 1)"
+                  >
+                    <fa-icon [icon]="iconos.antes" class="text-[10px]" />
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-xs btn-square"
+                    [disabled]="i === orden().length - 1"
+                    [title]="t('admin.catalog.images.move_next')"
+                    [attr.aria-label]="t('admin.catalog.images.move_next')"
+                    (click)="mueveA(i, i + 1)"
+                  >
+                    <fa-icon [icon]="iconos.despues" class="text-[10px]" />
+                  </button>
+                </div>
               </div>
             }
           </div>
@@ -157,6 +196,17 @@ const LADO_DE_LA_MINIATURA = 400;
                     {{ foto.etiqueta }}
                   </span>
                 }
+                <!-- Mismo motivo que las flechas: arrastrar esta foto hasta la galería es un gesto de
+                     ratón, y sin este botón la copia era imposible desde una tableta. -->
+                <button
+                  type="button"
+                  class="absolute top-0.5 right-0.5 z-10 btn btn-primary btn-xs btn-square"
+                  [title]="t('admin.catalog.images.use_in_gallery')"
+                  [attr.aria-label]="t('admin.catalog.images.use_in_gallery')"
+                  (click)="copiaDeVariante.emit(foto.url)"
+                >
+                  <fa-icon [icon]="iconos.mas" class="text-[10px]" />
+                </button>
               </div>
             }
           </div>
@@ -210,6 +260,8 @@ export class GaleriaDeFicha {
     lupa: faMagnifyingGlassPlus,
     borrar: faTrash,
     mas: faPlus,
+    antes: faArrowLeft,
+    despues: faArrowRight,
   };
 
   /**
@@ -290,7 +342,20 @@ export class GaleriaDeFicha {
     if (origen === null) {
       return;
     }
-    const siguiente = mueve(this.orden(), origen, destino);
+    this.mueveA(origen, destino);
+  }
+
+  /**
+   * Mover una imagen de sitio. Lo llaman el arrastre y las flechas, para que las dos maneras hagan
+   * exactamente lo mismo: `mueve` devuelve la MISMA lista cuando el movimiento no lleva a ninguna
+   * parte —fuera de rango, o al sitio donde ya estaba—, y entonces no se avisa al servidor.
+   */
+  protected mueveA(desde: number, hasta: number): void {
+    const actual = this.orden();
+    const siguiente = mueve(actual, desde, hasta);
+    if (siguiente === actual) {
+      return;
+    }
     this.orden.set(siguiente);
     this.reordena.emit(siguiente.map((imagen) => imagen.id));
   }

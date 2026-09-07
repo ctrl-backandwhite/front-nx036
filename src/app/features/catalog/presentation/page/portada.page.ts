@@ -1,4 +1,4 @@
-import { Component, computed, inject, resource } from '@angular/core';
+import { Component, computed, effect, inject, resource } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
@@ -10,6 +10,7 @@ import {
   faRocket,
   faShieldHalved,
 } from '@fortawesome/free-solid-svg-icons';
+import { EtiquetasService } from '@core/seo/etiquetas.service';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { PORTADA_PORT, TAXONOMIA_PORT } from '../../domain/port/catalogo.port';
 import { CIFRAS_DEL_SITIO_PORT } from '../../domain/port/cifras-del-sitio.port';
@@ -190,6 +191,7 @@ export class PortadaPage {
   private readonly taxonomia = inject(TAXONOMIA_PORT);
   private readonly cifrasDelSitio = inject(CIFRAS_DEL_SITIO_PORT);
   private readonly traduccion = inject(TraduccionService);
+  private readonly etiquetas = inject(EtiquetasService);
 
   protected readonly sesion = inject(SesionActual);
   protected readonly t = this.traduccion.t;
@@ -293,5 +295,26 @@ export class PortadaPage {
     // Saber quién mira es lo que enciende el corazón de cada tarjeta; sin ello la lista se pintaría
     // entera sin marcar. Lo resuelve el NÚCLEO: aquí no se gestiona identidad, solo se pregunta.
     void inject(RECUPERADOR_DE_SESION).asegura();
+
+    /*
+     * Las etiquetas para compartir de la PORTADA.
+     *
+     * <p>Faltaban, y es la página que más se comparte: el enlace del sitio a secas. Su HTML
+     * prerenderizado salía con `<title>NX036</title>` a pelo, sin descripción ni foto, así que pegarlo
+     * en WhatsApp o en LinkedIn daba una tarjeta con el nombre y nada más — mientras que cualquier
+     * ficha de producto, que se comparte mucho menos, sí llevaba las suyas.
+     *
+     * <p>Va en un EFECTO y no en una llamada suelta porque el texto depende del idioma y de las cifras
+     * reales del sitio, que llegan del servidor. Escrito una sola vez al montar, el enlace compartido
+     * anunciaría «8 idiomas y 12 monedas» aunque haya veinticinco.
+     */
+    effect(() => {
+      this.etiquetas.aplica({
+        titulo: `${this.t('home.hero.title_pre')} ${this.t('home.hero.title_accent')}`,
+        descripcion: this.cuerpo(),
+        ruta: '/',
+        tipo: 'website',
+      });
+    });
   }
 }

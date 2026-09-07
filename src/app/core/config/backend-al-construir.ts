@@ -43,3 +43,33 @@ export function baseDelBackendAlConstruir(
   const declarada = entorno[VARIABLE_API_INTERNA];
   return (declarada ?? API_INTERNA_POR_DEFECTO).replace(/\/+$/, '');
 }
+
+/**
+ * El nombre de la variable con el TESTIGO de compilación.
+ *
+ * <p>Es lo que distingue a la compilación de un extraño volcando el catálogo. El backend limita el
+ * escaparate público a 100 peticiones por minuto y por IP, y prerenderizar fichas es —visto desde
+ * ahí— exactamente eso: un volcado a toda velocidad. Con ese cupo no caben más de unas quince fichas
+ * y las demás se escribían con una página de error dentro.
+ *
+ * <p>Lo que el testigo concede es un CUPO MÁS ALTO, no la ausencia de límite, y solo para los GET del
+ * catálogo público: está escrito así en el {@code RateLimitFilter} del backend, con sus pruebas. Sin
+ * la variable puesta no se manda ninguna cabecera y todo se comporta como antes.
+ */
+export const VARIABLE_TESTIGO_DE_COMPILACION = 'NEXADROP_PRERENDER_TOKEN';
+
+/** La cabecera con la que viaja. Tiene que coincidir con la que espera el backend. */
+export const CABECERA_DE_COMPILACION = 'X-Prerender-Token';
+
+/**
+ * Las cabeceras que hay que añadir a cada petición hecha al construir. Vacío si no hay testigo: mandar
+ * la cabecera con una cadena vacía sería peor que no mandarla, porque parecería configurada.
+ */
+export function cabecerasDeCompilacion(
+  entorno: Readonly<Record<string, string | undefined>> = typeof process !== 'undefined'
+    ? process.env
+    : {},
+): Readonly<Record<string, string>> {
+  const testigo = (entorno[VARIABLE_TESTIGO_DE_COMPILACION] ?? '').trim();
+  return testigo ? { [CABECERA_DE_COMPILACION]: testigo } : {};
+}

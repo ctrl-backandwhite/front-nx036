@@ -21,6 +21,7 @@ import { VaciaElCarrito } from '@features/cart/application/use-case/vacia-el-car
 import { LineaDeCarrito } from '@features/cart/domain/model/linea-de-carrito';
 import { exito } from '@shared/result/result';
 import { ConsentimientoDeCookiesStore } from '@core/cookies/consentimiento-de-cookies.store';
+import { ManejadorErrores } from '@core/error/manejador-errores';
 
 /** Un doble de los puertos de la cesta que no habla con nadie: aquí se prueba el armazón, no la cesta. */
 const CESTA_QUE_CALLA = {
@@ -157,5 +158,47 @@ describe('App', () => {
     expect(
       fixture.nativeElement.querySelector('nx-cajon-del-carrito [role="dialog"]'),
     ).not.toBeNull();
+  });
+
+  /**
+   * La pantalla de error, montada.
+   *
+   * <p>El manejador propio ya recogía cualquier excepción no atendida y la publicaba, pero NADIE pintaba
+   * ese estado: un fallo al renderizar dejaba exactamente lo mismo que sin manejador —la página en
+   * blanco— con el agravante de que el código parecía cubierto. Se comprueba montándola desde el
+   * manejador, que es como llega en la aplicación de verdad.
+   */
+  it('cuando algo revienta, sustituye la página por una salida en vez de dejarla en blanco', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+
+    /* Antes de que falle nada no se pinta: es una pantalla de emergencia, no un marco permanente. */
+    expect(fixture.nativeElement.querySelector('nx-pantalla-error')?.textContent ?? '').toBe('');
+
+    TestBed.inject(ManejadorErrores).handleError(new Error('se rompió al pintar'));
+    fixture.detectChanges();
+
+    const emergencia = fixture.nativeElement.querySelector('nx-pantalla-error') as HTMLElement;
+    /* Y lleva la salida: sin un botón para reintentar o volver al inicio, la única forma de salir de un
+     * fallo es cerrar la pestaña. */
+    expect(emergencia.querySelector('button')).not.toBeNull();
+    expect(emergencia.querySelector('a[href="/"]')).not.toBeNull();
+    /* Con el detalle técnico, plegado: es lo que hace falta para diagnosticarlo sin asustar a quien
+     * solo quería comprar. */
+    expect(emergencia.textContent).toContain('se rompió al pintar');
+  });
+
+  it('al olvidar el fallo, la pantalla de emergencia se retira', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const manejador = TestBed.inject(ManejadorErrores);
+
+    manejador.handleError(new Error('x'));
+    fixture.detectChanges();
+    manejador.olvida();
+    fixture.detectChanges();
+
+    /* Sin esto, la pantalla se quedaría fija aunque la aplicación se recupere. */
+    expect(fixture.nativeElement.querySelector('nx-pantalla-error')?.textContent ?? '').toBe('');
   });
 });

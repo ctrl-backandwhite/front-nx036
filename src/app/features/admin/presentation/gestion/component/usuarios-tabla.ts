@@ -9,7 +9,7 @@ import {
   faTrash,
 } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
-import { OpcionFiltro } from '@ds/component/filtros/filtro-seleccion';
+import { OpcionDeFiltro } from '@ds/component/filtros/filtro-desplegable';
 import {
   UsuarioGestionado,
   estaBloqueado,
@@ -95,8 +95,8 @@ export interface CambioDeRol {
                     [attr.aria-label]="t('admin.users.col.role') + ' · ' + usuario.email"
                     class="border border-ink-200 rounded px-2 py-1 text-[11px] hover:border-ink-300 focus:border-brand-500 focus:outline-none"
                   >
-                    @for (opcion of roles(); track opcion.value) {
-                      <option [value]="opcion.value">{{ opcion.label }}</option>
+                    @for (opcion of roles(); track opcion.valor) {
+                      <option [value]="opcion.valor">{{ opcion.etiqueta }}</option>
                     }
                   </select>
                 </td>
@@ -198,7 +198,7 @@ export interface CambioDeRol {
 export class UsuariosTabla {
   readonly usuarios = input<readonly UsuarioGestionado[]>([]);
   readonly marcados = input<ReadonlySet<string>>(new Set<string>());
-  readonly roles = input<readonly OpcionFiltro[]>([]);
+  readonly roles = input<readonly OpcionDeFiltro[]>([]);
 
   readonly alterna = output<string>();
   readonly alternaTodos = output<void>();

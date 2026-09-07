@@ -9,6 +9,8 @@ import {
   faVideo,
   faWandMagicSparkles,
 } from '@fortawesome/free-solid-svg-icons';
+import { Revela } from '@ds/component/movimiento/revela';
+import { ContenidoNoDisponible } from '@core/error/contenido-no-disponible';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { PreferenciasService } from '@core/preferences/preferencias';
 import { EsqueletoTarjetaProducto } from '@ds/component/marcador/esqueleto-tarjeta-producto';
@@ -18,6 +20,14 @@ import { HileraDeslizable } from './hilera-deslizable';
 
 /** Cuántos productos por hilera. Seis = una fila justa en escritorio. */
 const POR_SECCION = 6;
+
+/**
+ * Escalón entre una hilera y la siguiente, en milisegundos.
+ *
+ * <p>Corto a propósito: lo justo para que se vean entrar una detrás de otra y no todas de golpe. Más
+ * de un par de décimas y la última tarda tanto que parece que la página se ha quedado a medias.
+ */
+const RETARDO_ENTRE_HILERAS = 80;
 
 const ICONO: Record<string, IconDefinition> = {
   trending: faFire,
@@ -70,6 +80,8 @@ const TONOS = [
     TarjetaProducto,
     HileraDeslizable,
     EsqueletoTarjetaProducto,
+    ContenidoNoDisponible,
+    Revela,
   ],
   template: `
     @if (portada.isLoading()) {
@@ -87,8 +99,14 @@ const TONOS = [
       </div>
     } @else if (datos(); as datos) {
       <div class="flex flex-col gap-10">
-        @for (seccion of datos.secciones; track seccion.codigo) {
+        <!--
+          Cada hilera entra al llegar a ella, escalonada por su posición: es lo que hace que bajar por la
+          portada no sea una pared de tarjetas ya puestas. Se anima UNA vez y solo hacia abajo —repetir la
+          entrada al subir marea— y respeta sola la preferencia de movimiento reducido del sistema.
+        -->
+        @for (seccion of datos.secciones; track seccion.codigo; let fila = $index) {
           @if (seccion.items.length > 0) {
+            <nx-revela [retardo]="fila * RETARDO_ENTRE_HILERAS">
             <section>
               <header class="flex items-baseline justify-between mb-3">
                 <h2 class="flex items-center gap-2 text-xl">
@@ -110,6 +128,7 @@ const TONOS = [
                 }
               </nx-hilera-deslizable>
             </section>
+            </nx-revela>
           }
         }
 
@@ -159,6 +178,14 @@ const TONOS = [
           </section>
         }
       </div>
+    } @else {
+      <!--
+        Ni cargando ni con datos: la petición falló. Antes no se pintaba NADA, así que la portada salía
+        sin hileras y con el resto del marco intacto — indistinguible de un catálogo recién montado que
+        todavía no tiene productos. Aquí se dice lo que pasa y se ofrece reintentar SOLO este bloque,
+        que es mucho mejor que recargar la página entera.
+      -->
+      <nx-contenido-no-disponible (reintentado)="portada.reload()" />
     }
   `,
 })
@@ -170,6 +197,7 @@ export class SeccionesPortada {
   protected readonly iconoFlecha = faArrowRight;
   protected readonly porSeccion = POR_SECCION;
   protected readonly huecos = Array.from({ length: POR_SECCION }, (_, i) => i);
+  protected readonly RETARDO_ENTRE_HILERAS = RETARDO_ENTRE_HILERAS;
 
   /**
    * El idioma y la MONEDA entran en la petición: al cambiar cualquiera de los dos, las hileras se

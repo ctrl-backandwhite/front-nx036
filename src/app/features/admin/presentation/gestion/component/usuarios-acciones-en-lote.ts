@@ -8,7 +8,7 @@ import {
   faUserShield,
 } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
-import { OpcionFiltro } from '@ds/component/filtros/filtro-seleccion';
+import { OpcionDeFiltro } from '@ds/component/filtros/filtro-desplegable';
 import { AccionEnLote } from '../../../application/gestion/use-case/usuarios.use-case';
 
 /**
@@ -66,8 +66,8 @@ import { AccionEnLote } from '../../../application/gestion/use-case/usuarios.use
           class="border border-ink-200 rounded px-2 py-1 text-[11px]"
           [attr.aria-label]="t('admin.bulk.role')"
         >
-          @for (opcion of roles(); track opcion.value) {
-            <option [value]="opcion.value">{{ opcion.label }}</option>
+          @for (opcion of roles(); track opcion.valor) {
+            <option [value]="opcion.valor">{{ opcion.etiqueta }}</option>
           }
         </select>
         <button
@@ -97,7 +97,7 @@ export class UsuariosAccionesEnLote {
   readonly cuantos = input(0);
   readonly ocupado = input(false);
   /** Las opciones ya traducidas: las compone la página una vez y las comparte con la tabla. */
-  readonly roles = input<readonly OpcionFiltro[]>([]);
+  readonly roles = input<readonly OpcionDeFiltro[]>([]);
   /** El papel que se aplicaría al lote. Es `model` para que la página lo lea al confirmar. */
   readonly rol = model('USER');
 

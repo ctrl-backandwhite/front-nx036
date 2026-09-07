@@ -6,7 +6,7 @@ import {
   proveeCatalogo,
 } from '@features/catalog/catalog.providers';
 import { proveeAfiliado } from '@features/affiliate/affiliate.providers';
-import { exigeRol } from '@core/auth/sesion.guard';
+import { exigeRol, exigeSesion } from '@core/auth/sesion.guard';
 import { rutas as rutasDeAcceso } from '@features/auth/presentation/auth.routes';
 
 /**
@@ -119,7 +119,7 @@ export const routes: Routes = [
         path: 'affiliate',
         providers: [proveeAfiliado()],
         loadComponent: () =>
-          import('@features/affiliate/presentation/page/afiliado.page').then((m) => m.AfiliadoPage),
+          import('./composition/afiliado-ensamblado').then((m) => m.AfiliadoEnsamblado),
       },
       {
         path: '',
@@ -162,9 +162,21 @@ export const routes: Routes = [
         path: '',
         loadChildren: () => import('@features/account/presentation/account.routes').then((m) => m.rutas),
       },
+      /*
+       * El panel del afiliado va ENSAMBLADO: lleva dentro el interruptor de correo comercial, que es del
+       * contexto del buzón. Juntar dos contextos es componer, y componer se hace aquí — el contexto
+       * «affiliate» no puede entrar en las tripas de «notifications», y esa prohibición es la que
+       * mantiene a los dos capaces de evolucionar por separado.
+       *
+       * Por eso esta entrada sustituye al `loadChildren` de las rutas del contexto, que sirven a
+       * `/admin/affiliate` de la misma forma unas líneas más arriba.
+       */
       {
-        path: '',
-        loadChildren: () => import('@features/affiliate/presentation/affiliate.routes').then((m) => m.rutas),
+        path: 'affiliate',
+        canActivate: [exigeSesion],
+        providers: [proveeAfiliado()],
+        loadComponent: () =>
+          import('./composition/afiliado-ensamblado').then((m) => m.AfiliadoEnsamblado),
       },
       {
         path: '',

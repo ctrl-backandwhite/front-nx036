@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { render, screen, waitFor } from '@testing-library/angular';
 import { EnfocaAlAparecer } from './enfoca-al-aparecer.directive';
-import { EsqueletoFilaTabla } from './esqueleto-fila-tabla.directive';
 import { SombraAlDesplazar } from './sombra-al-desplazar.directive';
 import { TransicionPagina } from './transicion-pagina.directive';
 
@@ -58,19 +57,6 @@ describe('EnfocaAlAparecer', () => {
     await waitFor(() =>
       expect(document.activeElement).toBe(screen.getByRole('textbox', { name: 'Segundo' })),
     );
-  });
-});
-
-describe('EsqueletoFilaTabla', () => {
-  it('rellena la fila con tantas celdas como columnas', async () => {
-    const { container } = await render(
-      '<table><tbody><tr [nxEsqueletoFilaTabla]="5"></tr></tbody></table>',
-      { imports: [EsqueletoFilaTabla] },
-    );
-
-    await waitFor(() => expect(container.querySelectorAll('td')).toHaveLength(5));
-    // Es decoración: quien escucha la página no debe oír cinco bloques grises.
-    expect(container.querySelectorAll('td div[aria-hidden="true"]')).toHaveLength(5);
   });
 });
 
