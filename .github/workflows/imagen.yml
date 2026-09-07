@@ -101,9 +101,21 @@ jobs:
         with:
           context: .
           push: true
-          # El tag es el SHA y nunca "latest". Es lo que hace que revertir sea
-          # cambiar una línea, y que se sepa siempre qué código hay corriendo.
-          tags: registry.nx036.com/nexadrop/frontend:sha-${{ github.sha }}
+          # El tag lleva el ENTORNO además del SHA, y esa es la diferencia con el
+          # backend. Aquel no lo necesita: su imagen es la misma para los tres y
+          # el entorno lo lee al arrancar, de SPRING_PROFILES_ACTIVE. Este lo
+          # COCINA DENTRO al construir —`ng build --configuration <entorno>`
+          # sustituye el fichero de entorno, con su dominio público y su bandera
+          # de producción—, así que dos entornos no pueden compartir imagen.
+          #
+          # Sin el entorno en el nombre pasaba justo eso: las tres ramas estaban
+          # en el mismo commit, las tres construcciones escribieron el mismo tag
+          # pisándose, y quedó la última. Los tres overlays apuntaban a la imagen
+          # de PRODUCCIÓN. Se vio antes de publicar los manifiestos.
+          #
+          # Sigue sin haber "latest": revertir es cambiar una línea y siempre se
+          # sabe qué código corre en cada sitio.
+          tags: registry.nx036.com/nexadrop/frontend:${{ steps.entorno.outputs.entorno }}-sha-${{ github.sha }}
           build-args: |
             ENTORNO=${{ steps.entorno.outputs.entorno }}
             NEXADROP_API_INTERNA=${{ steps.entorno.outputs.api }}
@@ -137,7 +149,7 @@ jobs:
           s = open(p).read()
           sha = os.environ['GITHUB_SHA']
           s = re.sub(r'(name: registry\.nx036\.com/nexadrop/frontend\n    newTag: )\S+',
-                     r'\g<1>sha-' + sha, s)
+                     r'\g<1>' + os.environ['ENTORNO'] + '-sha-' + sha, s)
           open(p, 'w').write(s)
           PY
           git config user.name "entrega automática"
