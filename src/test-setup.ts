@@ -1,5 +1,18 @@
 import '@testing-library/jest-dom/vitest';
+import { beforeEach } from 'vitest';
 import { configure } from '@testing-library/dom';
+
+/*
+ * `beforeEach` se importa EXPLÍCITAMENTE, y no es estilo: este fichero lo compilaba también la
+ * aplicación —`tsconfig.app.json` incluía `src/**` y solo excluía los `.spec.ts`—, donde los globales
+ * de Vitest no existen. Mientras aquí solo hubo configuración y clases nadie lo notó; en cuanto entró
+ * un `beforeEach`, `ng build` se cayó con «Cannot find name 'beforeEach'» y tumbó la construcción de
+ * la imagen. Las pruebas y el lint pasaban: el único que lo veía era el build.
+ *
+ * Se arregla por los dos lados —la importación explícita aquí y la exclusión en `tsconfig.app.json`—
+ * porque cada uno tapa un agujero distinto: la importación hace que el fichero sea correcto lo compile
+ * quien lo compile, y la exclusión evita que la aplicación cargue con infraestructura de pruebas.
+ */
 
 /**
  * El plazo de las esperas asíncronas: cinco segundos en vez del segundo por defecto.
