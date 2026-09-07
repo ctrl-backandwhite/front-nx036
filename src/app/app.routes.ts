@@ -1,6 +1,8 @@
 import { Routes } from '@angular/router';
 import { PaginaDeEscaparate } from './layout/escaparate/pagina-de-escaparate';
 import { PaginaDePanel } from './layout/admin/pagina-de-panel';
+import { proveeCatalogo } from '@features/catalog/catalog.providers';
+import { proveeAfiliado } from '@features/affiliate/affiliate.providers';
 import { exigeRol } from '@core/auth/sesion.guard';
 import { rutas as rutasDeAcceso } from '@features/auth/presentation/auth.routes';
 
@@ -84,7 +86,43 @@ export const routes: Routes = [
      * la API con credencial, pero sí el mapa de la casa. Lo destapó la certificación comparando qué
      * pasa al abrir `/admin` sin sesión en cada front. */
     canActivate: [exigeRol('ADMIN', 'OPERATOR')],
-    loadChildren: () => import('@features/admin/presentation/admin.routes').then((m) => m.rutas),
+    children: [
+      /*
+       * Tres pantallas del ESCAPARATE dentro del marco del panel, como en el front anterior. No son
+       * copias: son las mismas, con el menú lateral alrededor, para que quien administra pueda mirar el
+       * catálogo o su cuenta de afiliado sin salir de aquí.
+       *
+       * Faltaban las tres y el menú del panel YA las enlazaba: «Explorar catálogo» y la entrada de
+       * afiliado llevaban a una página de «no encontrada». Un enlace del propio menú que no lleva a
+       * ninguna parte es de lo peor que puede tener un panel: quien lo pulsa cree que está roto.
+       *
+       * Van AQUÍ y no en las rutas del panel porque juntar dos contextos es componer, y componer se
+       * hace en la raíz. El contexto «admin» no puede entrar en las tripas de «catalog» ni de
+       * «affiliate» —el lint lo impide, y es la regla que sostiene el diseño—, pero este fichero sí.
+       */
+      {
+        path: 'browse',
+        providers: [proveeCatalogo()],
+        loadComponent: () =>
+          import('@features/catalog/presentation/page/listado.page').then((m) => m.ListadoPage),
+      },
+      {
+        path: 'browse/:slug',
+        providers: [proveeCatalogo()],
+        loadComponent: () =>
+          import('@features/catalog/presentation/page/ficha.page').then((m) => m.FichaPage),
+      },
+      {
+        path: 'affiliate',
+        providers: [proveeAfiliado()],
+        loadComponent: () =>
+          import('@features/affiliate/presentation/page/afiliado.page').then((m) => m.AfiliadoPage),
+      },
+      {
+        path: '',
+        loadChildren: () => import('@features/admin/presentation/admin.routes').then((m) => m.rutas),
+      },
+    ],
   },
 
   // ── Escaparate y zona de cliente ────────────────────────────────────────────────────────────

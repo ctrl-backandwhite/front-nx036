@@ -1,6 +1,8 @@
 import { Component, effect, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CapturaDeReferido } from '@features/affiliate/presentation/component/captura-de-referido';
+import { Dialogo } from '@ds/component/dialogo/dialogo';
+import { Avisos } from '@ds/component/avisos/avisos';
 import { DOCUMENT } from '@angular/core';
 import { PreferenciasService } from '@core/preferences/preferencias';
 
@@ -14,12 +16,26 @@ import { PreferenciasService } from '@core/preferences/preferencias';
  */
 @Component({
   selector: 'nx-root',
-  imports: [RouterOutlet, CapturaDeReferido],
+  imports: [RouterOutlet, CapturaDeReferido, Dialogo, Avisos],
   /**
    * La captura de referido no pinta nada: se limita a mirar la dirección y registrar de quién viene la
    * visita. Va aquí, en el armazón, porque un enlace de afiliado puede apuntar a cualquier página.
+   *
+   * <p>El DIÁLOGO y los AVISOS también van aquí, y su ausencia era un agujero de los gordos: los dos
+   * componentes existían, estaban escritos y probados, y no los montaba NADIE. El resultado es que en
+   * toda la aplicación no había forma de confirmar nada ni de enterarse de si algo había salido bien.
+   *
+   * <p>Se veía así: quien administra pulsaba «Eliminar producto», o la papelera de una foto, y no
+   * pasaba nada en absoluto. El código pedía confirmación, la confirmación no se pintaba, la promesa se
+   * quedaba esperando y la acción no llegaba a ejecutarse. Ni un error en la consola. Cincuenta
+   * ficheros dependen de este diálogo, así que estaban rotos los cincuenta: borrar un producto, una
+   * imagen, una variante, una dirección, una tienda.
+   *
+   * <p>Van en el armazón porque los dos se pintan por encima de cualquier pantalla y ninguna en
+   * concreto es su dueña. Es el mismo motivo por el que el marco de la tienda vive aquí y no dentro de
+   * una página.
    */
-  template: '<router-outlet /><nx-captura-de-referido />',
+  template: '<router-outlet /><nx-captura-de-referido /><nx-dialogo /><nx-avisos />',
 })
 export class App {
   private readonly preferencias = inject(PreferenciasService);

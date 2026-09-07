@@ -1,4 +1,5 @@
 import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { EnfocaAlAparecer } from '@ds/directive/enfoca-al-aparecer.directive';
 import { FormField, form, min, required } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { GuiaPuntos } from '@ds/component/guia-puntos/guia-puntos';
@@ -28,7 +29,7 @@ interface FilaEditable {
  */
 @Component({
   selector: 'nx-desglose-editable',
-  imports: [FormField, GuiaPuntos],
+  imports: [FormField, GuiaPuntos, EnfocaAlAparecer],
   template: `
     <div class="mt-2 rounded-lg border border-dashed border-base-300 bg-base-200/40 px-3 py-2 text-[12px]">
       <div class="opacity-60 mb-1">{{ t('product.price.breakdown_admin') }}</div>
@@ -50,10 +51,15 @@ interface FilaEditable {
             <nx-guia-puntos />
             @if (editando() === fila.campo) {
               <!-- El mínimo ya no va como atributo: lo declara el esquema, que además es quien decide
-                   si se guarda. El atributo solo frenaba las flechas del navegador. -->
+                   si se guarda. El atributo solo frenaba las flechas del navegador.
+
+                   Y el campo se ENFOCA al aparecer, como en el front anterior. Sin eso, quien daba el
+                   doble clic y se ponía a teclear no veía aparecer nada: el foco seguía en el cuerpo
+                   del documento y las teclas se perdían. Parecía que el campo estaba roto. -->
               <input
                 type="number"
                 step="0.01"
+                nxEnfocaAlAparecer
                 [formField]="formulario.importe"
                 (keydown.enter)="guarda(fila.campo)"
                 (keydown.escape)="editando.set(null)"

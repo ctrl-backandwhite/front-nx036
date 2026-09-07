@@ -19,7 +19,13 @@ import { RUTAS_DE_PANEL } from '../util/rutas';
  */
 const ADMIN = { correo: 'cert-admin@local.test', clave: 'CertLocal2026!' };
 
-/** Rutas sin parámetro: las que llevan `:algo` necesitan un dato real y se cubren en otra batería. */
+/**
+ * Rutas sin parámetro: las que llevan `:algo` necesitan un dato real y se cubren en otra batería.
+ *
+ * <p>La lista sale de `rutas.ts`, que se extrajo del enrutador del front anterior. Aun así se quedó
+ * corta —faltaba `/admin/browse`, que respondía 404— así que conviene revisarla contra el original
+ * cuando se añada una pantalla, en vez de darla por completa.
+ */
 const RUTAS = RUTAS_DE_PANEL.filter((r) => !r.includes(':'));
 
 
@@ -68,8 +74,24 @@ for (const front of [{ nombre: 'Angular', base: ANGULAR }, { nombre: 'React', ba
         expect(new URL(page.url()).pathname, `${ruta} rebota al acceso con una cuenta de administración`)
           .not.toBe('/login');
 
-        const texto = await page.locator('body').innerText();
-        expect(texto.trim().length, `${ruta} llega en blanco`).toBeGreaterThan(120);
+        /* Se mide el CONTENIDO, no la página entera.
+         *
+         * Antes se contaba el texto del `body` con un umbral de 120 caracteres, y el menú lateral del
+         * panel —con sus veintitantas entradas— ya los supera de sobra. Resultado: cuarenta pantallas
+         * en verde, y entre ellas el propio panel de control, que llegaba EN BLANCO, y una ruta que
+         * respondía 404. Se estaba certificando que el marco monta, que no es lo que se quería saber.
+         *
+         * Es el mismo error que ya se cometió con el prerenderizado, y por eso queda escrito: cuando
+         * una prueba mide el contenedor en vez de lo contenido, da verde justo en el caso que importa. */
+        const contenido = await page.evaluate(() => {
+          const zona = document.querySelector('main') ?? document.body;
+          return (zona instanceof HTMLElement ? zona.innerText : '').replace(/\s+/g, ' ').trim();
+        });
+
+        expect(contenido, `${ruta} responde «no encontrada»`).not.toMatch(
+          /404|página no encontrada|not found/i,
+        );
+        expect(contenido.length, `${ruta} llega en blanco`).toBeGreaterThan(120);
 
         /* Los errores de red por datos que no existen en la base local no cuentan: lo que se busca son
          * los que rompen la pantalla —una excepción de la aplicación, un componente que no monta—. */

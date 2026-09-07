@@ -1349,3 +1349,20 @@ pre {
 :is(nx-panel-de-marca, nx-panel-de-alta, nx-indice-de-documentacion) {
   display: contents;
 }
+
+/* Los vídeos de producto no ofrecen sonido.
+ *
+ * Van mudos porque los clips del proveedor traen música o locución en chino y aquí solo enseñan cómo
+ * es la prenda. El problema no era el silencio —ya se forzaba— sino que el mando seguía a la vista:
+ * quien lo pulsaba oía un instante de audio antes de que el código lo volviera a callar, y el
+ * navegador marcaba la pestaña con el altavoz. Parecía una avería.
+ *
+ * Estos selectores son de los navegadores basados en WebKit y Blink, que son los que dibujan sus
+ * mandos con partes propias; en los demás no existen y la regla se ignora sin romper nada. Por eso el
+ * re-silenciado del componente SE QUEDA: es lo que cubre a esos otros. */
+video.video-sin-sonido::-webkit-media-controls-mute-button,
+video.video-sin-sonido::-webkit-media-controls-volume-slider,
+video.video-sin-sonido::-webkit-media-controls-volume-control-container,
+video.video-sin-sonido::-webkit-media-controls-volume-slider-container {
+  display: none !important;
+}

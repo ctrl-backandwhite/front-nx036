@@ -111,17 +111,25 @@ import { VisorGaleria } from './visor-galeria';
           class="relative aspect-square bg-base-100 border border-base-200 rounded-xl overflow-hidden flex items-center justify-center select-none"
         >
           @if (enVideo() && urlDelVideo()) {
-            <!-- El vídeo va SIEMPRE mudo: los clips del proveedor llegan con música o locución en
-                 chino y aquí solo sirven de demostración visual. Se re-silencia si alguien sube el
-                 volumen desde los controles, así que «solo se ve» se cumple de verdad. -->
+            <!-- El vídeo va SIEMPRE mudo, y sin manera de dejar de estarlo.
+                 Los clips del proveedor llegan con música o locución en chino y aquí solo sirven de
+                 demostración visual. Antes bastaba con silenciarlo y volver a silenciarlo si alguien
+                 subía el volumen, pero el control seguía a la vista: al pulsarlo sonaba un instante
+                 —lo suficiente para que el navegador marcara la pestaña con el altavoz— y luego se
+                 callaba solo. Quedaba como una avería.
+                 Ahora se esconden los mandos de sonido (la clase «video-sin-sonido» de la hoja
+                 central), se quitan descarga y reproducción remota, y se deja el re-silenciado como
+                 última red por si algún navegador enseña el control de todos modos. -->
             <video
               [src]="urlDelVideo()!"
               controls
+              controlsList="nodownload noremoteplayback"
+              disableRemotePlayback
               autoplay
               muted
               playsinline
               (volumechange)="silencia($event)"
-              class="w-full h-full object-contain bg-black"
+              class="video-sin-sonido w-full h-full object-contain bg-black"
             ></video>
           } @else if (principal(); as foto) {
             <!--
