@@ -1,9 +1,9 @@
 import { Component, computed, effect, inject, input, resource, signal, untracked } from '@angular/core';
 import { Router } from '@angular/router';
-import { Meta, Title } from '@angular/platform-browser';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faArrowLeft, faCircleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
+import { EtiquetasService } from '@core/seo/etiquetas.service';
 import { PreferenciasService } from '@core/preferences/preferencias';
 import { Migas } from '@ds/component/migas/migas';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
@@ -169,8 +169,7 @@ export class FichaPage {
   private readonly enrutador = inject(Router);
   private readonly preferencias = inject(PreferenciasService);
   private readonly traduccion = inject(TraduccionService);
-  private readonly titulo = inject(Title);
-  private readonly meta = inject(Meta);
+  private readonly etiquetas = inject(EtiquetasService);
 
   protected readonly seleccion = inject(SeleccionDeLaFicha);
   protected readonly pase = inject(PaseDeGaleria);
@@ -393,16 +392,26 @@ export class FichaPage {
   /**
    * Título, descripción y etiquetas de compartir de ESTA ficha. Es lo que hace que compartir un
    * producto por mensajería enseñe el producto y no la portada genérica.
+   *
+   * <p>Pasa por `EtiquetasService` y no escribe `Title`/`Meta` a mano, que es como estaba. No es
+   * ordenar por ordenar: escribiéndolas aquí faltaban la dirección canónica, el `og:url` y las
+   * etiquetas de Twitter —sin `twitter:card` la vista previa sale como tarjeta pequeña aunque haya
+   * foto—, y sobre todo faltaba el DOMINIO. Una `og:image` relativa no le sirve de nada a un robot que
+   * lee la página desde fuera, y al generar el HTML no hay navegador del que deducir el dominio: solo
+   * lo sabe la configuración del entorno, que es justo lo que el servicio tiene inyectado.
+   *
+   * <p>Y lo que se escribe aquí IMPORTA aunque la pasarela vuelva a escribirlo: `seo-ficha.js` solo
+   * cubre lo que pasa por ella. El HTML prerenderizado se abre también desde el propio sitio al
+   * navegar, y ahí no hay pasarela que valga.
    */
   private escribeLasEtiquetas(ficha: FichaDeProducto): void {
-    this.titulo.setTitle(ficha.titulo);
-    this.meta.updateTag({ name: 'description', content: ficha.descripcion ?? '' });
-    this.meta.updateTag({ property: 'og:title', content: ficha.titulo });
-    this.meta.updateTag({ property: 'og:description', content: ficha.descripcion ?? '' });
-    this.meta.updateTag({ property: 'og:type', content: 'product' });
-    if (ficha.imagenPrincipal) {
-      this.meta.updateTag({ property: 'og:image', content: ficha.imagenPrincipal });
-    }
+    this.etiquetas.aplica({
+      titulo: ficha.titulo,
+      descripcion: ficha.descripcion ?? '',
+      imagen: ficha.imagenPrincipal || undefined,
+      ruta: `/catalog/${ficha.slug}`,
+      tipo: 'product',
+    });
   }
 
   /**

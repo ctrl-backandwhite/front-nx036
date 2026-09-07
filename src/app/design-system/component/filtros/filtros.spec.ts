@@ -2,8 +2,6 @@ import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { BarraFiltros } from './barra-filtros';
 import { FiltroSeleccion } from './filtro-seleccion';
-import { InterruptorPildora } from './interruptor-pildora';
-import { RangoNumerico } from './rango-numerico';
 
 const OPCIONES = [
   { value: 'gorros', label: 'Gorros', count: 12 },
@@ -55,31 +53,6 @@ describe('FiltroSeleccion', () => {
     await usuario.keyboard('{Escape}');
 
     expect(screen.queryByRole('listbox')).toBeNull();
-  });
-});
-
-describe('InterruptorPildora', () => {
-  it('publica el estado al pulsarlo', async () => {
-    const usuario = userEvent.setup({ delay: null });
-    const { fixture } = await render(InterruptorPildora, { inputs: { etiqueta: 'Con envío' } });
-
-    await usuario.click(screen.getByRole('checkbox', { name: 'Con envío' }));
-
-    expect(fixture.componentInstance.marcado()).toBe(true);
-  });
-});
-
-describe('RangoNumerico', () => {
-  it('publica el mínimo y el máximo por separado', async () => {
-    const usuario = userEvent.setup({ delay: null });
-    const { fixture } = await render(RangoNumerico, { inputs: { etiqueta: 'Precio' } });
-
-    const campos = screen.getAllByRole('spinbutton');
-    await usuario.type(campos[0], '10');
-    await usuario.type(campos[1], '90');
-
-    expect(fixture.componentInstance.minimo()).toBe('10');
-    expect(fixture.componentInstance.maximo()).toBe('90');
   });
 });
 

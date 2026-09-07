@@ -222,7 +222,46 @@ export class SeccionResenas {
 
   protected readonly formularioAbierto = signal(false);
   protected readonly enviando = signal(false);
-  protected readonly filtroDeIdioma = signal<string | null>(null);
+  /**
+   * El idioma por el que se filtran las reseñas.
+   *
+   * <p>Arranca en el idioma de quien mira, no en «todas», que es lo que hace el front anterior. Con
+   * ocho idiomas activos, una ficha con reseñas de todos los mercados enseñaba de entrada un muro en
+   * neerlandés, alemán, italiano y chino a alguien que navega en español: el dato existe, pero no le
+   * sirve. Ver todas sigue estando a un toque, y para quien administra es justo lo que quiere.
+   *
+   * <p>Se usa `linkedSignal` para que siga al idioma si se cambia el del sitio, PERO respetando lo que
+   * haya elegido a mano: si ha tocado el filtro, su elección manda hasta que cambie el idioma. Un
+   * `effect` que escribiera aquí le pisaría la elección en cuanto llegara cualquier otra señal.
+   *
+   * <p>Y solo se preselecciona si REALMENTE hay reseñas en ese idioma. Si no, se queda en «todas»:
+   * arrancar con un filtro que deja la lista vacía parece que no hay reseñas cuando sí las hay.
+   */
+  protected readonly filtroDeIdioma = linkedSignal<
+    { idioma: string; disponibles: string },
+    string | null
+  >({
+    /* La fuente lleva TAMBIÉN los idiomas disponibles, y no es un adorno: las reseñas llegan después de
+     * montar, así que la primera vez que se evalúa esto la lista está vacía y no hay nada que
+     * preseleccionar. Si la fuente fuera solo el idioma, no volvería a calcularse cuando por fin
+     * llegan, y se quedaría en «todas» para siempre — que es exactamente lo que pasaba.
+     * Se comparan como cadena porque la lista se recrea en cada cálculo y por referencia nunca
+     * coincidiría. */
+    source: () => ({
+      idioma: this.preferencias.idioma(),
+      disponibles: this.idiomas().join(','),
+    }),
+    computation: (fuente, previo) => {
+      if (
+        previo &&
+        previo.source.idioma === fuente.idioma &&
+        previo.source.disponibles === fuente.disponibles
+      ) {
+        return previo.value;
+      }
+      return fuente.disponibles.split(',').includes(fuente.idioma) ? fuente.idioma : null;
+    },
+  });
 
   /**
    * El borrador de la reseña.

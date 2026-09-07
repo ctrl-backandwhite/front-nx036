@@ -83,10 +83,26 @@ import { HistoricoDePrecios } from './historico-de-precios';
             ficha retrasaba lo único que de verdad importa, que es ver el producto.
           -->
           <div class="grid lg:grid-cols-2 gap-4">
+            <!--
+              Sin hueco reservado a propósito. El histórico NO SIEMPRE tiene datos: la mayoría de las
+              fichas no ha cambiado de precio, y entonces el componente no pinta nada, que es lo
+              correcto. Pero el hueco de carga sí reservaba 165 píxeles, así que quedaba un rectángulo
+              gris «cargando» para siempre debajo de los detalles, prometiendo algo que no iba a venir.
+              El front anterior no reserva nada tampoco cuando no hay gráfica.
+
+              El componente ya enseña su propio esqueleto mientras pide los datos, así que el aviso de
+              que algo está en camino no se pierde: solo deja de aparecer cuando no hay nada que
+              esperar. El hueco sigue existiendo —hace falta para saber cuándo asomarse— pero sin
+              altura.
+            -->
             @defer (on viewport) {
               <nx-historico-de-precios [idDelProducto]="ficha().id" />
             } @placeholder {
-              <div class="skeleton h-44 w-full"></div>
+              <!-- Vacío y sin altura, pero TIENE que existir: un bloque diferido que se dispara «al
+                   asomarse» observa precisamente su hueco, y sin él la compilación falla con «defer on
+                   trigger with no target name must have a placeholder block». Lo que se quita es la
+                   altura reservada, no el hueco. -->
+              <div></div>
             }
 
             <!-- RETIRADA la «Estimación de rentabilidad», por decisión del titular el 7-sep-2026.

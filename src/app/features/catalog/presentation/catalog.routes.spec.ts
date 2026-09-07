@@ -1,6 +1,6 @@
-import { RenderMode } from '@angular/ssr';
+import { PrerenderFallback, RenderMode, ServerRoutePrerenderWithParams } from '@angular/ssr';
 import { Route } from '@angular/router';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { rutas } from './catalog.routes';
 import { rutasDeServidor } from './catalog.server-routes';
 
@@ -54,12 +54,68 @@ describe('rutas de servidor', () => {
   });
 
   /**
-   * Lo demás depende de quién mira —idioma, divisa, cesta, cuenta—: prerenderizarlo dejaría cacheado
-   * en el borde el esqueleto de una lista personal.
+   * El listado, los favoritos y el historial dependen de quién mira —cuenta, filtros, orden barajado—:
+   * prerenderizarlos dejaría cacheado en el borde el esqueleto de una lista personal.
    */
   it('lo que depende de quién mira lo monta el navegador', () => {
-    for (const camino of ['catalog', 'catalog/:slug', 'favorites', 'history']) {
+    for (const camino of ['catalog', 'favorites', 'history']) {
       expect(modo(camino), camino).toBe(RenderMode.Client);
     }
+  });
+
+  describe('la ficha', () => {
+    const ficha = rutasDeServidor.find(
+      (ruta) => ruta.path === 'catalog/:slug',
+    ) as ServerRoutePrerenderWithParams;
+
+    it('se escribe al construir', () => {
+      expect(ficha.renderMode).toBe(RenderMode.Prerender);
+    });
+
+    /**
+     * Es la mitad que garantiza que no se rompe nada: con 7.729 productos solo entra un cupo, y lo
+     * que queda fuera —incluido lo que se cargue DESPUÉS de compilar— tiene que seguir viéndose. Y
+     * tiene que ser `Client`, no `Server`: aquí no hay servidor Node al que caer.
+     */
+    it('deja en manos del navegador todo lo que no entre en el cupo', () => {
+      expect(ficha.fallback).toBe(PrerenderFallback.Client);
+    });
+
+    /**
+     * La trampa conocida: una ruta con parámetro en `Prerender` SIN esta función tumba la compilación
+     * en seco con «getPrerenderParams is missing». Ya pasó una vez y dejó el repositorio sin poder
+     * construirse.
+     */
+    it('declara de dónde salen los parámetros', () => {
+      expect(ficha.getPrerenderParams).toBeTypeOf('function');
+    });
+
+    afterEach(() => vi.unstubAllGlobals());
+
+    /** Lo que devuelve tiene que ser la forma que espera Angular: un objeto por ruta, con su `slug`. */
+    it('devuelve un objeto por ficha, con la clave del parámetro', async () => {
+      vi.stubGlobal('fetch', () =>
+        Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({ sections: [{ items: [{ slug: 'una' }, { slug: 'otra' }] }] }),
+        }),
+      );
+
+      const parametros = await ficha.getPrerenderParams();
+
+      expect(parametros).toEqual([{ slug: 'una' }, { slug: 'otra' }]);
+    });
+
+    /**
+     * Sin backend accesible NO se rompe la compilación: se devuelve la lista vacía y, con el
+     * `fallback`, las 7.729 fichas se ven exactamente como antes de este cambio.
+     */
+    it('sin backend devuelve la lista vacía en vez de tumbar el build', async () => {
+      vi.stubGlobal('fetch', () => Promise.reject(new Error('sin red')));
+      vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+      await expect(ficha.getPrerenderParams()).resolves.toEqual([]);
+    });
   });
 });

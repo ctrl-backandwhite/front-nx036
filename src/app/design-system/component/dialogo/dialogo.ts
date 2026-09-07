@@ -162,7 +162,18 @@ const BOTON: Record<VarianteDialogo, string> = {
       </div>
     }
   `,
-  host: { '(document:keydown.escape)': 'cancela()' },
+  /*
+   * Escape cancela y Enter confirma, como en el front anterior.
+   *
+   * El Enter solo vale para la CONFIRMACIÓN y el aviso: cuando el diálogo pide un texto o tiene un
+   * formulario, sus propios campos ya lo manejan, y responder por encima de ellos enviaría a medio
+   * escribir. Sin esto había que ir al ratón para decir que sí a algo que ya se estaba leyendo, y quien
+   * administra encadena estas confirmaciones de diez en diez.
+   */
+  host: {
+    '(document:keydown.escape)': 'cancela()',
+    '(document:keydown.enter)': 'confirmaConLaTecla($event)',
+  },
 })
 export class Dialogo {
   private readonly store = inject(DialogoStore);
@@ -173,6 +184,25 @@ export class Dialogo {
 
   /** Lo tecleado se reinicia solo al cambiar de diálogo: heredar el texto del anterior confunde. */
   protected readonly texto = linkedSignal(() => this.actual()?.valorInicial ?? '');
+
+  /**
+   * Confirma con el teclado, si es un diálogo que se puede confirmar así.
+   *
+   * <p>Se deja pasar la tecla cuando el diálogo pide texto o tiene campos: allí el Enter es «he
+   * terminado este campo», no «adelante con todo». Y se ignora si el foco está en un área de texto,
+   * donde el Enter es un salto de línea.
+   */
+  protected confirmaConLaTecla(evento: Event): void {
+    const dialogo = this.actual();
+    if (!dialogo || (dialogo.clase !== 'confirm' && dialogo.clase !== 'alert')) {
+      return;
+    }
+    if ((evento.target as HTMLElement | null)?.tagName === 'TEXTAREA') {
+      return;
+    }
+    evento.preventDefault();
+    this.confirma();
+  }
   protected readonly valores = linkedSignal<number | undefined, Record<string, string>>({
     source: () => this.actual()?.id,
     computation: () =>

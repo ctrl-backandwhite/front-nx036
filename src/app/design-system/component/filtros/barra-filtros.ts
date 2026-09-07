@@ -25,13 +25,19 @@ import { TraduccionService } from '@core/i18n/traduccion.service';
   template: `
     <div class="card p-3">
       <div class="flex flex-wrap items-center gap-2">
-        <!-- En móvil el rótulo es el BOTÓN que despliega; en escritorio es solo una etiqueta. -->
+        <!-- En móvil el rótulo es el BOTÓN que despliega; en escritorio es solo una etiqueta.
+
+             Y en móvil se le da altura de dedo. Medía 16,5 píxeles de alto —muy por debajo del mínimo
+             de 24 que se ha fijado el proyecto— y a esa anchura es la ÚNICA puerta a los filtros del
+             catálogo del panel: si no se acierta, no hay forma de filtrar. La barra del escaparate ya
+             llevaba esta misma altura mínima y esta se quedó sin ella. En escritorio se anula, porque ahí no
+             es un botón sino una etiqueta. -->
         <button
           type="button"
           (click)="alterna()"
           [attr.aria-expanded]="abierto()"
-          class="md:pointer-events-none inline-flex items-center gap-1.5 text-[11px] text-ink-500
-                 uppercase tracking-wider font-medium pr-2 md:border-r md:border-ink-100"
+          class="md:pointer-events-none inline-flex items-center gap-1.5 min-h-11 md:min-h-0 text-[11px]
+                 text-ink-500 uppercase tracking-wider font-medium pr-2 md:border-r md:border-ink-100"
         >
           <fa-icon [icon]="iconoFiltro" class="text-[10px]" />
           {{ t('filters.label') }}

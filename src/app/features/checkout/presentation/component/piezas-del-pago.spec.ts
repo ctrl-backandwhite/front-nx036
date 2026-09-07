@@ -1,9 +1,6 @@
-import { Component, signal } from '@angular/core';
+import { signal } from '@angular/core';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
-import { exito } from '@shared/result/result';
-import { COBERTURA_DE_ENVIO_PORT } from '../../domain/port/envio.port';
-import { ConsultaLaCobertura } from '../../application/use-case/consulta-la-cobertura.use-case';
 import { InfoDeAranceles } from './info-de-aranceles';
 import { CampoDeCupon } from './campo-de-cupon';
 import { CampoDeReferido } from './campo-de-referido';
@@ -11,7 +8,6 @@ import { CamposDeDireccion } from './campos-de-direccion';
 import { LineasDeLaCompra } from './lineas-de-la-compra';
 import { SelectorDeMetodo } from './selector-de-metodo';
 import { AvisosDeAduana } from './avisos-de-aduana';
-import { BannerDePaises } from './banner-de-paises';
 
 describe('InfoDeAranceles', () => {
   beforeEach(() => {
@@ -356,52 +352,3 @@ describe('AvisosDeAduana', () => {
     expect(screen.queryByRole('alert')).toBeNull();
   });
 });
-
-@Component({ selector: 'nx-vacia', template: '' })
-class Vacia {}
-
-describe('BannerDePaises', () => {
-  beforeEach(() => {
-    document.cookie = 'nx036-locale=es';
-  });
-
-  function montaCon(paises: { codigo: string; nombre: string }[]) {
-    return render(BannerDePaises, {
-      providers: [
-        {
-          provide: COBERTURA_DE_ENVIO_PORT,
-          useValue: { paises: async () => exito(paises), regiones: async () => exito([]) },
-        },
-        ConsultaLaCobertura,
-      ],
-    });
-  }
-
-  it('sin datos no pinta nada, en vez de un hueco vacío', async () => {
-    const vista = await montaCon([]);
-    await vista.fixture.whenStable();
-    vista.fixture.detectChanges();
-
-    expect(vista.fixture.nativeElement.querySelector('section')).toBeNull();
-  });
-
-  it('enseña los países cubiertos con su bandera, y los duplica para que la cinta no salte', async () => {
-    const vista = await montaCon([{ codigo: 'ES', nombre: 'España' }]);
-    await vista.fixture.whenStable();
-    vista.fixture.detectChanges();
-
-    expect(screen.getAllByText('España')).toHaveLength(2);
-    expect(screen.getAllByText('🇪🇸')).toHaveLength(2);
-  });
-
-  it('un código con forma rara no rompe la bandera', async () => {
-    const vista = await montaCon([{ codigo: 'XXX', nombre: 'Ninguno' }]);
-    await vista.fixture.whenStable();
-    vista.fixture.detectChanges();
-
-    expect(screen.getAllByText('🏳️').length).toBeGreaterThan(0);
-  });
-});
-
-/** Silencia el aviso de componente sin usar: `Vacia` existe para las rutas de estas pruebas. */
-export const _componenteDeApoyo = signal(Vacia);

@@ -1,4 +1,4 @@
-import { Service, inject } from '@angular/core';
+import { DOCUMENT, Service, inject } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 import { APP_CONFIG } from '../config/app-config';
 
@@ -28,6 +28,7 @@ export class EtiquetasService {
   private readonly meta = inject(Meta);
   private readonly titulo = inject(Title);
   private readonly config = inject(APP_CONFIG);
+  private readonly documento = inject(DOCUMENT);
 
   private static readonly SITIO = 'NX036';
 
@@ -37,6 +38,7 @@ export class EtiquetasService {
     const imagen = etiquetas.imagen ? this.absoluta(etiquetas.imagen) : undefined;
 
     this.titulo.setTitle(titulo);
+    this.canonica(url);
 
     // `updateTag` reemplaza si ya existe, en lugar de acumular. Importa al navegar entre fichas: sin
     // eso, la página acabaría con una etiqueta por producto visitado y quien la lee se queda con la
@@ -60,6 +62,34 @@ export class EtiquetasService {
       this.meta.removeTag('property="og:image"');
       this.meta.removeTag('name="twitter:image"');
     }
+  }
+
+  /**
+   * La dirección canónica de esta página.
+   *
+   * <p>No la pone `Meta`, que solo sabe de `<meta>`: es un `<link rel="canonical">`, así que se maneja
+   * el elemento a mano. Se REUTILIZA el que ya haya en vez de añadir otro, por la misma razón que el
+   * título: al navegar de una ficha a otra, añadir dejaría el documento con una canónica por producto
+   * visitado y quien la lee se queda con la primera, que apunta al producto equivocado.
+   *
+   * <p>Si el entorno no declara su dominio, la dirección saldría relativa y una canónica relativa no
+   * le sirve de nada a quien lee la página desde fuera: en ese caso es mejor no escribir ninguna que
+   * escribir una que miente.
+   */
+  private canonica(url: string): void {
+    const existente = this.documento.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (!/^https?:\/\//i.test(url)) {
+      existente?.remove();
+      return;
+    }
+    if (existente) {
+      existente.href = url;
+      return;
+    }
+    const enlace = this.documento.createElement('link');
+    enlace.rel = 'canonical';
+    enlace.href = url;
+    this.documento.head.appendChild(enlace);
   }
 
   private absoluta(ruta: string): string {

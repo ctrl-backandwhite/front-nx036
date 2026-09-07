@@ -109,6 +109,36 @@ pantalla se lee lo mismo.
 | D-1 | **CERRADO.** «Nuestra misión» iba como `h2` donde el original usa `h3`. Rompe la jerarquía de encabezados de la página, que es lo que usan los lectores de pantalla para moverse por secciones y los buscadores para entender el esquema | 28 titulares frente a 23, sin que falte ni un texto |
 | D-2 | **CERRADO.** Faltaba la tabla de estado de los entornos en el panel lateral; se pintaba como dos líneas sueltas. El contenido está —los entornos y su estado— pero no como `<table>`, así que no se navega como tabla | 17 tablas frente a 18, solo en escritorio |
 
+## B quinquies. Lo que encontró certificar las ACCIONES (7 de septiembre)
+
+Hasta esta tanda, la certificación comprobaba que las pantallas ABREN. Ejecutar cada acción de verdad,
+con los dos papeles, destapó lo siguiente. Ninguno lo veía ninguna de las 2.916 pruebas de unidad,
+porque cada una monta su componente con sus dobles y ahí todo responde.
+
+| # | Qué pasaba | Por qué nadie lo veía |
+|---|---|---|
+| E-1 | **No se podía borrar NADA en toda la aplicación.** El diálogo de confirmación existía, estaba probado y no lo montaba nadie: se pulsaba «Eliminar» y no pasaba absolutamente nada —ni error, ni petición—. Cincuenta ficheros dependían de él | En las pruebas de unidad el diálogo se inyecta y responde. Solo aparece usando la aplicación |
+| E-2 | **16 componentes escritos y nunca montados**, entre ellos el **aviso de cookies** (dos implementaciones, ninguna en pantalla: incumplimiento del RGPD), el cajón de la cesta, la campana de avisos, el buscador del panel y la guía de bienvenida | Las cuatro ranuras de los marcos estaban vacías: los marcos se montaban como etiqueta autocerrada |
+| E-3 | **Añadir a la cesta desde la tarjeta no actualizaba la cesta.** El catálogo escribía su propio `PUT /me/cart` y había dos cestas: el contador no subía y la cesta no traía el producto hasta recargar | |
+| E-4 | **Cambiar de moneda no cambiaba los precios** hasta recargar a mano. La salida del selector no la enlazaba nadie | Un `output` hay que acordarse de atarlo; una dependencia declarada en la lectura, no |
+| E-5 | **En «Mis favoritos» los corazones salían apagados** y al pulsarlos volvían a añadir en vez de quitar | |
+| E-6 | **Las pestañas «Inventario» y «Precios» del panel llegaban vacías.** Eran los dos únicos bloques diferidos del proyecto SIN disparador, y con hidratación incremental eso no se materializa nunca | No se podían gestionar variantes ni tramos de precio, y sin un error por ningún lado |
+| E-7 | **Borrar imágenes y tramos de precio no preguntaba**: desaparecían al primer clic. Las tres traducciones de la pregunta llevaban tiempo escritas en los ocho diccionarios sin usar | Las pruebas comprobaban que la acción llega al caso de uso, no que haya un paso previo |
+| E-8 | **Los vídeos sonaban.** `muted` en la plantilla de Angular es un ATRIBUTO, y el navegador solo lo consulta al crear el elemento: con la dirección llegando por enlace, llega tarde | Su prueba comprobaba `hasAttribute('muted')`, así que daba verde mientras sonaban |
+| E-9 | **En el móvil no se podía cerrar sesión.** La barra de pestañas tapaba el botón del cajón, que es el único sitio para salir a esa anchura | El original tiene el mismo defecto y sigue teniéndolo |
+| E-10 | **El asistente se le plantaba delante a quien acababa de llegar** con una capa que captura los clics. El original solo lo muestra con sesión | |
+
+### Cuatro pruebas que daban verde justo en el caso que importaba
+
+Merece la pena tenerlas juntas, porque el patrón se repite:
+
+1. La del panel medía el `body` con un umbral de 120 caracteres, y **el menú lateral ya los supera**: daba verde con el panel de control EN BLANCO y una ruta en 404.
+2. La de rendimiento **solo sumaba respuestas con `content-length`**, y el original sirve comprimido en trozos sin esa cabecera: le contaba 43 kB en una pantalla de 1,5 MB, y el porte parecía pesar doce veces más.
+3. La del vídeo comprobaba **el atributo en vez de la propiedad**: verde con el audio sonando.
+4. El detector de «404» buscaba **la cifra en vez del código**: la tasa de la rupia india (94.40425) marcaba la pantalla de monedas como página de error.
+
+La lección común: **cuando una prueba mide el contenedor, la etiqueta o el envoltorio en vez del efecto, falla en silencio justo donde importa.**
+
 ## C. Pendiente de decisión del titular
 
 1. **H-1**, arriba.

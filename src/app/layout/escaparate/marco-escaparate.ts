@@ -209,7 +209,12 @@ const RUTA_DE_FICHA = /^\/(catalog|admin\/browse)\/[^/]+$/;
             <!-- El cajón NO repite los destinos de la barra de pestañas: inicio, catálogo, carrito y mi
                  cuenta están abajo, a un toque. Aquí queda lo SECUNDARIO —pedidos, favoritos, historial,
                  monedero, afiliados— más el panel de quien lo tenga. -->
-            <ul class="menu menu-sm overflow-y-auto p-2 gap-0.5 text-sm">
+            <!-- Cada entrada con altura de dedo. Medían 23,6 píxeles de alto, por debajo del mínimo
+                 de 24 que se ha fijado el proyecto, y este cajón es la ÚNICA vía a pedidos, favoritos,
+                 historial, monedero y afiliados en el móvil: fallar el toque aquí no tiene alternativa.
+                 El front anterior las deja igual de bajas; se corrige de todas formas, porque la norma
+                 mobile first del proyecto manda sobre la paridad. -->
+            <ul class="menu menu-sm overflow-y-auto p-2 gap-0.5 text-sm [&_a]:min-h-11 [&_a]:items-center">
               @if (usuario()?.esPersonal) {
                 <li>
                   <a routerLink="/admin">

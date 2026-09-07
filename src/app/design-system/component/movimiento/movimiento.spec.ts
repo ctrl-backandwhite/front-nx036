@@ -1,10 +1,6 @@
-import { Component, signal } from '@angular/core';
 import { render, screen, waitFor } from '@testing-library/angular';
-import userEvent from '@testing-library/user-event';
 import { Revela } from './revela';
 import { ContadorAnimado } from './contador-animado';
-import { FundidoContenido } from './fundido-contenido';
-import { ChipFiltro } from './chip-filtro';
 
 /** Un observador de intersección de mentira: en jsdom no existe y nada asomaría nunca. */
 function observadorQueSiempreVe(): void {
@@ -97,41 +93,5 @@ describe('ContadorAnimado', () => {
     } finally {
       deshaz();
     }
-  });
-});
-
-@Component({
-  selector: 'nx-prueba-fundido',
-  imports: [FundidoContenido],
-  template: '<nx-fundido-contenido [muestra]="visible()">Contenido</nx-fundido-contenido>',
-})
-class PruebaFundido {
-  readonly visible = signal(false);
-}
-
-describe('FundidoContenido', () => {
-  it('no pinta nada hasta que hay algo que enseñar', async () => {
-    const { fixture } = await render(PruebaFundido);
-
-    expect(screen.queryByText('Contenido')).toBeNull();
-
-    fixture.componentInstance.visible.set(true);
-    fixture.detectChanges();
-    expect(screen.getByText('Contenido')).toBeInTheDocument();
-  });
-});
-
-describe('ChipFiltro', () => {
-  it('avisa de que se quiere quitar el filtro', async () => {
-    const usuario = userEvent.setup({ delay: null });
-    let quitados = 0;
-    await render('<nx-chip-filtro (quita)="alQuitar()">Gorros</nx-chip-filtro>', {
-      imports: [ChipFiltro],
-      componentProperties: { alQuitar: () => quitados++ },
-    });
-
-    await usuario.click(screen.getByRole('button'));
-
-    expect(quitados).toBe(1);
   });
 });

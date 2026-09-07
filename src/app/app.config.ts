@@ -23,6 +23,7 @@ import { PrecargaSelectiva } from '@core/performance/precarga-selectiva';
 import { authInterceptor } from '@core/http/interceptor/auth.interceptor';
 import { captchaInterceptor } from '@core/http/interceptor/captcha.interceptor';
 import { preferenciasInterceptor } from '@core/http/interceptor/preferencias.interceptor';
+import { reintentoAlConstruirInterceptor } from '@core/http/interceptor/reintento-al-construir.interceptor';
 import { respuestaHtmlInterceptor } from '@core/http/interceptor/respuesta-html.interceptor';
 
 export const appConfig: ApplicationConfig = {
@@ -49,10 +50,13 @@ export const appConfig: ApplicationConfig = {
       // `fetch` en vez de XHR: es lo que permite que las peticiones hechas al prerenderizar se guarden
       // y el navegador las reaproveche al hidratar, en vez de repetirlas nada más arrancar.
       withFetch(),
-      // El ORDEN es el de ejecución. Las preferencias van primero porque las necesitan todas; el captcha
-      // antes que la credencial porque puede tardar; y la guardia de HTML la última, para ver la
-      // respuesta ya definitiva.
+      // El ORDEN es el de ejecución. El reintento del 429 va EL PRIMERO porque su reintento tiene que
+      // rehacer la petición entera —con sus preferencias, su captcha y su credencial—, no repetir una
+      // petición a medio montar; en el navegador se aparta solo y no cuesta nada. Después las
+      // preferencias, porque las necesitan todas; el captcha antes que la credencial porque puede
+      // tardar; y la guardia de HTML la última, para ver la respuesta ya definitiva.
       withInterceptors([
+        reintentoAlConstruirInterceptor,
         preferenciasInterceptor,
         captchaInterceptor,
         authInterceptor,

@@ -35,6 +35,24 @@ La lección se generaliza: **la certificación corre contra un artefacto, así q
 también que ese artefacto se puede producir desde lo confirmado.** Un `git status` limpio antes de
 compilar es parte de la comprobación, no una formalidad.
 
+## 0 bis. Tras construir hay que REINICIAR la pasarela, siempre
+
+`ng build` no vacía el directorio de salida: lo BORRA y lo vuelve a crear. El contenedor de la pasarela
+lo tiene montado, así que su montaje se queda apuntando a algo que ya no existe y nginx empieza a
+responder **500** a todo, con «rewrite or internal redirection cycle while internally redirecting to
+/index.csr.html» en su registro. El fichero está ahí, se ve desde fuera, y el contenedor no lo ve.
+
+Pasó, y lo peor no fue el 500: una certificación estaba corriendo contra esa pasarela y empezó a dar
+rojos en pantallas que funcionan. Un rato mirando por qué había dejado de funcionar la búsqueda del
+catálogo, cuando lo que había dejado de funcionar era el servidor.
+
+Dos reglas que se siguen de esto:
+
+1. Después de cada `ng build`, `docker restart` de la pasarela. Va en el mismo comando, no en el
+   siguiente.
+2. **No se construye mientras hay una certificación en marcha.** Y si dos trabajos comparten el árbol,
+   solo uno construye: el otro pide turno.
+
 ## 1. La regla que gobierna la certificación
 
 **No hay verde sin recuento.** El estado de una compilación, un código HTTP o un «todo correcto» no
