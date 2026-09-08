@@ -126,20 +126,48 @@ if (EXIGIR > 0 && fichas.length < EXIGIR) {
   process.exit(1);
 }
 
+/**
+ * Cuánta avería se tolera antes de tumbar la entrega, en tanto por ciento.
+ *
+ * <p>Esta puerta nació para cazar un fallo MASIVO: 278 de 300 fichas escritas con una página de error
+ * dentro porque el backend contestaba 429. Para eso sigue sirviendo. Pero se escribió como «cero
+ * defectos», y con eso UNA sola ficha rota —un producto sin foto, uno retirado a media compilación—
+ * bloquea la entrega entera. Pasó el 8-sep-2026: 1 de 242, y con ella se quedó fuera de producción un
+ * arreglo de seguridad. Una puerta que impide entregar por un producto es una puerta que se acaba
+ * desactivando, y entonces no protege de nada.
+ *
+ * <p>Así que se mide la PROPORCIÓN. Un 2% deja pasar el ruido normal del catálogo y sigue parando en
+ * seco el caso que importa: el 93% de aquella vez no se cuela ni por asomo. Las fichas rotas se
+ * enumeran SIEMPRE, pase o no pase, porque el aviso es la mitad del valor de esto.
+ */
+const TOLERANCIA = Number(process.env.NEXADROP_PRERENDER_TOLERANCIA ?? '2');
+
 if (rotas.length > 0) {
-  console.error(`[prerenderizado] ${rotas.length} de ${fichas.length} fichas salieron MAL:`);
+  const parte = (rotas.length / fichas.length) * 100;
+  const nivel = parte > TOLERANCIA ? console.error : console.warn;
+  nivel(`[prerenderizado] ${rotas.length} de ${fichas.length} fichas salieron MAL (${parte.toFixed(1)}%):`);
   for (const rota of rotas.slice(0, 15)) {
     console.error(`  · ${rota.slug}: ${rota.motivos.join('; ')}`);
   }
   if (rotas.length > 15) {
     console.error(`  … y ${rotas.length - 15} más.`);
   }
-  console.error(
-    '\nLo más probable es que el backend haya devuelto 429: su límite anti-volcado son 100 peticiones ' +
-      'por minuto y por IP, y una ficha son unas cuatro. Baja NEXADROP_FICHAS_PRERENDERIZADAS o exime ' +
-      'del límite al origen desde el que se compila.',
-  );
-  process.exit(1);
+  if (parte <= TOLERANCIA) {
+    console.warn(
+      `[prerenderizado] por debajo del ${TOLERANCIA}% que se tolera: la entrega sigue. Esas fichas se ` +
+        'sirven igual, montadas por el navegador; lo que pierden son sus etiquetas para compartir.',
+    );
+  } else {
+    console.error(
+      '\nLo más probable es que el backend haya devuelto 429: su límite anti-volcado son 100 peticiones ' +
+        'por minuto y por IP, y una ficha son unas cuatro. Comprueba el testigo del prerenderizado ' +
+        '(NEXADROP_PRERENDER_TOKEN, el mismo valor que RATELIMIT_BUILD_TOKEN en el backend) o baja ' +
+        'NEXADROP_FICHAS_PRERENDERIZADAS.',
+    );
+    process.exit(1);
+  }
 }
 
-console.log('[prerenderizado] todas las fichas llevan su título, su foto y ningún mensaje de error.');
+if (rotas.length === 0) {
+  console.log('[prerenderizado] todas las fichas llevan su título, su foto y ningún mensaje de error.');
+}
