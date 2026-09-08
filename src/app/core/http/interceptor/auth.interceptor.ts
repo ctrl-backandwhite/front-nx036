@@ -49,9 +49,12 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       return refresco.renueva().pipe(
         switchMap((nuevo) => {
           if (!nuevo) {
-            // No se pudo renovar: la sesión se acabó de verdad. Se limpia y se deja que el error suba;
-            // quién manda a la pantalla de entrada lo decide el guardián de ruta, no el cliente HTTP.
-            tokens.limpia();
+            // No se ha podido renovar. Si el servidor dijo que el testigo ya no vale, la sesión ya está
+            // borrada: lo decide quien conoce el motivo del fallo, no este interceptor. Aquí solo se
+            // deja subir el error; a la pantalla de entrada manda el guardián de ruta.
+            //
+            // Borrar aquí sin mirar el motivo era lo que cerraba la sesión ante un parpadeo de red o
+            // un servidor reiniciándose, con el testigo todavía bueno.
             return throwError(() => error);
           }
           return next(conCredencial(req, nuevo));

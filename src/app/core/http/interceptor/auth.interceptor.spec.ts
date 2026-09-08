@@ -122,6 +122,48 @@ describe('authInterceptor', () => {
       expect(tokens.acceso()).toBeNull();
     });
 
+    /**
+     * Un servidor que se está reiniciando NO es una sesión caducada.
+     *
+     * <p>Antes se borraba la sesión ante cualquier error de la renovación. Bastaba un despliegue, un
+     * 502 pasajero o un parpadeo de red para echar de la aplicación a quien estaba navegando, con su
+     * testigo todavía bueno y sin nada que mirar después: ya estaba borrado.
+     */
+    it('un servidor caído no cierra la sesión: el testigo sigue valiendo', async () => {
+      const { http, red, tokens } = monta();
+
+      const enCurso = firstValueFrom(http.get(`${BACKEND}/api/me`)).catch((e) => e);
+      red.expectOne(`${BACKEND}/api/me`).flush('caducado', { status: 401, statusText: 'x' });
+      red.expectOne(`${BACKEND}/api/auth/refresh`).flush('ups', { status: 502, statusText: 'x' });
+
+      await enCurso;
+      expect(tokens.acceso()).toBe('token-de-acceso');
+      expect(tokens.refresco()).toBe('refresco');
+    });
+
+    it('tampoco lo hace un corte de red', async () => {
+      const { http, red, tokens } = monta();
+
+      const enCurso = firstValueFrom(http.get(`${BACKEND}/api/me`)).catch((e) => e);
+      red.expectOne(`${BACKEND}/api/me`).flush('caducado', { status: 401, statusText: 'x' });
+      red.expectOne(`${BACKEND}/api/auth/refresh`).error(new ProgressEvent('error'));
+
+      await enCurso;
+      expect(tokens.refresco()).toBe('refresco');
+    });
+
+    /** Ni un límite de peticiones: se ha pedido demasiado, no se ha dejado de tener derecho. */
+    it('tampoco un 429', async () => {
+      const { http, red, tokens } = monta();
+
+      const enCurso = firstValueFrom(http.get(`${BACKEND}/api/me`)).catch((e) => e);
+      red.expectOne(`${BACKEND}/api/me`).flush('caducado', { status: 401, statusText: 'x' });
+      red.expectOne(`${BACKEND}/api/auth/refresh`).flush('espera', { status: 429, statusText: 'x' });
+
+      await enCurso;
+      expect(tokens.refresco()).toBe('refresco');
+    });
+
     /** Si reintentara el propio login, un 401 por contraseña incorrecta entraría en bucle. */
     it('un 401 del PROPIO acceso no dispara ninguna renovación', async () => {
       const { http, red } = monta();

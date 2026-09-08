@@ -78,7 +78,7 @@ describe('RefrescoDeSesion', () => {
     red.verify();
   });
 
-  it('cuando la renovación falla, la sesión se limpia y se dice que no', async () => {
+  it('cuando el servidor dice que el testigo no vale, la sesión se limpia y se dice que no', async () => {
     const { renovacion, tokens, red } = monta();
 
     const enCurso = firstValueFrom(renovacion.renueva());
@@ -100,6 +100,76 @@ describe('RefrescoDeSesion', () => {
 
     /* Si el vuelo no se soltara al terminar, la sesión no se podría renovar NUNCA más: la segunda
      * caducidad se quedaría esperando un observable ya consumido. */
+    const segunda = firstValueFrom(renovacion.renueva());
+    red.expectOne('http://backend/api/auth/refresh').flush({ token: 'a2', refreshToken: 'r2' });
+
+    expect(await segunda).toBe('a2');
+  });
+
+  /**
+   * La renovación NO se puede cancelar porque quien la pidió se haya ido.
+   *
+   * <p>Navegar destruye componentes y Angular aborta sus peticiones en curso. Con el ajuste por
+   * defecto de `share`, irse el último suscriptor cancelaba la renovación a medio hacer; el servidor
+   * podía haber rotado ya el testigo, así que el siguiente intento llegaba con uno revocado y ahí sí
+   * se cerraba la sesión. Un cierre provocado por cambiar de página.
+   */
+  it('cambiar de página no cancela una renovación en marcha', async () => {
+    const { renovacion, tokens, red } = monta();
+
+    // Alguien pide renovar y se va antes de que llegue la respuesta, como al navegar.
+    const suscripcion = renovacion.renueva().subscribe();
+    suscripcion.unsubscribe();
+
+    // La petición sigue viva: si se hubiera cancelado, aquí no habría ninguna que responder.
+    red.expectOne('http://backend/api/auth/refresh').flush({ token: 'a1', refreshToken: 'r1' });
+
+    expect(tokens.acceso()).toBe('a1');
+  });
+
+  /** El resultado de esa renovación sirve para quien llegue después: no se pide otra. */
+  it('quien llega tarde a un vuelo que ya nadie escuchaba recibe su resultado', async () => {
+    const { renovacion, red } = monta();
+
+    renovacion.renueva().subscribe().unsubscribe();
+    const tardio = firstValueFrom(renovacion.renueva());
+    red.expectOne('http://backend/api/auth/refresh').flush({ token: 'a1', refreshToken: 'r1' });
+
+    expect(await tardio).toBe('a1');
+  });
+
+  /**
+   * Un fallo pasajero no echa a nadie: el testigo sigue siendo bueno y el próximo intento funcionará.
+   * Antes bastaba un despliegue o un parpadeo de red para cerrar la sesión de quien estaba navegando.
+   */
+  it('un servidor caído no borra la sesión', async () => {
+    const { renovacion, tokens, red } = monta();
+
+    const enCurso = firstValueFrom(renovacion.renueva());
+    red.expectOne('http://backend/api/auth/refresh').flush('ups', { status: 502, statusText: 'x' });
+
+    expect(await enCurso).toBeNull();
+    expect(tokens.refresco()).not.toBeNull();
+  });
+
+  it('tampoco la borra un corte de red', async () => {
+    const { renovacion, tokens, red } = monta();
+
+    const enCurso = firstValueFrom(renovacion.renueva());
+    red.expectOne('http://backend/api/auth/refresh').error(new ProgressEvent('error'));
+
+    expect(await enCurso).toBeNull();
+    expect(tokens.refresco()).not.toBeNull();
+  });
+
+  /** Y tras un fallo pasajero se puede volver a intentar: el vuelo no se queda pegado. */
+  it('tras un fallo pasajero, el siguiente intento vuelve a pedirlo', async () => {
+    const { renovacion, red } = monta();
+
+    const primera = firstValueFrom(renovacion.renueva());
+    red.expectOne('http://backend/api/auth/refresh').flush('ups', { status: 502, statusText: 'x' });
+    await primera;
+
     const segunda = firstValueFrom(renovacion.renueva());
     red.expectOne('http://backend/api/auth/refresh').flush({ token: 'a2', refreshToken: 'r2' });
 
