@@ -115,7 +115,7 @@ import { DesgloseEditable } from './admin/desglose-editable';
                 [idDelProducto]="ficha().id"
                 [desglose]="desglose"
                 [total]="seleccion.precioDestacado().formateado ?? '—'"
-                (cambiado)="recarga.emit()"
+                (cambiado)="actualizada.emit($event)"
               />
             }
           }
@@ -187,6 +187,15 @@ export class PanelDeCompra {
   readonly borraVariante = output<string>();
   readonly filtraPorGrupo = output<void>();
   readonly recarga = output<void>();
+
+  /**
+   * Una edición que YA trae la ficha recalculada, para pintarla sin volver a pedir nada.
+   *
+   * <p>Va aparte de `recarga` a propósito: son dos cosas distintas. `recarga` dice «algo cambió, vuelve
+   * a leer» y sigue haciendo falta para los gestos que aún no devuelven su resultado; esto dice «toma,
+   * así queda», que es lo que evita repintar la página entera para cambiar un importe.
+   */
+  readonly actualizada = output<FichaDeProducto>();
   readonly borrada = output<void>();
 
   private readonly favoritos = inject(FavoritosStore);

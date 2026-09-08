@@ -35,6 +35,47 @@ export class AccionesDeAdmin {
     );
   }
 
+  /**
+   * Quita VARIAS fotos con una sola pregunta.
+   *
+   * <p>Una sola pregunta y no una por foto: quien limpia una galería de ocho imágenes del proveedor no
+   * puede tener que confirmar ocho veces. El recuento va en el mensaje a propósito —no es lo mismo
+   * perder una foto que ocho, y quien selecciona en lote no siempre sabe cuántas lleva marcadas—.
+   *
+   * <p>Un fallo en una NO detiene a las demás, y al final se dice cuántas cayeron: un borrado a medias
+   * que se anuncia como éxito deja a quien administra creyendo que la galería quedó limpia.
+   */
+  async borraImagenes(ids: readonly string[], alTerminar: (borradas: readonly string[]) => void): Promise<void> {
+    if (ids.length === 0) {
+      return;
+    }
+    const confirmado = await this.dialogo.confirma(
+      this.traduccion.tCon('admin.catalog.images.delete_selected_confirm', { n: ids.length }),
+    );
+    if (!confirmado) {
+      return;
+    }
+    const editor = await this.editor();
+    const borradas: string[] = [];
+    for (const id of ids) {
+      const resultado = await editor.borraImagen(id);
+      if (resultado.ok) {
+        borradas.push(id);
+      }
+    }
+    if (borradas.length < ids.length) {
+      this.avisos.error(
+        this.traduccion.tCon('admin.catalog.images.partial', {
+          ok: borradas.length,
+          fail: ids.length - borradas.length,
+        }),
+      );
+    } else {
+      this.avisos.exito(this.t('admin.catalog.images.deleted'));
+    }
+    alTerminar(borradas);
+  }
+
   async borraVideo(idDelProducto: string, alTerminar: () => void): Promise<void> {
     await this.conConfirmacion(
       'admin.catalog.video.delete_confirm',

@@ -6,7 +6,7 @@ import { FormField, form, min, required } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { GuiaPuntos } from '@ds/component/guia-puntos/guia-puntos';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
-import { DesgloseDePrecio } from '../../../domain/model/producto';
+import { DesgloseDePrecio, FichaDeProducto } from '../../../domain/model/producto';
 import { CampoEnYuanes } from '../../../domain/port/edicion-de-ficha.port';
 import { EditaLaFicha } from '../../../application/use-case/edita-la-ficha.use-case';
 
@@ -102,7 +102,15 @@ export class DesgloseEditable {
   readonly idDelProducto = input.required<string>();
   readonly desglose = input.required<DesgloseDePrecio>();
   readonly total = input('');
-  readonly cambiado = output<void>();
+  /**
+   * Sale la ficha YA RECALCULADA, no un simple aviso de que algo cambió.
+   *
+   * <p>Antes esto era `output<void>()` y quien lo montaba respondía volviendo a pedir la ficha entera:
+   * se repintaban la galería, las variantes y las reseñas para enterarse de un número. El backend
+   * devuelve el producto recalculado en la misma respuesta —el total cambia al tocar el recargo o una
+   * subvención—, así que basta con pasarlo hacia arriba.
+   */
+  readonly cambiado = output<FichaDeProducto>();
 
   private readonly editor = inject(EditaLaFicha);
   private readonly avisos = inject(AvisosStore);
@@ -179,6 +187,6 @@ export class DesgloseEditable {
       return;
     }
     this.avisos.exito(this.t('admin.catalog.edit.ok'));
-    this.cambiado.emit();
+    this.cambiado.emit(resultado.valor);
   }
 }

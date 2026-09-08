@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Result } from '@shared/result/result';
 import { AppError } from '@shared/error/app-error';
 import { CampoEnYuanes, EDICION_DE_FICHA_PORT } from '../../domain/port/edicion-de-ficha.port';
+import { FichaDeProducto } from '../../domain/model/producto';
 
 /**
  * El editor en línea de la ficha, para el administrador.
@@ -34,8 +35,16 @@ export class EditaLaFicha {
     idDelProducto: string,
     campo: CampoEnYuanes,
     valor: number,
-  ): Promise<Result<void, AppError>> {
+  ): Promise<Result<FichaDeProducto, AppError>> {
     return this.puerto.guardaImporteEnYuanes(idDelProducto, campo, valor);
+  }
+
+  /** Los tres importes de una vez: un solo viaje y una sola ficha de vuelta. */
+  guardaImportesEnYuanes(
+    idDelProducto: string,
+    importes: Partial<Record<CampoEnYuanes, number>>,
+  ): Promise<Result<FichaDeProducto, AppError>> {
+    return this.puerto.guardaImportesEnYuanes(idDelProducto, importes);
   }
 
   borraImagen(idDeLaImagen: string): Promise<Result<void, AppError>> {

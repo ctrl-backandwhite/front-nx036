@@ -141,7 +141,10 @@ describe('PanelDeOrigen', () => {
 });
 
 describe('DesgloseEditable', () => {
-  async function monta(guarda = vi.fn().mockResolvedValue(exito(undefined))) {
+  /** Lo que ahora devuelve el backend: la ficha ya recalculada, que es lo que evita recargar. */
+  const FICHA_RECALCULADA = ficha({ precio: { formateado: '99,00 €' } });
+
+  async function monta(guarda = vi.fn().mockResolvedValue(exito(FICHA_RECALCULADA))) {
     const cambiado = vi.fn();
     const vista = await render(DesgloseEditable, {
       inputs: {
@@ -211,6 +214,30 @@ describe('DesgloseEditable', () => {
     await vista.fixture.whenStable();
 
     expect(guarda).toHaveBeenCalledWith('p1', 'surchargeCny', 4);
+  });
+
+  /**
+   * Lo que sustituye a la recarga.
+   *
+   * <p>Antes esto avisaba «algo cambió» y la pantalla respondía volviendo a pedir la ficha ENTERA: se
+   * repintaban la galería, las variantes, las reseñas y el desglose para enterarse de un número, y la
+   * página daba un salto. El backend ya contestaba con el producto recalculado —el total cambia al
+   * tocar el recargo o una subvención— y aquí se descartaba.
+   */
+  it('al guardar sale la ficha recalculada, no un simple aviso', async () => {
+    // El rótulo del lápiz sale del diccionario: sin cookie, el navegador de pruebas pide inglés.
+    document.cookie = 'nx036-locale=es; Path=/';
+    const { vista, cambiado } = await monta();
+
+    const lapices = [...vista.container.querySelectorAll<HTMLElement>('button[aria-label^="Editar"]')];
+    await userEvent.click(lapices[0]);
+    vista.fixture.detectChanges();
+    const campo = vista.container.querySelector<HTMLInputElement>('input[type=number]')!;
+    await userEvent.clear(campo);
+    await userEvent.type(campo, '4{enter}');
+    await vista.fixture.whenStable();
+
+    expect(cambiado).toHaveBeenCalledWith(FICHA_RECALCULADA);
   });
 
   /** Un subsidio en negativo cobraría de más: no se manda. */

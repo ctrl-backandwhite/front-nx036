@@ -231,4 +231,71 @@ describe('GaleriaFicha', () => {
     });
     expect(vista.container.textContent).toContain('2 / 3');
   });
+
+  /**
+   * BORRADO EN LOTE, solo para quien administra.
+   *
+   * <p>Antes había que quitar las fotos una a una, con su confirmación cada vez: limpiar una galería de
+   * ocho imágenes del proveedor eran ocho gestos y ocho preguntas.
+   */
+  describe('quitar varias fotos a la vez', () => {
+    it('quien solo mira no ve casillas de selección', async () => {
+      const { container } = await render(GaleriaFicha, {
+        inputs: { fotos: FOTOS, titulo: 'Gorro', activa: 0 },
+      });
+
+      expect(container.querySelectorAll('input[type=checkbox]')).toHaveLength(0);
+    });
+
+    it('quien administra puede marcar y las quita de una', async () => {
+      const lotes: (readonly string[])[] = [];
+      const { container } = await render(GaleriaFicha, {
+        inputs: { fotos: FOTOS, titulo: 'Gorro', activa: 0, puedeEditar: true },
+        on: { borraImagenes: (ids: readonly string[]) => lotes.push(ids) },
+      });
+
+      const casillas = [...container.querySelectorAll<HTMLInputElement>('input[type=checkbox]')];
+      expect(casillas).toHaveLength(3);
+      await userEvent.click(casillas[0]);
+      await userEvent.click(casillas[2]);
+
+      const botones = [...container.querySelectorAll<HTMLButtonElement>('button')];
+      const quitar = botones.find((b) => b.className.includes('btn-error'))!;
+      await userEvent.click(quitar);
+
+      expect(lotes).toEqual([['a', 'c']]);
+    });
+
+    /** Sin nada marcado la barra no está: un botón de borrar que no borra nada solo estorba. */
+    it('sin selección no aparece la barra de borrado', async () => {
+      const { container } = await render(GaleriaFicha, {
+        inputs: { fotos: FOTOS, titulo: 'Gorro', activa: 0, puedeEditar: true },
+      });
+
+      const conError = [...container.querySelectorAll('button')].filter((b) =>
+        b.className.includes('btn-error'),
+      );
+      expect(conError).toHaveLength(0);
+    });
+
+    /**
+     * Al cambiar las fotos la selección se vacía. Si no, tras borrar tres quedarían marcados tres
+     * identificadores que ya no existen y la barra ofrecería quitar algo que no está.
+     */
+    it('la selección se olvida cuando cambian las fotos', async () => {
+      const vista = await render(GaleriaFicha, {
+        inputs: { fotos: FOTOS, titulo: 'Gorro', activa: 0, puedeEditar: true },
+      });
+      const casillas = [...vista.container.querySelectorAll<HTMLInputElement>('input[type=checkbox]')];
+      await userEvent.click(casillas[0]);
+
+      vista.fixture.componentRef.setInput('fotos', [FOTOS[1], FOTOS[2]]);
+      vista.fixture.detectChanges();
+
+      const conError = [...vista.container.querySelectorAll('button')].filter((b) =>
+        b.className.includes('btn-error'),
+      );
+      expect(conError).toHaveLength(0);
+    });
+  });
 });

@@ -4,6 +4,8 @@ import { PreferenciasService } from '@core/preferences/preferencias';
 import { Result, mapea } from '@shared/result/result';
 import { AppError } from '@shared/error/app-error';
 import { CampoEnYuanes, EdicionDeFichaPort } from '../domain/port/edicion-de-ficha.port';
+import { FichaDeProducto } from '../domain/model/producto';
+import { FichaDto, aFicha } from './producto.dto';
 
 /**
  * El editor en línea de la ficha, contra los endpoints de administración.
@@ -43,14 +45,36 @@ export class EdicionDeFichaHttpAdapter implements EdicionDeFichaPort {
    * <p>Se manda solo el que se toca. Enviar los tres pisaría las bolsas de subsidio que no se estaban
    * editando, y esas dos bolsas son estancas por diseño: una cubre el envío y la otra el arancel.
    */
-  async guardaImporteEnYuanes(
+  guardaImporteEnYuanes(
     idDelProducto: string,
     campo: CampoEnYuanes,
     valor: number,
-  ): Promise<Result<void, AppError>> {
+  ): Promise<Result<FichaDeProducto, AppError>> {
+    return this.guardaImportesEnYuanes(idDelProducto, { [campo]: valor });
+  }
+
+  /**
+   * Varios importes en UNA sola petición, y con la ficha recalculada de vuelta.
+   *
+   * <p>Lo que se manda es un retoque PARCIAL: solo las claves que llegan. Es la misma llamada de
+   * siempre —el retoque rápido del panel—, con dos diferencias que valen mucho: admite más de un campo,
+   * así que editar los tres importes no son tres viajes; y su respuesta se APROVECHA.
+   *
+   * <p>Ese último punto es el que quita la recarga. El backend contesta con el producto entero ya
+   * recalculado —el total cambia al tocar el recargo o una subvención—, y aquí se descartaba con
+   * `put&lt;void&gt;`, así que la pantalla no tenía más remedio que volver a pedir la ficha completa
+   * para enterarse de un número.
+   */
+  async guardaImportesEnYuanes(
+    idDelProducto: string,
+    importes: Partial<Record<CampoEnYuanes, number>>,
+  ): Promise<Result<FichaDeProducto, AppError>> {
     return mapea(
-      await this.api.put<void>(`/admin/catalog/products/${idDelProducto}`, { [campo]: valor }),
-      () => undefined,
+      await this.api.put<FichaDto>(
+        `/admin/catalog/products/${idDelProducto}?lang=${this.preferencias.idioma()}`,
+        importes,
+      ),
+      aFicha,
     );
   }
 

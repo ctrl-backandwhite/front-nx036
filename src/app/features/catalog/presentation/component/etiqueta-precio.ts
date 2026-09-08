@@ -51,7 +51,20 @@ export type TamanoDePrecio = keyof typeof TAMANOS;
           definición. Con un gris fijo el precio quedaba lavado en claro y, en un móvil a plena luz, el
           precio es justo lo que hay que poder leer de un vistazo.
         -->
-        <span [class]="tamanos().ahora" class="text-base-content" [class]="clase()">{{ importe }}</span>
+        <!--
+          Las dos partes van en UNA sola asociación, y esa es la corrección.
+
+          DEFECTO QUE CIERRA ESTO: aquí había DOS [class] en el mismo elemento —el tamaño y la clase que
+          viene de fuera—, y la segunda pisaba a la primera. Como el tamaño es quien trae el grosor
+          (text-sm font-bold, text-3xl font-bold…), el precio SIN REBAJA se pintaba con el grosor normal
+          en toda la tienda: en la portada, en el catálogo y en la ficha. El precio rebajado sí salía
+          bien, porque en esa rama las dos clases están en elementos distintos, y por eso el fallo se
+          camuflaba: convivían en la misma pantalla un precio en negrita y otro no.
+        -->
+        <span
+          [class]="tamanos().ahora + ' ' + clase()"
+          class="text-base-content"
+        >{{ importe }}</span>
       }
     }
   `,

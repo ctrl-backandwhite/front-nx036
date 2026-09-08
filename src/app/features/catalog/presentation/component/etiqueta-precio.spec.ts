@@ -32,4 +32,47 @@ describe('EtiquetaPrecio', () => {
     const { container } = await render(EtiquetaPrecio, { inputs: { precio: {} } });
     expect(container.textContent?.trim()).toBe('');
   });
+
+  /**
+   * El GROSOR del precio, que es lo que se vio mal en la tienda.
+   *
+   * <p>El precio sin rebaja se pintaba con el grosor normal en la portada, el catálogo y la ficha,
+   * mientras el rebajado salía en negrita: dos precios distintos en la misma pantalla. La causa eran dos
+   * asociaciones `[class]` en el mismo elemento, de las que la segunda pisaba a la primera —y la primera
+   * era justo la que trae el tamaño y el grosor—.
+   *
+   * <p>Se comprueba el grosor Y la clase que viene de fuera, porque el arreglo consiste precisamente en
+   * que las dos convivan: quedarse con una sola habría «arreglado» esto rompiendo lo otro.
+   */
+  describe('el grosor del importe', () => {
+    it('un precio sin rebaja va en negrita', async () => {
+      const vista = await render(EtiquetaPrecio, {
+        inputs: { precio: { formateado: '14,95 €' }, tamano: 'sm' },
+      });
+
+      const importe = vista.container.querySelector('span.text-base-content')!;
+      expect(importe.className).toContain('font-bold');
+    });
+
+    it('y conserva la clase que le pasa quien lo monta', async () => {
+      const vista = await render(EtiquetaPrecio, {
+        inputs: { precio: { formateado: '14,95 €' }, tamano: 'sm', clase: 'mt-2' },
+      });
+
+      const importe = vista.container.querySelector('span.text-base-content')!;
+      expect(importe.className).toContain('font-bold');
+      expect(importe.className).toContain('mt-2');
+    });
+
+    /** El grande de la ficha es el que más se mira: 3xl y en negrita, como en el front anterior. */
+    it('el de la ficha es grande y en negrita', async () => {
+      const vista = await render(EtiquetaPrecio, {
+        inputs: { precio: { formateado: '30,11 €' }, tamano: 'lg' },
+      });
+
+      const importe = vista.container.querySelector('span.text-base-content')!;
+      expect(importe.className).toContain('text-3xl');
+      expect(importe.className).toContain('font-bold');
+    });
+  });
 });

@@ -298,10 +298,32 @@ describe('EdicionDeFichaHttpAdapter', () => {
   afterEach(() => http.verify());
 
   /** Mandar los tres pisaría las bolsas de subsidio que no se estaban editando. */
+  /**
+   * Se manda SOLO el que se toca. Enviar los tres pisaría las bolsas que nadie estaba editando, y esas
+   * dos bolsas son estancas por diseño: una cubre el envío y la otra el arancel.
+   *
+   * <p>El idioma viaja en la dirección porque la respuesta es la FICHA recalculada, con sus textos: sin
+   * él volvería en el idioma por defecto y el título cambiaría solo al guardar un importe.
+   */
   it('guarda SOLO el importe que se toca', async () => {
     void TestBed.inject(EdicionDeFichaHttpAdapter).guardaImporteEnYuanes('p1', 'dutyUserCny', 12.5);
-    const peticion = http.expectOne(`${BASE}/api/admin/catalog/products/p1`);
+    const peticion = http.expectOne((r) => r.url.startsWith(`${BASE}/api/admin/catalog/products/p1`));
     expect(peticion.request.body).toEqual({ dutyUserCny: 12.5 });
-    peticion.flush({});
+    peticion.flush({ id: 'p1', slug: 'p1', title: 'Gorro' });
+  });
+
+  /**
+   * Los tres de una vez, en UNA petición. Es lo que evita tres viajes cuando se ajustan juntos, y lo
+   * que permite que la pantalla pinte el resultado sin volver a pedir la ficha entera.
+   */
+  it('admite varios importes en una sola petición', async () => {
+    void TestBed.inject(EdicionDeFichaHttpAdapter).guardaImportesEnYuanes('p1', {
+      surchargeCny: 8.98,
+      shippingUserCny: 3.08,
+    });
+
+    const peticion = http.expectOne((r) => r.url.startsWith(`${BASE}/api/admin/catalog/products/p1`));
+    expect(peticion.request.body).toEqual({ surchargeCny: 8.98, shippingUserCny: 3.08 });
+    peticion.flush({ id: 'p1', slug: 'p1', title: 'Gorro' });
   });
 });

@@ -1,4 +1,14 @@
-import { Component, computed, effect, inject, input, resource, signal, untracked } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  linkedSignal,
+  resource,
+  signal,
+  untracked,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faArrowLeft, faCircleExclamation } from '@fortawesome/free-solid-svg-icons';
@@ -112,7 +122,8 @@ const CONFIRMACION_MS = 2000;
               [activa]="fotoActiva()"
               (activaChange)="eligeFoto($event)"
               (interactua)="pase.cancela()"
-              (borraImagen)="admin.borraImagen($event, recarga)"
+              (borraImagen)="admin.borraImagen($event, () => quitaFotos([$event]))"
+              (borraImagenes)="admin.borraImagenes($event, quitaFotos)"
               (borraVideo)="admin.borraVideo(producto.id, recarga)"
               (reordena)="admin.reordena(producto.id, $event, recarga)"
             />
@@ -138,6 +149,7 @@ const CONFIRMACION_MS = 2000;
           (borraVariante)="admin.borraVariante($event, recarga)"
           (filtraPorGrupo)="filtraPorGrupo()"
           (recarga)="recarga()"
+          (actualizada)="aplica($event)"
           (borrada)="alCatalogo()"
         />
       </section>
@@ -206,7 +218,55 @@ export class FichaPage {
     },
   });
 
-  protected readonly ficha = computed(() => this.datos.value() ?? null);
+  /**
+   * La ficha que se PINTA, que no es exactamente la que llegó del servidor.
+   *
+   * <p>Es un `linkedSignal` y no un `computed` para poder retocarla en el sitio. Cada gesto de
+   * administración —borrar una foto, cambiar un importe en yuanes— terminaba llamando a `reload()`, o
+   * sea volviendo a pedir la ficha ENTERA: se repintaban la galería, las variantes, las reseñas y el
+   * desglose, se perdía la foto que estabas mirando y la página daba un salto. Para cambiar un número.
+   *
+   * <p>Ahora el resultado del gesto se aplica AQUÍ y solo se repinta lo que cambió. Sigue siendo un
+   * `linkedSignal` sobre el recurso, así que cambiar de producto, de idioma o de moneda lo reemplaza
+   * entero, que es lo que debe pasar: lo local es un retoque entre lecturas, no una copia paralela.
+   */
+  protected readonly ficha = linkedSignal(() => this.datos.value() ?? null);
+
+  /**
+   * Aplica lo que devuelve un gesto de administración sin volver a pedir nada.
+   *
+   * <p>El backend contesta a estas ediciones con la ficha ya recalculada —el `PUT` de retoque rápido
+   * devuelve `ProductDetailView`—, así que hay con qué pintar: lo que faltaba era usarlo en vez de
+   * tirarlo. Si no viene nada, se recarga como antes: es el camino seguro para el gesto que aún no
+   * sepa devolver su resultado.
+   */
+  /**
+   * Quita fotos de la ficha SIN volver a pedirla.
+   *
+   * <p>Borrar una imagen terminaba en `reload()`: se repintaba la ficha entera —galería, variantes,
+   * reseñas, desglose— y la vista saltaba al principio, para quitar una miniatura. Como el borrado no
+   * cambia nada más del producto, basta con sacarla de la lista que ya se tiene.
+   *
+   * <p>Recibe las que SE BORRARON de verdad, no las que se pidió borrar: si alguna falla, esa se queda
+   * donde está y la pantalla sigue diciendo la verdad.
+   */
+  protected readonly quitaFotos = (borradas: readonly string[]): void => {
+    if (borradas.length === 0) {
+      return;
+    }
+    const fuera = new Set(borradas);
+    this.ficha.update((actual) =>
+      actual ? { ...actual, imagenes: actual.imagenes.filter((i) => !fuera.has(i.id)) } : actual,
+    );
+  };
+
+  protected readonly aplica = (actualizada: FichaDeProducto | null): void => {
+    if (actualizada) {
+      this.ficha.set(actualizada);
+    } else {
+      this.datos.reload();
+    }
+  };
   protected readonly cargando = computed(() => this.datos.isLoading());
   protected readonly claveDelError = computed(() =>
     this.noEncontrada() ? 'product.not_found' : 'product.load_error',

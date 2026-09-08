@@ -1,4 +1,13 @@
-import { Component, computed, inject, input, model, output, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  inject,
+  input,
+  linkedSignal,
+  model,
+  output,
+  signal,
+} from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
@@ -29,6 +38,26 @@ import { VisorGaleria } from './visor-galeria';
     <div class="flex flex-col sm:flex-row gap-3">
       <!-- Miniaturas SOLO a partir de sm: en el móvil se navega deslizando y con los puntos. -->
       <div class="hidden sm:flex sm:flex-col gap-2 shrink-0 sm:max-h-136 sm:overflow-y-auto scrollbar-thin">
+        <!--
+          Borrado en LOTE, solo para quien administra. Antes había que ir una por una, con su
+          confirmación cada vez: limpiar una galería de ocho fotos del proveedor eran ocho gestos y ocho
+          preguntas. Ahora se marcan y se quitan de una, con UNA sola pregunta que dice cuántas son.
+        -->
+        @if (puedeEditar() && marcadas().size > 0) {
+          <div class="sticky top-0 z-10 flex flex-col gap-1 rounded-lg border border-primary/30 bg-primary/10 p-1.5">
+            <span class="text-[10px] font-medium">{{ textoDeMarcadas() }}</span>
+            <button
+              type="button"
+              class="btn btn-error btn-xs text-[10px]"
+              (click)="borraLasMarcadas()"
+            >
+              <fa-icon [icon]="iconos.papelera" /> {{ t('admin.catalog.images.delete_selected') }}
+            </button>
+            <button type="button" class="btn btn-ghost btn-xs text-[10px]" (click)="limpiaSeleccion()">
+              {{ t('admin.catalog.images.clear_sel') }}
+            </button>
+          </div>
+        }
         @if (urlDelVideo(); as video) {
           <div class="relative w-20 shrink-0 group">
             <!-- El aviso de interacción va ANTES de abrir el vídeo: sin él, el pase automático seguía
@@ -93,6 +122,21 @@ import { VisorGaleria } from './visor-galeria';
               />
             </button>
             @if (puedeEditar()) {
+              <!-- La casilla va SIEMPRE visible, no al pasar el ratón: es la que dice qué está marcado,
+                   y algo que informa no puede esconderse. La papelera de una sola foto sí sigue
+                   apareciendo al pasar por encima, que es un gesto puntual. -->
+              <label
+                class="absolute top-0.5 left-0.5 z-20 cursor-pointer"
+                [title]="t('admin.catalog.images.select')"
+              >
+                <input
+                  type="checkbox"
+                  class="checkbox checkbox-xs checkbox-primary bg-white/90"
+                  [checked]="marcadas().has(foto.id)"
+                  (change)="alterna(foto.id)"
+                  [attr.aria-label]="t('admin.catalog.images.select') + ' ' + (i + 1)"
+                />
+              </label>
               <button
                 type="button"
                 (click)="borraImagen.emit(foto.id); $event.stopPropagation()"
@@ -246,10 +290,14 @@ export class GaleriaFicha {
   readonly activa = model(0);
   readonly interactua = output<void>();
   readonly borraImagen = output<string>();
+
+  /** Varias de una vez. Va aparte de `borraImagen` porque quien lo monta pregunta UNA sola vez. */
+  readonly borraImagenes = output<readonly string[]>();
   readonly borraVideo = output<void>();
   readonly reordena = output<readonly string[]>();
 
   protected readonly t = inject(TraduccionService).t;
+  private readonly tCon = inject(TraduccionService).tCon;
   protected readonly iconos = {
     play: faPlay,
     papelera: faTrash,
@@ -258,6 +306,40 @@ export class GaleriaFicha {
   };
 
   protected readonly enVideo = signal(false);
+
+  /**
+   * Las fotos marcadas para quitar.
+   *
+   * <p>Se vacía cuando cambian las fotos —`linkedSignal` sobre la entrada—: si no, tras borrar tres
+   * quedarían marcados tres identificadores que ya no existen, y la barra seguiría ofreciendo borrar
+   * algo que no está.
+   */
+  protected readonly marcadas = linkedSignal<readonly ImagenDeProducto[], ReadonlySet<string>>({
+    source: () => this.fotos(),
+    computation: () => new Set<string>(),
+  });
+
+  protected readonly textoDeMarcadas = computed(() =>
+    this.tCon('admin.catalog.images.selected', { n: this.marcadas().size }),
+  );
+
+  protected alterna(id: string): void {
+    this.marcadas.update((actual) => {
+      const copia = new Set(actual);
+      if (!copia.delete(id)) {
+        copia.add(id);
+      }
+      return copia;
+    });
+  }
+
+  protected limpiaSeleccion(): void {
+    this.marcadas.set(new Set<string>());
+  }
+
+  protected borraLasMarcadas(): void {
+    this.borraImagenes.emit([...this.marcadas()]);
+  }
   protected readonly ampliada = signal(false);
   protected readonly arrastrada = signal<number | null>(null);
   private readonly inicioDelGesto = signal<number | null>(null);
