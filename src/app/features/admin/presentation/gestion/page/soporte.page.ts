@@ -55,11 +55,14 @@ const SILUETAS = [0, 1, 2, 3];
           </h1>
           <p class="text-sm text-ink-500 mt-1">{{ t('admin.support.subtitle') }}</p>
         </div>
-        <select class="input h-9 text-[13px]" [value]="estado()" (change)="filtra($event)"
+        <!-- selected en la opción, no [value] en el select: ver la nota larga en usuarios-tabla.
+             Aquí el síntoma era más callado —el filtro decía «Todos» aunque hubiera uno puesto—, pero
+             es el mismo fallo. -->
+        <select class="input h-9 text-[13px]" (change)="filtra($event)"
                 [attr.aria-label]="t('filters.status')">
-          <option value="">{{ t('admin.support.all') }}</option>
+          <option value="" [selected]="!estado()">{{ t('admin.support.all') }}</option>
           @for (candidato of estados; track candidato) {
-            <option [value]="candidato">{{ candidato }}</option>
+            <option [value]="candidato" [selected]="candidato === estado()">{{ candidato }}</option>
           }
         </select>
       </header>

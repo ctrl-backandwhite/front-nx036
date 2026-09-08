@@ -60,14 +60,16 @@ import { AccionEnLote } from '../../../application/gestion/use-case/usuarios.use
         >
           <fa-icon [icon]="iconos.desbloquea" /> {{ t('admin.users.actions.unlock') }}
         </button>
+        <!-- selected en la opción, no [value] en el select: ver la nota larga en usuarios-tabla. -->
         <select
-          [value]="rol()"
           (change)="eligeRol($event)"
           class="border border-ink-200 rounded px-2 py-1 text-[11px]"
           [attr.aria-label]="t('admin.bulk.role')"
         >
           @for (opcion of roles(); track opcion.valor) {
-            <option [value]="opcion.valor">{{ opcion.etiqueta }}</option>
+            <option [value]="opcion.valor" [selected]="opcion.valor === rol()">
+              {{ opcion.etiqueta }}
+            </option>
           }
         </select>
         <button

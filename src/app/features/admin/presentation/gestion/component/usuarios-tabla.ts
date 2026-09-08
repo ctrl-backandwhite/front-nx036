@@ -89,14 +89,30 @@ export interface CambioDeRol {
                 <td class="px-4 py-2 text-[12px] font-mono">{{ usuario.email }}</td>
                 <td class="px-4 py-2 text-[12px]">{{ usuario.nombreVisible ?? '—' }}</td>
                 <td class="px-4 py-2">
+                    <!--
+                      La opción marcada se decide en el propio option con selected, NO con un
+                      [value] en el select. Es la diferencia entre pintar el rol de cada cuenta y
+                      pintar el mismo para todas.
+
+                      DEFECTO QUE CIERRA ESTO, visto en producción: el navegador aplica el value del
+                      select ANTES de que existan sus opciones, así que no encuentra a cuál
+                      corresponde y se queda en la PRIMERA de la lista. Y la lista empieza por 'ADMIN'.
+                      Resultado: todas las cuentas aparecían como «Administrador» —clientes incluidos—
+                      mientras en la base de datos eran USER. Un panel que miente sobre quién manda.
+
+                      Y de paso rompía editar el rol, que es la otra mitad del mismo fallo: en la fila
+                      de un cliente que se veía como «Administrador», elegir «Cliente» daba un valor
+                      IGUAL al que ya tenía la cuenta, así que no se emitía nada y no pasaba nada.
+                    -->
                   <select
-                    [value]="usuario.rol"
                     (change)="eligeRol(usuario, $event)"
                     [attr.aria-label]="t('admin.users.col.role') + ' · ' + usuario.email"
                     class="border border-ink-200 rounded px-2 py-1 text-[11px] hover:border-ink-300 focus:border-brand-500 focus:outline-none"
                   >
                     @for (opcion of roles(); track opcion.valor) {
-                      <option [value]="opcion.valor">{{ opcion.etiqueta }}</option>
+                      <option [value]="opcion.valor" [selected]="opcion.valor === usuario.rol">
+                        {{ opcion.etiqueta }}
+                      </option>
                     }
                   </select>
                 </td>
