@@ -72,13 +72,7 @@ test.describe('acciones del cliente', () => {
   test.afterEach(async ({ page }) => {
     try {
       if (enLaCesta) {
-        await page.goto(`${ANGULAR}/cart`, { waitUntil: 'domcontentloaded' });
-    await apartaAlAsistente(page);
-        const fila = page.locator('nx-tabla-del-carrito tbody tr').filter({ hasText: enLaCesta }).first();
-        if (await fila.count()) {
-          await fila.getByRole('button', { name: /^Eliminar$/i }).click();
-          await expect(fila).toHaveCount(0, { timeout: 15_000 });
-        }
+        await vaciaLaCestaPorLaApi(page);
       }
       if (marcadoFavorito) {
         await desmarcaPorLaApi(page, marcadoFavorito);
@@ -89,6 +83,39 @@ test.describe('acciones del cliente', () => {
     }
   });
 
+  /** El testigo de sesión que guarda el navegador, para poder llamar a la API como esa persona. */
+  async function testigoDeSesion(page: Page): Promise<string> {
+    return ((await page.evaluate(() => localStorage.getItem('nx-access-token'))) ?? '').replace(
+      /^"|"$/g,
+      '',
+    );
+  }
+
+  /**
+   * Vacía la cesta llamando a la API.
+   *
+   * <p>Antes se hacía pulsando «Eliminar» en la tabla, y esa limpieza no terminaba nunca: al borrar
+   * una fila la tabla encoge, el botón de la siguiente se mueve, y Playwright reintenta el clic
+   * durante sesenta segundos sobre un elemento que nunca está quieto. La prueba moría en su propio
+   * `afterEach` y —lo peor— dejaba la cesta con lo que había metido.
+   *
+   * <p>El precio de no arreglarlo era acumulativo: cada pasada añadía una línea más, y al cabo de
+   * varias el contador de la cesta ya venía en 10, con lo que pruebas que sí funcionaban empezaban a
+   * fallar por un estado que ninguna de ellas había creado.
+   *
+   * <p>Se vacía ENTERA y no solo la línea creada: si una pasada anterior dejó restos, esta prueba se
+   * los encuentra igual. La cuenta es de pruebas y su cesta no es de nadie.
+   */
+  async function vaciaLaCestaPorLaApi(page: Page): Promise<void> {
+    const testigo = await testigoDeSesion(page);
+    if (!testigo) {
+      return;
+    }
+    await page.request
+      .delete(`${ANGULAR}/api/me/cart`, { headers: { Authorization: `Bearer ${testigo}` } })
+      .catch(() => null);
+  }
+
   /**
    * Quita un favorito llamando a la API.
    *
@@ -97,10 +124,7 @@ test.describe('acciones del cliente', () => {
    * dejaría favoritos nuevos en la cuenta del titular por culpa del mismo defecto que denuncia.
    */
   async function desmarcaPorLaApi(page: Page, enlace: string): Promise<void> {
-    const testigo = ((await page.evaluate(() => localStorage.getItem('nx-access-token'))) ?? '').replace(
-      /^"|"$/g,
-      '',
-    );
+    const testigo = await testigoDeSesion(page);
     if (!testigo) {
       return;
     }
