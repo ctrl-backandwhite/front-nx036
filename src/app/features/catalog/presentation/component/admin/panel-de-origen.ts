@@ -6,6 +6,8 @@ import { DialogoStore } from '@ds/component/dialogo/dialogo.store';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
 import { FichaDeProducto } from '../../../domain/model/producto';
 import { EditaLaFicha } from '../../../application/use-case/edita-la-ficha.use-case';
+import { AppError } from '@shared/error/app-error';
+import { Result } from '@shared/result/result';
 
 /**
  * El bloque de administración de la ficha: de dónde salió el producto, si está revisado y cómo
@@ -94,7 +96,14 @@ import { EditaLaFicha } from '../../../application/use-case/edita-la-ficha.use-c
 export class PanelDeOrigen {
   readonly ficha = input.required<FichaDeProducto>();
   /** Algo ha cambiado y la ficha hay que volver a pedirla. */
-  readonly cambiada = output<void>();
+  /**
+   * Sale la ficha YA actualizada, no un aviso de que algo cambió.
+   *
+   * <p>Antes era `output<void>()` y la pantalla respondía volviendo a pedir la ficha entera: marcar
+   * «Verificado» —un interruptor— repintaba galería, variantes, reseñas y desglose. El backend
+   * responde a estas ediciones con el producto completo, así que basta con pasarlo hacia arriba.
+   */
+  readonly cambiada = output<FichaDeProducto>();
   /** El producto ya no existe: quien lo mostraba tiene que irse de aquí. */
   readonly borrada = output<void>();
 
@@ -161,20 +170,25 @@ export class PanelDeOrigen {
     }
   }
 
-  /** Todo gesto de edición sigue el mismo guion: bloquear, ejecutar, avisar y recargar la ficha. */
+  /**
+   * Todo gesto de edición sigue el mismo guion: bloquear, ejecutar, avisar y PUBLICAR LA FICHA.
+   *
+   * <p>Lo último era «recargar la ficha», y ahí estaba el problema: quien lo montaba respondía pidiendo
+   * el producto otra vez. Ahora se publica lo que el servidor ya devolvió.
+   */
   private async ejecuta(
-    accion: () => Promise<{ ok: boolean; error?: { mensaje: string } }>,
+    accion: () => Promise<Result<FichaDeProducto, AppError>>,
     claveDeExito: string,
   ): Promise<void> {
     this.trabajando.set(true);
     try {
       const resultado = await accion();
       if (!resultado.ok) {
-        this.avisos.error(resultado.error?.mensaje || this.t('admin.catalog.edit.error'));
+        this.avisos.error(resultado.error.mensaje || this.t('admin.catalog.edit.error'));
         return;
       }
       this.avisos.exito(this.t(claveDeExito));
-      this.cambiada.emit();
+      this.cambiada.emit(resultado.valor);
     } finally {
       this.trabajando.set(false);
     }

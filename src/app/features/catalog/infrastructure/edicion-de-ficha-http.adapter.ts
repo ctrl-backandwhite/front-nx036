@@ -19,23 +19,29 @@ export class EdicionDeFichaHttpAdapter implements EdicionDeFichaPort {
   private readonly api = inject(ApiService);
   private readonly preferencias = inject(PreferenciasService);
 
-  async marcaVerificado(idDelProducto: string, verificado: boolean): Promise<Result<void, AppError>> {
+  async marcaVerificado(
+    idDelProducto: string,
+    verificado: boolean,
+  ): Promise<Result<FichaDeProducto, AppError>> {
     return mapea(
-      await this.api.put<void>(
+      await this.api.put<FichaDto>(
         `/admin/catalog/products/${idDelProducto}?lang=${this.preferencias.idioma()}`,
         { verified: verificado },
       ),
-      () => undefined,
+      aFicha,
     );
   }
 
-  async guardaUrlDeOrigen(idDelProducto: string, url: string): Promise<Result<void, AppError>> {
+  async guardaUrlDeOrigen(
+    idDelProducto: string,
+    url: string,
+  ): Promise<Result<FichaDeProducto, AppError>> {
     return mapea(
-      await this.api.put<void>(
+      await this.api.put<FichaDto>(
         `/admin/catalog/products/${idDelProducto}/source-url?lang=${this.preferencias.idioma()}`,
         { sourceUrl: url },
       ),
-      () => undefined,
+      aFicha,
     );
   }
 

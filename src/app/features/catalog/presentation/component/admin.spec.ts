@@ -71,13 +71,23 @@ describe('PanelDeOrigen', () => {
     expect(screen.getByText('EXT-1')).toBeInTheDocument();
   });
 
-  it('marcar como revisado avisa y recarga la ficha', async () => {
-    const marcaVerificado = vi.fn().mockResolvedValue(exito(undefined));
+  /**
+   * Marcar «Verificado» publica la ficha YA actualizada, no un aviso de que algo cambió.
+   *
+   * <p>Antes salía un `void` y la pantalla respondía volviendo a pedir el producto entero: pulsar un
+   * interruptor repintaba galería, variantes, reseñas y desglose, y la vista saltaba al principio. El
+   * backend responde a esta edición con el producto completo; lo que faltaba era usarlo.
+   */
+  it('marcar como revisado publica la ficha ya actualizada', async () => {
+    const revisada = ficha({ verificado: true });
+    const marcaVerificado = vi.fn().mockResolvedValue(exito(revisada));
     const { vista, cambiada } = await monta({ marcaVerificado });
+
     await userEvent.click(vista.container.querySelector<HTMLElement>('input[type=checkbox]')!);
     await vista.fixture.whenStable();
+
     expect(marcaVerificado).toHaveBeenCalledWith('p1', true);
-    expect(cambiada).toHaveBeenCalled();
+    expect(cambiada).toHaveBeenCalledWith(revisada);
   });
 
   it('un fallo al guardar se cuenta', async () => {

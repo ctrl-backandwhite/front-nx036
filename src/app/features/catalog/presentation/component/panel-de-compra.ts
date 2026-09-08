@@ -72,7 +72,7 @@ import { DesgloseEditable } from './admin/desglose-editable';
           @defer (on idle) {
             <nx-panel-de-origen
               [ficha]="ficha()"
-              (cambiada)="recarga.emit()"
+              (cambiada)="actualizada.emit($event)"
               (borrada)="borrada.emit()"
             />
           }

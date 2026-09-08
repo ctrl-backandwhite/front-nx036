@@ -18,8 +18,16 @@ import { FichaDeProducto } from '../model/producto';
 export type CampoEnYuanes = 'surchargeCny' | 'shippingUserCny' | 'dutyUserCny';
 
 export interface EdicionDeFichaPort {
-  marcaVerificado(idDelProducto: string, verificado: boolean): Promise<Result<void, AppError>>;
-  guardaUrlDeOrigen(idDelProducto: string, url: string): Promise<Result<void, AppError>>;
+  /**
+   * Marca o desmarca la revisión manual, y devuelve la ficha ya recalculada.
+   *
+   * <p>Devolverla es lo que permite pintar el cambio sin volver a pedir la ficha entera: el backend
+   * responde con el producto completo y aquí se descartaba.
+   */
+  marcaVerificado(idDelProducto: string, verificado: boolean): Promise<Result<FichaDeProducto, AppError>>;
+
+  /** Igual que la anterior: el enlace de origen se guarda y vuelve la ficha, no un simple «vale». */
+  guardaUrlDeOrigen(idDelProducto: string, url: string): Promise<Result<FichaDeProducto, AppError>>;
   /**
    * Guarda uno o VARIOS importes en yuanes y devuelve la ficha ya recalculada.
    *

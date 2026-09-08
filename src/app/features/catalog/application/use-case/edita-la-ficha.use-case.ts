@@ -18,7 +18,10 @@ import { FichaDeProducto } from '../../domain/model/producto';
 export class EditaLaFicha {
   private readonly puerto = inject(EDICION_DE_FICHA_PORT);
 
-  marcaVerificado(idDelProducto: string, verificado: boolean): Promise<Result<void, AppError>> {
+  marcaVerificado(
+    idDelProducto: string,
+    verificado: boolean,
+  ): Promise<Result<FichaDeProducto, AppError>> {
     return this.puerto.marcaVerificado(idDelProducto, verificado);
   }
 
@@ -27,7 +30,7 @@ export class EditaLaFicha {
    * traducido si no vale, así que aquí no se duplica la comprobación: dos validaciones separadas acaban
    * diciendo cosas distintas.
    */
-  guardaUrlDeOrigen(idDelProducto: string, url: string): Promise<Result<void, AppError>> {
+  guardaUrlDeOrigen(idDelProducto: string, url: string): Promise<Result<FichaDeProducto, AppError>> {
     return this.puerto.guardaUrlDeOrigen(idDelProducto, url);
   }
 
