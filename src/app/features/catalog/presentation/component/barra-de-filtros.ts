@@ -165,6 +165,7 @@ const ORDENES: readonly OrdenDelCatalogo[] = [
           />
 
           <nx-rango-numerico
+            identificador="filtro-precio"
             [etiqueta]="t('catalog.price_range')"
             [minimo]="criterio().precioMinimo ?? ''"
             [maximo]="criterio().precioMaximo ?? ''"

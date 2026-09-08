@@ -60,6 +60,7 @@ function aTexto(valor: number | null): string {
           type="number"
           inputmode="decimal"
           class="w-14 px-1 py-1 min-h-11 sm:min-h-0 text-[12px] focus:outline-none bg-transparent"
+          [attr.id]="identificador() ? identificador() + '-min' : null"
           [placeholder]="marcadorMinimo()"
           [attr.aria-label]="etiqueta() + ' ' + (marcadorMinimo() || t('filters.min'))"
           [formField]="formulario.minimo"
@@ -70,6 +71,7 @@ function aTexto(valor: number | null): string {
           type="number"
           inputmode="decimal"
           class="w-14 px-1 py-1 min-h-11 sm:min-h-0 text-[12px] focus:outline-none bg-transparent"
+          [attr.id]="identificador() ? identificador() + '-max' : null"
           [placeholder]="marcadorMaximo()"
           [attr.aria-label]="etiqueta() + ' ' + (marcadorMaximo() || t('filters.max'))"
           [formField]="formulario.maximo"
@@ -88,6 +90,17 @@ export class RangoNumerico {
   readonly maximo = input('');
   readonly marcadorMinimo = input('');
   readonly marcadorMaximo = input('');
+
+  /**
+   * Prefijo de los identificadores de los dos campos: salen `<prefijo>-min` y `<prefijo>-max`.
+   *
+   * <p>Existe porque quitarlos ROMPIÓ la certificación. El rango del escaparate llevaba
+   * `id="filtro-precio-min"` y `id="filtro-precio-max"` escritos a mano, y seis pruebas de paridad
+   * localizan el campo justamente por ahí. Al extraer este componente se perdieron y esas seis se
+   * cayeron: la funcionalidad seguía bien, pero el contrato con el que se comprueba desde fuera no.
+   * Un identificador estable en un control que se prueba no es decoración, es parte de su interfaz.
+   */
+  readonly identificador = input('');
 
   readonly cambiado = output<RangoPublicado>();
 

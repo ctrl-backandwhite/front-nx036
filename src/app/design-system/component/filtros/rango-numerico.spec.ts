@@ -97,4 +97,31 @@ describe('RangoNumerico', () => {
     expect(minimo.value).toBe('');
     expect(maximo.value).toBe('');
   });
+
+  /**
+   * Los identificadores estables de los dos campos.
+   *
+   * <p>Esta prueba existe porque quitarlos rompió seis pruebas de paridad y nadie se enteró hasta que
+   * la batería completa terminó, casi dos horas después. El rango del escaparate llevaba
+   * `filtro-precio-min` y `filtro-precio-max` escritos a mano en la plantilla, y al extraer el
+   * componente se perdieron. La funcionalidad seguía bien; lo que se rompió fue el contrato con el que
+   * se comprueba desde fuera, que en un control que se prueba es parte de su interfaz.
+   */
+  it('los campos llevan identificadores estables cuando se les da un prefijo', async () => {
+    const { vista } = await monta();
+    vista.fixture.componentRef.setInput('identificador', 'filtro-precio');
+    vista.fixture.detectChanges();
+
+    expect(vista.container.querySelector('#filtro-precio-min')).not.toBeNull();
+    expect(vista.container.querySelector('#filtro-precio-max')).not.toBeNull();
+  });
+
+  /** Sin prefijo no se inventa ninguno: dos rangos en la misma página no pueden compartir id. */
+  it('sin prefijo los campos no llevan identificador', async () => {
+    const { vista } = await monta();
+
+    for (const campo of vista.container.querySelectorAll('input')) {
+      expect(campo.getAttribute('id')).toBeNull();
+    }
+  });
 });

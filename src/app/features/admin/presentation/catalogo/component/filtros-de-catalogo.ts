@@ -64,6 +64,7 @@ import { RangoNumerico, RangoPublicado } from '@ds/component/filtros/rango-numer
            sin explicar por qué. El componente del sistema de diseño trae ese aviso, y es el mismo que
            usa el catálogo del escaparate. -->
       <nx-rango-numerico
+        identificador="filtro-precio"
         [etiqueta]="t('admin.catalog.col.price')"
         [minimo]="almacen.precioMinimo()"
         [maximo]="almacen.precioMaximo()"
