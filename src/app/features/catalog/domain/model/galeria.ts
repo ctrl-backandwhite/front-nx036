@@ -127,3 +127,26 @@ export function reordena(
   ids.splice(hasta, 0, movida);
   return ids;
 }
+
+/**
+ * Coloca las imágenes en el orden que acaba de aceptar el servidor.
+ *
+ * <p>Es la otra mitad de {@link reordena}: aquella dice qué orden pedir, y esta lo aplica sobre la
+ * lista que ya se tiene, para no volver a pedir la ficha entera solo porque se ha arrastrado una
+ * miniatura.
+ *
+ * <p>Lo que no venga en la lista se queda al final, conservando su orden. Es el caso del vídeo y de
+ * las fotos repetidas, que la galería visible filtra y por tanto nunca viajan en el orden pedido:
+ * dejarlas fuera del resultado las haría desaparecer de un producto que sí las tiene.
+ */
+export function enEsteOrden(
+  imagenes: readonly ImagenDeProducto[],
+  idsEnOrden: readonly string[],
+): readonly ImagenDeProducto[] {
+  const posicion = new Map(idsEnOrden.map((id, indice) => [id, indice]));
+  const alFinal = idsEnOrden.length;
+  return [...imagenes].sort(
+    (a, b) => (posicion.get(a.id) ?? alFinal) - (posicion.get(b.id) ?? alFinal),
+  );
+}
+

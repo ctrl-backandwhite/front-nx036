@@ -21,6 +21,7 @@ import { DialogoStore } from '@ds/component/dialogo/dialogo.store';
 import { FichaDeProducto } from '../../domain/model/producto';
 import {
   fotoParaCompartir,
+  enEsteOrden,
   galeriaVisible,
   posicionEnLaGaleria,
 } from '../../domain/model/galeria';
@@ -124,8 +125,8 @@ const CONFIRMACION_MS = 2000;
               (interactua)="pase.cancela()"
               (borraImagen)="admin.borraImagen($event, () => quitaFotos([$event]))"
               (borraImagenes)="admin.borraImagenes($event, quitaFotos)"
-              (borraVideo)="admin.borraVideo(producto.id, recarga)"
-              (reordena)="admin.reordena(producto.id, $event, recarga)"
+              (borraVideo)="admin.borraVideo(producto.id, quitaVideo)"
+              (reordena)="admin.reordena(producto.id, $event, () => reordenaFotos($event))"
             />
           </div>
 
@@ -257,6 +258,32 @@ export class FichaPage {
     const fuera = new Set(borradas);
     this.ficha.update((actual) =>
       actual ? { ...actual, imagenes: actual.imagenes.filter((i) => !fuera.has(i.id)) } : actual,
+    );
+  };
+
+  /**
+   * Quita el vídeo de la ficha SIN volver a pedirla.
+   *
+   * <p>Mismo caso que borrar una foto: el gesto no cambia nada más del producto, así que recargar la
+   * ficha entera para hacer desaparecer un recuadro repintaba galería, variantes, reseñas y desglose,
+   * y devolvía la vista al principio.
+   */
+  protected readonly quitaVideo = (): void => {
+    this.ficha.update((actual) => (actual ? { ...actual, urlDeVideo: undefined } : actual));
+  };
+
+  /**
+   * Aplica el nuevo orden de la galería SIN volver a pedir la ficha.
+   *
+   * <p>Arrastrar una miniatura y ver saltar la página entera es lo contrario de lo que se espera de
+   * un gesto de arrastre: el resultado tiene que quedarse donde lo has soltado. Reordenar además deja
+   * la PRIMERA como imagen principal, y con la recarga esa consecuencia se veía después del salto.
+   *
+   * <p>Se reordena con los identificadores que el servidor aceptó.
+   */
+  protected readonly reordenaFotos = (idsEnOrden: readonly string[]): void => {
+    this.ficha.update((actual) =>
+      actual ? { ...actual, imagenes: enEsteOrden(actual.imagenes, idsEnOrden) } : actual,
     );
   };
 

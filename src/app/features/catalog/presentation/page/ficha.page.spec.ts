@@ -1,9 +1,12 @@
 import { provideRouter } from '@angular/router';
-import { render, screen } from '@testing-library/angular';
+import { render, screen, waitFor } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { exito, fallo } from '@shared/result/result';
+import { By } from '@angular/platform-browser';
+import { DialogoStore } from '@ds/component/dialogo/dialogo.store';
 import { creaError } from '@shared/error/app-error';
+import { GaleriaFicha } from '../component/galeria-ficha';
 import { RECUPERADOR_DE_SESION } from '@core/auth/recuperador-de-sesion.port';
 import { SesionActual } from '@core/auth/sesion-actual';
 import { PreferenciasService } from '@core/preferences/preferencias';
@@ -50,8 +53,14 @@ async function monta(
     /** Lo que contesta la cesta del otro contexto al meterle la línea. */
     respuestaDeLaCesta?: 'anadido' | 'sin-existencias';
     esAdministrador?: boolean;
+    /** La ficha que contesta el servidor, para los casos que necesitan vídeo o varias fotos. */
+    laFicha?: FichaDeProducto;
+    /** Dobles de los gestos de administración. */
+    edicion?: Record<string, unknown>;
   } = {},
 ) {
+  // Espía la LECTURA de la ficha: es lo que permite afirmar que un gesto no ha recargado la página.
+  const leeLaFicha = vi.fn(async () => opciones.devuelve ?? exito(opciones.laFicha ?? ficha()));
   const anade = vi
     .fn()
     .mockResolvedValue({
@@ -67,7 +76,7 @@ async function monta(
       {
         provide: CATALOGO_PORT,
         useValue: {
-          ficha: async () => opciones.devuelve ?? exito(ficha()),
+          ficha: leeLaFicha,
           relacionados: async () => exito([]),
           especificaciones: async () => exito([]),
           busca: vi.fn(),
@@ -92,7 +101,7 @@ async function monta(
         provide: ANALITICA_DE_PRODUCTO_PORT,
         useValue: { historicoDePrecios: async () => exito([]), estimacionDeMargen: vi.fn() },
       },
-      { provide: EDICION_DE_FICHA_PORT, useValue: {} },
+      { provide: EDICION_DE_FICHA_PORT, useValue: opciones.edicion ?? {} },
     ],
   });
   if (opciones.esAdministrador) {
@@ -102,7 +111,7 @@ async function monta(
   }
   await vista.fixture.whenStable();
   vista.fixture.detectChanges();
-  return { vista, anade };
+  return { vista, anade, leeLaFicha };
 }
 
 describe('FichaPage', () => {
@@ -456,5 +465,102 @@ describe('FichaPage', () => {
     await userEvent.click(atras);
     await vista.fixture.whenStable();
     expect(vista.fixture.debugElement.injector).toBeTruthy();
+  });
+
+  /**
+   * Los gestos de administración retocan la ficha que ya está pintada; no vuelven a pedirla.
+   *
+   * <p>Recargar por cada gesto repintaba galería, variantes, reseñas y desglose, y devolvía la vista
+   * al principio: para quitar un recuadro o mover una miniatura, la página entera daba un salto. Lo
+   * que se comprueba aquí es justo eso —que la ficha se lee UNA vez— además del resultado visible.
+   */
+  /**
+   * Contesta que sí a la pregunta de confirmación y deja que el gesto termine.
+   *
+   * <p>El diálogo se resuelve por promesa: hay que dejar correr la cola ANTES de contestar —si no,
+   * todavía no hay nadie esperando— y otra vez DESPUÉS, o el gesto seguiría a medias cuando la
+   * prueba acaba y el inyector se destruye debajo.
+   */
+  async function confirma(vista: {
+    fixture: { detectChanges(): void; debugElement: { injector: { get(t: unknown): DialogoStore } } };
+  }): Promise<void> {
+    // Hay que dejar correr la cola ANTES de contestar: si no, todavía no hay nadie esperando.
+    await new Promise((sigue) => setTimeout(sigue, 0));
+    vista.fixture.debugElement.injector.get(DialogoStore).cierra(true);
+    vista.fixture.detectChanges();
+  }
+
+  describe('gestos de administración sin recargar la ficha', () => {
+    const conVideo = () =>
+      ficha({
+        urlDeVideo: 'clip.mp4',
+        imagenes: [
+          { id: 'i1', direccion: 'a.jpg', posicion: 0, papel: 'MAIN' },
+          { id: 'i2', direccion: 'b.jpg', posicion: 1, papel: 'GALLERY' },
+          { id: 'i3', direccion: 'c.jpg', posicion: 2, papel: 'GALLERY' },
+        ],
+      });
+
+    it('borrar el vídeo lo quita de la ficha sin volver a pedirla', async () => {
+      const borraVideo = vi.fn().mockResolvedValue(exito(undefined));
+      const { vista, leeLaFicha } = await monta({
+        esAdministrador: true,
+        laFicha: conVideo(),
+        edicion: { borraVideo },
+      });
+      const galeria = vista.fixture.debugElement.query(By.directive(GaleriaFicha))
+        .componentInstance as GaleriaFicha;
+      expect(galeria.urlDelVideo()).toBe('clip.mp4');
+
+      galeria.borraVideo.emit();
+      await confirma(vista);
+
+      // El editor se trae con un `import()` a demanda, así que el gesto tarda varios ciclos: se
+      // espera al efecto y no a un número fijo de ticks.
+      await waitFor(() => expect(borraVideo).toHaveBeenCalledWith('p1'));
+      await waitFor(() => expect(galeria.urlDelVideo()).toBeUndefined());
+      expect(leeLaFicha).toHaveBeenCalledTimes(1);
+    });
+
+    /**
+     * Arrastrar una miniatura y ver saltar la página es lo contrario de lo que se espera de un
+     * arrastre: el resultado tiene que quedarse donde lo has soltado.
+     */
+    it('reordenar deja las fotos en su nuevo sitio sin volver a pedir la ficha', async () => {
+      const reordenaImagenes = vi.fn().mockResolvedValue(exito(undefined));
+      const { vista, leeLaFicha } = await monta({
+        esAdministrador: true,
+        laFicha: conVideo(),
+        edicion: { reordenaImagenes },
+      });
+      const galeria = vista.fixture.debugElement.query(By.directive(GaleriaFicha))
+        .componentInstance as GaleriaFicha;
+
+      galeria.reordena.emit(['i3', 'i1', 'i2']);
+
+      await waitFor(() => expect(reordenaImagenes).toHaveBeenCalledWith('p1', ['i3', 'i1', 'i2']));
+      await waitFor(() =>
+        expect(galeria.fotos().map((f) => f.id)).toEqual(['i3', 'i1', 'i2']),
+      );
+      expect(leeLaFicha).toHaveBeenCalledTimes(1);
+    });
+
+    /** Si el servidor rechaza el gesto, la ficha se queda como estaba: no se finge lo que no pasó. */
+    it('un vídeo que no se puede borrar sigue estando', async () => {
+      const borraVideo = vi.fn().mockResolvedValue(fallo(creaError('error-del-servidor')));
+      const { vista } = await monta({
+        esAdministrador: true,
+        laFicha: conVideo(),
+        edicion: { borraVideo },
+      });
+      const galeria = vista.fixture.debugElement.query(By.directive(GaleriaFicha))
+        .componentInstance as GaleriaFicha;
+
+      galeria.borraVideo.emit();
+      await confirma(vista);
+
+      await waitFor(() => expect(borraVideo).toHaveBeenCalled());
+      expect(galeria.urlDelVideo()).toBe('clip.mp4');
+    });
   });
 });

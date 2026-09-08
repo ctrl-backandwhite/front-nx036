@@ -5,6 +5,7 @@ import {
   claveDeImagen,
   estaEnLaGaleria,
   fotoParaCompartir,
+  enEsteOrden,
   galeriaVisible,
   pasosDelPase,
   posicionEnLaGaleria,
@@ -110,5 +111,52 @@ describe('fotoParaCompartir', () => {
   it('devuelve indefinido cuando no hay ninguna foto', () => {
     expect(fotoParaCompartir([])).toBeUndefined();
     expect(fotoParaCompartir([imagen('v', 'v.mp4', 'video')])).toBeUndefined();
+  });
+});
+
+describe('enEsteOrden', () => {
+  const foto = (id: string, papel = 'MAIN'): ImagenDeProducto => ({
+    id,
+    direccion: `${id}.jpg`,
+    posicion: 0,
+    papel,
+  });
+
+  it('coloca las imágenes como diga la lista', () => {
+    const orden = enEsteOrden([foto('a'), foto('b'), foto('c')], ['c', 'a', 'b']);
+
+    expect(orden.map((i) => i.id)).toEqual(['c', 'a', 'b']);
+  });
+
+  /**
+   * El vídeo y las fotos repetidas no salen en la galería visible, así que nunca viajan en el orden
+   * pedido. Dejarlas fuera del resultado las haría desaparecer de un producto que sí las tiene.
+   */
+  it('conserva al final lo que no viene en la lista', () => {
+    const orden = enEsteOrden([foto('a'), foto('v', 'video'), foto('b')], ['b', 'a']);
+
+    expect(orden.map((i) => i.id)).toEqual(['b', 'a', 'v']);
+  });
+
+  it('mantiene entre sí el orden de las que no vienen', () => {
+    const orden = enEsteOrden([foto('x'), foto('y'), foto('a')], ['a']);
+
+    expect(orden.map((i) => i.id)).toEqual(['a', 'x', 'y']);
+  });
+
+  it('con la lista vacía no toca nada', () => {
+    const orden = enEsteOrden([foto('a'), foto('b')], []);
+
+    expect(orden.map((i) => i.id)).toEqual(['a', 'b']);
+  });
+
+  /** No muta la lista que recibe: la ficha que se está pintando no puede cambiar por debajo. */
+  it('devuelve una lista nueva', () => {
+    const original = [foto('a'), foto('b')];
+
+    const orden = enEsteOrden(original, ['b', 'a']);
+
+    expect(original.map((i) => i.id)).toEqual(['a', 'b']);
+    expect(orden).not.toBe(original);
   });
 });
