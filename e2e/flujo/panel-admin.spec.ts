@@ -1,5 +1,5 @@
 import { Page, expect, test } from '@playwright/test';
-import { ANGULAR, REACT, abre, vigilaLaConsola } from '../util/comparador';
+import { ANGULAR, abre, vigilaLaConsola } from '../util/comparador';
 import { RUTAS_DE_PANEL } from '../util/rutas';
 
 /**
@@ -63,7 +63,8 @@ async function entraComoAdmin(page: Page, base: string): Promise<void> {
   guardadas.set(base, { cookies: estado.cookies, almacen });
 }
 
-for (const front of [{ nombre: 'Angular', base: ANGULAR }, { nombre: 'React', base: REACT }] as const) {
+// El React se retiró el 9-sep-2026: queda un solo frente que certificar.
+for (const front of [{ nombre: 'Angular', base: ANGULAR }] as const) {
   test.describe(`${front.nombre} · panel de administración`, () => {
     for (const ruta of RUTAS) {
       test(`${ruta} abre`, async ({ page }) => {

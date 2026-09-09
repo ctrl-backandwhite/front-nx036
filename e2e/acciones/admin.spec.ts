@@ -198,7 +198,14 @@ test.describe('acciones de administración', () => {
     await enElPanel(page, '/admin/catalog');
 
     const antes = await contadorDeResultados(page);
-    const filtro = page.getByLabel(/Precio ≥/).first();
+    /*
+     * «Precio Mínimo», no «Precio ≥». El filtro dejó de ser dos campos sueltos rotulados con los
+     * signos y pasó a ser un RANGO con validación cruzada —teclear un mínimo por encima del máximo
+     * dejaba la tabla en blanco sin explicar por qué—. La prueba se quedó buscando el rótulo viejo y
+     * llevaba desde entonces agotando su plazo: no cazaba un defecto, esperaba a un campo que ya no
+     * existe.
+     */
+    const filtro = page.getByLabel(/Precio\s+Mínimo/i).first();
     await filtro.fill('900');
     await filtro.blur();
     const despues = await esperaOtroTotal(page, antes.total);

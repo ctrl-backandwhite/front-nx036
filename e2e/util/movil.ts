@@ -324,55 +324,6 @@ export async function mideParaUnDedo(control: Locator, comoSeLlama: string, mini
 /** El nombre del objetivo, sin sus medidas: un píxel de diferencia no lo convierte en otro control. */
 export const soloElNombre = (x: string): string => x.replace(/\s*\(\d+×\d+\)$/, '');
 
-/**
- * El inventario de piezas de la pantalla, como en `paridad/maqueta.spec.ts`.
- *
- * <p>Se cuenta lo mismo y por el mismo motivo: es lo que distingue «se ve igual» de «tiene los mismos
- * colores». Un desplegable nativo de más significa que la pantalla se portó con otro componente.
- */
-export async function inventario(page: Page): Promise<Record<string, number>> {
-  return page.evaluate(() => {
-    const cuenta = (selector: string) =>
-      Array.from(document.querySelectorAll(selector)).filter((e) => {
-        const c = e.getBoundingClientRect();
-        return c.width > 0 && c.height > 0;
-      }).length;
-    return {
-      'campos de texto': cuenta('input[type="text"], input[type="search"], input:not([type])'),
-      'campos numéricos': cuenta('input[type="number"]'),
-      'desplegables nativos': cuenta('select'),
-      casillas: cuenta('input[type="checkbox"], input[type="radio"]'),
-      botones: cuenta('button'),
-      enlaces: cuenta('a[href]'),
-      imágenes: cuenta('img'),
-      titulares: cuenta('h1, h2, h3'),
-      tablas: cuenta('table'),
-    };
-  });
-}
-
-/** El reparto del espacio en franjas: caza un bloque a media pantalla donde debería ocupar toda. */
-export async function franjas(page: Page): Promise<string[]> {
-  return page.evaluate(() => {
-    const ancho = document.documentElement.clientWidth;
-    const franja = (v: number) => {
-      const parte = v / ancho;
-      if (parte > 0.95) return 'todo';
-      if (parte > 0.7) return 'casi todo';
-      if (parte > 0.45) return 'medio';
-      if (parte > 0.2) return 'un cuarto';
-      return 'poco';
-    };
-    return Array.from(document.querySelectorAll('main, header, footer, aside, section, article'))
-      .filter((e) => {
-        const c = e.getBoundingClientRect();
-        return c.width > 0 && c.height > 40;
-      })
-      .slice(0, 25)
-      .map((e) => `${e.tagName.toLowerCase()}:${franja(e.getBoundingClientRect().width)}`)
-      .sort();
-  });
-}
 
 /**
  * Comprueba que NADA de lo importante queda debajo de la barra de pestañas.

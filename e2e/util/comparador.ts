@@ -9,7 +9,6 @@ import { Page, expect } from '@playwright/test';
  * aquí como esperable es un defecto del porte.
  */
 
-export const REACT = process.env['URL_REACT'] ?? 'http://localhost:3003';
 export const ANGULAR = process.env['URL_ANGULAR'] ?? 'http://localhost:3004';
 
 /** Las dos presentaciones que hay que certificar. El proyecto es mobile first: el móvil va primero. */
@@ -140,32 +139,6 @@ export function vigilaLaConsola(page: Page): string[] {
   return errores;
 }
 
-/**
- * Abre la misma dirección en los dos frontends y devuelve lo observado en cada uno.
- *
- * <p>Se espera a que la pantalla se ASIENTE y no al final de la carga porque lo que se compara es la
- * pantalla ya pintada: el front anterior pide sus datos después de montar, y comparar antes mediría
- * quién es más rápido, no quién enseña lo mismo.
- */
-export async function abreEnAmbos(
-  page: Page,
-  ruta: string,
-): Promise<{
-  react: { texto: string; importes: string[]; estado: number; errores: string[] };
-  angular: { texto: string; importes: string[]; estado: number; errores: string[] };
-}> {
-  const observa = async (base: string) => {
-    const errores = vigilaLaConsola(page);
-    const respuesta = await abre(page, `${base}${ruta}`);
-    return {
-      texto: await textoVisible(page),
-      importes: await importes(page),
-      estado: respuesta?.status() ?? 0,
-      errores,
-    };
-  };
-  return { react: await observa(REACT), angular: await observa(ANGULAR) };
-}
 
 /**
  * Comprueba que la página no obliga a desplazarse en horizontal.
