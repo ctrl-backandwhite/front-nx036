@@ -177,8 +177,13 @@ test.describe('presentación · las transiciones acompañan', () => {
      * termina, no cuando se suelta el ratón. Una sola lectura justo después del clic cae antes de que
      * empiece y da la lista vacía, que es un falso negativo, no un defecto.
      */
+    /*
+     * El enlace que se VE, no el primero del árbol. En el móvil el del encabezado está oculto —los
+     * destinos viven en la barra de pestañas de abajo—, así que pulsar «el primero» no navegaba, no
+     * había transición que medir y la prueba acusaba a la aplicación de no fundir.
+     */
     const duraciones: number[] = [];
-    await page.getByRole('link', { name: /catálogo/i }).first().click();
+    await page.locator('a[href="/catalog"]:visible').first().click();
     await expect
       .poll(
         async () => {
@@ -221,10 +226,23 @@ test.describe('presentación · las transiciones acompañan', () => {
 
     await buscaEnElCatalogo(page, 'vestido');
 
-    const enMarcha = await page.evaluate(
-      () => document.getAnimations().filter((a) => a.playState === 'running').length,
+    /*
+     * Se busca el FUNDIDO DE PANTALLA —el de un segundo—, no «ninguna animación».
+     *
+     * <p>Exigir cero era medir otra cosa y salía inestable: con el feedback a 200 ms es normal que
+     * haya alguna transición corta en vuelo justo al aplicar el filtro —la píldora que se marca, la
+     * tarjeta bajo el ratón—, y esas no molestan a nadie. Lo que sí molesta, y es lo que esta prueba
+     * existe para impedir, es que la lista entera se desvanezca y vuelva durante un segundo por haber
+     * cambiado un filtro.
+     */
+    const largas = await page.evaluate(() =>
+      document
+        .getAnimations()
+        .filter((a) => a.playState === 'running')
+        .map((a) => Number(a.effect?.getTiming().duration ?? 0))
+        .filter((d) => d >= 800),
     );
-    expect(enMarcha, 'la pantalla se funde al cambiar un filtro').toBe(0);
+    expect(largas, 'la pantalla se funde entera al cambiar un filtro').toEqual([]);
   });
 });
 

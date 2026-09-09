@@ -6,9 +6,8 @@
       "test",
       "--config",
       "e2e/playwright.config.ts",
-      "--project=escritorio",
       "-g",
-      "marcar un favorito lo guarda"
+      "cambiar de pantalla funde|cambiar un filtro NO funde"
     ],
     "configFile": "/home/nexaplaform/Escritorio/dropshipping/front-nx036/e2e/playwright.config.ts",
     "rootDir": "/home/nexaplaform/Escritorio/dropshipping/front-nx036/e2e",
@@ -86,40 +85,40 @@
   },
   "suites": [
     {
-      "title": "acciones/cliente.spec.ts",
-      "file": "acciones/cliente.spec.ts",
+      "title": "flujo/presentacion.spec.ts",
+      "file": "flujo/presentacion.spec.ts",
       "column": 0,
       "line": 0,
       "specs": [],
       "suites": [
         {
-          "title": "acciones del cliente",
-          "file": "acciones/cliente.spec.ts",
-          "line": 48,
+          "title": "presentación · las transiciones acompañan",
+          "file": "flujo/presentacion.spec.ts",
+          "line": 164,
           "column": 6,
           "specs": [
             {
-              "title": "marcar un favorito lo guarda, y desmarcarlo lo quita, tras recargar",
+              "title": "cambiar de pantalla funde durante un segundo",
               "ok": true,
               "tags": [],
               "tests": [
                 {
-                  "timeout": 150000,
+                  "timeout": 60000,
                   "annotations": [],
                   "expectedStatus": "passed",
-                  "projectId": "escritorio",
-                  "projectName": "escritorio",
+                  "projectId": "movil",
+                  "projectName": "movil",
                   "results": [
                     {
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 22933,
+                      "duration": 19445,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-09-09T20:17:29.326Z",
+                      "startTime": "2026-09-09T22:24:26.860Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -127,80 +126,111 @@
                   "status": "expected"
                 }
               ],
-              "id": "7d72d7a296bd533c2b15-44251fff2023535ab766",
-              "file": "acciones/cliente.spec.ts",
-              "line": 269,
+              "id": "78689c72f9a00b3a9825-407167883a9cecd1fae1",
+              "file": "flujo/presentacion.spec.ts",
+              "line": 169,
               "column": 7
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "acciones/movil.spec.ts",
-      "file": "acciones/movil.spec.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "acciones del cliente en el móvil",
-          "file": "acciones/movil.spec.ts",
-          "line": 89,
-          "column": 6,
-          "specs": [
+            },
             {
-              "title": "marcar un favorito lo guarda, y desmarcarlo lo quita, tras recargar",
+              "title": "cambiar un filtro NO funde la pantalla entera",
               "ok": true,
               "tags": [],
               "tests": [
                 {
                   "timeout": 60000,
-                  "annotations": [
-                    {
-                      "type": "skip",
-                      "description": "estas acciones son las del móvil: solo aplican a 412 px",
-                      "location": {
-                        "file": "/home/nexaplaform/Escritorio/dropshipping/front-nx036/e2e/acciones/movil.spec.ts",
-                        "line": 92,
-                        "column": 10
-                      }
-                    }
-                  ],
-                  "expectedStatus": "skipped",
-                  "projectId": "escritorio",
-                  "projectName": "escritorio",
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "movil",
+                  "projectName": "movil",
                   "results": [
                     {
                       "workerIndex": 0,
                       "parallelIndex": 0,
-                      "status": "skipped",
-                      "duration": 476,
+                      "status": "passed",
+                      "duration": 18130,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-09-09T20:17:53.670Z",
-                      "annotations": [
-                        {
-                          "type": "skip",
-                          "description": "estas acciones son las del móvil: solo aplican a 412 px",
-                          "location": {
-                            "file": "/home/nexaplaform/Escritorio/dropshipping/front-nx036/e2e/acciones/movil.spec.ts",
-                            "line": 92,
-                            "column": 10
-                          }
-                        }
-                      ],
+                      "startTime": "2026-09-09T22:24:46.938Z",
+                      "annotations": [],
                       "attachments": []
                     }
                   ],
-                  "status": "skipped"
+                  "status": "expected"
                 }
               ],
-              "id": "2233689dac9074230a28-36c1d93d1622d2f1030b",
-              "file": "acciones/movil.spec.ts",
-              "line": 340,
+              "id": "78689c72f9a00b3a9825-0797bc33c36b535d30ea",
+              "file": "flujo/presentacion.spec.ts",
+              "line": 209,
+              "column": 7
+            },
+            {
+              "title": "cambiar de pantalla funde durante un segundo",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 16429,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-09T22:25:07.455Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "78689c72f9a00b3a9825-6be04c86711c000cff6e",
+              "file": "flujo/presentacion.spec.ts",
+              "line": 169,
+              "column": 7
+            },
+            {
+              "title": "cambiar un filtro NO funde la pantalla entera",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "escritorio",
+                  "projectName": "escritorio",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 18494,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-09T22:25:24.418Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "78689c72f9a00b3a9825-78862336c4425042dcd7",
+              "file": "flujo/presentacion.spec.ts",
+              "line": 209,
               "column": 7
             }
           ]
@@ -210,10 +240,10 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-09-09T20:17:25.713Z",
-    "duration": 28869.982,
-    "expected": 1,
-    "skipped": 1,
+    "startTime": "2026-09-09T22:24:22.247Z",
+    "duration": 80980.116,
+    "expected": 4,
+    "skipped": 0,
     "unexpected": 0,
     "flaky": 0
   }
