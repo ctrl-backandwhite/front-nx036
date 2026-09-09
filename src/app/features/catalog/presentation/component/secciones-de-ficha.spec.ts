@@ -153,7 +153,9 @@ describe('BasculaVariantes', () => {
           existencias: 1,
           opciones: { Color: '卡其色【牛筋软底】' },
           activa: true,
-          pesoGramos: 1000,
+          // Un peso de tres cifras a propósito: a partir de mil, el separador de miles depende del
+          // idioma («1.000» / «1,000») y la prueba dejaría de pasar según dónde se ejecute.
+          pesoGramos: 300,
         },
       ],
       ejesDeVariante: [
@@ -172,7 +174,7 @@ describe('BasculaVariantes', () => {
     expect(container.textContent).not.toContain('卡其色');
     expect(container.textContent).toContain('—');
     // La fila NO desaparece: el peso y la talla siguen siendo datos ciertos de una variante que existe.
-    expect(screen.getByText('1000')).toBeInTheDocument();
+    expect(container.textContent).toContain('300');
   });
 
   /**
