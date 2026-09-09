@@ -20,13 +20,27 @@ export interface GrupoDeDeclaracion {
   readonly nombreZh: string;
   readonly numeroDeProductos: number;
   readonly aprobado: boolean;
+  /**
+   * La descripción sigue siendo el relleno con el que nació el grupo —el número de la partida y nada
+   * más—, así que no se puede firmar hasta escribirla. Lo decide el backend, que es donde vive la
+   * regla que genera ese relleno.
+   */
+  readonly sinRedactar: boolean;
   readonly aprobadoEl?: string;
   readonly aprobadoPor?: string;
 }
 
 /** Sin descripción en inglés el transportista rechazaría la guía, así que no se puede aprobar. */
-export function puedeAprobarse(nombreEn: string): boolean {
-  return nombreEn.trim() !== '';
+export function puedeAprobarse(nombreEn: string, grupo?: GrupoDeDeclaracion): boolean {
+  if (nombreEn.trim() === '') {
+    return false;
+  }
+  // El relleno con el que nació el grupo —«Goods of HS heading 611212»— no describe una mercancía,
+  // describe un número. Firmarlo lo pone tal cual en la declaración ante la aduana del destino, que
+  // es como se retiene un paquete. Sin aprobar es inofensivo: cada producto va en su línea y se paga
+  // de más. Deja de serlo cuando alguien lo edita, y por eso se mira lo TECLEADO y no el estado que
+  // trae el servidor: escrita la descripción, se puede firmar sin recargar.
+  return !(grupo?.sinRedactar ?? false) || nombreEn.trim() !== (grupo?.nombreEn ?? '').trim();
 }
 
 /** ¿Se ha tocado el texto respecto a lo que guarda el servidor? Sin cambios no hay nada que guardar. */

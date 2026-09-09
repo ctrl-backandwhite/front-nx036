@@ -14,6 +14,7 @@ interface GrupoDto {
   cname?: string;
   productCount?: number;
   approved?: boolean;
+  sinRedactar?: boolean;
   approvedAt?: string;
   approvedBy?: string;
 }
@@ -28,6 +29,7 @@ function aGrupo(dto: GrupoDto): GrupoDeDeclaracion {
     nombreZh: dto.cname ?? '',
     numeroDeProductos: dto.productCount ?? 0,
     aprobado: !!dto.approved,
+    sinRedactar: !!dto.sinRedactar,
     aprobadoEl: dto.approvedAt,
     aprobadoPor: dto.approvedBy,
   };

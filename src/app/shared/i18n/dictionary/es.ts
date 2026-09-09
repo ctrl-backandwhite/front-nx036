@@ -1624,6 +1624,7 @@ const diccionario: Record<string, string> = {
   'admin.declgroups.cname': 'Descripción (chino)',
   'admin.declgroups.state': 'Estado',
   'admin.declgroups.pending': 'Sin revisar',
+  'admin.declgroups.undrafted': 'Sin redactar',
   'admin.declgroups.approved': 'Aprobado',
   'admin.declgroups.approve': 'Aprobar',
   'admin.declgroups.unapprove': 'Retirar aprobación',

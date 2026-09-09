@@ -91,12 +91,30 @@ describe('grupo-de-declaracion', () => {
     nombreZh: '裤子',
     numeroDeProductos: 12,
     aprobado: false,
+    sinRedactar: false,
   };
 
   /** Sin descripción en inglés el transportista rechazaría la guía: no hay nada que firmar. */
   it('sin descripción en inglés no se puede aprobar', () => {
     expect(puedeAprobarse('   ')).toBe(false);
     expect(puedeAprobarse('Trousers')).toBe(true);
+  });
+
+  /**
+   * «Goods of HS heading 620342» es el relleno con el que nace un grupo cuya partida no está en la
+   * nomenclatura: describe un número, no una mercancía. Firmarlo lo pone así en la declaración.
+   */
+  it('el relleno de la partida no se puede firmar tal cual', () => {
+    const relleno = { ...grupo, sinRedactar: true, nombreEn: 'Goods of HS heading 620342' };
+
+    expect(puedeAprobarse('Goods of HS heading 620342', relleno)).toBe(false);
+  });
+
+  /** Escrita la descripción se firma sin recargar: se mira lo TECLEADO, no lo que trajo el servidor. */
+  it('redactado a mano, se puede firmar aunque el servidor aún lo diera por relleno', () => {
+    const relleno = { ...grupo, sinRedactar: true, nombreEn: 'Goods of HS heading 620342' };
+
+    expect(puedeAprobarse("Men's or boys' trousers, of cotton", relleno)).toBe(true);
   });
 
   it('solo hay algo que guardar si el texto cambió', () => {

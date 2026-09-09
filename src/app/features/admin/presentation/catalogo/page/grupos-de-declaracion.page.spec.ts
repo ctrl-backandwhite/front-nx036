@@ -31,6 +31,7 @@ const GRUPO: GrupoDeDeclaracion = {
   nombreZh: '棉质T恤',
   numeroDeProductos: 42,
   aprobado: true,
+  sinRedactar: false,
 };
 
 interface Opciones {

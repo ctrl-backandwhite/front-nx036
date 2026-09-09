@@ -1,7 +1,7 @@
 import { Component, computed, inject, input, linkedSignal, output } from '@angular/core';
 import { FormField, form } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faCircleCheck } from '@fortawesome/free-solid-svg-icons';
+import { faCircleCheck, faPenToSquare } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import {
   GrupoDeDeclaracion,
@@ -51,6 +51,11 @@ import {
           <fa-icon [icon]="iconoAprobado" class="text-[11px]" />
           {{ t('admin.declgroups.approved') }}
         </span>
+      } @else if (grupo().sinRedactar) {
+        <span class="inline-flex items-center gap-1 text-amber-700">
+          <fa-icon [icon]="iconoSinRedactar" class="text-[11px]" />
+          {{ t('admin.declgroups.undrafted') }}
+        </span>
       } @else {
         <span class="text-ink-500">{{ t('admin.declgroups.pending') }}</span>
       }
@@ -93,6 +98,7 @@ export class FilaDeDeclaracion {
 
   protected readonly t = inject(TraduccionService).t;
   protected readonly iconoAprobado = faCircleCheck;
+  protected readonly iconoSinRedactar = faPenToSquare;
 
   /** Lo tecleado en la fila. Vuelve a lo del servidor al guardar, al sembrar o al recargar. */
   protected readonly modelo = linkedSignal<GrupoDeDeclaracion, { ingles: string; chino: string }>({
@@ -118,5 +124,7 @@ export class FilaDeDeclaracion {
     descripcionCambiada(this.grupo(), this.modelo().ingles, this.modelo().chino),
   );
 
-  protected readonly sePuedeAprobar = computed(() => puedeAprobarse(this.modelo().ingles));
+  protected readonly sePuedeAprobar = computed(() =>
+    puedeAprobarse(this.modelo().ingles, this.grupo()),
+  );
 }

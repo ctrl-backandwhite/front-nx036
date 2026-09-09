@@ -2024,6 +2024,7 @@ const diccionario: Record<string, string> = {
   'admin.declgroups.cname': '描述（中文）',
   'admin.declgroups.state': '状态',
   'admin.declgroups.pending': '未审核',
+  'admin.declgroups.undrafted': '尚未撰写',
   'admin.declgroups.approved': '已批准',
   'admin.declgroups.approve': '批准',
   'admin.declgroups.unapprove': '撤销批准',
