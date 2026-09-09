@@ -402,12 +402,27 @@ export class ListadoPage {
     return Math.max(MARGEN_MINIMO, Math.round(alto / 2));
   }
 
+  /**
+   * Escribe el criterio en la dirección, que es de donde lo lee todo lo demás.
+   *
+   * <p>El resultado NO se puede tirar. El enrutador cancela una navegación cuando hay otra en curso
+   * —al entrar en el catálogo, la primera todavía se está resolviendo— y devuelve `false` sin avisar
+   * a nadie. Cuando eso pasaba, lo tecleado se quedaba solo dentro de la barra de filtros: la caja
+   * seguía enseñando «vestido», la insignia contaba un filtro puesto, y la lista era el catálogo
+   * entero. Nadie podía saber que la búsqueda se había perdido, y volver a escribir lo mismo tampoco
+   * la recuperaba.
+   *
+   * <p>Se reintenta UNA vez: si la navegación se descartó por otra en curso, para entonces ya ha
+   * terminado. Un segundo fallo se registra en vez de desaparecer.
+   */
   protected fija(criterio: CriterioDeBusqueda): void {
-    void this.enrutador.navigate([], {
-      relativeTo: this.ruta,
-      queryParams: aParametros(criterio),
-      replaceUrl: true,
-    });
+    void this.navega(criterio).then((llego) => (llego ? true : this.navega(criterio)));
+  }
+
+  private navega(criterio: CriterioDeBusqueda): Promise<boolean> {
+    return this.enrutador
+      .navigate([], { relativeTo: this.ruta, queryParams: aParametros(criterio), replaceUrl: true })
+      .catch(() => false);
   }
 
   protected cambia(parcial: Partial<CriterioDeBusqueda>): void {

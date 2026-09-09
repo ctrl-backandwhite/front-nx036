@@ -233,6 +233,28 @@ describe('AnadeALaCesta', () => {
     );
   });
 
+  /**
+   * El detalle del catálogo NO devuelve `mainImage` —solo lo hace el listado—, así que en la ficha
+   * ese campo viene siempre vacío y la línea llegaba a la cesta sin imagen: en la cesta y en el pago
+   * salía un hueco gris con el nombre al lado.
+   */
+  it('la imagen de la línea sale de la galería cuando la ficha no trae principal', async () => {
+    const conGaleria = ficha({
+      imagenPrincipal: undefined,
+      imagenes: [
+        { id: 'i1', direccion: 'https://cdn/segunda.jpg', posicion: 1, papel: 'GALLERY' },
+        { id: 'i2', direccion: 'https://cdn/principal.jpg', posicion: 0, papel: 'MAIN' },
+      ],
+    });
+    const { caso, anade } = monta();
+
+    await caso.conVariante(conGaleria, undefined, 1);
+
+    expect(anade).toHaveBeenCalledWith(
+      expect.objectContaining({ imagen: 'https://cdn/principal.jpg' }),
+    );
+  });
+
   /** Añadir a ciegas acaba en pedidos con la talla equivocada. */
   it('no añade nada si la ficha dice que no queda ninguna variante', async () => {
     const { caso, anade } = monta();

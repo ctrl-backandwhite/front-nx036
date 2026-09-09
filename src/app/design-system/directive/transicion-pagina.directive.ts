@@ -25,7 +25,11 @@ export class TransicionPagina {
   private readonly ruta = toSignal(
     this.enrutador.events.pipe(
       filter((evento) => evento instanceof NavigationEnd),
-      map((evento) => evento.urlAfterRedirects),
+      // Sin la parte de consulta: cambiar un filtro NO es cambiar de pantalla. Con la dirección
+      // entera, cada pausa al teclear en el buscador lanzaba una navegación y la lista —y la propia
+      // caja de búsqueda, que va dentro— desaparecía y volvía a aparecer durante un segundo. Escribir
+      // tres palabras hacía parpadear el catálogo tres veces: se lee como que se ha roto.
+      map((evento) => evento.urlAfterRedirects.split('?')[0]),
     ),
     { initialValue: this.enrutador.url },
   );
