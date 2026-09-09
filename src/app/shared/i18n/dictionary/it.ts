@@ -1443,6 +1443,7 @@ const diccionario: Record<string, string> = {
   'pdp.seller.contact': 'Assistenza clienti',
   'reviews.name_locked': 'Il tuo nome account (non modificabile)',
   'admin.catalog.video.delete': 'Rimuovi video',
+  'admin.catalog.video.select': 'Seleziona il video',
   'admin.catalog.video.delete_confirm': 'Eliminare il video del prodotto?',
   'admin.catalog.video.deleted': 'Video eliminato',
   'admin.catalog.video.error': 'Impossibile eliminare il video',

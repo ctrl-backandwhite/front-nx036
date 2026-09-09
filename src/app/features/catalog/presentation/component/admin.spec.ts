@@ -413,4 +413,59 @@ describe('AccionesDeAdmin', () => {
     expect(borraValorDeVariante).toHaveBeenCalledWith('vv1');
     expect(alTerminar).toHaveBeenCalledTimes(2);
   });
+
+  /**
+   * Marcar cuatro cosas y pulsar «eliminar seleccionadas» tiene que preguntar UNA vez, no dos —una por
+   * las fotos y otra por el vídeo—. Y el vídeo va al final, para que un fallo suyo no impida quitar
+   * las fotos.
+   */
+  it('quita las fotos y el vídeo con una sola pregunta', async () => {
+    const borraImagen = vi.fn().mockResolvedValue(exito(undefined));
+    const borraVideo = vi.fn().mockResolvedValue(exito(undefined));
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
+        AccionesDeAdmin,
+        { provide: EDICION_DE_FICHA_PORT, useValue: { borraImagen, borraVideo } },
+      ],
+    });
+    const acciones = TestBed.inject(AccionesDeAdmin);
+    const fotosFuera = vi.fn();
+    const videoFuera = vi.fn();
+
+    const gesto = acciones.borraSeleccion(['i1', 'i2'], 'p1', fotosFuera, videoFuera);
+    await new Promise((sigue) => setTimeout(sigue, 0));
+    TestBed.inject(DialogoStore).cierra(true);
+    await gesto;
+
+    expect(borraImagen).toHaveBeenCalledTimes(2);
+    expect(borraVideo).toHaveBeenCalledWith('p1');
+    expect(fotosFuera).toHaveBeenCalledWith(['i1', 'i2']);
+    expect(videoFuera).toHaveBeenCalled();
+  });
+
+  /** Sin vídeo marcado no se toca el vídeo: es el camino de siempre. */
+  it('sin el vídeo marcado no lo borra', async () => {
+    const borraImagen = vi.fn().mockResolvedValue(exito(undefined));
+    const borraVideo = vi.fn();
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
+        AccionesDeAdmin,
+        { provide: EDICION_DE_FICHA_PORT, useValue: { borraImagen, borraVideo } },
+      ],
+    });
+    const acciones = TestBed.inject(AccionesDeAdmin);
+
+    const gesto = acciones.borraSeleccion(['i1'], null, vi.fn(), vi.fn());
+    await new Promise((sigue) => setTimeout(sigue, 0));
+    TestBed.inject(DialogoStore).cierra(true);
+    await gesto;
+
+    expect(borraVideo).not.toHaveBeenCalled();
+  });
 });

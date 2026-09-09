@@ -124,7 +124,7 @@ const CONFIRMACION_MS = 2000;
               (activaChange)="eligeFoto($event)"
               (interactua)="pase.cancela()"
               (borraImagen)="admin.borraImagen($event, () => quitaFotos([$event]))"
-              (borraImagenes)="admin.borraImagenes($event, quitaFotos)"
+              (borraSeleccion)="admin.borraSeleccion($event.imagenes, $event.video ? producto.id : null, quitaFotos, quitaVideo)"
               (borraVideo)="admin.borraVideo(producto.id, quitaVideo)"
               (reordena)="admin.reordena(producto.id, $event, () => reordenaFotos($event))"
             />
@@ -147,7 +147,7 @@ const CONFIRMACION_MS = 2000;
           (marcaFavorito)="marcaFavorito(producto.id)"
           (eligeColor)="eligeColor($event)"
           (cambia)="cambiaTalla($event)"
-          (borraVariante)="admin.borraVariante($event, recarga)"
+          (borraVariante)="admin.borraVariante($event, refrescaEnSilencio)"
           (filtraPorGrupo)="filtraPorGrupo()"
           (recarga)="recarga()"
           (actualizada)="aplica($event)"
@@ -312,6 +312,27 @@ export class FichaPage {
     this.datos.reload();
   };
 
+  /**
+   * Vuelve a pedir la ficha y la aplica SIN pasar por el estado de carga.
+   *
+   * <p>Para los gestos que cambian varias partes a la vez —borrar un color se lleva por delante sus
+   * variantes, sus fotos y puede mover el precio— y que no devuelven la ficha ya recalculada. Rehacer
+   * a mano todo eso en el navegador sería mantener una segunda copia de las reglas del backend.
+   *
+   * <p>La diferencia con `recarga()` es la que se ve: `reload()` deja el recurso en «cargando», la
+   * pantalla se vacía y vuelve a montarse desde arriba, con su salto. Aquí se pide lo mismo y se
+   * cambia solo el dato, así que se repinta lo que cambió y la vista se queda donde estaba.
+   *
+   * <p>Si la lectura falla no se toca nada: es mejor una ficha un instante desactualizada que una
+   * pantalla en blanco por un fallo de red al refrescar.
+   */
+  protected readonly refrescaEnSilencio = async (): Promise<void> => {
+    const resultado = await this.abre.ejecuta(this.slug());
+    if (resultado.ok && resultado.valor) {
+      this.ficha.set(resultado.valor);
+    }
+  };
+
   constructor() {
     void inject(RECUPERADOR_DE_SESION)
       .asegura()
@@ -432,7 +453,7 @@ export class FichaPage {
       return;
     }
     evento.preventDefault();
-    void this.admin.copiaFotoDeVariante(ficha.id, direccion, this.recarga);
+    void this.admin.copiaFotoDeVariante(ficha.id, direccion, this.refrescaEnSilencio);
   }
 
   /** Mete en la cesta lo elegido y devuelve cuántas unidades ACEPTÓ de verdad. */

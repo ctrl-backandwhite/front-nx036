@@ -2243,6 +2243,7 @@ const diccionario: Record<string, string> = {
   'pdp.seller.contact': 'Customer support',
   'reviews.name_locked': 'Your account name (not editable)',
   'admin.catalog.video.delete': 'Remove video',
+  'admin.catalog.video.select': 'Select the video',
   'admin.catalog.video.delete_confirm': 'Delete the product video?',
   'admin.catalog.video.deleted': 'Video deleted',
   'admin.catalog.video.error': 'Could not delete the video',

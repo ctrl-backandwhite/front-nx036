@@ -248,10 +248,10 @@ describe('GaleriaFicha', () => {
     });
 
     it('quien administra puede marcar y las quita de una', async () => {
-      const lotes: (readonly string[])[] = [];
+      const lotes: { imagenes: readonly string[]; video: boolean }[] = [];
       const { container } = await render(GaleriaFicha, {
         inputs: { fotos: FOTOS, titulo: 'Gorro', activa: 0, puedeEditar: true },
-        on: { borraImagenes: (ids: readonly string[]) => lotes.push(ids) },
+        on: { borraSeleccion: (lote: { imagenes: readonly string[]; video: boolean }) => lotes.push(lote) },
       });
 
       const casillas = [...container.querySelectorAll<HTMLInputElement>('input[type=checkbox]')];
@@ -263,7 +263,7 @@ describe('GaleriaFicha', () => {
       const quitar = botones.find((b) => b.className.includes('btn-error'))!;
       await userEvent.click(quitar);
 
-      expect(lotes).toEqual([['a', 'c']]);
+      expect(lotes).toEqual([{ imagenes: ['a', 'c'], video: false }]);
     });
 
     /** Sin nada marcado la barra no está: un botón de borrar que no borra nada solo estorba. */
@@ -276,6 +276,80 @@ describe('GaleriaFicha', () => {
         b.className.includes('btn-error'),
       );
       expect(conError).toHaveLength(0);
+    });
+
+    /**
+     * La casilla marcada tiene que VERSE marcada. El fondo blanco que la hace visible sobre la foto se
+     * estaba aplicando también al estado marcado —la utilidad gana al componente—, así que la marca
+     * quedaba blanca sobre blanco: se seleccionaban tres fotos, la barra decía «3 seleccionadas» y no
+     * se veía ninguna marcada.
+     */
+    it('la casilla marcada queda marcada de verdad', async () => {
+      const { container } = await render(GaleriaFicha, {
+        inputs: { fotos: FOTOS, titulo: 'Gorro', activa: 0, puedeEditar: true },
+      });
+      const casillas = [...container.querySelectorAll<HTMLInputElement>('input[type=checkbox]')];
+
+      await userEvent.click(casillas[0]);
+
+      expect(casillas[0].checked).toBe(true);
+      expect(casillas[1].checked).toBe(false);
+      // El blanco solo mientras está vacía: si se aplicara siempre, taparía el color del marcado.
+      expect(casillas[0].className).toContain('[&:not(:checked)]:bg-white/90');
+    });
+
+    /**
+     * El vídeo se marca como una foto más. Quien limpia una galería lo quiere quitar en el mismo
+     * gesto, no con una segunda vuelta y una segunda pregunta.
+     */
+    it('el vídeo también se puede marcar, y va en el mismo lote', async () => {
+      const lotes: { imagenes: readonly string[]; video: boolean }[] = [];
+      const { container } = await render(GaleriaFicha, {
+        inputs: {
+          fotos: FOTOS,
+          titulo: 'Gorro',
+          activa: 0,
+          puedeEditar: true,
+          urlDelVideo: 'clip.mp4',
+        },
+        on: { borraSeleccion: (lote: { imagenes: readonly string[]; video: boolean }) => lotes.push(lote) },
+      });
+
+      // La miniatura del vídeo va la PRIMERA de la tira, así que su casilla también.
+      const [video, primeraFoto] = [
+        ...container.querySelectorAll<HTMLInputElement>('input[type=checkbox]'),
+      ];
+      expect(container.querySelectorAll('input[type=checkbox]')).toHaveLength(4);
+      await userEvent.click(primeraFoto);
+      await userEvent.click(video);
+
+      const quitar = [...container.querySelectorAll<HTMLButtonElement>('button')].find((b) =>
+        b.className.includes('btn-error'),
+      )!;
+      await userEvent.click(quitar);
+
+      expect(lotes).toEqual([{ imagenes: ['a'], video: true }]);
+    });
+
+    /** Marcar SOLO el vídeo ya basta para que aparezca la barra: es una cosa que quitar. */
+    it('marcar solo el vídeo enseña la barra de borrado', async () => {
+      const { container } = await render(GaleriaFicha, {
+        inputs: {
+          fotos: FOTOS,
+          titulo: 'Gorro',
+          activa: 0,
+          puedeEditar: true,
+          urlDelVideo: 'clip.mp4',
+        },
+      });
+      const [video] = [...container.querySelectorAll<HTMLInputElement>('input[type=checkbox]')];
+
+      await userEvent.click(video);
+
+      const conError = [...container.querySelectorAll('button')].filter((b) =>
+        b.className.includes('btn-error'),
+      );
+      expect(conError).toHaveLength(1);
     });
 
     /**

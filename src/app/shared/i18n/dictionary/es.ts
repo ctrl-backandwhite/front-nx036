@@ -2220,6 +2220,7 @@ const diccionario: Record<string, string> = {
   'pdp.seller.contact': 'Atención al cliente',
   'reviews.name_locked': 'Tu nombre de usuario (no editable)',
   'admin.catalog.video.delete': 'Eliminar vídeo',
+  'admin.catalog.video.select': 'Seleccionar el vídeo',
   'admin.catalog.video.delete_confirm': '¿Eliminar el vídeo del producto?',
   'admin.catalog.video.deleted': 'Vídeo eliminado',
   'admin.catalog.video.error': 'No se pudo eliminar el vídeo',

@@ -2259,6 +2259,7 @@ const diccionario: Record<string, string> = {
   'pdp.seller.contact': '客户服务',
   'reviews.name_locked': '您的账户名称（不可编辑）',
   'admin.catalog.video.delete': '删除视频',
+  'admin.catalog.video.select': '选择视频',
   'admin.catalog.video.delete_confirm': '删除该商品的视频？',
   'admin.catalog.video.deleted': '视频已删除',
   'admin.catalog.video.error': '无法删除视频',

@@ -46,11 +46,30 @@ export class AccionesDeAdmin {
    * que se anuncia como éxito deja a quien administra creyendo que la galería quedó limpia.
    */
   async borraImagenes(ids: readonly string[], alTerminar: (borradas: readonly string[]) => void): Promise<void> {
-    if (ids.length === 0) {
+    return this.borraSeleccion(ids, null, alTerminar, () => undefined);
+  }
+
+  /**
+   * Quita lo marcado en la galería —fotos y, si se marcó, el vídeo— con UNA sola pregunta.
+   *
+   * <p>El vídeo entra aquí y no por su propio gesto porque quien marca cuatro cosas y pulsa «eliminar
+   * seleccionadas» espera que le pregunten una vez, no dos: una por las fotos y otra por el vídeo. Va
+   * al final del borrado a propósito, para que un fallo suyo no impida quitar las fotos.
+   *
+   * @param idDelProductoConVideo el producto cuyo vídeo hay que quitar, o {@code null} si no se marcó
+   */
+  async borraSeleccion(
+    ids: readonly string[],
+    idDelProductoConVideo: string | null,
+    alTerminar: (borradas: readonly string[]) => void,
+    alQuitarElVideo: () => void,
+  ): Promise<void> {
+    const cuantas = ids.length + (idDelProductoConVideo ? 1 : 0);
+    if (cuantas === 0) {
       return;
     }
     const confirmado = await this.dialogo.confirma(
-      this.traduccion.tCon('admin.catalog.images.delete_selected_confirm', { n: ids.length }),
+      this.traduccion.tCon('admin.catalog.images.delete_selected_confirm', { n: cuantas }),
     );
     if (!confirmado) {
       return;
@@ -63,17 +82,26 @@ export class AccionesDeAdmin {
         borradas.push(id);
       }
     }
-    if (borradas.length < ids.length) {
+    let videoFuera = false;
+    if (idDelProductoConVideo) {
+      videoFuera = (await editor.borraVideo(idDelProductoConVideo)).ok;
+    }
+    const pedidas = ids.length + (idDelProductoConVideo ? 1 : 0);
+    const hechas = borradas.length + (videoFuera ? 1 : 0);
+    if (hechas < pedidas) {
       this.avisos.error(
         this.traduccion.tCon('admin.catalog.images.partial', {
-          ok: borradas.length,
-          fail: ids.length - borradas.length,
+          ok: hechas,
+          fail: pedidas - hechas,
         }),
       );
     } else {
       this.avisos.exito(this.t('admin.catalog.images.deleted'));
     }
     alTerminar(borradas);
+    if (videoFuera) {
+      alQuitarElVideo();
+    }
   }
 
   async borraVideo(idDelProducto: string, alTerminar: () => void): Promise<void> {

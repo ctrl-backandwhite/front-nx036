@@ -1443,6 +1443,7 @@ const diccionario: Record<string, string> = {
   'pdp.seller.contact': 'Klantenservice',
   'reviews.name_locked': 'Je accountnaam (niet bewerkbaar)',
   'admin.catalog.video.delete': 'Video verwijderen',
+  'admin.catalog.video.select': 'Selecteer de video',
   'admin.catalog.video.delete_confirm': 'Productvideo verwijderen?',
   'admin.catalog.video.deleted': 'Video verwijderd',
   'admin.catalog.video.error': 'Kan de video niet verwijderen',

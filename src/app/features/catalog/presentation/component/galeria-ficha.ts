@@ -43,7 +43,7 @@ import { VisorGaleria } from './visor-galeria';
           confirmación cada vez: limpiar una galería de ocho fotos del proveedor eran ocho gestos y ocho
           preguntas. Ahora se marcan y se quitan de una, con UNA sola pregunta que dice cuántas son.
         -->
-        @if (puedeEditar() && marcadas().size > 0) {
+        @if (puedeEditar() && cuantasMarcadas() > 0) {
           <div class="sticky top-0 z-10 flex flex-col gap-1 rounded-lg border border-primary/30 bg-primary/10 p-1.5">
             <span class="text-[10px] font-medium">{{ textoDeMarcadas() }}</span>
             <button
@@ -82,6 +82,20 @@ import { VisorGaleria } from './visor-galeria';
               </span>
             </button>
             @if (puedeEditar()) {
+              <!-- El vídeo se marca como una foto más: quien limpia una galería lo quiere quitar en el
+                   mismo gesto, no con una segunda vuelta y una segunda pregunta. -->
+              <label
+                class="absolute top-0.5 left-0.5 z-20 cursor-pointer"
+                [title]="t('admin.catalog.images.select')"
+              >
+                <input
+                  type="checkbox"
+                  class="checkbox checkbox-xs checkbox-primary [&:not(:checked)]:bg-white/90"
+                  [checked]="videoMarcado()"
+                  (change)="alternaVideo()"
+                  [attr.aria-label]="t('admin.catalog.video.select')"
+                />
+              </label>
               <button
                 type="button"
                 (click)="borraVideo.emit(); $event.stopPropagation()"
@@ -129,9 +143,15 @@ import { VisorGaleria } from './visor-galeria';
                 class="absolute top-0.5 left-0.5 z-20 cursor-pointer"
                 [title]="t('admin.catalog.images.select')"
               >
+                <!-- El fondo blanco SOLO cuando no está marcada. Puesto sin condición pisaba el
+                     color con el que se pinta el estado marcado —la utilidad de Tailwind gana al
+                     componente—, así que la casilla se quedaba blanca y la marca, blanca sobre
+                     blanco: se seleccionaban tres fotos, la barra decía «3 seleccionadas» y no se
+                     veía ni una marcada. El blanco hace falta para que la casilla se distinga sobre
+                     la foto, pero solo mientras está vacía. -->
                 <input
                   type="checkbox"
-                  class="checkbox checkbox-xs checkbox-primary bg-white/90"
+                  class="checkbox checkbox-xs checkbox-primary [&:not(:checked)]:bg-white/90"
                   [checked]="marcadas().has(foto.id)"
                   (change)="alterna(foto.id)"
                   [attr.aria-label]="t('admin.catalog.images.select') + ' ' + (i + 1)"
@@ -291,8 +311,14 @@ export class GaleriaFicha {
   readonly interactua = output<void>();
   readonly borraImagen = output<string>();
 
-  /** Varias de una vez. Va aparte de `borraImagen` porque quien lo monta pregunta UNA sola vez. */
-  readonly borraImagenes = output<readonly string[]>();
+  /**
+   * Lo marcado en la galería, de una vez: las fotos y —si se marcó— el vídeo.
+   *
+   * <p>Va aparte de `borraImagen` porque quien lo monta pregunta UNA sola vez, y lleva el vídeo dentro
+   * en vez de emitirse junto a `borraVideo` porque si no serían dos preguntas seguidas para un solo
+   * gesto: quien marca cuatro cosas y pulsa «eliminar seleccionadas» espera que le pregunten una.
+   */
+  readonly borraSeleccion = output<{ imagenes: readonly string[]; video: boolean }>();
   readonly borraVideo = output<void>();
   readonly reordena = output<readonly string[]>();
 
@@ -319,8 +345,25 @@ export class GaleriaFicha {
     computation: () => new Set<string>(),
   });
 
+  /**
+   * ¿Está marcado el vídeo para quitarlo?
+   *
+   * <p>Va aparte de las fotos porque el vídeo no es una de ellas: no está en la lista de imágenes, se
+   * borra con otra llamada y no se puede reordenar. Se desmarca solo cuando el vídeo cambia o
+   * desaparece, por lo mismo que la selección de fotos se vacía al cambiar la galería.
+   */
+  protected readonly videoMarcado = linkedSignal<string | undefined, boolean>({
+    source: () => this.urlDelVideo(),
+    computation: () => false,
+  });
+
+  /** Lo marcado en total: es lo que decide si aparece la barra y lo que dice el recuento. */
+  protected readonly cuantasMarcadas = computed(
+    () => this.marcadas().size + (this.videoMarcado() ? 1 : 0),
+  );
+
   protected readonly textoDeMarcadas = computed(() =>
-    this.tCon('admin.catalog.images.selected', { n: this.marcadas().size }),
+    this.tCon('admin.catalog.images.selected', { n: this.cuantasMarcadas() }),
   );
 
   protected alterna(id: string): void {
@@ -333,12 +376,17 @@ export class GaleriaFicha {
     });
   }
 
+  protected alternaVideo(): void {
+    this.videoMarcado.update((marcado) => !marcado);
+  }
+
   protected limpiaSeleccion(): void {
     this.marcadas.set(new Set<string>());
+    this.videoMarcado.set(false);
   }
 
   protected borraLasMarcadas(): void {
-    this.borraImagenes.emit([...this.marcadas()]);
+    this.borraSeleccion.emit({ imagenes: [...this.marcadas()], video: this.videoMarcado() });
   }
   protected readonly ampliada = signal(false);
   protected readonly arrastrada = signal<number | null>(null);
