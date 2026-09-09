@@ -136,6 +136,79 @@ describe('BasculaVariantes', () => {
     expect(screen.getByText('Negro')).toBeInTheDocument();
     expect(screen.getByText('250')).toBeInTheDocument();
   });
+
+  /**
+   * Un valor en ideogramas sin traducción es un fallo a la vista: quien navega en español lee
+   * «卡其色【牛筋软底】» en una tabla donde todo lo demás está en su idioma.
+   *
+   * <p>Pasa cuando una variante quedó con un valor que ya no figura entre las opciones declaradas del
+   * producto —una carga vieja corregida a medias—. Esa variante ni siquiera se puede elegir en la
+   * ficha, así que además de ilegible es inalcanzable: el guion dice «no lo sé» sin fingir nada.
+   */
+  it('no enseña ideogramas cuando no hay traducción', async () => {
+    const huerfana = ficha({
+      variantes: [
+        {
+          id: 'v',
+          existencias: 1,
+          opciones: { Color: '卡其色【牛筋软底】' },
+          activa: true,
+          pesoGramos: 1000,
+        },
+      ],
+      ejesDeVariante: [
+        {
+          id: 'color',
+          nombreZh: '颜色',
+          nombre: 'Color',
+          posicion: 0,
+          valores: [{ id: '1', valorZh: '卡其色', valorLocalizado: 'Caqui', posicion: 0 }],
+        },
+      ],
+    });
+
+    const { container } = await render(BasculaVariantes, { inputs: { ficha: huerfana } });
+
+    expect(container.textContent).not.toContain('卡其色');
+    expect(container.textContent).toContain('—');
+    // La fila NO desaparece: el peso y la talla siguen siendo datos ciertos de una variante que existe.
+    expect(screen.getByText('1000')).toBeInTheDocument();
+  });
+
+  /**
+   * Una variante desactivada no se puede comprar, así que su peso no le sirve a nadie: la tabla
+   * prometía pesos de combinaciones que no se pueden pedir. Y como la retirada suele ser justo la que
+   * arrastra datos viejos, era también por donde asomaba el chino sin traducir.
+   */
+  it('no lista las variantes desactivadas', async () => {
+    const conRetirada = ficha({
+      variantes: [
+        { id: 'viva', existencias: 1, opciones: { Talla: '36' }, activa: true, pesoGramos: 300 },
+        { id: 'muerta', existencias: 9, opciones: { Talla: '44' }, activa: false, pesoGramos: 999 },
+      ],
+      ejesDeVariante: [],
+    });
+
+    const { container } = await render(BasculaVariantes, { inputs: { ficha: conRetirada } });
+
+    expect(container.textContent).toContain('300');
+    expect(container.textContent).not.toContain('999');
+    expect(container.textContent).not.toContain('44');
+  });
+
+  /** Lo que no lleva ideogramas se enseña tal cual: una talla («37») no se traduce. */
+  it('deja pasar los valores que no son chinos aunque no estén traducidos', async () => {
+    const conTalla = ficha({
+      variantes: [
+        { id: 'v', existencias: 1, opciones: { Talla: '37' }, activa: true, pesoGramos: 300 },
+      ],
+      ejesDeVariante: [],
+    });
+
+    const { container } = await render(BasculaVariantes, { inputs: { ficha: conTalla } });
+
+    expect(container.textContent).toContain('37');
+  });
 });
 
 describe('BloquePrecio', () => {

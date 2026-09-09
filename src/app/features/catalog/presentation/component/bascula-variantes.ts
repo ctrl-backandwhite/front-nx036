@@ -83,7 +83,15 @@ export class BasculaVariantes {
   protected readonly tope = TOPE_ANTES_DE_COLAPSAR;
   protected readonly desplegada = signal(false);
 
-  protected readonly variantes = computed(() => this.ficha().variantes);
+  /**
+   * Solo las variantes ACTIVAS.
+   *
+   * <p>Una variante desactivada no se puede comprar, así que su peso y sus medidas no le sirven a
+   * nadie: la tabla estaba prometiendo pesos de combinaciones que no se pueden pedir. Y como una
+   * variante retirada suele ser justo la que quedó con datos viejos —un color que ya no figura entre
+   * las opciones del producto—, era también por donde asomaban los valores en chino sin traducir.
+   */
+  protected readonly variantes = computed(() => this.ficha().variantes.filter((v) => v.activa));
   protected readonly hayDatos = computed(() => hayBascula(this.variantes()));
   protected readonly ejes = computed(() => Object.keys(this.variantes()[0]?.opciones ?? {}));
   protected readonly colapsable = computed(() => this.variantes().length > TOPE_ANTES_DE_COLAPSAR);
@@ -114,7 +122,27 @@ export class BasculaVariantes {
 
   protected valorDelEje(variante: VarianteDeProducto, eje: string): string {
     const crudo = variante.opciones[eje];
-    return (crudo && (this.traduccionDeValor().get(crudo) ?? crudo)) || '—';
+    if (!crudo) {
+      return '—';
+    }
+    const traducido = this.traduccionDeValor().get(crudo);
+    if (traducido) {
+      return traducido;
+    }
+    // Sin traducción se enseña el valor tal cual vino, que para las tallas y los códigos es lo
+    // correcto —«37» no se traduce—. Pero si son IDEOGRAMAS y no se está mirando en chino, eso es
+    // enseñar un fallo: quien navega en español ve «卡其色【牛筋软底】» en una tabla donde todo lo
+    // demás está en su idioma.
+    //
+    // Ocurre cuando una variante quedó con un valor que ya no está entre las opciones declaradas del
+    // producto —una carga vieja que se corrigió a medias—: esa variante ni siquiera se puede elegir
+    // en la ficha, así que además de ilegible es inalcanzable. El guion dice «no lo sé» sin fingir.
+    return this.esChino(crudo) && this.preferencias.idioma() !== 'zh' ? '—' : crudo;
+  }
+
+  /** ¿Lleva ideogramas? Basta con encontrar uno: un valor mixto tampoco se puede leer en español. */
+  private esChino(valor: string): boolean {
+    return /[\u4e00-\u9fff]/.test(valor);
   }
 
   protected cm(milimetros?: number): string {
