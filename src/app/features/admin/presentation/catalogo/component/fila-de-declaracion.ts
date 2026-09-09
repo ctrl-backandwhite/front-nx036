@@ -125,6 +125,6 @@ export class FilaDeDeclaracion {
   );
 
   protected readonly sePuedeAprobar = computed(() =>
-    puedeAprobarse(this.modelo().ingles, this.grupo()),
+    puedeAprobarse(this.modelo().ingles),
   );
 }

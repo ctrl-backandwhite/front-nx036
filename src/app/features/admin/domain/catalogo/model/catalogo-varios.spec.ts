@@ -102,19 +102,11 @@ describe('grupo-de-declaracion', () => {
 
   /**
    * «Goods of HS heading 620342» es el relleno con el que nace un grupo cuya partida no está en la
-   * nomenclatura: describe un número, no una mercancía. Firmarlo lo pone así en la declaración.
+   * nomenclatura. Se marca —la fila lo enseña como «Sin redactar»— pero NO se impide firmarlo: es lo
+   * que se hace en producción y la responsabilidad de lo declarado es de quien firma.
    */
-  it('el relleno de la partida no se puede firmar tal cual', () => {
-    const relleno = { ...grupo, sinRedactar: true, nombreEn: 'Goods of HS heading 620342' };
-
-    expect(puedeAprobarse('Goods of HS heading 620342', relleno)).toBe(false);
-  });
-
-  /** Escrita la descripción se firma sin recargar: se mira lo TECLEADO, no lo que trajo el servidor. */
-  it('redactado a mano, se puede firmar aunque el servidor aún lo diera por relleno', () => {
-    const relleno = { ...grupo, sinRedactar: true, nombreEn: 'Goods of HS heading 620342' };
-
-    expect(puedeAprobarse("Men's or boys' trousers, of cotton", relleno)).toBe(true);
+  it('el relleno de la partida se marca, pero no impide firmar', () => {
+    expect(puedeAprobarse('Goods of HS heading 620342')).toBe(true);
   });
 
   it('solo hay algo que guardar si el texto cambió', () => {

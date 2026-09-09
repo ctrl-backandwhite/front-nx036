@@ -30,17 +30,16 @@ export interface GrupoDeDeclaracion {
   readonly aprobadoPor?: string;
 }
 
-/** Sin descripción en inglés el transportista rechazaría la guía, así que no se puede aprobar. */
-export function puedeAprobarse(nombreEn: string, grupo?: GrupoDeDeclaracion): boolean {
-  if (nombreEn.trim() === '') {
-    return false;
-  }
-  // El relleno con el que nació el grupo —«Goods of HS heading 611212»— no describe una mercancía,
-  // describe un número. Firmarlo lo pone tal cual en la declaración ante la aduana del destino, que
-  // es como se retiene un paquete. Sin aprobar es inofensivo: cada producto va en su línea y se paga
-  // de más. Deja de serlo cuando alguien lo edita, y por eso se mira lo TECLEADO y no el estado que
-  // trae el servidor: escrita la descripción, se puede firmar sin recargar.
-  return !(grupo?.sinRedactar ?? false) || nombreEn.trim() !== (grupo?.nombreEn ?? '').trim();
+/**
+ * Sin descripción en inglés el transportista rechazaría la guía, así que no se puede aprobar.
+ *
+ * <p>Que el texto siga siendo el relleno de la partida —«Goods of HS heading 611212»— NO lo impide:
+ * es lo que se firma en producción, y quien firma responde de lo que se declara. La fila lo marca
+ * como «Sin redactar» para que se vea lo que se está firmando; decidirlo por quien tiene la
+ * responsabilidad sería otra cosa.
+ */
+export function puedeAprobarse(nombreEn: string): boolean {
+  return nombreEn.trim() !== '';
 }
 
 /** ¿Se ha tocado el texto respecto a lo que guarda el servidor? Sin cambios no hay nada que guardar. */
