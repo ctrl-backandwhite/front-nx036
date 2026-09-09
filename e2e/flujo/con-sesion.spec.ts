@@ -1,5 +1,5 @@
 import { BrowserContext, Page, expect, test } from '@playwright/test';
-import { ANGULAR, REACT, abre } from '../util/comparador';
+import { ANGULAR, abre } from '../util/comparador';
 
 /**
  * Certificación con SESIÓN, recorriendo la aplicación como lo haría una persona.
@@ -44,10 +44,13 @@ function buscaSlug(dato: unknown, profundidad = 0): string | undefined {
   return undefined;
 }
 
-const FRONTS = [
-  { nombre: 'React', base: REACT },
-  { nombre: 'Angular', base: ANGULAR },
-] as const;
+/**
+ * Un solo frente. El React se retiró del repositorio el 9-sep-2026 y con él la mitad de esta
+ * certificación dejó de EJECUTARSE —no de fallar—, que es la forma más silenciosa de perder
+ * cobertura. Se deja la lista para no reescribir el recorrido: si algún día hay otro frente, entra
+ * aquí.
+ */
+const FRONTS = [{ nombre: 'Angular', base: ANGULAR }] as const;
 
 /**
  * Sesiones ya abiertas, guardadas para no volver a pedirlas.

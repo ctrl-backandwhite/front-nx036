@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { ANGULAR, REACT, abre } from '../util/comparador';
+import { ANGULAR, abre } from '../util/comparador';
 
 /**
  * Dimensión E: rendimiento comparado.
@@ -71,29 +71,55 @@ async function mide(page: import('@playwright/test').Page, url: string): Promise
 
 const PANTALLAS = ['/', '/pricing', '/about', '/contact'];
 
-test.describe('rendimiento comparado', () => {
+/**
+ * Presupuesto de descarga y de tiempo hasta ver el contenido.
+ *
+ * <p>Antes el listón era el front anterior —«no vayas peor que él»—. Retirado aquél (9-sep-2026), un
+ * listón relativo a algo que no existe no es un listón, así que se fija en ABSOLUTO. Los números
+ * salen de lo que la aplicación mide hoy, redondeados hacia arriba con holgura: no son un objetivo
+ * de mejora, son un techo que avisa si algo se dispara. Bajarlos es trabajo; subirlos, una decisión
+ * que hay que justificar aquí mismo.
+ */
+const PRESUPUESTO: Readonly<Record<string, { kilobytes: number; contenidoPrincipalMs: number }>> = {
+  /*
+   * LA PORTADA ES UN CASO APARTE, y el número está aquí para que no se pueda ignorar: descarga
+   * 11,8 MB en móvil y 17,6 MB en escritorio, entre 79 y 120 peticiones, cuando el resto de
+   * pantallas públicas se mueven entre 483 y 601 kB. Son veinte veces más. El grueso son las fotos
+   * de los carruseles de producto, que se piden todas aunque solo se vean tres.
+   *
+   * El techo se fija en 20 MB —lo medido con holgura— para que la certificación avise si empeora,
+   * NO porque 20 MB sea aceptable. Bajar esto es trabajo pendiente declarado, no una meta difusa.
+   */
+  '/': { kilobytes: 20_000, contenidoPrincipalMs: 4_000 },
+  // El resto sí están en un tamaño razonable; el techo va ceñido para que no se deslicen.
+  '/pricing': { kilobytes: 900, contenidoPrincipalMs: 4_000 },
+  '/about': { kilobytes: 900, contenidoPrincipalMs: 4_000 },
+  '/contact': { kilobytes: 900, contenidoPrincipalMs: 4_000 },
+};
+
+test.describe('rendimiento', () => {
   for (const ruta of PANTALLAS) {
-    test(`${ruta} no va peor que en el React`, async ({ page }) => {
-      const enReact = await mide(page, `${REACT}${ruta}`);
-      const enAngular = await mide(page, `${ANGULAR}${ruta}`);
+    test(`${ruta} entra en el presupuesto de bytes y de tiempo`, async ({ page }) => {
+      const medida = await mide(page, `${ANGULAR}${ruta}`);
 
       // Se informa siempre, pase o falle: el número es el entregable, no el color.
       test.info().annotations.push({
         type: 'medida',
         description:
-          `${ruta} — React: ${Math.round(enReact.bytes / 1024)} kB / ${enReact.peticiones} pet. / ` +
-          `${Math.round(enReact.contenidoPrincipal)} ms · ` +
-          `Angular: ${Math.round(enAngular.bytes / 1024)} kB / ${enAngular.peticiones} pet. / ` +
-          `${Math.round(enAngular.contenidoPrincipal)} ms`,
+          `${ruta} — ${Math.round(medida.bytes / 1024)} kB / ${medida.peticiones} pet. / ` +
+          `${Math.round(medida.contenidoPrincipal)} ms hasta el contenido principal`,
       });
 
-      expect(enAngular.bytes, `${ruta} descarga más bytes que el React`).toBeLessThanOrEqual(
-        enReact.bytes,
-      );
+      const techo = PRESUPUESTO[ruta];
+      expect(techo, `falta el presupuesto declarado de ${ruta}`).toBeDefined();
       expect(
-        enAngular.contenidoPrincipal,
-        `${ruta} tarda más en enseñar el contenido principal que el React`,
-      ).toBeLessThanOrEqual(enReact.contenidoPrincipal * 1.05);
+        Math.round(medida.bytes / 1024),
+        `${ruta} descarga más de lo presupuestado`,
+      ).toBeLessThanOrEqual(techo.kilobytes);
+      expect(
+        Math.round(medida.contenidoPrincipal),
+        `${ruta} tarda de más en enseñar el contenido principal`,
+      ).toBeLessThanOrEqual(techo.contenidoPrincipalMs);
     });
   }
 

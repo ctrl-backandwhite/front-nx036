@@ -267,6 +267,17 @@ test.describe('acciones del cliente', () => {
    * que la cuenta queda como estaba.
    */
   test('marcar un favorito lo guarda, y desmarcarlo lo quita, tras recargar', async ({ page }) => {
+    /*
+     * Plazo propio, y no por capricho: esta prueba hace CUATRO cargas de página —el catálogo, la
+     * lista de favoritos y dos recargas—, y cada una espera a que la pantalla se asiente. Con la
+     * portada y el catálogo en el tamaño que tienen hoy, cuatro cargas no caben en el minuto por
+     * defecto y el resultado era un plazo agotado que parecía un defecto de favoritos.
+     *
+     * Las dos recargas son el sentido de la prueba —lo que se certifica es que el favorito SOBREVIVE,
+     * o sea que se guardó en el servidor y no solo en la pantalla—, así que no se pueden quitar.
+     * Cuando el peso de la portada baje, esto se puede volver a bajar.
+     */
+    test.setTimeout(150_000);
     const errores = vigilaLaConsola(page);
     await enElCatalogo(page);
 
@@ -459,30 +470,29 @@ test.describe('acciones del cliente', () => {
   });
 
   /**
-   * Y la MISMA acción, comparada con el front anterior.
+   * El icono de la cesta abre un CAJÓN encima, sin sacar del catálogo.
    *
-   * <p>Allí el icono abre un CAJÓN lateral sobre la página en la que se está —`<CartDrawer />` montado
-   * en la raíz, `openDrawer()` desde las dos maquetas—, así que se puede mirar la cesta sin perder el
-   * catálogo. El porte tiene el cajón escrito (`nx-cajon-del-carrito`, con sus pruebas de unidad) pero
-   * NO LO MONTA en ninguna parte, y el icono navega a `/cart`. Es el mismo fallo que el diálogo de
-   * confirmación sin montar, y por eso esta comprobación existe: un componente que nadie enseña es
-   * indistinguible de uno que no está.
+   * <p>Es la diferencia entre mirar lo que llevas y perder dónde estabas: si el icono navegara a
+   * `/cart`, volver al sitio exacto del listado —con su filtro y su desplazamiento— dejaría de ser
+   * gratis.
+   *
+   * <p>Se afirma sobre el PANEL y no sobre `nx-cajon-del-carrito`: el elemento anfitrión de un
+   * componente cuyo contenido es `position: fixed` mide 0×0, así que se da por invisible aunque el
+   * cajón ocupe la pantalla entera. Afirmar sobre el anfitrión daba rojo con el cajón funcionando.
    */
-  test('el icono de la cesta abre el cajón sin sacar de la página, como el front anterior', async ({ page }) => {
+  test('el icono de la cesta abre el cajón sin sacar de la página', async ({ page }) => {
     await enElCatalogo(page);
     const titulo = await anadeUnProducto(page);
 
     await page.locator('#nx-cart-icon button').click();
 
-    /* Lo que se exige es el CAJÓN: el componente existe en el porte —`nx-cajon-del-carrito`, con sus
-     * propias pruebas de unidad— y no lo monta nadie, así que el icono navega a `/cart` y se pierde el
-     * catálogo. Se afirma sobre el elemento y no sobre la dirección porque la dirección se lee antes de
-     * que el enrutador termine y daba verde sin que nada hubiera pasado. */
-    await expect(
-      page.locator('nx-cajon-del-carrito'),
-      'el cajón lateral de la cesta no está montado en ninguna parte: el icono saca del catálogo',
-    ).toBeVisible({ timeout: 15_000 });
-    await expect(page.locator('nx-cajon-del-carrito')).toContainText(titulo);
+    const panel = page.locator('nx-cajon-del-carrito .fixed').first();
+    await expect(panel, 'el icono de la cesta no abre el cajón').toBeVisible({ timeout: 15_000 });
+    await expect(panel, 'el cajón no enseña lo que se acaba de añadir').toContainText(titulo);
+    // Y sin haberse movido de sitio: el catálogo sigue debajo.
+    expect(new URL(page.url()).pathname, 'el icono saca del catálogo en vez de abrir el cajón').toBe(
+      '/catalog',
+    );
 
     await quitaDeLaCesta(page, titulo);
   });

@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Result, exito, fallo } from '@shared/result/result';
 import { AppError, creaError } from '@shared/error/app-error';
 import { ANADIR_AL_CARRITO_PORT } from '@features/cart/domain/port/carrito-compartido.port';
+import { fotoParaCompartir } from '../../domain/model/galeria';
 import { ProductoAnadible } from '@features/cart/domain/model/producto-anadible';
 import { FichaDeProducto, ResumenDeProducto, VarianteDeProducto } from '../../domain/model/producto';
 import { etiquetaDeVariante } from '../../domain/model/seleccion-de-variante';
@@ -86,7 +87,11 @@ export class AnadeALaCesta {
       id: ficha.id,
       slug: ficha.slug,
       titulo: ficha.titulo,
-      imagen: ficha.imagenPrincipal,
+      // De la galería, NO de `imagenPrincipal`: el detalle del catálogo no devuelve `mainImage` —solo
+      // lo hace el listado—, así que en la ficha ese campo viene siempre vacío y la línea se guardaba
+      // sin imagen. En la cesta y en el pago salía un hueco gris con el nombre al lado. Se usa la
+      // misma función que elige la foto al compartir: la marcada como principal, y si no, la primera.
+      imagen: ficha.imagenPrincipal ?? fotoParaCompartir(ficha.imagenes),
       precioMostrado: Number(importe),
       divisaMostrada: ficha.precio.divisa ?? 'USD',
       eleccion: {

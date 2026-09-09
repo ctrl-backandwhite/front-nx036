@@ -1,12 +1,6 @@
 import { expect, test } from '@playwright/test';
-import {
-  ANGULAR,
-  REACT,
-  abre,
-  abreEnAmbos,
-  clavesSinTraducir,
-  importes,
-} from '../util/comparador';
+import { ANGULAR, abre, clavesSinTraducir, importes, vigilaLaConsola } from '../util/comparador';
+import { erroresGraves } from '../util/acciones';
 import { RUTAS_PUBLICAS } from '../util/rutas';
 import diccionarioEs from '../../src/app/shared/i18n/dictionary/es';
 
@@ -24,51 +18,24 @@ const sinParametro = (r: string) => !r.includes(':');
 const IDIOMAS = ['es', 'en', 'pt', 'zh', 'fr', 'de', 'it', 'nl'] as const;
 
 test.describe('paridad de contenido', () => {
+  /*
+   * AQUÍ HABÍA dos comparaciones —«enseña las mismas secciones» y «los mismos importes, al
+   * céntimo»— contra el front anterior. Se retiran con él (9-sep-2026): comparaban dos aplicaciones
+   * y, sin la segunda, no afirman nada. Lo que sí tiene sentido por sí solo se queda abajo.
+   */
   for (const ruta of RUTAS_PUBLICAS.filter(sinParametro)) {
     /**
-     * Se comparan los ENCABEZADOS, no el texto entero.
+     * Ni un error de consola en una pantalla pública.
      *
-     * <p>Comparar todo el texto entre dos implementaciones distintas da más ruido que señal: un salto
-     * de línea, un espacio o el orden de dos avisos lo rompen sin que nadie vea diferencia alguna en
-     * la pantalla. Lo que sí tiene que coincidir es lo que la página DICE de sí misma, y eso son sus
-     * títulos: si falta uno, falta una sección entera.
+     * <p>Antes esto se medía contra el ruido del front anterior —«no añadas errores nuevos»—, lo que
+     * hacía heredar los suyos en silencio. Sin él, el listón es el que debía ser desde el principio:
+     * una pantalla que el público ve no escribe errores.
      */
-    test(`${ruta} enseña las mismas secciones`, async ({ page }) => {
-      const encabezados = async () =>
-        (await page.locator('h1, h2').allInnerTexts()).map((s) => s.replace(/\s+/g, ' ').trim()).filter(Boolean).sort();
-
-      await abre(page, `${REACT}${ruta}`);
-      const enReact = await encabezados();
+    test(`${ruta} no escribe errores de consola`, async ({ page }) => {
+      const errores = vigilaLaConsola(page);
       await abre(page, `${ANGULAR}${ruta}`);
-      const enAngular = await encabezados();
 
-      const faltan = enReact.filter((h) => !enAngular.includes(h));
-      expect(faltan, `${ruta} pierde secciones que el front anterior sí enseña`).toEqual([]);
-    });
-
-    /**
-     * Los importes van aparte y se comparan AL CÉNTIMO. Es donde se esconden los fallos que importan:
-     * una divisa mal formateada, un margen aplicado dos veces, un envío que no suma. Comparados dentro
-     * del texto general se diluirían entre miles de caracteres.
-     */
-    test(`${ruta} enseña los mismos importes, al céntimo`, async ({ page }) => {
-      const { react, angular } = await abreEnAmbos(page, ruta);
-      expect(angular.importes, `los importes de ${ruta} no cuadran con los del React`).toEqual(
-        react.importes,
-      );
-    });
-
-    /**
-     * La consola se compara CONTRA el React, no contra cero: el original tiene su propio nivel de
-     * ruido y exigir silencio absoluto convertiría la certificación en una lista de falsos positivos.
-     * Lo que no se tolera es que el porte añada errores nuevos.
-     */
-    test(`${ruta} no añade errores de consola`, async ({ page }) => {
-      const { react, angular } = await abreEnAmbos(page, ruta);
-      expect(
-        angular.errores.length,
-        `errores nuevos en ${ruta}: ${angular.errores.slice(0, 3).join(' · ')}`,
-      ).toBeLessThanOrEqual(react.errores.length);
+      expect(erroresGraves(errores), `errores de consola en ${ruta}`).toEqual([]);
     });
   }
 

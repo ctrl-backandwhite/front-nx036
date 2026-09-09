@@ -137,23 +137,17 @@ export async function buscaEnElCatalogo(page: Page, texto: string): Promise<void
 
   /* El criterio vive en la DIRECCIÓN: hasta que el texto no llega ahí, la consulta no ha salido.
    *
-   * Y a veces no llega a la primera. Si la pantalla todavía estaba resolviendo su navegación inicial,
-   * la que lanza el buscador se descarta y lo tecleado se queda solo en el campo: la prueba se pasaba
-   * treinta segundos esperando un número que ya no iba a cambiar. Se comprueba que ha llegado y, si no,
-   * se vuelve a escribir una vez. */
-  const llego = async () =>
-    page
-      .waitForFunction((t) => new URL(location.href).searchParams.get('q') === t, texto, {
-        timeout: 6_000,
-      })
-      .then(() => true)
-      .catch(() => false);
-
-  if (!(await llego())) {
-    await campo.fill('');
-    await campo.fill(texto);
-    expect(await llego(), 'lo tecleado en el buscador no llega a la dirección').toBe(true);
-  }
+   * Aquí había un rodeo —vaciar el campo y volver a escribir cuando no llegaba a la primera— porque
+   * el enrutador descartaba la navegación si la pantalla aún estaba resolviendo la suya inicial, y
+   * nadie reintentaba: lo tecleado se quedaba solo dentro del campo. Ese rodeo TAPABA el defecto, y
+   * la certificación pasaba en verde mientras a una persona se le moría la búsqueda. Ahora se espera
+   * y se exige, sin más: si vuelve a fallar, tiene que fallar aquí. */
+  await expect
+    .poll(
+      () => page.evaluate(() => new URL(location.href).searchParams.get('q')),
+      { message: 'lo tecleado en el buscador no llega a la dirección', timeout: 10_000 },
+    )
+    .toBe(texto);
 }
 
 /**

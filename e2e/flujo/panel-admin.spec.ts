@@ -1,5 +1,5 @@
 import { Page, expect, test } from '@playwright/test';
-import { ANGULAR, REACT, abre, vigilaLaConsola } from '../util/comparador';
+import { ANGULAR, abre, vigilaLaConsola } from '../util/comparador';
 import { RUTAS_DE_PANEL } from '../util/rutas';
 
 /**
@@ -63,7 +63,8 @@ async function entraComoAdmin(page: Page, base: string): Promise<void> {
   guardadas.set(base, { cookies: estado.cookies, almacen });
 }
 
-for (const front of [{ nombre: 'Angular', base: ANGULAR }, { nombre: 'React', base: REACT }] as const) {
+// El React se retiró el 9-sep-2026: queda un solo frente que certificar.
+for (const front of [{ nombre: 'Angular', base: ANGULAR }] as const) {
   test.describe(`${front.nombre} · panel de administración`, () => {
     for (const ruta of RUTAS) {
       test(`${ruta} abre`, async ({ page }) => {
@@ -96,7 +97,21 @@ for (const front of [{ nombre: 'Angular', base: ANGULAR }, { nombre: 'React', ba
         expect(contenido, `${ruta} responde «no encontrada»`).not.toMatch(
           /\b404\b|página no encontrada|not found/i,
         );
-        expect(contenido.length, `${ruta} llega en blanco`).toBeGreaterThan(120);
+        /* Una pantalla legítimamente VACÍA no es una pantalla rota.
+         *
+         * Contar caracteres a secas marcaba en rojo `/admin/support` en el móvil por una razón que no
+         * es un defecto: en la base local hay cero tickets, así que la pantalla enseña su estado
+         * vacío —correcto— y ese texto no llega a 120 caracteres. En escritorio pasaba de largo solo
+         * porque la tabla aporta cabeceras.
+         *
+         * Así que se acepta el estado vacío como contenido válido: lo que se quiere cazar es la
+         * pantalla que no monta NADA, no la que dice con todas las letras que no hay nada que
+         * enseñar. Lo que sigue sin tolerarse es el hueco mudo. */
+        const enseñaEstadoVacio = /no hay|sin resultados|todavía no|vací|nothing|no results/i.test(contenido);
+        expect(
+          contenido.length > 120 || (enseñaEstadoVacio && contenido.length > 0),
+          `${ruta} llega en blanco: ni contenido ni un estado vacío que lo explique`,
+        ).toBe(true);
 
         /* Los errores de red por datos que no existen en la base local no cuentan: lo que se busca son
          * los que rompen la pantalla —una excepción de la aplicación, un componente que no monta—. */

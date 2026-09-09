@@ -216,6 +216,7 @@ describe('casos de uso de administración del catálogo', () => {
       nombreZh: '',
       numeroDeProductos: 3,
       aprobado: false,
+      sinRedactar: false,
     };
 
     /** Aprobar es firmar: sin descripción en inglés el transportista rechazaría la guía. */

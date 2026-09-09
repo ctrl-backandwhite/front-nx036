@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { ANGULAR, REACT } from '../util/comparador';
+import { ANGULAR } from '../util/comparador';
 import { RUTAS_PRIVADAS, RUTAS_PUBLICAS } from '../util/rutas';
 
 /**
@@ -50,7 +50,7 @@ test.describe('el HTML llega pintado', () => {
     // El listado del catálogo EXIGE SESIÓN: devolvía 401 con cuerpo vacío y `json()` reventaba con
     // «Unexpected end of JSON input», que no dice nada de lo que se estaba certificando. Las secciones
     // de la portada son públicas y llevan productos reales, que es lo único que hace falta aquí.
-    const respuesta = await request.get(`${REACT}/api/catalog/home/sections`);
+    const respuesta = await request.get(`${ANGULAR}/api/catalog/home/sections`);
     const cuerpo = await respuesta.json().catch(() => null);
     const slug = JSON.stringify(cuerpo ?? {}).match(/"slug"\s*:\s*"([^"]+)"/)?.[1];
     test.skip(!slug, 'no hay productos en la base local: no se puede certificar la ficha');

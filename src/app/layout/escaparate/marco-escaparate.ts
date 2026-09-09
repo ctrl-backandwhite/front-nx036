@@ -188,7 +188,7 @@ const RUTA_DE_FICHA = /^\/(catalog|admin\/browse)\/[^/]+$/;
              sitio desde el que se puede salir de la sesión en el móvil. Se podía ver, no se podía
              pulsar. Un cajón es una capa modal: mientras está abierto va por delante de todo lo que
              cubre, y la barra es precisamente lo que cubre. -->
-        <div class="fixed inset-0 z-50 md:hidden">
+        <div id="nx-cajon-navegacion" class="fixed inset-0 z-50 md:hidden">
           <!-- El fondo cierra el cajón desde su propia capa, marcada como decorativa: si el clic
                colgara del contenedor, cerraría también al pulsar dentro del propio cajón. -->
           <div class="absolute inset-0 bg-black/40" (click)="menu.set(false)" aria-hidden="true"></div>

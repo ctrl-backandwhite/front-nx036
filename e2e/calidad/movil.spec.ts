@@ -1,9 +1,7 @@
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
 import {
   ANGULAR,
-  REACT,
   bajaAlFondo,
-  objetivosTactilesPequenos,
   sinDesplazamientoHorizontal,
   abre,
 } from '../util/comparador';
@@ -42,28 +40,10 @@ test.describe('la web en el móvil', () => {
     });
   }
 
-  for (const ruta of RUTAS_PUBLICAS.filter(sinParametro)) {
-    test(`${ruta} no empeora lo que se puede pulsar`, async ({ page }) => {
-      /* Se compara CONTRA el front anterior, no contra un ideal.
-       *
-       * Medir en absoluto marcaba media aplicación —y también la del original—, porque hay botones de
-       * icono heredados de 30 píxeles. Eso no es un defecto del porte: es el diseño que hay, y
-       * cambiarlo sería justo lo contrario de lo que se pidió. Lo que sí sería un defecto es que el
-       * porte AÑADA objetivos más pequeños que los que ya había. */
-      // Se compara por lo que ES el elemento, no por sus medidas exactas: un píxel de diferencia en la
-      // altura lo convertía en «un objetivo nuevo» y llenaba el informe de falsos positivos.
-      const soloElNombre = (x: string) => x.replace(/\s*\(\d+×\d+\)$/, '');
-
-      await abre(page, `${REACT}${ruta}`);
-      await bajaAlFondo(page);
-      const enReact = new Set((await objetivosTactilesPequenos(page)).map(soloElNombre));
-
-      await abre(page, `${ANGULAR}${ruta}`);
-      await bajaAlFondo(page);
-      const nuevos = (await objetivosTactilesPequenos(page)).filter((x) => !enReact.has(soloElNombre(x)));
-
-      expect(nuevos, `objetivos difíciles de pulsar que el original no tenía: ${nuevos.slice(0, 4).join(' · ')}`)
-        .toEqual([]);
-    });
-  }
+  /*
+   * AQUÍ HABÍA una prueba que exigía «no añadir objetivos más pequeños que los del front anterior».
+   * Se retira con él (9-sep-2026): heredaba en silencio todos los suyos, incluidos los botones de
+   * icono de 30 px que su comentario declaraba. El mismo requisito, ya en absoluto y con la deuda
+   * declarada, se certifica en `acciones/movil.spec.ts`, que además cubre las pantallas con sesión.
+   */
 });

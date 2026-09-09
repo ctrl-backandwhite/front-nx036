@@ -110,13 +110,20 @@ const CONFIRMACION_MS = 1400;
         </div>
 
         <!-- El corazón solo con sesión: sin cuenta no hay dónde guardar la lista. -->
+        <!--
+          Duración explícita de 200 ms, no la de por defecto. Un segundo para acusar el paso del
+          ratón se lee como que la web va lenta —el puntero ya se ha ido— y además deja el botón
+          moviéndose tanto rato que ni se puede pulsar de forma fiable: la certificación lo cazó como
+          «element is not stable». Mismo criterio que el botón corriente y que el pase manual de la
+          galería. (Sin comillas invertidas: esto va dentro de una plantilla literal y la partirían.)
+        -->
         @if (sesion.haySesion()) {
           <button
             type="button"
             (click)="marcaFavorito($event)"
             [attr.aria-label]="t(esFavorito() ? 'product.remove_favorite' : 'product.add_favorite')"
             [title]="t(esFavorito() ? 'product.remove_favorite' : 'product.add_favorite')"
-            class="absolute top-2 right-2 h-11 w-11 sm:h-8 sm:w-8 rounded-full bg-base-100/90 hover:bg-base-100 shadow-sm inline-flex items-center justify-center transition-transform hover:scale-110"
+            class="absolute top-2 right-2 h-11 w-11 sm:h-8 sm:w-8 rounded-full bg-base-100/90 hover:bg-base-100 shadow-sm inline-flex items-center justify-center transition-transform duration-200 hover:scale-110"
           >
             <fa-icon
               [icon]="esFavorito() ? iconos.corazonLleno : iconos.corazonVacio"

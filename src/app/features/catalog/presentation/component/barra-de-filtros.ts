@@ -93,9 +93,15 @@ const ORDENES: readonly OrdenDelCatalogo[] = [
           [class.flex]="abierto()"
           [class.hidden]="!abierto()"
         >
+          <!--
+            Se escucha «busca» y NO «valorChange»: el segundo no avisa cuando se vuelve a teclear lo
+            mismo, y si la consulta anterior no llegó a aplicarse eso dejaba la búsqueda muerta sin
+            más salida que vaciar el campo. (Sin comillas invertidas: esto va dentro de una plantilla
+            literal y las partiría.)
+          -->
           <nx-campo-busqueda
             [valor]="criterio().texto ?? ''"
-            (valorChange)="cambia({ texto: $event || undefined })"
+            (busca)="cambia({ texto: $event || undefined })"
             [marcador]="t('catalog.search_placeholder')"
             clase="w-full sm:min-w-[240px]"
           />
