@@ -1612,6 +1612,7 @@ const diccionario: Record<string, string> = {
   'catalog.duty.extra': '+{amount} de arancel',
   'catalog.duty.filter': 'Ver los que no suman arancel',
   'catalog.duty.covered': 'Arancel de aduana pagado por nosotros',
+  'catalog.shipping.covered': 'Parte del envío la pagamos nosotros',
   'catalog.duty.filter_active': 'Sin arancel adicional',
   'catalog.duty.filter_remove': 'Quitar filtro',
   'admin.nav.declaration_groups': 'Grupos de declaración',

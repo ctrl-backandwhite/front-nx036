@@ -1635,6 +1635,7 @@ const diccionario: Record<string, string> = {
   'catalog.duty.extra': '+{amount} customs duty',
   'catalog.duty.filter': 'See items with no extra duty',
   'catalog.duty.covered': 'Customs duty paid by us',
+  'catalog.shipping.covered': 'Part of the shipping paid by us',
   'catalog.duty.filter_active': 'No extra customs duty',
   'catalog.duty.filter_remove': 'Remove filter',
   'admin.nav.declaration_groups': 'Declaration groups',

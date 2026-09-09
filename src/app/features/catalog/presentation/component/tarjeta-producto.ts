@@ -11,6 +11,7 @@ import {
   faHeart as faCorazonLleno,
   faStar,
   faTruckFast,
+  faTruckRampBox,
 } from '@fortawesome/free-solid-svg-icons';
 import { faHeart as faCorazonVacio } from '@fortawesome/free-regular-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
@@ -150,13 +151,36 @@ const CONFIRMACION_MS = 1400;
               se sabe siempre, también con la cesta vacía. Solo el icono: con letra competiría con el
               precio. El escudo ya significa «marca» en esta tarjeta, así que aquí va una mano que paga.
             -->
+            <!--
+              La etiqueta accesible va en el CONTENEDOR y no en el icono: FontAwesome marca su propio
+              dibujo como decorativo, así que una etiqueta puesta ahí no llega a quien usa un lector de
+              pantalla. Con el papel de imagen en el contenedor, el conjunto se anuncia una sola vez.
+            -->
             @if (producto().arancel.cubierto) {
-              <span class="flex items-center" [title]="t('catalog.duty.covered')">
-                <fa-icon
-                  [icon]="iconos.manoQuePaga"
-                  class="text-emerald-600"
-                  [attr.aria-label]="t('catalog.duty.covered')"
-                />
+              <span
+                class="flex items-center"
+                role="img"
+                [title]="t('catalog.duty.covered')"
+                [attr.aria-label]="t('catalog.duty.covered')"
+              >
+                <fa-icon [icon]="iconos.manoQuePaga" class="text-emerald-600" />
+              </span>
+            }
+            <!--
+              La tienda pone parte del porte. Va al lado del arancel porque es lo mismo desde fuera —algo
+              que paga la tienda y no quien compra— pero se sabe en TODOS los países: el arancel por
+              artículo solo se cobra en la Unión, y la bolsa de envío se descuenta del porte vaya el
+              pedido a donde vaya. Solo el icono, por lo mismo que el otro: con letra competiría con el
+              precio.
+            -->
+            @if (producto().envioCubierto) {
+              <span
+                class="flex items-center"
+                role="img"
+                [title]="t('catalog.shipping.covered')"
+                [attr.aria-label]="t('catalog.shipping.covered')"
+              >
+                <fa-icon [icon]="iconos.porteQuePonemos" class="text-emerald-600" />
               </span>
             }
           </div>
@@ -206,6 +230,10 @@ export class TarjetaProducto {
     estrella: faStar,
     fuego: faFire,
     camion: faTruckFast,
+    // Deliberadamente DISTINTO del camión de «envío gratis»: dos cosas distintas no pueden compartir
+    // dibujo en la misma tarjeta. Aquel promete que no se paga porte; este dice que la tienda pone
+    // parte del que hay.
+    porteQuePonemos: faTruckRampBox,
     rayo: faBolt,
     anadir: faCartPlus,
     hecho: faCircleCheck,

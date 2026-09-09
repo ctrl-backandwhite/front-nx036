@@ -1994,6 +1994,7 @@ const diccionario: Record<string, string> = {
   'catalog.duty.extra': '+{amount} Zoll',
   'catalog.duty.filter': 'Artikel ohne Zusatzzoll ansehen',
   'catalog.duty.covered': 'Zoll von uns übernommen',
+  'catalog.shipping.covered': 'Ein Teil des Versands von uns übernommen',
   'catalog.duty.filter_active': 'Kein zusätzlicher Zoll',
   'catalog.duty.filter_remove': 'Filter entfernen',
   'admin.nav.declaration_groups': 'Anmeldegruppen',

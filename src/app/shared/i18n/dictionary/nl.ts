@@ -1994,6 +1994,7 @@ const diccionario: Record<string, string> = {
   'catalog.duty.extra': '+{amount} invoerrecht',
   'catalog.duty.filter': 'Bekijk artikelen zonder extra recht',
   'catalog.duty.covered': 'Invoerrecht door ons betaald',
+  'catalog.shipping.covered': 'Een deel van de verzending door ons betaald',
   'catalog.duty.filter_active': 'Geen extra invoerrecht',
   'catalog.duty.filter_remove': 'Filter verwijderen',
   'admin.nav.declaration_groups': 'Aangiftegroepen',

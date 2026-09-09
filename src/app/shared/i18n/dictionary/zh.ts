@@ -2012,6 +2012,7 @@ const diccionario: Record<string, string> = {
   'catalog.duty.extra': '另加关税 {amount}',
   'catalog.duty.filter': '查看不增加关税的商品',
   'catalog.duty.covered': '关税由我们承担',
+  'catalog.shipping.covered': '部分运费由我们承担',
   'catalog.duty.filter_active': '无额外关税',
   'catalog.duty.filter_remove': '清除筛选',
   'admin.nav.declaration_groups': '申报分组',

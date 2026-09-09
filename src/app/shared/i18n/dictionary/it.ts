@@ -1994,6 +1994,7 @@ const diccionario: Record<string, string> = {
   'catalog.duty.extra': '+{amount} di dazio',
   'catalog.duty.filter': 'Vedi quelli senza dazio aggiuntivo',
   'catalog.duty.covered': 'Dazio doganale a nostro carico',
+  'catalog.shipping.covered': 'Parte della spedizione a nostro carico',
   'catalog.duty.filter_active': 'Senza dazio aggiuntivo',
   'catalog.duty.filter_remove': 'Rimuovi filtro',
   'admin.nav.declaration_groups': 'Gruppi di dichiarazione',

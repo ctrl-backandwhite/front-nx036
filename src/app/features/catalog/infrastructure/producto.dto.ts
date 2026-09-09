@@ -39,6 +39,7 @@ export interface ResumenDto {
   verified?: boolean;
   extraDutyCents?: number | null;
   dutyCovered?: boolean;
+  shippingCovered?: boolean;
   extraDutyFormatted?: string;
   dutyGroupId?: string;
   tags?: string[];
@@ -174,6 +175,7 @@ export function aResumen(dto: ResumenDto): ResumenDeProducto {
     estado: dto.status ?? '',
     precio: aPrecio(dto),
     arancel: aArancel(dto),
+    envioCubierto: !!dto.shippingCovered,
     verificado: dto.verified,
     etiquetas: dto.tags ?? [],
     proveedor: dto.supplierName,

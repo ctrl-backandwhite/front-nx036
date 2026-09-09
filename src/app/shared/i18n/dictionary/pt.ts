@@ -2012,6 +2012,7 @@ const diccionario: Record<string, string> = {
   'catalog.duty.extra': '+{amount} de taxa aduaneira',
   'catalog.duty.filter': 'Ver os que não somam taxa',
   'catalog.duty.covered': 'Taxa aduaneira paga por nós',
+  'catalog.shipping.covered': 'Parte do envio paga por nós',
   'catalog.duty.filter_active': 'Sem taxa aduaneira adicional',
   'catalog.duty.filter_remove': 'Remover filtro',
   'admin.nav.declaration_groups': 'Grupos de declaração',

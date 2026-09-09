@@ -167,10 +167,35 @@ describe('TarjetaProducto', () => {
 
   /** El escudo ya significa «marca» en la tarjeta: aquí va una mano que paga. */
   it('marca los productos cuyo arancel paga la tienda', async () => {
+    const { container } = await monta(producto({ arancel: { centimosExtra: null, cubierto: true } }));
+    expect(container.querySelector('[data-icon="hand-holding-dollar"]')).not.toBeNull();
+  });
+
+  /**
+   * El porte que pone la tienda se sabe en TODOS los países, a diferencia del arancel: el derecho por
+   * artículo solo se cobra en la Unión, y la bolsa de envío se descuenta vaya el pedido a donde vaya.
+   *
+   * <p>Se comprueba el DIBUJO y no el texto: el idioma de estas pruebas es el inglés, y atarlas a la
+   * frase las rompería con cualquier retoque de redacción. Que sean dos dibujos distintos es además
+   * parte de lo que se quiere: el camión de «envío gratis» promete otra cosa.
+   */
+  it('marca los productos a los que la tienda pone parte del porte', async () => {
+    const { container } = await monta(producto({ envioCubierto: true }));
+    expect(container.querySelector('[data-icon="truck-ramp-box"]')).not.toBeNull();
+  });
+
+  it('no lo marca cuando el producto no lleva subvención de envío', async () => {
+    const { container } = await monta(producto({ envioCubierto: false }));
+    expect(container.querySelector('[data-icon="truck-ramp-box"]')).toBeNull();
+  });
+
+  /** Son dos cosas distintas y se ven las dos: una la paga la aduana y la otra el transportista. */
+  it('los dos distintivos conviven sin taparse', async () => {
     const { container } = await monta(
-      producto({ arancel: { centimosExtra: null, cubierto: true } }),
+      producto({ arancel: { centimosExtra: null, cubierto: true }, envioCubierto: true }),
     );
-    expect(container.querySelector('.text-emerald-600')).not.toBeNull();
+    expect(container.querySelector('[data-icon="hand-holding-dollar"]')).not.toBeNull();
+    expect(container.querySelector('[data-icon="truck-ramp-box"]')).not.toBeNull();
   });
 
   it('enseña la valoración y las ventas abreviadas', async () => {

@@ -1995,6 +1995,7 @@ const diccionario: Record<string, string> = {
   'catalog.duty.extra': '+{amount} de droits de douane',
   'catalog.duty.filter': 'Voir ceux sans droit supplémentaire',
   'catalog.duty.covered': 'Droits de douane à notre charge',
+  'catalog.shipping.covered': 'Une partie des frais de port à notre charge',
   'catalog.duty.filter_active': 'Sans droit de douane supplémentaire',
   'catalog.duty.filter_remove': 'Retirer le filtre',
   'admin.nav.declaration_groups': 'Groupes de déclaration',

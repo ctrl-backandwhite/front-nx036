@@ -56,6 +56,14 @@ export interface ResumenDeProducto {
   readonly estado: string;
   readonly precio: PrecioParaMostrar;
   readonly arancel: ArancelDelProducto;
+  /**
+   * La tienda pone parte del porte de este producto.
+   *
+   * <p>A diferencia del arancel, NO depende del país: la bolsa de envío se descuenta del porte del
+   * pedido vaya a donde vaya. Por eso viaja con el resumen del producto y no con el distintivo que se
+   * calcula contra el carrito.
+   */
+  readonly envioCubierto?: boolean;
   /** Revisión manual del administrador. Falso o ausente = pendiente o con error. */
   readonly verificado?: boolean;
   readonly etiquetas: readonly string[];
