@@ -16,7 +16,20 @@ import { join } from 'node:path';
  */
 
 /** El cajón lateral del escaparate. Solo existe en el árbol mientras está abierto. */
-const CAJON = 'div.fixed.inset-0.z-40.md\\:hidden';
+/**
+ * El cajón, por su identificador y NO por sus clases de maqueta.
+ *
+ * <p>Antes era `div.fixed.inset-0.z-40.md:hidden`. El día que el cajón subió a `z-50` —para que
+ * dejara de quedar por debajo de la barra de pestañas, que es lo que impedía cerrar sesión en el
+ * móvil— este selector dejó de encontrarlo y se llevó por delante TRECE pruebas, todas con el mismo
+ * mensaje: «el botón de las tres barras no abre el cajón». El botón funcionaba; lo que no existía
+ * era la clase que se buscaba.
+ *
+ * <p>Por eso ahora se ancla a un identificador: la capa a la que pertenece un elemento es una
+ * decisión de maqueta que va a volver a cambiar, y colgar de ella la certificación entera del móvil
+ * convierte un ajuste de estilo en trece falsos defectos.
+ */
+const CAJON = '#nx-cajon-navegacion';
 
 /** La insignia del carrito en la BARRA DE PESTAÑAS: en móvil el icono de la cabecera no se pinta. */
 const INSIGNIA_DE_LA_BARRA = '#nx-cart-icon-movil .badge';

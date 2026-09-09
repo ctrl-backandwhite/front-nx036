@@ -281,7 +281,18 @@ export async function objetivosTactilesPequenos(page: Page, minimo = 24): Promis
         continue;
       }
       if (caja.height < min || caja.width < min) {
-        const etiqueta = propio.slice(0, 30) || el.getAttribute('aria-label') || el.tagName;
+        /*
+         * Una casilla se nombra «casilla», NO por su etiqueta.
+         *
+         * <p>En una tabla de catálogo la etiqueta de cada casilla es el TÍTULO DEL PRODUCTO, así que
+         * la lista de objetivos pequeños salía con cuarenta nombres distintos que cambian con los
+         * datos. Con eso no se puede declarar la deuda conocida —la lista no valdría para la
+         * siguiente pasada— ni se lee nada útil en el informe: son todas el mismo control repetido.
+         */
+        const esCasilla = el.tagName === 'INPUT';
+        const etiqueta = esCasilla
+          ? `casilla ${(el as HTMLInputElement).type}`
+          : propio.slice(0, 30) || el.getAttribute('aria-label') || el.tagName;
         fallos.push(`${etiqueta} (${Math.round(caja.width)}×${Math.round(caja.height)})`);
       }
     }

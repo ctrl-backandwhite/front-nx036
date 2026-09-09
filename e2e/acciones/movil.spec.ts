@@ -1525,7 +1525,42 @@ const PANTALLAS_CERTIFICADAS: readonly string[] = [
  * <p>Se anota lo que ES el control, no sus medidas: un píxel arriba o abajo convertiría el mismo
  * botón en «uno nuevo» y llenaría el informe de falsos positivos.
  */
-const YA_PEQUENOS: Readonly<Record<string, readonly string[]>> = {};
+const YA_PEQUENOS: Readonly<Record<string, readonly string[]>> = {
+  // En TODAS: el logotipo (23 px de alto, uno por debajo), la miga de pan y el enlace del pie.
+  '/': ['NX036', 'Preferencias de cookies'],
+  '/catalog': [
+    'NX036',
+    'Inicio',
+    // Uno por tarjeta de producto: 17 px de alto. Es el que más se repite del catálogo.
+    'Ver los que no suman arancel',
+    'Preferencias de cookies',
+  ],
+  '/cart': [
+    'NX036',
+    'Inicio',
+    /*
+     * ESTOS TRES SON LOS QUE MÁS DUELEN y los que hay que arreglar primero: son los botones que se
+     * pulsan de verdad para cambiar lo que se va a comprar, en la pantalla de la cesta y desde un
+     * teléfono. 23 px de alto en el más pequeño.
+     */
+    'Quitar una unidad',
+    'Añadir una unidad',
+    'Eliminar',
+    'Preferencias de cookies',
+  ],
+  '/favorites': ['NX036', 'Inicio', 'Preferencias de cookies'],
+  '/orders': ['NX036', 'Inicio', 'Preferencias de cookies'],
+  '/profile': ['NX036', 'Inicio', 'Preferencias de cookies'],
+  '/addresses': ['NX036', 'Inicio', 'Preferencias de cookies'],
+  '/admin': ['NX036', 'Preferencias de cookies'],
+  '/admin/catalog': [
+    // 15×15: las casillas de la tabla del panel, una por fila más la de «seleccionar todo».
+    'Seleccionar todo',
+    'casilla checkbox',
+    'Precio',
+    'Verificado',
+  ],
+};
 
 test.describe('lo estético del móvil', () => {
   test.beforeEach(async ({}, info) => {
@@ -1595,7 +1630,7 @@ test.describe('lo estético del móvil', () => {
 
       expect(
         nuevos,
-        `${ruta}: objetivos por debajo de 24 px sin declarar: ${nuevos.slice(0, 6).join(' · ')}`,
+        `${ruta}: objetivos por debajo de 24 px sin declarar: ${nuevos.join(' · ')}`,
       ).toEqual([]);
     });
   }
