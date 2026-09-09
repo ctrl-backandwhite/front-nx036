@@ -212,6 +212,22 @@ export async function descartaElAvisoDeGalletas(page: Page): Promise<void> {
  * capa, porque lo que se está certificando es otra cosa.
  */
 export async function apartaAlAsistente(page: Page): Promise<void> {
+  /*
+   * PRIMERO se deja constancia de que la guía ya se contestó, y después se intenta el gesto.
+   *
+   * <p>Antes solo estaba el gesto, con su fallo tragado en silencio: si el botón «ahora no» no se
+   * podía pulsar —porque la propia capa lo tapaba, que es justo el caso—, no pasaba nada visible y la
+   * capa seguía ahí. La consecuencia aparecía muy lejos: una prueba de FAVORITOS agotando dos minutos
+   * y medio con un mensaje sobre un corazón que no se deja pulsar, sin mencionar al asistente.
+   *
+   * <p>La marca es la misma que usa la aplicación para no volver a ofrecer la guía a quien ya la vio,
+   * así que escribirla es decir lo mismo que diría el gesto, pero sin depender de poder pulsar. Y
+   * sobrevive a las recargas, que es donde la capa volvía a aparecer a mitad de prueba.
+   */
+  await page
+    .evaluate(() => window.localStorage.setItem('nx036.welcome.v1', '1'))
+    .catch(() => undefined);
+
   const ahoraNo = page.getByRole('button', { name: /ahora no|not now|minimizar|minimize/i }).first();
   if (await ahoraNo.count()) {
     await ahoraNo.click({ timeout: 4_000 }).catch(() => undefined);

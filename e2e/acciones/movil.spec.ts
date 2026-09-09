@@ -983,7 +983,13 @@ test.describe('acciones de administración en el móvil', () => {
 
     await abreLosFiltros(page);
     const antes = await contadorDeResultados(page);
-    const filtro = page.getByLabel(/Precio ≥/).first();
+    /*
+     * «Precio Mínimo», no «Precio ≥»: el filtro del panel dejó de ser dos campos sueltos rotulados
+     * con los signos y pasó a ser un RANGO con validación cruzada. Esta era la SEGUNDA copia del
+     * rótulo viejo —la otra estaba en la batería de escritorio—, y llevaba desde el rediseño
+     * agotando su plazo sin cazar nada.
+     */
+    const filtro = page.getByLabel(/Precio\s+Mínimo/i).first();
     await filtro.fill('900');
     await filtro.blur();
     const despues = await esperaOtroTotal(page, antes.total);

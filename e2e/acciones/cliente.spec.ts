@@ -267,6 +267,17 @@ test.describe('acciones del cliente', () => {
    * que la cuenta queda como estaba.
    */
   test('marcar un favorito lo guarda, y desmarcarlo lo quita, tras recargar', async ({ page }) => {
+    /*
+     * Plazo propio, y no por capricho: esta prueba hace CUATRO cargas de página —el catálogo, la
+     * lista de favoritos y dos recargas—, y cada una espera a que la pantalla se asiente. Con la
+     * portada y el catálogo en el tamaño que tienen hoy, cuatro cargas no caben en el minuto por
+     * defecto y el resultado era un plazo agotado que parecía un defecto de favoritos.
+     *
+     * Las dos recargas son el sentido de la prueba —lo que se certifica es que el favorito SOBREVIVE,
+     * o sea que se guardó en el servidor y no solo en la pantalla—, así que no se pueden quitar.
+     * Cuando el peso de la portada baje, esto se puede volver a bajar.
+     */
+    test.setTimeout(150_000);
     const errores = vigilaLaConsola(page);
     await enElCatalogo(page);
 

@@ -9,6 +9,7 @@ import {
 } from '../util/comparador';
 import { ADMIN, CLIENTE, entra, olvida } from '../util/sesion';
 import { buscaEnElCatalogo, erroresGraves } from '../util/acciones';
+import { abreLosFiltros } from '../util/movil';
 
 /**
  * Cómo se PRESENTA la aplicación: que lo prerenderizado llegue con contenido, que hidrate sin
@@ -206,6 +207,15 @@ test.describe('presentación · las transiciones acompañan', () => {
     await descartaElAvisoDeGalletas(page);
     await apartaAlAsistente(page);
     await expect(page.locator('nx-tarjeta-producto').first()).toBeVisible();
+    /*
+     * En el móvil el buscador NO está a la vista: vive plegado dentro del panel de «Filtros», así
+     * que hay que desplegarlo antes. Sin esto la prueba esperaba sesenta segundos a un campo que
+     * existe pero está oculto, y el mensaje —«element is not visible»— parecía un defecto de la
+     * aplicación en vez de un paso que falta.
+     */
+    if (test.info().project.name === 'movil') {
+      await abreLosFiltros(page);
+    }
     // El fundido de la ENTRADA sí es legítimo: se le deja terminar antes de medir el del filtro.
     await page.waitForTimeout(1500);
 
