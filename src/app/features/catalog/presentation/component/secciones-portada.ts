@@ -73,6 +73,20 @@ const TONOS = [
  * abarcan de un vistazo— y allí no se cambia el orden.
  */
 @Component({
+  /*
+   * El anfitrión es BLOQUE, y no es cosmética.
+   *
+   * <p>Un elemento personalizado nace «display: inline», y una caja en línea no ocupa la altura de su
+   * contenido: mide lo que la línea de texto. La portada separa sus bloques con `space-y`, que pone
+   * `margin-top` al hermano siguiente — y ese margen se mide contra la caja en línea, no contra lo que
+   * se ve. Resultado medido: CERO píxeles entre la fila de categorías destacadas y el boletín, pegados
+   * el uno al otro, sin que ninguna regla de espaciado estuviera mal escrita.
+   *
+   * <p>Es el mismo defecto que ya apareció en la barra de filtros y en la cuadrícula del catálogo. Si
+   * un componente propio va a ser hijo directo de un contenedor que reparte espacio con `space-y` o con
+   * márgenes verticales, necesita esta línea.
+   */
+  host: { class: 'block' },
   selector: 'nx-secciones-portada',
   imports: [
     RouterLink,

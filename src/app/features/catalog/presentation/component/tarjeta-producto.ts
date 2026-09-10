@@ -17,7 +17,7 @@ import { faHeart as faCorazonVacio } from '@fortawesome/free-regular-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { ImagenSegura } from '@ds/component/marcador/imagen-segura';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
-import { ResumenDeProducto, esSuperventas, ventasAbreviadas } from '../../domain/model/producto';
+import { ResumenDeProducto, esSuperventas, ventasAbreviadas, estaAgotado } from '../../domain/model/producto';
 import { GRUPO_DEL_CARRITO } from '../../domain/model/criterio-de-busqueda';
 import { FavoritosStore } from '../../application/state/favoritos.store';
 import { SesionActual } from '@core/auth/sesion-actual';
@@ -76,6 +76,7 @@ const CONFIRMACION_MS = 1400;
         } @else {
           <nx-imagen-segura
             [src]="producto().imagenPrincipal"
+            [class.opacity-60]="agotado()"
             [alt]="producto().titulo"
             clase="aspect-square w-full object-cover transition-transform duration-1000 group-hover:scale-[1.03]"
             claseMarcador="aspect-square w-full"
@@ -83,6 +84,13 @@ const CONFIRMACION_MS = 1400;
         }
 
         <div class="absolute top-2 left-2 flex flex-col gap-1">
+          @if (agotado()) {
+            <span
+              class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-ink-700 text-white shadow-sm"
+            >
+              {{ t('product.out_of_stock') }}
+            </span>
+          }
           @if (superventas()) {
             <span
               class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500 text-white shadow-sm"
@@ -255,6 +263,9 @@ export class TarjetaProducto {
   protected readonly destino = computed(() =>
     this.enPanel() ? `/admin/browse/${this.producto().slug}` : `/catalog/${this.producto().slug}`,
   );
+  /** Agotado: cero unidades entre TODAS sus variantes activas, según el backend. */
+  protected readonly agotado = computed(() => estaAgotado(this.producto()));
+
   protected readonly superventas = computed(() => esSuperventas(this.producto()));
   protected readonly etiquetas = computed(() => this.producto().etiquetas);
   protected readonly ventas = computed(() => ventasAbreviadas(this.producto().ventasMensuales));
