@@ -194,6 +194,8 @@ export interface DesgloseDePrecio {
 
 /** La ficha completa de un producto. */
 export interface FichaDeProducto extends ResumenDeProducto {
+  /** Categoría hoja a la que pertenece. Es lo que la miga de pan necesita para situar el producto. */
+  readonly categoriaId?: string;
   readonly origen: string;
   readonly idExterno: string;
   /** Enlace a la ficha en la plataforma de origen. Uso interno: NUNCA se enseña a quien compra. */

@@ -15,7 +15,7 @@ const FOTOS: ImagenDeProducto[] = [
  * y no por texto: lo que hay que asegurar es el comportamiento, no la traducción.
  */
 function miniaturas(raiz: HTMLElement): HTMLElement[] {
-  return [...raiz.querySelectorAll<HTMLElement>('.sm\\:flex-col > div > button')];
+  return [...raiz.querySelectorAll<HTMLElement>('[data-tira-miniaturas] > div > button')];
 }
 
 /** jsdom no trae `DragEvent`: se finge con un evento normal, que es lo que la plantilla escucha. */
@@ -169,7 +169,7 @@ describe('GaleriaFicha', () => {
       inputs: { fotos: FOTOS, titulo: 'Gorro', activa: 0 },
       on: { reordena },
     });
-    const celdas = [...vista.container.querySelectorAll<HTMLElement>('.sm\\:flex-col > div')];
+    const celdas = [...vista.container.querySelectorAll<HTMLElement>('[data-tira-miniaturas] > div')];
     celdas[2].dispatchEvent(arrastre('dragstart'));
     celdas[0].dispatchEvent(arrastre('drop'));
     vista.fixture.detectChanges();

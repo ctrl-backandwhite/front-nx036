@@ -26,19 +26,28 @@ export interface ColorElegido {
   template: `
     @if (valores().length > 0) {
       <div>
-        <div class="text-[12px] opacity-70 mb-1">
+        <!--
+          El rótulo respira. Con «mb-1» —cuatro píxeles— el nombre del color quedaba pegado a las
+          muestras y se leía como parte de la primera, no como el título de la fila.
+        -->
+        <div class="text-[12px] opacity-70 mb-3">
           {{ nombreDelEje() }}: <strong>{{ elegido() ?? '—' }}</strong>
         </div>
         <div class="flex flex-wrap gap-2">
           @for (valor of valores(); track valor.id) {
             <div class="relative group">
+              <!--
+                3,9rem = 62,4 px: los 48 de «w-12» más un 30%. Medida explícita y no «w-16», que son 64
+                y el encargo era el 30% exacto. La foto de la variante es lo que distingue un color de
+                otro, y a 48 px había que acercarse a la pantalla para verlo.
+              -->
               <button
                 type="button"
                 (click)="elige.emit({ etiqueta: etiqueta(valor), foto: valor.imagen })"
                 [title]="etiqueta(valor)"
                 [attr.aria-pressed]="elegido() === etiqueta(valor)"
                 [style.border-color]="borde(valor)"
-                class="w-12 h-12 rounded-lg border-2 overflow-hidden relative transition-all block"
+                class="w-[3.9rem] h-[3.9rem] rounded-lg border-2 overflow-hidden relative transition-all block"
                 [class]="
                   elegido() === etiqueta(valor)
                     ? 'ring-2 ring-offset-2 scale-110 shadow-lg'

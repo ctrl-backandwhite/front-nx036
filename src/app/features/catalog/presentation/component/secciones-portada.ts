@@ -172,15 +172,15 @@ const TONOS = [
             <div
               class="flex snap-x overflow-x-auto gap-3 -mx-4 px-4 pb-1
                      md:grid md:grid-cols-4 lg:grid-cols-8 md:gap-3 md:overflow-visible md:mx-0
-                     md:rounded-xl md:border md:border-ink-100 md:bg-base-100 md:px-3 md:py-3"
+                     md:rounded-xl md:bg-primary md:px-3 md:py-3"
             >
               @for (categoria of datos.categoriasDestacadas; track categoria.id; let i = $index) {
                 <a
                   [routerLink]="['/catalog']"
                   [queryParams]="{ categoryId: categoria.id }"
                   class="flex w-[4.75rem] shrink-0 snap-start flex-col items-center gap-1.5 text-center
-                         md:card md:w-auto md:shrink md:px-4 md:py-3 md:hover:border-brand-300
-                         md:hover:bg-brand-50 md:transition-colors md:p-4"
+                         md:card md:w-auto md:shrink md:px-4 md:py-3 md:border-transparent
+                         md:hover:bg-primary-content/15 md:transition-colors md:p-4"
                 >
                   <span
                     aria-hidden="true"
@@ -192,10 +192,10 @@ const TONOS = [
                   </span>
                   <span
                     class="text-[11px] font-medium leading-tight text-ink-900 line-clamp-2
-                           md:text-[13px] md:line-clamp-1"
+                           md:text-[13px] md:line-clamp-1 md:text-primary-content"
                     >{{ categoria.nombre }}</span
                   >
-                  <span class="hidden text-[11px] text-ink-500 md:block md:mt-1">
+                  <span class="hidden text-[11px] text-ink-500 md:block md:mt-1 md:text-primary-content/70">
                     {{ categoria.cuantosProductos }}
                   </span>
                 </a>

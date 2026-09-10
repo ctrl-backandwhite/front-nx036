@@ -51,7 +51,32 @@ export class SeleccionDeLaFicha {
   readonly cantidad = this._cantidad.asReadonly();
   readonly fotoDelColor = this._fotoDelColor.asReadonly();
 
-  readonly ejeDeColor = computed(() => ejePrincipal(this._ficha()?.ejesDeVariante ?? []));
+  /**
+   * El eje de color, SIN los valores que no tienen ninguna variante detrás.
+   *
+   * <p>Los ejes vienen del proveedor y declaran más valores de los que llegaron a existir como SKU. Un
+   * caso real: una ficha ofrecía «Negro» y «Blanco» y solo había variante blanca; al abrirla arrancaba
+   * en negro, no encontraba variante, y un producto con casi cien mil unidades se anunciaba «sin
+   * stock». Ofrecer un color que no se puede comprar no es informar de nada: es perder la venta y
+   * hacer creer que el catálogo está vacío.
+   *
+   * <p>Se compara contra las variantes ACTIVAS: una variante retirada tampoco se puede comprar.
+   */
+  readonly ejeDeColor = computed(() => {
+    const eje = ejePrincipal(this._ficha()?.ejesDeVariante ?? []);
+    if (!eje) {
+      return eje;
+    }
+    const conVariante = new Set(
+      this.variantes()
+        .filter((variante) => variante.activa)
+        .flatMap((variante) => Object.values(variante.opciones ?? {})),
+    );
+    const valores = eje.valores.filter((valor) => conVariante.has(valor.valorZh));
+    // Si NINGUNO casa, se devuelve el eje entero: es señal de que las claves no cuadran entre ejes y
+    // variantes, y quedarse sin selector sería peor que enseñar uno con opciones de más.
+    return valores.length > 0 ? { ...eje, valores } : eje;
+  });
   readonly ejeDeTalla = computed(() => ejeDeTalla(this._ficha()?.ejesDeVariante ?? []));
 
   private readonly variantes = computed(() => this._ficha()?.variantes ?? []);

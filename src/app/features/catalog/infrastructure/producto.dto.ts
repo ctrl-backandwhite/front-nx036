@@ -26,6 +26,7 @@ export interface ResumenDto {
   slug: string;
   title: string;
   mainImage?: string;
+  categoryId?: string;
   rating?: number;
   monthlySales?: number;
   trendScore?: number;
@@ -322,6 +323,7 @@ export function aEspecificaciones(
 export function aFicha(dto: FichaDto): FichaDeProducto {
   return {
     ...aResumen(dto),
+    categoriaId: dto.categoryId,
     origen: dto.source,
     idExterno: dto.externalId,
     urlDeOrigen: dto.sourceUrl,

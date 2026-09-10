@@ -126,6 +126,14 @@ export class CatalogoHttpAdapter implements CatalogoPort, TaxonomiaPort, Portada
     return mapea(respuesta, (lista) => lista.map(aCategoria));
   }
 
+  async migaDeCategoria(idOrSlug: string): Promise<Result<readonly Categoria[], AppError>> {
+    const respuesta = await this.api.get<CategoriaDto[]>(
+      `/catalog/categories/${encodeURIComponent(idOrSlug)}/breadcrumb`,
+      { lang: this.idioma },
+    );
+    return mapea(respuesta, (lista) => lista.map(aCategoria));
+  }
+
   async proveedores(): Promise<Result<readonly Proveedor[], AppError>> {
     const respuesta =
       await this.api.get<{ id: string; slug: string; name: string; country?: string }[]>(

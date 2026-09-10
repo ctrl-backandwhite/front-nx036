@@ -9,6 +9,14 @@ import { TraduccionService } from '@core/i18n/traduccion.service';
 export interface Miga {
   readonly etiqueta: string;
   readonly destino?: string;
+  /**
+   * Parámetros de consulta del destino, APARTE de la ruta.
+   *
+   * <p>No se pueden meter en `destino`: `routerLink` trata la cadena entera como camino y escapa la
+   * interrogación y el igual, con lo que sale un enlace a «/catalog%3FcategoryId%3D…» que no lleva a
+   * ninguna parte. Con esto la miga de una ficha puede apuntar a su categoría dentro del catálogo.
+   */
+  readonly parametros?: Readonly<Record<string, string>>;
 }
 
 /**
@@ -55,7 +63,12 @@ function legible(trozo: string): string {
             @if (ultima || !miga.destino) {
               <span [class]="ultima ? 'text-ink-700 font-medium' : ''">{{ miga.etiqueta }}</span>
             } @else {
-              <a [routerLink]="miga.destino" class="hover:text-brand-700">{{ miga.etiqueta }}</a>
+              <a
+                [routerLink]="miga.destino"
+                [queryParams]="miga.parametros ?? null"
+                class="hover:text-brand-700"
+                >{{ miga.etiqueta }}</a
+              >
             }
             @if (!ultima) {
               <fa-icon [icon]="iconoSeparador" class="text-[9px] text-ink-300" />

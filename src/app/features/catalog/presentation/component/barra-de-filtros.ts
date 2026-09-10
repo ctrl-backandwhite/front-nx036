@@ -108,12 +108,24 @@ const ORDENES: readonly OrdenDelCatalogo[] = [
             más salida que vaciar el campo. (Sin comillas invertidas: esto va dentro de una plantilla
             literal y las partiría.)
           -->
-          <nx-campo-busqueda
-            [valor]="criterio().texto ?? ''"
-            (busca)="cambia({ texto: $event || undefined })"
-            [marcador]="t('catalog.search_placeholder')"
-            clase="w-full sm:min-w-[240px]"
-          />
+          <!--
+            El buscador ocupa la LÍNEA ENTERA y los filtros caen debajo.
+            Metido en la misma fila que los desplegables se quedaba en un campo estrecho donde no cabe
+            ni el nombre de un producto, y compartía sitio con nueve controles que se leen de un
+            vistazo. Buscar es la acción principal de un catálogo de siete mil referencias; filtrar es
+            afinar lo que la búsqueda ya trajo.
+
+            La envoltura existe porque «basis-full» tiene que ir en el hijo directo del flex: la clase
+            que recibe el componente se aplica dentro de él y no controla el ancho de su propia caja.
+          -->
+          <div class="basis-full">
+            <nx-campo-busqueda
+              [valor]="criterio().texto ?? ''"
+              (busca)="cambia({ texto: $event || undefined })"
+              [marcador]="t('catalog.search_placeholder')"
+              clase="w-full"
+            />
+          </div>
 
           @if (categorias().length > 0) {
             <nx-filtro-desplegable

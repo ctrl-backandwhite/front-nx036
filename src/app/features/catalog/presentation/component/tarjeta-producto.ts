@@ -208,7 +208,7 @@ const CONFIRMACION_MS = 1400;
           (click)="compraRapida($event)"
           [disabled]="anadiendo()"
           [class]="anadido() ? 'btn-success' : 'btn-outline'"
-          class="btn btn-sm sm:btn-xs w-full mt-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+          class="btn btn-sm sm:btn-xs w-full mt-2"
         >
           <fa-icon [icon]="anadido() ? iconos.hecho : iconos.anadir" class="text-[11px]" />
           {{ anadido() ? t('product.added') : t('product.add_to_cart') }}

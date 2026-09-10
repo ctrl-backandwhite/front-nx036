@@ -52,7 +52,12 @@ import { VisorGaleria } from './visor-galeria';
         Solo a partir de «sm»: en el móvil no hay tira, se navega deslizando y con los puntos.
       -->
       <div class="hidden sm:block shrink-0 relative w-[5.5rem]">
-        <div class="absolute inset-0 flex flex-col gap-2 overflow-y-auto pr-1 scrollbar-thin">
+        <!-- El identificador es para que las pruebas no cuelguen de clases de maqueta: cambiar el
+             alto de la tira ya rompió sus selectores una vez. -->
+        <div
+          data-tira-miniaturas
+          class="absolute inset-0 flex flex-col gap-2 overflow-y-auto pr-1 scrollbar-thin"
+        >
         <!--
           Borrado en LOTE, solo para quien administra. Antes había que ir una por una, con su
           confirmación cada vez: limpiar una galería de ocho fotos del proveedor eran ocho gestos y ocho
