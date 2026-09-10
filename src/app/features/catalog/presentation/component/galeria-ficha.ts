@@ -37,7 +37,22 @@ import { VisorGaleria } from './visor-galeria';
   template: `
     <div class="flex flex-col sm:flex-row gap-3">
       <!-- Miniaturas SOLO a partir de sm: en el móvil se navega deslizando y con los puntos. -->
-      <div class="hidden sm:flex sm:flex-col gap-2 shrink-0 sm:max-h-136 sm:overflow-y-auto scrollbar-thin">
+      <!--
+        La tira de miniaturas ocupa EL ALTO DE LA FOTO, no un alto fijo.
+        Llevaba «max-h-136» —544 px escritos a mano— y la foto principal mide más en cuanto el
+        producto es vertical, que es la mayoría: la columna se quedaba corta y sobraba un hueco
+        blanco a su lado. Un alto escrito a mano solo acierta con las fotos que tenían el día que se
+        escribió.
+
+        El truco es la envoltura estirada más el desplazamiento en posición absoluta dentro. Si el
+        contenedor que se desplaza fuera el propio hijo del flex, su contenido decidiría el alto de
+        la fila —las miniaturas ESTIRARÍAN la galería en vez de desplazarse dentro de ella—. En
+        absoluto no aporta alto, así que manda la foto.
+
+        Solo a partir de «sm»: en el móvil no hay tira, se navega deslizando y con los puntos.
+      -->
+      <div class="hidden sm:block shrink-0 relative w-[5.5rem]">
+        <div class="absolute inset-0 flex flex-col gap-2 overflow-y-auto pr-1 scrollbar-thin">
         <!--
           Borrado en LOTE, solo para quien administra. Antes había que ir una por una, con su
           confirmación cada vez: limpiar una galería de ocho fotos del proveedor eran ocho gestos y ocho
@@ -168,6 +183,7 @@ import { VisorGaleria } from './visor-galeria';
             }
           </div>
         }
+        </div>
       </div>
 
       <!-- En escritorio, con que el cursor entre en la foto el pase se detiene: quien la está mirando
