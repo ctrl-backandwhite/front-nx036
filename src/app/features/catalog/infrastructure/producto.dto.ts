@@ -37,6 +37,7 @@ export interface ResumenDto {
   discountPercent?: number;
   promotionName?: string;
   verified?: boolean;
+  availableUnits?: number;
   extraDutyCents?: number | null;
   dutyCovered?: boolean;
   shippingCovered?: boolean;
@@ -177,6 +178,7 @@ export function aResumen(dto: ResumenDto): ResumenDeProducto {
     arancel: aArancel(dto),
     envioCubierto: !!dto.shippingCovered,
     verificado: dto.verified,
+    unidadesDisponibles: dto.availableUnits ?? undefined,
     etiquetas: dto.tags ?? [],
     proveedor: dto.supplierName,
     enviaDesde: dto.shipFrom,

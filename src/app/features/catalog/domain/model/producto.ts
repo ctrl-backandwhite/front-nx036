@@ -66,6 +66,14 @@ export interface ResumenDeProducto {
   readonly envioCubierto?: boolean;
   /** Revisión manual del administrador. Falso o ausente = pendiente o con error. */
   readonly verificado?: boolean;
+  /**
+   * Unidades sumando SOLO las variantes activas, tal como las cuenta el backend.
+   *
+   * <p>Es la misma regla que {@link hayExistencias} aplica en la ficha, pero traída al resumen: sin
+   * ella, el listado no puede saber si un producto está agotado y lo ofrece igual. Ausente —no cero—
+   * cuando el backend no la manda, que no es lo mismo: cero significa agotado y ausente, «no lo sé».
+   */
+  readonly unidadesDisponibles?: number;
   readonly etiquetas: readonly string[];
   readonly proveedor?: string;
   readonly enviaDesde?: string;
@@ -245,4 +253,15 @@ export function hayExistencias(ficha: FichaDeProducto): boolean {
     return true;
   }
   return ficha.variantes.reduce((suma, v) => suma + (v.activa ? v.existencias : 0), 0) > 0;
+}
+
+/**
+ * ¿Está agotado este producto en el listado?
+ *
+ * <p>Solo cuando el backend dice que hay CERO unidades entre todas las variantes activas. Si no manda
+ * el dato no se afirma nada: marcar «sin stock» por falta de información es peor que no marcarlo,
+ * porque espanta de un producto que sí se puede comprar.
+ */
+export function estaAgotado(producto: ResumenDeProducto): boolean {
+  return producto.unidadesDisponibles === 0;
 }
