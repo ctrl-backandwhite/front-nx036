@@ -15,6 +15,15 @@ import { TarjetaProducto } from './tarjeta-producto';
  * foto tenga tamaño suficiente para reconocer un producto sin tener que abrirlo.
  */
 @Component({
+  /*
+   * El anfitrión es BLOQUE, y no es cosmética: un elemento personalizado nace «display: inline», y a
+   * un elemento en línea el navegador le IGNORA los márgenes verticales. El contenedor reparte el
+   * espacio con `space-y-*`, que funciona poniendo `margin-top` al hermano siguiente, así que ese
+   * espacio se perdía y los productos salían pegados a la barra de filtros. Con filtros puestos
+   * aparecía un hueco de diecinueve píxeles que no venía de ninguna regla: era el hueco entre líneas
+   * de dos cajas en línea, así que la separación dependía de lo que hubiera dentro.
+   */
+  host: { class: 'block' },
   selector: 'nx-cuadricula-productos',
   imports: [TarjetaProducto, EsqueletoTarjetaProducto],
   template: `

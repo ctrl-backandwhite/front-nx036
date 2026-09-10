@@ -11,6 +11,17 @@ import { TraduccionService, buscaTexto, sustituyeMarcadores } from './traduccion
  * en inglés: los ocho tienen exactamente las mismas 2.884 claves. Ese caso se cubre sobre la función
  * pura `buscaTexto`, que es donde vive la cadena de respaldo.
  */
+/**
+ * Plazo para las esperas que dependen de un `import()` REAL.
+ *
+ * <p>El de serie de `vi.waitFor` es un segundo, y aquí no se espera a un temporizador: se espera a que
+ * el ejecutor resuelva y evalúe el fragmento de un idioma. Con la máquina ocupada eso pasa del segundo
+ * y la prueba se pone en rojo por la carga del portátil, no por el requisito —que es que el texto
+ * ACABE llegando, no que llegue rápido—. Un plazo generoso no tapa nada: si el diccionario no llega,
+ * sigue fallando.
+ */
+const ESPERA_DEL_IMPORT = { timeout: 15_000 };
+
 describe('buscaTexto — la cadena de respaldo', () => {
   it('devuelve el texto del idioma activo cuando la clave está', () => {
     expect(
@@ -97,7 +108,7 @@ describe('TraduccionService', () => {
 
     await vi.waitFor(() => {
       expect(servicio.t('quickview.close')).toBe('Fechar');
-    });
+    }, ESPERA_DEL_IMPORT);
   });
 
   /** Un idioma diferido ya descargado no se vuelve a pedir: al regresar responde de inmediato. */
@@ -106,7 +117,7 @@ describe('TraduccionService', () => {
     TestBed.tick();
     await vi.waitFor(() => {
       expect(servicio.t('quickview.close')).toBe('Fechar');
-    });
+    }, ESPERA_DEL_IMPORT);
 
     preferencias.cambiaIdioma('es');
     TestBed.tick();

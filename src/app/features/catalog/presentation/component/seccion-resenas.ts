@@ -153,7 +153,14 @@ const BORRADOR_VACIO: BorradorDeResena = { nota: '5', autor: '', titulo: '', cue
           </form>
         }
 
-        @if (idiomas().length > 1) {
+        <!--
+          El selector de idioma de las reseñas es SOLO para quien administra.
+          Quien compra lee en el idioma con el que navega y ya está: ofrecerle saltar a las reseñas en
+          neerlandés o en chino no le ayuda a decidir —no las entiende— y además ensucia la ficha con
+          nueve píldoras. A quien administra sí le sirve, porque revisa que la traducción de cada
+          mercado esté puesta.
+        -->
+        @if (esAdministrador() && idiomas().length > 1) {
           <div class="mt-3 flex flex-wrap gap-1.5">
             <button
               type="button"
@@ -236,6 +243,11 @@ export class SeccionResenas {
    *
    * <p>Y solo se preselecciona si REALMENTE hay reseñas en ese idioma. Si no, se queda en «todas»:
    * arrancar con un filtro que deja la lista vacía parece que no hay reseñas cuando sí las hay.
+   *
+   * <p>Ese respaldo se mantiene también para quien compra, aunque él no vea el selector: esconderle
+   * reseñas que EXISTEN, solo porque aún no están traducidas a su idioma, sería peor que enseñarle
+   * unas pocas en otro. Lo que se le quita es la opción de andar cambiando de idioma, no el
+   * contenido.
    */
   protected readonly filtroDeIdioma = linkedSignal<
     { idioma: string; disponibles: string },
@@ -314,6 +326,15 @@ export class SeccionResenas {
   protected readonly reparto = computed(() => repartoEnPorcentaje(this.datos.value()?.reparto ?? {}));
   protected readonly idiomas = computed(() => idiomasDeLasResenas(this.items()));
   protected readonly hayImportadas = computed(() => hayResenasDelProveedor(this.visibles()));
+  /**
+   * Solo quien administra puede saltar entre idiomas de reseña.
+   *
+   * <p>Quien compra lee en el idioma con el que navega: enseñarle las reseñas en chino o en
+   * neerlandés no le ayuda a decidir y le llena la ficha de píldoras. Quien administra sí lo
+   * necesita, porque revisa que la traducción de cada mercado esté puesta.
+   */
+  protected readonly esAdministrador = this.sesion.esAdministrador;
+
   protected readonly nombreDeLaSesion = computed(() => this.sesion.datos()?.nombreVisible ?? '');
   protected readonly idiomaEnMayusculas = computed(() => this.preferencias.idioma().toUpperCase());
   /** El desplegable devuelve cadenas; la reseña viaja con la nota como número. */

@@ -341,11 +341,26 @@
   --motion-gallery-fade-fast: 140ms;
   --motion-slower:  1400ms;
   /* Default GLOBAL de las utilidades Tailwind `transition*` (transition-colors, transition-all,
-   * transition-transform…): sin esto usarían 150ms. Lo subimos a 1s con easing suave para que
-   * CUALQUIER elemento con una clase `transition*` y sin duración explícita anime en 1s. */
-  --default-transition-duration: 1000ms;
+   * transition-transform…).
+   *
+   * Estuvo en 1s para que «cualquier elemento con una clase transition* anime en 1s», y eso mezclaba
+   * dos cosas que no son la misma. UN SEGUNDO ES PARA EL CONTENIDO —cambiar de pantalla, de sección,
+   * un bloque que entra—: ahí el fundido largo se lee como calidad, y esas transiciones NO dependen
+   * de este valor, porque van por las clases `.animate-*` con su `var(--motion-*)` propio.
+   *
+   * Lo que sí dependía de aquí son las 53 clases `transition*` sin duración del proyecto, y al
+   * revisarlas UNA A UNA resultaron ser todas lo mismo: respuesta a un gesto —pestaña activa,
+   * interruptor, píldora elegida, muestra de color, botón que aparece al pasar por encima—. Ahí un
+   * segundo no es suavidad: el puntero ya se ha ido antes de que termine, y se lee como que la web
+   * va lenta. Medido además en la certificación: el corazón de favoritos NO SE PODÍA PULSAR de forma
+   * fiable porque pasaba un segundo entero moviéndose («element is not stable»).
+   *
+   * 200ms: la misma familia que `.btn` (300ms) y que el pase manual de la galería (140ms), donde ya
+   * estaba escrito el mismo razonamiento. Lo que quiera durar un segundo lo pide explícitamente con
+   * `duration-1000`, como hace el zoom de la foto en la tarjeta de producto. */
+  --default-transition-duration: 200ms;
   --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  --tw-duration: 1000ms;
+  --tw-duration: 200ms;
   --motion-easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
   --motion-easing-decel:    cubic-bezier(0.0, 0, 0.2, 1);
   --motion-easing-accel:    cubic-bezier(0.4, 0, 1, 1);

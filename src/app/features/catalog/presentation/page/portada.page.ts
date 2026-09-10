@@ -57,7 +57,25 @@ import { BandaDePaises } from '../component/banda-de-paises';
         class="hidden md:flex hero relative isolate overflow-hidden w-screen ml-[calc(50%-50vw)]
                -mt-6 lg:-mt-10 -mb-20 px-4 lg:px-6 rounded-none"
       >
-        <nx-fondo-hero />
+        <!--
+          El mosaico va DIFERIDO, y es el cambio que más pesa de toda la portada.
+          Pinta sus fotos con «background-image», y eso el navegador no lo sabe cargar en diferido:
+          se baja todas nada más pintar. Son fotos de producto a resolución completa —unos 230 kB
+          cada una— para un fondo decorativo que además va detrás de un velo. Medido: la portada
+          descargaba 11,8 MB en móvil y 17,6 MB en escritorio, veinte veces más que cualquier otra
+          pantalla pública.
+
+          Con «on idle» el mosaico entra cuando el navegador ya no tiene nada urgente que hacer, así
+          que deja de competir con el texto, el botón y las fichas, que es lo que la gente viene a
+          ver. Es decorativo y va marcado «aria-hidden»: nadie lo echa de menos medio segundo.
+
+          Los DOS disparadores, el normal y el de hidratación: con solo el de hidratación, quien
+          llega navegando desde otra pantalla no tiene HTML del servidor que hidratar y el bloque se
+          queda sin nada que lo dispare — invisible, y sin ruido de ningún tipo.
+        -->
+        @defer (on idle; hydrate on idle) {
+          <nx-fondo-hero />
+        }
 
         <div class="hero-content max-w-3xl mx-auto text-center flex-col py-16 lg:py-24">
           <div class="badge badge-outline gap-2 bg-base-100/70">

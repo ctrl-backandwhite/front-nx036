@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, input, linkedSignal, model } from '@angular/core';
+import { Component, DestroyRef, inject, input, linkedSignal, model, output } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faMagnifyingGlass, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
@@ -38,6 +38,17 @@ import { TraduccionService } from '@core/i18n/traduccion.service';
 })
 export class CampoBusqueda {
   readonly valor = model('');
+  /**
+   * Lo tecleado, SIEMPRE que la escritura se asienta, aunque sea lo mismo que la última vez.
+   *
+   * <p>`model().set()` de Angular no emite cuando el valor no cambia, y eso deja la búsqueda muerta
+   * en cuanto quien la monta se desincroniza: si la consulta anterior no llegó a aplicarse, el campo
+   * ya tiene «vestido» dentro, volver a teclear «vestido» no emite nada y no hay forma de reintentar
+   * salvo vaciar el campo primero. Quien necesite esa garantía escucha esto en vez de `valorChange`;
+   * los dos avisan de lo mismo, así que se escucha UNO, nunca los dos —o cada tecleo pediría dos
+   * veces—.
+   */
+  readonly busca = output<string>();
   readonly marcador = input('');
   /** Milisegundos de pausa antes de avisar a quien lo monta. */
   readonly retardo = input(280);
@@ -64,12 +75,16 @@ export class CampoBusqueda {
     const texto = (evento.target as HTMLInputElement).value;
     this.local.set(texto);
     clearTimeout(this.temporizador);
-    this.temporizador = setTimeout(() => this.valor.set(texto), this.retardo());
+    this.temporizador = setTimeout(() => {
+      this.valor.set(texto);
+      this.busca.emit(texto);
+    }, this.retardo());
   }
 
   protected limpia(): void {
     clearTimeout(this.temporizador);
     this.local.set('');
     this.valor.set('');
+    this.busca.emit('');
   }
 }

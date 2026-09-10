@@ -2007,6 +2007,7 @@ const diccionario: Record<string, string> = {
   'admin.declgroups.cname': 'Omschrijving (Chinees)',
   'admin.declgroups.state': 'Status',
   'admin.declgroups.pending': 'Niet nagekeken',
+  'admin.declgroups.undrafted': 'Nog niet opgesteld',
   'admin.declgroups.approved': 'Goedgekeurd',
   'admin.declgroups.approve': 'Goedkeuren',
   'admin.declgroups.unapprove': 'Goedkeuring intrekken',

@@ -171,7 +171,14 @@ let barajaDeLaVisita: number | null = null;
         (limpia)="limpiaTodo()"
       />
 
-      @if (cuantosFiltros() > 0) {
+      <!--
+        La condición mira los distintivos que se van a PINTAR, no cuántos filtros hay puestos.
+        No todos los filtros tienen distintivo —«verificado», por ejemplo, se maneja desde su propio
+        desplegable—, así que con uno de esos puesto se pintaba este contenedor VACÍO. No se ve, pero
+        el contenedor cuenta para el reparto del espacio: metía diecinueve píxeles de aire muerto
+        entre los filtros y los productos, y la separación cambiaba según qué filtro tuvieras.
+      -->
+      @if (hayDistintivos()) {
         <div class="flex flex-wrap items-center gap-1.5">
           @if (criterio().texto) {
             <nx-distintivo-filtro [etiqueta]="'&quot;' + criterio().texto + '&quot;'" (quita)="cambia({ texto: undefined })" />
@@ -402,17 +409,40 @@ export class ListadoPage {
     return Math.max(MARGEN_MINIMO, Math.round(alto / 2));
   }
 
+  /**
+   * Escribe el criterio en la dirección, que es de donde lo lee todo lo demás.
+   *
+   * <p>El resultado NO se puede tirar. El enrutador cancela una navegación cuando hay otra en curso
+   * —al entrar en el catálogo, la primera todavía se está resolviendo— y devuelve `false` sin avisar
+   * a nadie. Cuando eso pasaba, lo tecleado se quedaba solo dentro de la barra de filtros: la caja
+   * seguía enseñando «vestido», la insignia contaba un filtro puesto, y la lista era el catálogo
+   * entero. Nadie podía saber que la búsqueda se había perdido, y volver a escribir lo mismo tampoco
+   * la recuperaba.
+   *
+   * <p>Se reintenta UNA vez: si la navegación se descartó por otra en curso, para entonces ya ha
+   * terminado. Un segundo fallo se registra en vez de desaparecer.
+   */
   protected fija(criterio: CriterioDeBusqueda): void {
-    void this.enrutador.navigate([], {
-      relativeTo: this.ruta,
-      queryParams: aParametros(criterio),
-      replaceUrl: true,
-    });
+    void this.navega(criterio).then((llego) => (llego ? true : this.navega(criterio)));
+  }
+
+  private navega(criterio: CriterioDeBusqueda): Promise<boolean> {
+    return this.enrutador
+      .navigate([], { relativeTo: this.ruta, queryParams: aParametros(criterio), replaceUrl: true })
+      .catch(() => false);
   }
 
   protected cambia(parcial: Partial<CriterioDeBusqueda>): void {
     this.fija({ ...this.criterio(), ...parcial });
   }
+
+  /** Si alguno de los filtros con distintivo propio está puesto. Ver la nota de la plantilla. */
+  protected readonly hayDistintivos = computed(
+    () =>
+      Boolean(this.criterio().texto) ||
+      Boolean(this.criterio().promocion) ||
+      Boolean(this.criterio().grupoDeArancel && this.hayPaisConArancel()),
+  );
 
   protected limpiaTodo(): void {
     // El grupo de arancel también se va: llega de fuera, y dejarlo puesto tras «limpiar» era el filtro

@@ -91,12 +91,22 @@ describe('grupo-de-declaracion', () => {
     nombreZh: '裤子',
     numeroDeProductos: 12,
     aprobado: false,
+    sinRedactar: false,
   };
 
   /** Sin descripción en inglés el transportista rechazaría la guía: no hay nada que firmar. */
   it('sin descripción en inglés no se puede aprobar', () => {
     expect(puedeAprobarse('   ')).toBe(false);
     expect(puedeAprobarse('Trousers')).toBe(true);
+  });
+
+  /**
+   * «Goods of HS heading 620342» es el relleno con el que nace un grupo cuya partida no está en la
+   * nomenclatura. Se marca —la fila lo enseña como «Sin redactar»— pero NO se impide firmarlo: es lo
+   * que se hace en producción y la responsabilidad de lo declarado es de quien firma.
+   */
+  it('el relleno de la partida se marca, pero no impide firmar', () => {
+    expect(puedeAprobarse('Goods of HS heading 620342')).toBe(true);
   });
 
   it('solo hay algo que guardar si el texto cambió', () => {

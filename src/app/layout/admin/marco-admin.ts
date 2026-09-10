@@ -53,8 +53,15 @@ export interface UsuarioDelPanel {
         <div (click)="abierto.set(false)" class="fixed inset-0 z-30 bg-black/40 lg:hidden" aria-hidden="true"></div>
       }
 
+      <!--
+        z-50, por encima de la cabecera del contenido (sticky, z-40). Estaban las dos en z-40 y, al ir
+        la cabecera DESPUÉS en el árbol, se ponía encima del alto del menú justo donde vive el aspa:
+        en el móvil no había forma de cerrarlo. Se veía y no se podía pulsar. Un menú abierto es una
+        capa modal, así que va por delante de todo lo que cubre — el mismo criterio que ya se aplicó
+        al cajón del escaparate por este mismo motivo.
+      -->
       <aside
-        class="fixed z-40 inset-y-0 left-0 w-64 bg-base-100 border-r border-base-300 flex flex-col shadow-pastel-sm
+        class="fixed z-50 inset-y-0 left-0 w-64 bg-base-100 border-r border-base-300 flex flex-col shadow-pastel-sm
                transform transition-transform duration-500 lg:translate-x-0"
         [class.translate-x-0]="abierto()"
         [class.-translate-x-full]="!abierto()"

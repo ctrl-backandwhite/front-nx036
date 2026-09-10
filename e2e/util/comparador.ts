@@ -9,7 +9,6 @@ import { Page, expect } from '@playwright/test';
  * aquí como esperable es un defecto del porte.
  */
 
-export const REACT = process.env['URL_REACT'] ?? 'http://localhost:3003';
 export const ANGULAR = process.env['URL_ANGULAR'] ?? 'http://localhost:3004';
 
 /** Las dos presentaciones que hay que certificar. El proyecto es mobile first: el móvil va primero. */
@@ -140,32 +139,6 @@ export function vigilaLaConsola(page: Page): string[] {
   return errores;
 }
 
-/**
- * Abre la misma dirección en los dos frontends y devuelve lo observado en cada uno.
- *
- * <p>Se espera a que la pantalla se ASIENTE y no al final de la carga porque lo que se compara es la
- * pantalla ya pintada: el front anterior pide sus datos después de montar, y comparar antes mediría
- * quién es más rápido, no quién enseña lo mismo.
- */
-export async function abreEnAmbos(
-  page: Page,
-  ruta: string,
-): Promise<{
-  react: { texto: string; importes: string[]; estado: number; errores: string[] };
-  angular: { texto: string; importes: string[]; estado: number; errores: string[] };
-}> {
-  const observa = async (base: string) => {
-    const errores = vigilaLaConsola(page);
-    const respuesta = await abre(page, `${base}${ruta}`);
-    return {
-      texto: await textoVisible(page),
-      importes: await importes(page),
-      estado: respuesta?.status() ?? 0,
-      errores,
-    };
-  };
-  return { react: await observa(REACT), angular: await observa(ANGULAR) };
-}
 
 /**
  * Comprueba que la página no obliga a desplazarse en horizontal.
@@ -239,6 +212,22 @@ export async function descartaElAvisoDeGalletas(page: Page): Promise<void> {
  * capa, porque lo que se está certificando es otra cosa.
  */
 export async function apartaAlAsistente(page: Page): Promise<void> {
+  /*
+   * PRIMERO se deja constancia de que la guía ya se contestó, y después se intenta el gesto.
+   *
+   * <p>Antes solo estaba el gesto, con su fallo tragado en silencio: si el botón «ahora no» no se
+   * podía pulsar —porque la propia capa lo tapaba, que es justo el caso—, no pasaba nada visible y la
+   * capa seguía ahí. La consecuencia aparecía muy lejos: una prueba de FAVORITOS agotando dos minutos
+   * y medio con un mensaje sobre un corazón que no se deja pulsar, sin mencionar al asistente.
+   *
+   * <p>La marca es la misma que usa la aplicación para no volver a ofrecer la guía a quien ya la vio,
+   * así que escribirla es decir lo mismo que diría el gesto, pero sin depender de poder pulsar. Y
+   * sobrevive a las recargas, que es donde la capa volvía a aparecer a mitad de prueba.
+   */
+  await page
+    .evaluate(() => window.localStorage.setItem('nx036.welcome.v1', '1'))
+    .catch(() => undefined);
+
   const ahoraNo = page.getByRole('button', { name: /ahora no|not now|minimizar|minimize/i }).first();
   if (await ahoraNo.count()) {
     await ahoraNo.click({ timeout: 4_000 }).catch(() => undefined);
@@ -308,7 +297,18 @@ export async function objetivosTactilesPequenos(page: Page, minimo = 24): Promis
         continue;
       }
       if (caja.height < min || caja.width < min) {
-        const etiqueta = propio.slice(0, 30) || el.getAttribute('aria-label') || el.tagName;
+        /*
+         * Una casilla se nombra «casilla», NO por su etiqueta.
+         *
+         * <p>En una tabla de catálogo la etiqueta de cada casilla es el TÍTULO DEL PRODUCTO, así que
+         * la lista de objetivos pequeños salía con cuarenta nombres distintos que cambian con los
+         * datos. Con eso no se puede declarar la deuda conocida —la lista no valdría para la
+         * siguiente pasada— ni se lee nada útil en el informe: son todas el mismo control repetido.
+         */
+        const esCasilla = el.tagName === 'INPUT';
+        const etiqueta = esCasilla
+          ? `casilla ${(el as HTMLInputElement).type}`
+          : propio.slice(0, 30) || el.getAttribute('aria-label') || el.tagName;
         fallos.push(`${etiqueta} (${Math.round(caja.width)}×${Math.round(caja.height)})`);
       }
     }

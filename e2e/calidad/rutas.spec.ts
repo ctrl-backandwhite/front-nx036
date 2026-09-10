@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { ANGULAR, REACT, abre } from '../util/comparador';
+import { ANGULAR, abre } from '../util/comparador';
 import {
   ALIAS_DE_ESCAPARATE,
   ALIAS_DE_PANEL,
@@ -20,12 +20,12 @@ const sinParametro = (r: string) => !r.includes(':');
 
 test.describe('paridad de rutas', () => {
   for (const ruta of RUTAS_PUBLICAS.filter(sinParametro)) {
-    test(`pública ${ruta} responde igual en los dos`, async ({ page }) => {
-      const enReact = await page.goto(`${REACT}${ruta}`, { waitUntil: 'domcontentloaded' });
-      const enAngular = await page.goto(`${ANGULAR}${ruta}`, { waitUntil: 'domcontentloaded' });
+    test(`pública ${ruta} se sirve`, async ({ page }) => {
+      // Antes se exigía «el mismo estado que el React». Retirado aquél (9-sep-2026), el listón es el
+      // requisito: una ruta pública se sirve, punto.
+      const respuesta = await page.goto(`${ANGULAR}${ruta}`, { waitUntil: 'domcontentloaded' });
 
-      expect(enReact?.status(), `el React no sirve ${ruta}: revisa el catálogo de rutas`).toBeLessThan(400);
-      expect(enAngular?.status(), `falta la pantalla ${ruta} en el Angular`).toBe(enReact?.status());
+      expect(respuesta?.status(), `falta la pantalla pública ${ruta}`).toBeLessThan(400);
     });
   }
 
@@ -37,7 +37,23 @@ test.describe('paridad de rutas', () => {
   for (const ruta of [...RUTAS_PRIVADAS, ...RUTAS_DE_PANEL].filter(sinParametro)) {
     test(`privada ${ruta} manda a la pantalla de acceso sin sesión`, async ({ page }) => {
       await abre(page, `${ANGULAR}${ruta}`);
-      expect(page.url(), `${ruta} no protege: deja ver la pantalla sin sesión`).toContain('/login');
+
+      /* Se SONDEA la dirección en vez de leerla una vez.
+       *
+       * `abre` da por asentada la pantalla cuando el texto deja de crecer, y el armazón del panel pinta
+       * su cabecera antes de que el guardián termine de resolver la sesión: ahí el texto ya no cambia,
+       * pero la redirección todavía no ha ocurrido. Leer la dirección en ese instante marcaba como
+       * desprotegidas rutas que sí protegen —comprobado a mano contra preproducción: las cuatro acaban
+       * en `/login?volverA=…`, solo que unos cientos de milisegundos después—.
+       *
+       * El requisito no es «redirige antes de que yo mire», es «no se puede ver sin sesión»; y eso es
+       * exactamente lo que comprueba el sondeo: si de verdad no protegiera, no llegaría nunca. */
+      await expect
+        .poll(() => page.url(), {
+          message: `${ruta} no protege: deja ver la pantalla sin sesión`,
+          timeout: 15_000,
+        })
+        .toContain('/login');
     });
   }
 
@@ -66,17 +82,14 @@ test.describe('paridad de rutas', () => {
     });
   }
 
-  test('una dirección que no existe da la misma página en los dos', async ({ page }) => {
+  test('una dirección que no existe lo dice, en vez de dejar la pantalla en blanco', async ({ page }) => {
     const inventada = '/esto-no-existe-en-ninguna-parte-9f2c';
-    await abre(page, `${REACT}${inventada}`);
-    const textoReact = await page.locator('body').innerText();
-
     await abre(page, `${ANGULAR}${inventada}`);
-    const textoAngular = await page.locator('body').innerText();
+    const texto = await page.locator('body').innerText();
 
-    // No se comparan letra a letra: basta con que las dos reconozcan que no hay nada ahí.
-    const pareceNoEncontrado = (t: string) => /404|no encontrad|not found/i.test(t);
-    expect(pareceNoEncontrado(textoReact), 'el React no avisa de que la página no existe').toBe(true);
-    expect(pareceNoEncontrado(textoAngular), 'el Angular no avisa de que la página no existe').toBe(true);
+    expect(
+      /404|no encontrad|not found/i.test(texto),
+      'una dirección inventada no avisa de que ahí no hay nada',
+    ).toBe(true);
   });
 });

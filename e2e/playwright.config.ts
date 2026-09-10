@@ -1,11 +1,22 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Certificación del porte, por COMPARACIÓN contra el frontend React.
+ * Certificación del escaparate y el panel, contra sus propios requisitos.
  *
- * <p>Los dos frontends corren a la vez contra el mismo backend, así que las pruebas no afirman contra
- * una lista de requisitos escrita a mano —que envejece y se interpreta— sino contra la aplicación que
- * se está reemplazando. Cualquier diferencia no declarada como esperable es un defecto del porte.
+ * <p>Nació como COMPARACIÓN contra el frontend React: los dos corrían a la vez contra el mismo
+ * backend y cualquier diferencia no declarada era un defecto del porte. El 9-sep-2026 el React se
+ * retiró del repositorio, y con él la mitad de esta certificación dejó de EJECUTARSE —no de fallar—,
+ * que es la forma más silenciosa de perder cobertura: 78 pruebas en verde sin correr.
+ *
+ * <p>Al quitar la comparación, dos defectos que estaba excusando pasaron a verse: la capa del
+ * asistente que impide pulsar nada al entrar desde un móvil, y el aspa del menú del panel, intocable
+ * porque la cabecera se le pone encima. Los dos llevaban anotados como «no es defecto, el original
+ * hace lo mismo».
+ *
+ * <p>Ahora el listón es el requisito. Donde solo tenía sentido comparar —«se pinta igual», «reparte
+ * el espacio igual»— la prueba se retiró en vez de reescribirse en falso; donde el original hacía de
+ * listón —bytes, tiempos, objetivos táctiles— hay presupuesto absoluto o lista declarada de deuda,
+ * que no puede crecer.
  *
  * <p>Dos proyectos, uno por anchura, porque el proyecto es MOBILE FIRST y la certificación tiene que
  * mirar el móvil como caso principal, no como una comprobación de última hora.

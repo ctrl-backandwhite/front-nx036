@@ -20,11 +20,24 @@ export interface GrupoDeDeclaracion {
   readonly nombreZh: string;
   readonly numeroDeProductos: number;
   readonly aprobado: boolean;
+  /**
+   * La descripción sigue siendo el relleno con el que nació el grupo —el número de la partida y nada
+   * más—, así que no se puede firmar hasta escribirla. Lo decide el backend, que es donde vive la
+   * regla que genera ese relleno.
+   */
+  readonly sinRedactar: boolean;
   readonly aprobadoEl?: string;
   readonly aprobadoPor?: string;
 }
 
-/** Sin descripción en inglés el transportista rechazaría la guía, así que no se puede aprobar. */
+/**
+ * Sin descripción en inglés el transportista rechazaría la guía, así que no se puede aprobar.
+ *
+ * <p>Que el texto siga siendo el relleno de la partida —«Goods of HS heading 611212»— NO lo impide:
+ * es lo que se firma en producción, y quien firma responde de lo que se declara. La fila lo marca
+ * como «Sin redactar» para que se vea lo que se está firmando; decidirlo por quien tiene la
+ * responsabilidad sería otra cosa.
+ */
 export function puedeAprobarse(nombreEn: string): boolean {
   return nombreEn.trim() !== '';
 }

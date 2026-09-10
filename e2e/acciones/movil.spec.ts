@@ -1,7 +1,6 @@
 import { Locator, Page, expect, test } from '@playwright/test';
 import {
   ANGULAR,
-  REACT,
   abre,
   apartaAlAsistente,
   bajaAlFondo,
@@ -32,8 +31,6 @@ import {
   elMenuDelPanel,
   eligeRegionEnElCajon,
   esperaLineasEnLaBarra,
-  franjas,
-  inventario,
   laBarraInferior,
   lineasEnLaBarra,
   noLoTapaLaBarra,
@@ -443,41 +440,13 @@ test.describe('acciones del cliente en el móvil', () => {
     sinErroresDeConsola(errores, 'abrir la cesta desde la barra de pestañas');
   });
 
-  /**
-   * Y LA MISMA ACCIÓN, comparada con el front anterior a esta anchura.
-   *
-   * <p>En escritorio esto es un defecto anotado: allí el original abre un CAJÓN lateral y el porte
-   * navega a `/cart`. En el móvil hay que preguntarlo otra vez y por separado, porque el original
-   * TAMBIÉN tiene barra de pestañas: si allí la pestaña del carrito navega, entonces navegar es la
-   * paridad correcta y exigir el cajón sería inventar un defecto. La prueba mira lo que hace el
-   * original y exige lo mismo.
+  /*
+   * AQUÍ HABÍA una prueba que exigía que la pestaña del carrito fuera el mismo elemento —enlace o
+   * botón— que en el front anterior. Se retira con él (9-sep-2026): comparaba una etiqueta de HTML
+   * contra una aplicación que ya no existe, y lo que de verdad importa —que pulsar la pestaña enseñe
+   * lo que hay en la cesta— lo certifica la prueba de justo encima, que no necesita comparar con
+   * nada.
    */
-  test('la pestaña del carrito se comporta como la del front anterior', async ({ page }) => {
-    await preparaElMovil(page, REACT);
-    await abre(page, `${REACT}/`);
-    await descartaElAvisoDeGalletas(page);
-    await apartaAlAsistente(page);
-    const enElOriginal = await page
-      .locator('nav.fixed.bottom-0 a[href="/cart"], nav.fixed.bottom-0 button')
-      .first()
-      .evaluate((el) => el.tagName.toLowerCase())
-      .catch(() => 'ninguno');
-
-    await preparaElMovil(page, ANGULAR);
-    await abre(page, `${ANGULAR}/`);
-    await descartaElAvisoDeGalletas(page);
-    await apartaAlAsistente(page);
-    const enElPorte = await laBarraInferior(page)
-      .locator('a[href="/cart"], button')
-      .first()
-      .evaluate((el) => el.tagName.toLowerCase())
-      .catch(() => 'ninguno');
-
-    expect(
-      enElPorte,
-      `en el original la cesta de la barra es un «${enElOriginal}» y en el porte un «${enElPorte}»`,
-    ).toBe(enElOriginal);
-  });
 
   /**
    * CAMBIAR LA CANTIDAD. La tabla de la cesta cabe en 412 px, pero los botones de más y menos son la
@@ -650,33 +619,24 @@ test.describe('acciones del cliente en el móvil', () => {
 
     /* PRIMERO: ¿se puede dar de alta a 412 px, siquiera?
      *
-     * Medido en las dos aplicaciones: en el pie NO HAY NINGÚN campo de correo con caja a esta anchura
-     * —el porte pinta `nx-alta-boletin` con 0×0 y el front anterior sus dos `input[type=email]`
-     * también a 0×0—. O sea, el alta al boletín NO SE OFRECE en el móvil, y no es una diferencia del
-     * porte: es cómo está el diseño en las dos. Se comprueba contra el original en vez de darlo por
-     * hecho, porque si algún día el original sí lo ofreciera y el porte no, eso SÍ sería un defecto y
-     * tiene que salir en rojo, no saltarse. */
+     * A esta anchura el pie NO pinta ningún campo de correo con caja: `nx-alta-boletin` sale con
+     * altura 0. Es decir, el alta al boletín no se OFRECE en el móvil.
+     *
+     * Esto se comprobaba antes contra el front anterior, que hacía lo mismo, y por eso se daba por
+     * bueno. Retirado aquél (9-sep-2026), ya no hay con qué comparar y la pregunta deja de ser «¿son
+     * iguales?» para ser «¿debería ofrecerse?» — que es una decisión de producto, no de la
+     * certificación. Se salta declarándolo, en vez de fingir que aquí no hay nada que mirar: el día
+     * que se decida ofrecerlo, esta prueba ya está escrita y lo certifica. */
     const camposVisibles = async () =>
       page.locator('footer input[type="email"], nx-alta-boletin input[type="email"]').evaluateAll(
         (campos) => campos.filter((c) => c.getBoundingClientRect().height > 0).length,
       );
     const enElPorte = await camposVisibles();
 
-    await preparaElMovil(page, REACT);
-    await abre(page, `${REACT}/`);
-    await descartaElAvisoDeGalletas(page);
-    await apartaAlAsistente(page);
-    await bajaAlFondo(page);
-    const enElOriginal = await camposVisibles();
-
-    expect(
-      enElPorte,
-      `el original ofrece ${enElOriginal} campo(s) de alta al boletín en el móvil y el porte ${enElPorte}`,
-    ).toBeGreaterThanOrEqual(enElOriginal);
     test.skip(
       enElPorte === 0,
-      'el alta al boletín NO SE OFRECE a 412 px en ninguna de las dos aplicaciones ' +
-        '(cero campos de correo con caja en el pie): a esta anchura no hay acción que certificar',
+      'el alta al boletín NO SE OFRECE a 412 px: el pie no pinta ningún campo de correo con caja. ' +
+        'Hueco de producto declarado, no defecto del código',
     );
 
     const alta = page.locator('nx-alta-boletin:visible').last();
@@ -1023,7 +983,13 @@ test.describe('acciones de administración en el móvil', () => {
 
     await abreLosFiltros(page);
     const antes = await contadorDeResultados(page);
-    const filtro = page.getByLabel(/Precio ≥/).first();
+    /*
+     * «Precio Mínimo», no «Precio ≥»: el filtro del panel dejó de ser dos campos sueltos rotulados
+     * con los signos y pasó a ser un RANGO con validación cruzada. Esta era la SEGUNDA copia del
+     * rótulo viejo —la otra estaba en la batería de escritorio—, y llevaba desde el rediseño
+     * agotando su plazo sin cazar nada.
+     */
+    const filtro = page.getByLabel(/Precio\s+Mínimo/i).first();
     await filtro.fill('900');
     await filtro.blur();
     const despues = await esperaOtroTotal(page, antes.total);
@@ -1553,6 +1519,55 @@ const PANTALLAS_CERTIFICADAS: readonly string[] = [
   '/admin/catalog',
 ];
 
+/**
+ * Los controles por debajo de 24 px que YA estaban el 9-sep-2026, cuando el listón dejó de ser el
+ * front anterior y pasó a ser el requisito de accesibilidad.
+ *
+ * <p>Se declaran uno a uno, con su pantalla, en vez de bajar el umbral o saltarse la prueba: así la
+ * deuda se ve al abrir el fichero y, sobre todo, NO PUEDE CRECER — cualquier objetivo pequeño que no
+ * esté aquí rompe la certificación. Vaciar esta lista es el trabajo pendiente; ampliarla, un
+ * retroceso que hay que justificar.
+ *
+ * <p>Se anota lo que ES el control, no sus medidas: un píxel arriba o abajo convertiría el mismo
+ * botón en «uno nuevo» y llenaría el informe de falsos positivos.
+ */
+const YA_PEQUENOS: Readonly<Record<string, readonly string[]>> = {
+  // En TODAS: el logotipo (23 px de alto, uno por debajo), la miga de pan y el enlace del pie.
+  '/': ['NX036', 'Preferencias de cookies'],
+  '/catalog': [
+    'NX036',
+    'Inicio',
+    // Uno por tarjeta de producto: 17 px de alto. Es el que más se repite del catálogo.
+    'Ver los que no suman arancel',
+    'Preferencias de cookies',
+  ],
+  '/cart': [
+    'NX036',
+    'Inicio',
+    /*
+     * ESTOS TRES SON LOS QUE MÁS DUELEN y los que hay que arreglar primero: son los botones que se
+     * pulsan de verdad para cambiar lo que se va a comprar, en la pantalla de la cesta y desde un
+     * teléfono. 23 px de alto en el más pequeño.
+     */
+    'Quitar una unidad',
+    'Añadir una unidad',
+    'Eliminar',
+    'Preferencias de cookies',
+  ],
+  '/favorites': ['NX036', 'Inicio', 'Preferencias de cookies'],
+  '/orders': ['NX036', 'Inicio', 'Preferencias de cookies'],
+  '/profile': ['NX036', 'Inicio', 'Preferencias de cookies'],
+  '/addresses': ['NX036', 'Inicio', 'Preferencias de cookies'],
+  '/admin': ['NX036', 'Preferencias de cookies'],
+  '/admin/catalog': [
+    // 15×15: las casillas de la tabla del panel, una por fila más la de «seleccionar todo».
+    'Seleccionar todo',
+    'casilla checkbox',
+    'Precio',
+    'Verificado',
+  ],
+};
+
 test.describe('lo estético del móvil', () => {
   test.beforeEach(async ({}, info) => {
     test.skip(info.project.name !== 'movil', 'la maqueta del móvil solo se mide a 412 px');
@@ -1598,76 +1613,40 @@ test.describe('lo estético del móvil', () => {
   }
 
   /**
-   * El porte no puede AÑADIR objetivos más difíciles de pulsar que los del original.
+   * Nada que haya que pulsar puede medir menos de 24 píxeles, que es el mínimo del nivel AA que el
+   * proyecto se fija.
    *
-   * <p>Se compara contra el front anterior a la misma anchura y por lo que ES el control, no por sus
-   * medidas exactas: un píxel de diferencia lo convertiría en «un objetivo nuevo» y llenaría el
-   * informe de falsos positivos. El mínimo es 24 píxeles, el del nivel AA que el proyecto se fija.
+   * <p>Esto se medía contra el front anterior —«no añadas objetivos pequeños que allí no estuvieran»—
+   * y por tanto heredaba en silencio todos los suyos. Retirado aquél (9-sep-2026), el listón deja de
+   * ser otra aplicación y pasa a ser el requisito: en un móvil, un control por debajo de 24 px no se
+   * acierta con el dedo, lo tuviera antes quien lo tuviera.
+   *
+   * <p>Lo que había el día del cambio se declara en {@link YA_PEQUENOS}, con su pantalla: es deuda
+   * conocida, sale a la vista de cualquiera que abra este fichero, y su lista NO puede crecer. Un
+   * control pequeño nuevo rompe la certificación.
    */
   for (const ruta of PANTALLAS_CERTIFICADAS) {
-    test(`${ruta} no empeora lo que se puede pulsar`, async ({ page }) => {
-      await enLaPantalla(page, REACT, ruta);
-      const enElOriginal = new Set((await objetivosTactilesPequenos(page)).map(soloElNombre));
-      await retrata(page, `original-${comoSeLlamaElRetrato(ruta)}`);
-
+    test(`${ruta} no tiene objetivos imposibles de pulsar`, async ({ page }) => {
       await enLaPantalla(page, ANGULAR, ruta);
-      const nuevos = (await objetivosTactilesPequenos(page)).filter((x) => !enElOriginal.has(soloElNombre(x)));
+      const pequenos = await objetivosTactilesPequenos(page);
       await retrata(page, `porte-${comoSeLlamaElRetrato(ruta)}`);
+
+      const tolerados = new Set(YA_PEQUENOS[ruta] ?? []);
+      const nuevos = pequenos.filter((x) => !tolerados.has(soloElNombre(x)));
 
       expect(
         nuevos,
-        `${ruta}: objetivos por debajo de 24 px que el original no tiene: ${nuevos.slice(0, 6).join(' · ')}`,
+        `${ruta}: objetivos por debajo de 24 px sin declarar: ${nuevos.join(' · ')}`,
       ).toEqual([]);
     });
   }
 
-  /**
-   * Las mismas piezas y repartidas igual, como en `paridad/maqueta.spec.ts` pero en las pantallas de
-   * TRABAJO, que son las que aquella no mira porque exigen sesión.
+  /*
+   * AQUÍ HABÍA una prueba que exigía «las mismas piezas y el mismo reparto del espacio» que el front
+   * anterior en las pantallas de trabajo. Se retira con él (9-sep-2026): comparaba dos maquetas y sin
+   * la de referencia no afirma nada. Lo que sí tiene sentido por sí solo —que no haya desplazamiento
+   * horizontal ni objetivos imposibles de pulsar— lo certifican las dos pruebas de al lado.
    */
-  for (const ruta of PANTALLAS_CERTIFICADAS) {
-    test(`${ruta} tiene las mismas piezas y reparte el espacio igual`, async ({ page }) => {
-      await enLaPantalla(page, REACT, ruta);
-      const piezasOriginal = await inventario(page);
-      const franjasOriginal = await franjas(page);
-
-      await enLaPantalla(page, ANGULAR, ruta);
-      const piezasPorte = await inventario(page);
-      const franjasPorte = await franjas(page);
-
-      /* Los controles de formulario se comparan EXACTOS: un desplegable nativo de más significa que
-       * la pantalla se portó con otro componente, que es justo lo que hay que cazar. Lo que depende de
-       * los datos —una fila más de catálogo— se tolera. */
-      for (const pieza of ['desplegables nativos', 'casillas', 'tablas']) {
-        expect(
-          piezasPorte[pieza],
-          `${ruta}: hay ${piezasPorte[pieza]} «${pieza}» y el original tiene ${piezasOriginal[pieza]}`,
-        ).toBe(piezasOriginal[pieza]);
-      }
-
-      /* Y el reparto: que no aparezca un bloque a media pantalla donde el original ocupa toda. Se
-       * comparan CONJUNTOS y no listas ordenadas, porque el orden del marcado no coincide entre las
-       * dos tecnologías y compararlo daría diferencias en cada pantalla. */
-      const resume = (lista: string[]) => {
-        const cuenta: Record<string, number> = {};
-        for (const x of lista) {
-          cuenta[x] = (cuenta[x] ?? 0) + 1;
-        }
-        return cuenta;
-      };
-      const original = resume(franjasOriginal);
-      const porte = resume(franjasPorte);
-      for (const clave of Object.keys(porte)) {
-        if (!clave.includes(':medio') && !clave.includes(':un cuarto')) {
-          continue;
-        }
-        expect(
-          original[clave] ?? 0,
-          `${ruta}: el porte tiene ${porte[clave]} «${clave}» y el original ${original[clave] ?? 0}`,
-        ).toBeGreaterThan(0);
-      }
-    });
-  }
 
   /**
    * LA BARRA DE PESTAÑAS NO PUEDE TAPAR EL BOTÓN PRINCIPAL de la pantalla.
@@ -1723,20 +1702,23 @@ test.describe('lo estético del móvil', () => {
       );
 
     // Sin `preparaElMovil`: es la primera visita de verdad, que es cuando esto ocurre.
-    await abre(page, `${REACT}/`);
-    await page.waitForTimeout(6_000);
-    const enElOriginal = await capasQueTapan(REACT);
-
     await abre(page, `${ANGULAR}/`);
     await page.waitForTimeout(6_000);
     const enElPorte = await capasQueTapan(ANGULAR);
     await retrata(page, 'porte-capa-a-pantalla-completa');
 
+    /*
+     * NINGUNA. Esto se medía contra el front anterior y se daba por bueno mientras no fuera PEOR que
+     * allí. Retirado aquél (9-sep-2026), la pregunta deja de ser «¿es peor?» y pasa a ser «¿debería
+     * haber alguna?» — y la respuesta es que no: quien entra por primera vez desde un móvil no puede
+     * pulsar NADA hasta contestar al asistente. No era paridad; era un defecto que la comparación
+     * excusaba.
+     */
     expect(
-      enElPorte.length,
-      `el porte pone ${enElPorte.length} capa(s) a pantalla completa que interceptan el toque ` +
-        `(${enElPorte.join(' · ')}) y el original ${enElOriginal.length}`,
-    ).toBeLessThanOrEqual(enElOriginal.length);
+      enElPorte,
+      `hay ${enElPorte.length} capa(s) a pantalla completa interceptando el toque nada más entrar ` +
+        `(${enElPorte.join(' · ')}): a esta anchura no se puede pulsar nada de lo que hay debajo`,
+    ).toEqual([]);
   });
 
   /**
@@ -1881,14 +1863,19 @@ test.describe('lo estético del móvil', () => {
       return (await aspa.count()) ? quienLoTapa(aspa) : 'no hay aspa';
     };
 
-    const enElOriginal = await miraElAspa(REACT);
-    await retrata(page, 'original-admin-aspa');
     const enElPorte = await miraElAspa(ANGULAR);
     await retrata(page, 'porte-admin-aspa');
 
+    /*
+     * NADA puede taparla. Antes esto se excusaba porque el front anterior repartía las capas igual y
+     * tenía el aspa igual de tapada; retirado aquél (9-sep-2026), esa excusa desaparece y queda el
+     * hecho: en el móvil, el único botón para cerrar el menú del panel es INTOCABLE porque la
+     * cabecera del contenido se le pone encima —las dos capas declaran `z-40` y gana la última del
+     * árbol—.
+     */
     expect(
-      enElPorte === null || enElOriginal !== null,
-      `el porte tapa el aspa del menú con «${enElPorte}» y el original no la tapa`,
-    ).toBe(true);
+      enElPorte,
+      `el aspa del menú del panel la tapa «${enElPorte}»: en el móvil no se puede cerrar el menú`,
+    ).toBeNull();
   });
 });
