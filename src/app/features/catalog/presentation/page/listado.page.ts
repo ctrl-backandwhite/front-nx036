@@ -91,9 +91,15 @@ let barajaDeLaVisita: number | null = null;
       <nx-boton-subir />
 
       @if (categoriaActiva(); as categoria) {
-        <section
-          class="rounded-xl bg-gradient-to-r from-brand-50 via-base-100 to-amber-50 border border-ink-100 px-6 py-8 lg:px-10 lg:py-10"
-        >
+        <!--
+          Fondo PLANO, no un degradado.
+          Llevaba uno de tres paradas que iba del azul de marca al ámbar, y el ámbar no está en la
+          paleta del escaparate: aparecía solo aquí. Un degradado de lado a lado que cruza dos familias
+          de color no comunica nada —no separa secciones ni jerarquiza— y se reconoce al instante como
+          relleno decorativo. Un tono liso de marca hace el mismo trabajo, que es despegar el cartel del
+          fondo de la página, y no compite con las fotos de producto que van justo debajo.
+        -->
+        <section class="rounded-xl bg-brand-50 border border-ink-100 px-6 py-8 lg:px-10 lg:py-10">
           <div class="text-[11px] uppercase tracking-wider text-brand-700 font-medium">
             {{ t('catalog.category_hero.label') }}
           </div>
