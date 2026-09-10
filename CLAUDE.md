@@ -194,6 +194,27 @@ interpreta el fichero: es formato Compose y lleva valores con espacios sin comil
 pasa como argumento de construcción; está documentado en el `Dockerfile` y en el README de
 `nexadrop-deploy`.
 
+### El CSS crítico en línea va APAGADO, y no es un descuido
+
+`optimization.styles.inlineCritical` está a `false` en las cuatro configuraciones que compilan de
+verdad (`production`, `des`, `pre`, `pro`). `angular.json` es JSON y no admite comentarios, así que el
+motivo se escribe aquí: es la clase de ajuste que alguien vuelve a encender por parecer una mejora.
+
+Lo que hace esa optimización es extraer las reglas del primer pliegue, incrustarlas en el `<head>` y
+cargar el resto **de forma diferida** con el truco de `media="print"` más un `<noscript>`. En una
+aplicación cuyo diseño entero sale de utilidades —Tailwind más daisyUI sobre el tema NX036— el
+«primer pliegue» no es un subconjunto pequeño ni estable: el extractor se dejaba fuera reglas que sí
+se ven, y entre que se pintaba el HTML prerenderizado y llegaba la hoja completa había un parpadeo
+con la maqueta rota. Se ve sobre todo en la portada, que es justo la primera impresión.
+
+Con la hoja como un `<link rel="stylesheet">` normal, el navegador la trata como recurso bloqueante,
+Cloudflare la sirve desde el borde ya cacheada y con hash en el nombre, y no hay ningún estado
+intermedio que enseñar. Se paga en teoría un poco de primer pintado; en la práctica se cambia un
+parpadeo visible por una espera que no se nota.
+
+Es el mismo fallo, con otra cara, que el de los iconos que se pintaban gigantes en el primer render:
+CSS que llega después del HTML que lo necesita.
+
 ---
 
 ## 7. Rendimiento: no se replica lo lento
