@@ -56,7 +56,14 @@
           },
           "configurations": {
             "production": {
-              "optimization": true,
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
+                "fonts": true
+              },
               "extractLicenses": true,
               "sourceMap": false,
               "outputHashing": "all",
@@ -86,7 +93,14 @@
               "outputHashing": "none"
             },
             "des": {
-              "optimization": true,
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
+                "fonts": true
+              },
               "extractLicenses": true,
               "sourceMap": false,
               "outputHashing": "all",
@@ -110,7 +124,14 @@
               ]
             },
             "pre": {
-              "optimization": true,
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
+                "fonts": true
+              },
               "extractLicenses": true,
               "sourceMap": false,
               "outputHashing": "all",
@@ -134,7 +155,14 @@
               ]
             },
             "pro": {
-              "optimization": true,
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
+                "fonts": true
+              },
               "extractLicenses": true,
               "sourceMap": false,
               "outputHashing": "all",

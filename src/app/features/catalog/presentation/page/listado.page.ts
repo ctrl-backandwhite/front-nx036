@@ -171,7 +171,14 @@ let barajaDeLaVisita: number | null = null;
         (limpia)="limpiaTodo()"
       />
 
-      @if (cuantosFiltros() > 0) {
+      <!--
+        La condición mira los distintivos que se van a PINTAR, no cuántos filtros hay puestos.
+        No todos los filtros tienen distintivo —«verificado», por ejemplo, se maneja desde su propio
+        desplegable—, así que con uno de esos puesto se pintaba este contenedor VACÍO. No se ve, pero
+        el contenedor cuenta para el reparto del espacio: metía diecinueve píxeles de aire muerto
+        entre los filtros y los productos, y la separación cambiaba según qué filtro tuvieras.
+      -->
+      @if (hayDistintivos()) {
         <div class="flex flex-wrap items-center gap-1.5">
           @if (criterio().texto) {
             <nx-distintivo-filtro [etiqueta]="'&quot;' + criterio().texto + '&quot;'" (quita)="cambia({ texto: undefined })" />
@@ -428,6 +435,14 @@ export class ListadoPage {
   protected cambia(parcial: Partial<CriterioDeBusqueda>): void {
     this.fija({ ...this.criterio(), ...parcial });
   }
+
+  /** Si alguno de los filtros con distintivo propio está puesto. Ver la nota de la plantilla. */
+  protected readonly hayDistintivos = computed(
+    () =>
+      Boolean(this.criterio().texto) ||
+      Boolean(this.criterio().promocion) ||
+      Boolean(this.criterio().grupoDeArancel && this.hayPaisConArancel()),
+  );
 
   protected limpiaTodo(): void {
     // El grupo de arancel también se va: llega de fuera, y dejarlo puesto tras «limpiar» era el filtro

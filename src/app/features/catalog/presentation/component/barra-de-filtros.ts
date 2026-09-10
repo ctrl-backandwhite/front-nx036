@@ -51,6 +51,15 @@ const ORDENES: readonly OrdenDelCatalogo[] = [
  * se pliega nada: ahí caben en una fila y esconderlos solo añadiría un clic.
  */
 @Component({
+  /*
+   * El anfitrión es BLOQUE, y no es cosmética: un elemento personalizado nace «display: inline», y a
+   * un elemento en línea el navegador le IGNORA los márgenes verticales. El contenedor reparte el
+   * espacio con `space-y-*`, que funciona poniendo `margin-top` al hermano siguiente, así que ese
+   * espacio se perdía y los productos salían pegados a la barra de filtros. Con filtros puestos
+   * aparecía un hueco de diecinueve píxeles que no venía de ninguna regla: era el hueco entre líneas
+   * de dos cajas en línea, así que la separación dependía de lo que hubiera dentro.
+   */
+  host: { class: 'block' },
   selector: 'nx-barra-de-filtros',
   imports: [
     CampoBusqueda,

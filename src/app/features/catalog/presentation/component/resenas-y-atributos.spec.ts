@@ -159,8 +159,12 @@ describe('SeccionResenas', () => {
     expect(autor.readOnly).toBe(true);
   });
 
-  /** Se enseñan por defecto las del idioma de quien mira; el filtro deja ver todas. */
-  it('con reseñas en varios idiomas ofrece filtrarlas', async () => {
+  /**
+   * El selector de idioma es SOLO para quien administra: quien compra lee en el idioma con el que
+   * navega, y ofrecerle saltar al chino o al neerlandés no le ayuda a decidir —no los entiende— y le
+   * llena la ficha de píldoras.
+   */
+  it('quien compra NO ve el selector de idioma de las reseñas', async () => {
     const { vista } = await monta(async () =>
       exito({
         items: [
@@ -172,15 +176,45 @@ describe('SeccionResenas', () => {
         reparto: { '5': 1, '4': 1 },
       }),
     );
-    const distintivos = [...vista.container.querySelectorAll<HTMLElement>('.badge')];
+    vista.fixture.debugElement.injector
+      .get(SesionActual)
+      .publica({ id: 'u1', rol: 'USER', nombreVisible: 'Ana', pais: 'ES' });
+    vista.fixture.detectChanges();
+
+    const pildoras = [...vista.container.querySelectorAll<HTMLElement>('button.badge')];
+    expect(pildoras.map((p) => p.textContent?.trim())).not.toContain('EN');
+    // Ve las de SU idioma —aquí el de las pruebas, inglés— sin poder saltar a otro.
+    expect(vista.container.textContent).toContain('Good');
+    expect(vista.container.textContent).not.toContain('Muy bien');
+  });
+
+  /** Quien administra sí lo necesita: revisa que la traducción de cada mercado esté puesta. */
+  it('quien administra puede filtrar las reseñas por idioma', async () => {
+    const { vista } = await monta(async () =>
+      exito({
+        items: [
+          { id: 'r1', valoracion: 5, idioma: 'es', cuerpo: 'Muy bien' },
+          { id: 'r2', valoracion: 4, idioma: 'en', cuerpo: 'Good' },
+        ],
+        total: 2,
+        media: 4.5,
+        reparto: { '5': 1, '4': 1 },
+      }),
+    );
+    vista.fixture.debugElement.injector
+      .get(SesionActual)
+      .publica({ id: 'a1', rol: 'ADMIN', nombreVisible: 'Admin', pais: 'ES' });
+    vista.fixture.detectChanges();
+
+    const distintivos = [...vista.container.querySelectorAll<HTMLElement>('button.badge')];
     const soloIngles = distintivos.find((d) => d.textContent?.trim() === 'EN')!;
+    expect(soloIngles, 'quien administra no ve el filtro por idioma').toBeTruthy();
     await userEvent.click(soloIngles);
     vista.fixture.detectChanges();
     expect(vista.container.textContent).toContain('Good');
     expect(vista.container.textContent).not.toContain('Muy bien');
 
-    const todas = distintivos[0];
-    await userEvent.click(todas);
+    await userEvent.click(distintivos[0]);
     vista.fixture.detectChanges();
     expect(vista.container.textContent).toContain('Muy bien');
   });

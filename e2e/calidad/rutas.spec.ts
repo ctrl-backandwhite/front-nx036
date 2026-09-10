@@ -37,7 +37,23 @@ test.describe('paridad de rutas', () => {
   for (const ruta of [...RUTAS_PRIVADAS, ...RUTAS_DE_PANEL].filter(sinParametro)) {
     test(`privada ${ruta} manda a la pantalla de acceso sin sesión`, async ({ page }) => {
       await abre(page, `${ANGULAR}${ruta}`);
-      expect(page.url(), `${ruta} no protege: deja ver la pantalla sin sesión`).toContain('/login');
+
+      /* Se SONDEA la dirección en vez de leerla una vez.
+       *
+       * `abre` da por asentada la pantalla cuando el texto deja de crecer, y el armazón del panel pinta
+       * su cabecera antes de que el guardián termine de resolver la sesión: ahí el texto ya no cambia,
+       * pero la redirección todavía no ha ocurrido. Leer la dirección en ese instante marcaba como
+       * desprotegidas rutas que sí protegen —comprobado a mano contra preproducción: las cuatro acaban
+       * en `/login?volverA=…`, solo que unos cientos de milisegundos después—.
+       *
+       * El requisito no es «redirige antes de que yo mire», es «no se puede ver sin sesión»; y eso es
+       * exactamente lo que comprueba el sondeo: si de verdad no protegiera, no llegaría nunca. */
+      await expect
+        .poll(() => page.url(), {
+          message: `${ruta} no protege: deja ver la pantalla sin sesión`,
+          timeout: 15_000,
+        })
+        .toContain('/login');
     });
   }
 
