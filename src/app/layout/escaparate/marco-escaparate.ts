@@ -264,7 +264,18 @@ const RUTA_DE_FICHA = /^\/(catalog|admin\/browse)\/[^/]+$/;
 
       <!-- El hueco para la barra de pestañas lo reserva el PIE, que va siempre debajo y en móvil lleva
            «pb-24». Reservarlo también aquí dejaba una franja en blanco entre el contenido y el pie. -->
-      <main class="flex-1 min-w-0 max-w-screen-2xl w-full mx-auto px-4 lg:px-6 py-6 lg:py-10">
+      <!--
+        1.680 px de ancho máximo, no los 1.536 de «2xl».
+        En un portátil de 1.800 px sobraban casi 300 a los lados mientras las fotos de producto
+        —que es lo único que decide una compra aquí— se pintaban pequeñas. Con este tope se recupera
+        la mitad de ese margen y cada tarjeta de la cuadrícula gana ancho sin cambiar el número de
+        columnas: más foto, no más productos por fila.
+
+        Y sigue habiendo TOPE a propósito. Sin él, en un monitor de 3.440 px la fila se estiraría de
+        lado a lado y leer un listado obligaría a barrer la cabeza; el ojo pierde el renglón mucho
+        antes de eso.
+      -->
+      <main class="flex-1 min-w-0 max-w-[1680px] w-full mx-auto px-4 lg:px-6 py-6 lg:py-10">
         @if (conMigas()) {
           <nx-migas />
         }

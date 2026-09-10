@@ -144,9 +144,21 @@ const TONOS = [
               la distinción visual la da un círculo de color con la inicial. Es el recurso de las
               aplicaciones cuando no hay imagen: reconocible de un vistazo y sin inventarse una foto.
             -->
+            <!--
+              En escritorio la fila va DENTRO de una caja; en móvil no.
+              Las demás secciones de la portada tienen cuerpo porque sus tarjetas de producto lo dan.
+              Ésta son ocho textos sueltos sobre el fondo de la página: sin nada que la encierre no se
+              lee como un bloque, se lee como si se hubiera caído ahí. La caja es la misma superficie
+              que el resto —borde fino y fondo base—, no una decoración nueva.
+
+              El contenedor arranca en «md:» a propósito: en móvil la fila se desplaza a sangre, con
+              márgenes negativos que la sacan del ancho de la página, y meterla en una caja con relleno
+              cortaría ese desbordamiento y dejaría la última categoría partida contra el borde.
+            -->
             <div
               class="flex snap-x overflow-x-auto gap-3 -mx-4 px-4 pb-1
-                     md:grid md:grid-cols-4 lg:grid-cols-8 md:gap-3 md:overflow-visible md:mx-0 md:px-0"
+                     md:grid md:grid-cols-4 lg:grid-cols-8 md:gap-3 md:overflow-visible md:mx-0
+                     md:rounded-xl md:border md:border-ink-100 md:bg-base-100 md:px-3 md:py-3"
             >
               @for (categoria of datos.categoriasDestacadas; track categoria.id; let i = $index) {
                 <a
