@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FieldTree, FormField, form, minLength, required, validate } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faCircle, faCircleCheck, faKey } from '@fortawesome/free-solid-svg-icons';
+import { faCircleCheck, faKey } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { contrasenaCumpleLaPolitica, requisitosDeContrasena } from '../../domain/model/perfil';
 import {
@@ -58,11 +58,37 @@ const LARGO_MINIMO = 8;
         }
       </div>
 
+      <!--
+        Los requisitos, con una BARRA que resume cuántos van cumplidos.
+        Antes eran cinco puntos negros idénticos en una caja gris: sin escribir nada parecían viñetas
+        muertas, y no se veía que la lista responde a lo que se teclea. Ahora cada requisito tiene su
+        marca —hueca mientras falta, verde con el visto cuando se cumple— y la barra da de un vistazo
+        lo que la lista da en detalle, que es lo que se mira mientras se escribe.
+      -->
       <div class="rounded-box border border-ink-100 bg-ink-50/50 p-4">
-        <ul class="grid grid-cols-2 gap-x-6 gap-y-2">
+        <div class="flex items-baseline justify-between gap-3">
+          <span class="text-[11px] font-medium uppercase tracking-wide text-ink-500">
+            {{ t('profile.pwd_req_title') }}
+          </span>
+          @if (modelo().nueva) {
+            <span class="text-[11px] font-medium" [class]="fuerza().color">{{ t(fuerza().clave) }}</span>
+          }
+        </div>
+
+        <div class="mt-2 flex gap-1" aria-hidden="true">
+          @for (tramo of tramos; track tramo) {
+            <span class="h-1 flex-1 rounded-full transition-colors"
+                  [class]="tramo <= cumplidos() ? fuerza().fondo : 'bg-ink-200'"></span>
+          }
+        </div>
+
+        <ul class="mt-3 grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
           @for (requisito of requisitos(); track requisito.clave; let ultimo = $last) {
             <li [class]="claseDeRequisito(requisito.cumple, ultimo)">
-              <fa-icon [icon]="requisito.cumple ? iconos.hecho : iconos.pendiente" class="text-[11px]" />
+              <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded-full transition-colors"
+                    [class]="requisito.cumple ? 'bg-emerald-600 text-white' : 'border border-ink-300 text-transparent'">
+                <fa-icon [icon]="iconos.hecho" class="text-[9px]" />
+              </span>
               {{ t(requisito.clave) }}
             </li>
           }
@@ -87,7 +113,8 @@ export class CambioDeContrasena {
   private readonly cambia = inject(CambiaContrasena);
 
   protected readonly t = this.traduccion.t;
-  protected readonly iconos = { llave: faKey, hecho: faCircleCheck, pendiente: faCircle };
+  // El «pendiente» ya no es un icono: es el propio círculo hueco de la marca, sin dibujo dentro.
+  protected readonly iconos = { llave: faKey, hecho: faCircleCheck };
 
   protected readonly modelo = signal({ actual: '', nueva: '', repetida: '' });
 
@@ -125,6 +152,31 @@ export class CambioDeContrasena {
 
   protected readonly requisitos = computed(() => requisitosDeContrasena(this.modelo().nueva));
 
+  /** Un tramo de barra por requisito: la barra y la lista cuentan lo mismo, no dos cosas distintas. */
+  protected readonly tramos = [1, 2, 3, 4, 5];
+
+  protected readonly cumplidos = computed(
+    () => this.requisitos().filter((requisito) => requisito.cumple).length,
+  );
+
+  /**
+   * Cómo de segura va la contraseña, en tres tramos.
+   *
+   * <p>Se calcula sobre los requisitos YA cumplidos y no con una fórmula propia de entropía: decir
+   * «segura» con una regla distinta de la que luego rechaza el envío sería contradecirse en la misma
+   * pantalla.
+   */
+  protected readonly fuerza = computed(() => {
+    const n = this.cumplidos();
+    if (n >= this.requisitos().length) {
+      return { clave: 'profile.pwd_strength_strong', color: 'text-emerald-700', fondo: 'bg-emerald-600' };
+    }
+    if (n >= 3) {
+      return { clave: 'profile.pwd_strength_fair', color: 'text-amber-700', fondo: 'bg-amber-500' };
+    }
+    return { clave: 'profile.pwd_strength_weak', color: 'text-red-700', fondo: 'bg-red-500' };
+  });
+
   /**
    * El aviso de que la repetición no coincide.
    *
@@ -157,9 +209,11 @@ export class CambioDeContrasena {
    */
   protected claseDeRequisito(cumple: boolean, esElUltimo: boolean): string {
     const impar = this.requisitos().length % 2 === 1;
-    const color = cumple ? 'text-emerald-700' : 'text-ink-400';
-    const centrado = esElUltimo && impar ? ' col-span-2 justify-center' : '';
-    return `flex items-center gap-2 text-xs ${color}${centrado}`;
+    // Lo cumplido se apaga y lo que falta se lee: al revés, la lista invitaba a mirar lo ya resuelto.
+    const color = cumple ? 'text-ink-400' : 'text-ink-700';
+    // El centrado del último solo tiene sentido en DOS columnas; en el móvil va en una y sobra.
+    const centrado = esElUltimo && impar ? ' sm:col-span-2 sm:justify-center' : '';
+    return `flex items-center gap-2 text-xs transition-colors ${color}${centrado}`;
   }
 
   protected async envia(evento: Event): Promise<void> {

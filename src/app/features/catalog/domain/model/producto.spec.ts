@@ -79,24 +79,15 @@ describe('estaRebajado', () => {
 
 describe('hayExistencias', () => {
   /**
-   * ESTA PRUEBA DECÍA LO CONTRARIO, y era el fallo.
+   * Sin variantes se PUEDE vender.
    *
-   * <p>Fijaba que un producto sin variantes «siempre se puede pedir». En la práctica eso dejaba
-   * comprar lo que no existe: medido en «t-887600913911», un producto con cero variantes, cero
-   * activas y sin unidades declaradas se pintaba con la marca de agua «SIN STOCK» en el listado y
-   * añadía al carrito sin protestar desde la ficha. Las dos pantallas decían cosas distintas del
-   * mismo producto, y la que se creía era la equivocada.
-   *
-   * <p>Sin variantes no queda ninguna fuente que consultar salvo lo que el proveedor declare del
-   * producto entero, así que la ausencia de dato ya no se lee como «hay de sobra».
+   * <p>Que un producto no tenga variantes no significa que no tenga existencias: significa que su
+   * stock no se lleva por variante. Se cambió por error el 11-sep-2026 —se leyó «cero variantes»
+   * como «cero unidades»— y dejó sin comprar productos que sí estaban disponibles. Lo que marca
+   * «agotado» es tener variantes y que TODAS las activas estén a cero.
    */
-  it('sin variantes y sin unidades declaradas NO se puede pedir', () => {
-    expect(hayExistencias(ficha())).toBe(false);
-  });
-
-  it('sin variantes pero con unidades declaradas sí se puede pedir', () => {
-    expect(hayExistencias(ficha({ unidadesDisponibles: 25 }))).toBe(true);
-    expect(hayExistencias(ficha({ unidadesDisponibles: 0 }))).toBe(false);
+  it('un producto sin variantes se puede pedir', () => {
+    expect(hayExistencias(ficha())).toBe(true);
   });
 
   it('suma solo las variantes ACTIVAS', () => {
