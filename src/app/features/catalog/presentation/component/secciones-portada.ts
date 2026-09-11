@@ -162,8 +162,14 @@ const TONOS = [
               En escritorio la fila va DENTRO de una caja; en móvil no.
               Las demás secciones de la portada tienen cuerpo porque sus tarjetas de producto lo dan.
               Ésta son ocho textos sueltos sobre el fondo de la página: sin nada que la encierre no se
-              lee como un bloque, se lee como si se hubiera caído ahí. La caja es la misma superficie
-              que el resto —borde fino y fondo base—, no una decoración nueva.
+              lee como un bloque, se lee como si se hubiera caído ahí. La caja es la MISMA superficie
+              que la del boletín —«bg-brand-50/60» con «border-brand-100»—, no una decoración nueva.
+
+              El azul es del SEÑALADO, no de la caja. Estuvo al revés: el bloque entero iba en
+              «bg-primary» y los ocho textos en blanco encima. Así el color no significaba nada —lo
+              llevaban todos a la vez— y dejaba al señalado sin forma de destacar, porque sobre un
+              azul lleno solo se podía aclarar un poco. Poniéndolo donde está el puntero, el color
+              vuelve a decir algo: esto es lo que vas a pulsar.
 
               El contenedor arranca en «md:» a propósito: en móvil la fila se desplaza a sangre, con
               márgenes negativos que la sacan del ancho de la página, y meterla en una caja con relleno
@@ -172,15 +178,15 @@ const TONOS = [
             <div
               class="flex snap-x overflow-x-auto gap-3 -mx-4 px-4 pb-1
                      md:grid md:grid-cols-4 lg:grid-cols-8 md:gap-3 md:overflow-visible md:mx-0
-                     md:rounded-xl md:bg-primary md:px-3 md:py-3"
+                     md:rounded-xl md:border md:border-brand-100 md:bg-brand-50/60 md:px-3 md:py-3"
             >
               @for (categoria of datos.categoriasDestacadas; track categoria.id; let i = $index) {
                 <a
                   [routerLink]="['/catalog']"
                   [queryParams]="{ categoryId: categoria.id }"
-                  class="flex w-[4.75rem] shrink-0 snap-start flex-col items-center gap-1.5 text-center
+                  class="group flex w-[4.75rem] shrink-0 snap-start flex-col items-center gap-1.5 text-center
                          md:card md:w-auto md:shrink md:px-4 md:py-3 md:border-transparent
-                         md:hover:bg-primary-content/15 md:transition-colors md:p-4"
+                         md:hover:bg-primary md:transition-colors md:p-4"
                 >
                   <span
                     aria-hidden="true"
@@ -192,10 +198,10 @@ const TONOS = [
                   </span>
                   <span
                     class="text-[11px] font-medium leading-tight text-ink-900 line-clamp-2
-                           md:text-[13px] md:line-clamp-1 md:text-primary-content"
+                           md:text-[13px] md:line-clamp-1 md:group-hover:text-primary-content"
                     >{{ categoria.nombre }}</span
                   >
-                  <span class="hidden text-[11px] text-ink-500 md:block md:mt-1 md:text-primary-content/70">
+                  <span class="hidden text-[11px] text-ink-500 md:block md:mt-1 md:group-hover:text-primary-content/70">
                     {{ categoria.cuantosProductos }}
                   </span>
                 </a>
