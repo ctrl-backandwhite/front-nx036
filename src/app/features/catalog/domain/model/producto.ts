@@ -249,7 +249,17 @@ export function estaRebajado(precio: PrecioParaMostrar): boolean {
   return !!precio.anteriorFormateado && (precio.descuentoPorcentaje ?? 0) > 0;
 }
 
-/** Las existencias vivas del producto, sumando solo las variantes activas. */
+/**
+ * Las existencias vivas del producto, sumando solo las variantes activas.
+ *
+ * <p>SIN VARIANTES se puede vender. Que un producto no tenga variantes NO significa que no tenga
+ * existencias: significa que su stock no se lleva por variante. Esto se cambió por error el
+ * 11-sep-2026 —se leyó «cero variantes» como «cero unidades»— y dejó sin comprar productos que sí
+ * estaban disponibles.
+ *
+ * <p>La regla es la que tiene sentido para quien vende: se agota cuando HAY variantes y TODAS las
+ * activas están a cero. Ahí sí no queda nada que servir.
+ */
 export function hayExistencias(ficha: FichaDeProducto): boolean {
   if (ficha.variantes.length === 0) {
     return true;

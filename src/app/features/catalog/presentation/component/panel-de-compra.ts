@@ -138,6 +138,19 @@ import { DesgloseEditable } from './admin/desglose-editable';
       <div class="order-6 lg:order-0"><nx-bloque-envio /></div>
 
       <div class="order-7 lg:order-0 flex flex-col gap-2">
+        <!--
+          Sin existencias los dos botones salen apagados, y un botón apagado sin decir por qué es un
+          callejón: quien mira no sabe si le falta elegir algo, si la web está rota o si el producto no
+          está. El listado ya lo dice con su marca de agua; la ficha lo callaba.
+        -->
+        @if (!hay()) {
+          <p role="status"
+             class="flex items-center gap-2 rounded-lg border border-ink-200 bg-ink-50 px-3 py-2
+                    text-[13px] font-medium text-ink-600">
+            <fa-icon [icon]="iconos.informacion" />
+            {{ t('product.out_of_stock') }}
+          </p>
+        }
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <button
             type="button"
@@ -224,10 +237,13 @@ export class PanelDeCompra {
    * El botón se APAGA solo por lo que no tiene arreglo pulsándolo —falta elegir variante, o la elegida
    * está agotada—. Lo demás se explica al pulsar: un botón apagado sin decir por qué es un callejón.
    */
+  /** Si el proveedor tiene algo. Se saca aparte porque además de apagar botones hay que DECIRLO. */
+  protected readonly hay = computed(() => hayExistencias(this.ficha()));
+
   protected readonly sePuedeComprar = computed(() => {
     const impedimento = this.seleccion.impedimento();
     return (
-      hayExistencias(this.ficha()) &&
+      this.hay() &&
       impedimento !== 'falta-elegir-variante' &&
       impedimento !== 'variante-sin-existencias'
     );

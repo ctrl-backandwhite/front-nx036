@@ -78,7 +78,15 @@ describe('estaRebajado', () => {
 });
 
 describe('hayExistencias', () => {
-  it('un producto sin variantes siempre se puede pedir', () => {
+  /**
+   * Sin variantes se PUEDE vender.
+   *
+   * <p>Que un producto no tenga variantes no significa que no tenga existencias: significa que su
+   * stock no se lleva por variante. Se cambió por error el 11-sep-2026 —se leyó «cero variantes»
+   * como «cero unidades»— y dejó sin comprar productos que sí estaban disponibles. Lo que marca
+   * «agotado» es tener variantes y que TODAS las activas estén a cero.
+   */
+  it('un producto sin variantes se puede pedir', () => {
     expect(hayExistencias(ficha())).toBe(true);
   });
 

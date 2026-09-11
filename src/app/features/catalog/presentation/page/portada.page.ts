@@ -7,6 +7,7 @@ import {
   faChartLine,
   faCubesStacked,
   faGlobe,
+  faTruckRampBox,
   faRocket,
   faShieldHalved,
 } from '@fortawesome/free-solid-svg-icons';
@@ -119,7 +120,12 @@ import { BandaDePaises } from '../component/banda-de-paises';
         y quien entra, mira el hero y se va no paga por nada de esto.
       -->
       @defer (on viewport; hydrate on viewport) {
-        <section class="hidden md:grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!--
+          Tres columnas desde «md», no dos: la tercera cuenta que la tienda pone parte del envío y el
+          arancel. Es lo que más distingue a NX036 de comprar directamente en origen y no se explicaba
+          en ningún sitio salvo el icono de cada producto, que sin contexto no dice qué significa.
+        -->
+        <section class="hidden md:grid grid-cols-1 md:grid-cols-3 gap-4">
           @for (propuesta of propuestas(); track propuesta.clave) {
             <div class="card card-border bg-base-100" data-hover="true">
               <div class="card-body items-center text-center">
@@ -281,6 +287,15 @@ export class PortadaPage {
       texto: this.traduccion.tCon('home.feature.translate', {
         langCodes: 'es / en / pt / zh / fr / de / it / nl',
       }),
+    },
+    // El texto dice «en muchos productos» y no «en todos» a propósito: la bolsa se asigna producto a
+    // producto, hoy la tiene algo más de la mitad del catálogo, y prometerlo entero sería mentir en la
+    // primera pantalla. Por eso remata mandando a la ficha, que es donde el dato es cierto o no.
+    {
+      clave: 'home.feature.subsidy',
+      icono: faTruckRampBox,
+      tono: 'text-emerald-600',
+      texto: this.t('home.feature.subsidy'),
     },
   ]);
 

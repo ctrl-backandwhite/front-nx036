@@ -69,6 +69,23 @@ describe('reconocimiento de ejes', () => {
     const ejes = [eje('Talla', ['S']), eje('Modelo', ['A'])];
     expect(ejePrincipal(ejes)?.nombre).toBe('Modelo');
   });
+
+  /**
+   * Un eje SIN valores no es un eje.
+   *
+   * <p>El proveedor manda encabezados vacíos. Contarlos dejaba la ficha exigiendo «selecciona al menos
+   * una talla» sin ninguna talla que seleccionar: un callejón del que no se sale por mucho que se
+   * pulse, porque el selector no pinta ni una casilla. Caso real: «t-887600913911».
+   */
+  it('un eje de talla sin valores no cuenta como eje', () => {
+    expect(ejeDeTalla([eje('Talla', [])])).toBeUndefined();
+    expect(ejeDeTalla([eje('Talla', []), eje('Talla', ['M'])])?.valores).toHaveLength(1);
+  });
+
+  it('un eje principal sin valores tampoco cuenta', () => {
+    expect(ejePrincipal([eje('Color', [])])).toBeUndefined();
+    expect(ejePrincipal([eje('Color', []), eje('Modelo', ['A'])])?.nombre).toBe('Modelo');
+  });
 });
 
 describe('etiquetaDeValor', () => {
