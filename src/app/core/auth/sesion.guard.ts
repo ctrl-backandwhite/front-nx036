@@ -37,6 +37,30 @@ async function compruebaSesion(estado: RouterStateSnapshot): Promise<GuardResult
 export const exigeSesion: CanActivateFn = (_ruta, estado) => compruebaSesion(estado);
 
 /**
+ * Lo contrario: rutas que solo tienen sentido SIN sesión —acceder, registrarse, recuperar contraseña—.
+ *
+ * <p>Existe por el botón ATRÁS. Al entrar, la pantalla de destino REEMPLAZA la del acceso en el
+ * historial, pero con el acceso de Google se sale del sitio y se vuelve, así que la entrada de
+ * «/login» queda antes en la pila: pulsar atrás tras entrar devolvía al formulario, ya rellenado y
+ * sin ninguna utilidad, con la sensación de que el acceso no se había completado.
+ *
+ * <p>Se manda al CATÁLOGO y no a la portada: quien acaba de entrar quiere ver productos, y la portada
+ * es la cara para quien todavía no tiene cuenta.
+ *
+ * <p>También cierra un caso que no es de navegación: llegar a «/login» con la sesión abierta —desde un
+ * enlace viejo o un marcador— y volver a entrar encima de la sesión que ya había.
+ */
+export const soloSinSesion: CanActivateFn = async () => {
+  const sesion = inject(SesionActual);
+  const router = inject(Router);
+
+  if (!sesion.resuelta()) {
+    await inject(RECUPERADOR_DE_SESION).asegura();
+  }
+  return sesion.haySesion() ? router.createUrlTree(['/catalog']) : true;
+};
+
+/**
  * Exige, además, uno de estos papeles.
  *
  * <p>A quien ha entrado pero no tiene permiso se le manda a SU zona —el catálogo—, no a la portada:

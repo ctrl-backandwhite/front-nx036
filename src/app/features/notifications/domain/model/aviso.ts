@@ -39,13 +39,23 @@ export interface Aviso {
 /**
  * ¿Está sin leer?
  *
- * <p>OJO con este criterio: el backend NO manda un booleano, manda `leidoEl` y `estado`. Cuando la
- * interfaz declaraba un `leido: boolean` que nunca llegaba, «no leído» era siempre cierto y la campana
- * contaba TODOS los avisos para siempre — marcarlos leídos no cambiaba nada. La campana, el desplegable
- * y el buzón usan esta misma función para que no puedan contradecirse.
+ * <p>Lo decide `leidoEl` y SOLO `leidoEl`, que es el mismo criterio que usa el servidor para su
+ * contador (`read_at IS NULL`). La campana, el desplegable y el buzón usan esta función para que no
+ * puedan contradecirse entre ellos — y ahora tampoco con el backend.
+ *
+ * <p>ANTES también contaba como sin leer un aviso con `estado === 'NEW'`, y eso era un error de
+ * concepto: `estado` no habla de lectura, habla del asunto del que avisa —NEW, IN_PROGRESS, WAITING,
+ * RESOLVED son estados de un ticket de soporte—. Un ticket puede quedarse en NEW indefinidamente
+ * mientras su aviso se ha leído diez veces, así que esos avisos se contaban como no leídos PARA
+ * SIEMPRE. Medido en local: nueve avisos con la fecha de lectura puesta y el ticket todavía en NEW,
+ * que son exactamente los nueve que la insignia seguía enseñando después de vaciar el buzón.
+ *
+ * <p>El aviso anterior seguía valiendo y se conserva en otra forma: el backend NO manda un booleano
+ * `leido`. Si alguien vuelve a declararlo en la interfaz, llegará siempre indefinido y todo se contará
+ * como no leído.
  */
 export function sinLeer(aviso: Aviso): boolean {
-  return !aviso.leidoEl || (aviso.estado ?? 'NEW') === 'NEW';
+  return !aviso.leidoEl;
 }
 
 /**

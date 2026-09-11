@@ -1,10 +1,11 @@
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faBell } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { esNavegador } from '@core/platform/plataforma';
 import { ConsultaElBuzon } from '../../application/use-case/consulta-el-buzon.use-case';
+import { BuzonStore } from '../../application/state/buzon.store';
 
 /** Cada cuánto se vuelve a preguntar. Es solo un contador: un minuto basta y no castiga al backend. */
 const CADA_MS = 60_000;
@@ -44,7 +45,18 @@ export class CampanaDeAvisos {
 
   protected readonly t = inject(TraduccionService).t;
   protected readonly iconoCampana = faBell;
-  protected readonly sinLeer = signal(0);
+  private readonly buzon = inject(BuzonStore);
+
+  /**
+   * El número sale del ESTADO compartido, no de una señal propia.
+   *
+   * <p>Tenía la suya y ahí estaba el fallo: el buzón ya descontaba al leer un aviso y vacía al
+   * marcarlos todos, pero lo hacía sobre el contador del estado —que la campana no miraba—. Así que
+   * leías todo y la insignia seguía diciendo «9+» hasta que el reloj de aquí volviera a preguntar, un
+   * minuto después. Dos contadores del mismo número siempre acaban discrepando; el reloj se queda,
+   * pero solo para ponerlo al día por si llegan avisos nuevos.
+   */
+  protected readonly sinLeer = this.buzon.sinLeer;
 
   constructor() {
     if (!esNavegador()) {
@@ -56,6 +68,6 @@ export class CampanaDeAvisos {
   }
 
   private async actualiza(): Promise<void> {
-    this.sinLeer.set(await this.consulta.cuantosSinLeer());
+    this.buzon.fijaSinLeer(await this.consulta.cuantosSinLeer());
   }
 }

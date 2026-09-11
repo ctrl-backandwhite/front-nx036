@@ -17,6 +17,12 @@ import { ResumenDeProducto } from '../../domain/model/producto';
  * producto de un vistazo— del tamaño de un icono.
  */
 @Component({
+  /*
+   * Anfitrión BLOQUE. Un elemento personalizado nace «display: inline» y a una caja en línea el
+   * navegador le ignora los márgenes verticales: el «space-y» del contenedor no se aplicaba y la
+   * separación que se veía era el hueco entre líneas de texto, más grande y dependiente de la fuente.
+   */
+  host: { class: 'block' },
   selector: 'nx-fila-listado',
   imports: [RouterLink, ImagenSegura],
   template: `

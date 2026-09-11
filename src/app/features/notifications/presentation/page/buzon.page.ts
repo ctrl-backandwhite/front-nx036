@@ -235,6 +235,9 @@ export class BuzonPage {
       this.cuentaElFallo(resultado.error.mensaje);
       return;
     }
+    // La campana de la cabecera se entera AHORA y no dentro de un minuto, que es cada cuánto pregunta
+    // ella sola. Esperar al reloj dejaba la insignia diciendo «9+» justo después de marcarlo todo.
+    this.buzon.vaciaSinLeer();
     await this.recarga();
   }
 

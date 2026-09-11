@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { soloSinSesion } from '@core/auth/sesion.guard';
 
 /**
  * Rutas del contexto «auth».
@@ -12,10 +13,12 @@ import { Routes } from '@angular/router';
 export const rutas: Routes = [
   {
     path: 'login',
+    canActivate: [soloSinSesion],
     loadComponent: () => import('./page/acceso.page').then((m) => m.AccesoPage),
   },
   {
     path: 'register',
+    canActivate: [soloSinSesion],
     loadComponent: () => import('./page/alta.page').then((m) => m.AltaPage),
   },
   {
