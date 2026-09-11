@@ -216,7 +216,9 @@ let barajaDeLaVisita: number | null = null;
               <p class="text-sm text-ink-500">{{ t('catalog.empty') }}</p>
             </div>
           }
-          <div class="space-y-2">
+          <!-- Cinco píxeles exactos entre filas: con «space-y-*» la escala de Tailwind no da ese
+               valor en la raíz de 15 px de esta aplicación, así que va escrito. -->
+          <div class="space-y-[5px]">
             @for (producto of productos(); track producto.id) {
               <nx-fila-listado [producto]="producto" />
             }

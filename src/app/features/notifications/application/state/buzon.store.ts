@@ -51,6 +51,18 @@ export class BuzonStore {
   }
 
   /**
+   * El contador a cero de golpe, al marcar TODO como leído.
+   *
+   * <p>Estaba el descuento de uno en uno —al abrir un aviso— pero no esto: tras «marcar todas leídas»
+   * la campana conservaba el número viejo hasta que su reloj volviera a preguntar, un minuto entero.
+   * Quien acababa de vaciar el buzón seguía viendo «9+», y eso no se lee como un retardo: se lee como
+   * que la aplicación no se entera de lo que haces.
+   */
+  vaciaSinLeer(): void {
+    this._sinLeer.set(0);
+  }
+
+  /**
    * Refleja que un aviso ya se ha leído SIN volver a pedir la lista: pedirla otra vez haría parpadear
    * el buzón entero por un punto azul que se apaga. Se toca la bandeja completa, no la filtrada.
    */

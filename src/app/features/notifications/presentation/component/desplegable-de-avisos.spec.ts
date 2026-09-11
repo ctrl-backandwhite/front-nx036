@@ -87,10 +87,16 @@ describe('DesplegableDeAvisos', () => {
     expect(screen.getByText('1')).toBeInTheDocument();
   });
 
-  it('uno ya leído pero todavía pendiente SIGUE contando', async () => {
+  /**
+   * CAMBIO DE CRITERIO (11-sep-2026): un aviso leído NO cuenta, aunque su asunto siga pendiente. El
+   * `estado` es del ticket —NEW, IN_PROGRESS, WAITING—, no de la lectura, y un ticket puede quedarse
+   * en NEW para siempre. La insignia no bajaba nunca y el titular lo reportó como que había leído todo
+   * y seguía marcando nueve.
+   */
+  it('uno ya leído no cuenta, aunque su asunto siga pendiente', async () => {
     await monta([aviso({ id: 'a1', leidoEl: '2026-09-02T00:00:00Z', estado: 'NEW' })]);
 
-    expect(screen.getByText('1')).toBeInTheDocument();
+    expect(screen.queryByText('1')).toBeNull();
   });
 
   it('cerrado no enseña la lista; al pulsar la campana se abre', async () => {

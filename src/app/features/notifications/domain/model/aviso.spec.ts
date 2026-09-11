@@ -31,11 +31,19 @@ describe('sinLeer', () => {
     expect(sinLeer(aviso({ leidoEl: null }))).toBe(true);
   });
 
-  it('sigue sin leer si el estado se quedó en NEW aunque haya fecha', () => {
-    expect(sinLeer(aviso({ leidoEl: '2026-09-01T11:00:00Z', estado: 'NEW' }))).toBe(true);
-  });
-
-  it('está leído con fecha y con el estado ya movido', () => {
+  /**
+   * CAMBIO DE CRITERIO (11-sep-2026). Antes un aviso con el estado en NEW seguía contando como no
+   * leído aunque tuviera fecha de lectura, a propósito: la idea era que lo pendiente no se perdiera de
+   * vista. En la práctica hacía lo contrario de lo que promete una insignia: `estado` no habla de
+   * lectura, habla del asunto —NEW, IN_PROGRESS, WAITING, RESOLVED son estados de un ticket—, y un
+   * ticket puede quedarse en NEW indefinidamente mientras su aviso se ha leído diez veces. El titular
+   * lo reportó así: «he leído todas las notificaciones y aún me aparece que tengo más de 9».
+   *
+   * <p>Si hace falta que lo pendiente destaque, eso pide su propio distintivo, no el contador de
+   * no leídos: una insignia que no baja al leer deja de significar nada.
+   */
+  it('el estado del asunto NO decide la lectura: con fecha, está leído', () => {
+    expect(sinLeer(aviso({ leidoEl: '2026-09-01T11:00:00Z', estado: 'NEW' }))).toBe(false);
     expect(sinLeer(aviso({ leidoEl: '2026-09-01T11:00:00Z', estado: 'RECEIVED' }))).toBe(false);
   });
 });

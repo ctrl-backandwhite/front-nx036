@@ -11,6 +11,9 @@ import { CumplimientoDeProducto } from '../../domain/model/producto';
  * advertencia al final de la página, después de las reseñas, no cumple ese propósito.
  */
 @Component({
+  /* Anfitrión BLOQUE: en línea, el navegador le ignora los márgenes verticales y el reparto de
+     espacio del contenedor no le llegaba. Ver la misma trampa en la barra de filtros y la portada. */
+  host: { class: 'block' },
   selector: 'nx-advertencias-seguridad',
   imports: [FaIconComponent],
   template: `

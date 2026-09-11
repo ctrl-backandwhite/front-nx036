@@ -38,7 +38,13 @@ import { HistoricoDePrecios } from './historico-de-precios';
   ],
   template: `
     <div class="space-y-10 mt-6">
-      <nx-advertencias-seguridad [cumplimiento]="ficha().cumplimiento" />
+      <!--
+        El aviso de seguridad y las reseñas van en su propia caja con CINCO píxeles entre ellos: el
+        aviso es del producto que se está mirando y las reseñas lo son también, así que se leen como un
+        bloque. El resto de secciones siguen separadas por el hueco grande del contenedor.
+      -->
+      <div class="space-y-[5px]">
+        <nx-advertencias-seguridad [cumplimiento]="ficha().cumplimiento" />
 
       <!--
         Las reseñas quedan bajo el pliegue y traen su propia consulta al servidor. Diferirlas hasta que
@@ -76,7 +82,8 @@ import { HistoricoDePrecios } from './historico-de-precios';
             }
           </div>
         }
-      </section>
+        </section>
+      </div>
 
       <section id="tab-attributes">
         <nx-tabla-atributos [ficha]="ficha()" />
