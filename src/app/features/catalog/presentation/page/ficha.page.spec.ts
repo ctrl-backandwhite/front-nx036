@@ -11,7 +11,7 @@ import { RECUPERADOR_DE_SESION } from '@core/auth/recuperador-de-sesion.port';
 import { SesionActual } from '@core/auth/sesion-actual';
 import { PreferenciasService } from '@core/preferences/preferencias';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
-import { CATALOGO_PORT } from '../../domain/port/catalogo.port';
+import { CATALOGO_PORT, TAXONOMIA_PORT } from '../../domain/port/catalogo.port';
 import { CESTA_PORT } from '../../domain/port/cesta.port';
 import { ANADIR_AL_CARRITO_PORT } from '@features/cart/domain/port/carrito-compartido.port';
 import { FAVORITOS_PORT } from '../../domain/port/favoritos.port';
@@ -82,6 +82,9 @@ async function monta(
           busca: vi.fn(),
         },
       },
+      // La miga de pan pide la cadena de categorías. Se devuelve VACÍA a propósito: aquí se prueba la
+      // pantalla, no la taxonomía.
+      { provide: TAXONOMIA_PORT, useValue: { migaDeCategoria: async () => exito([]) } },
       { provide: HISTORIAL_PORT, useValue: { anota: vi.fn(), lista: vi.fn() } },
       { provide: CESTA_PORT, useValue: { productosQueLleva: async () => exito([]) } },
       // La ficha mete en la MISMA cesta que la insignia de la cabecera: la de «cart», por su puerto.
@@ -184,7 +187,10 @@ describe('FichaPage', () => {
             busca: vi.fn(),
           },
         },
-        { provide: HISTORIAL_PORT, useValue: { anota: vi.fn(), lista: vi.fn() } },
+        // La miga de pan pide la cadena de categorías. Se devuelve VACÍA a propósito: aquí se prueba la
+      // pantalla, no la taxonomía.
+      { provide: TAXONOMIA_PORT, useValue: { migaDeCategoria: async () => exito([]) } },
+      { provide: HISTORIAL_PORT, useValue: { anota: vi.fn(), lista: vi.fn() } },
         { provide: CESTA_PORT, useValue: { productosQueLleva: async () => exito([]) } },
         {
           provide: ANADIR_AL_CARRITO_PORT,
@@ -277,7 +283,10 @@ describe('FichaPage', () => {
             especificaciones: async () => exito([]),
           },
         },
-        { provide: HISTORIAL_PORT, useValue: { anota: vi.fn(), lista: vi.fn() } },
+        // La miga de pan pide la cadena de categorías. Se devuelve VACÍA a propósito: aquí se prueba la
+      // pantalla, no la taxonomía.
+      { provide: TAXONOMIA_PORT, useValue: { migaDeCategoria: async () => exito([]) } },
+      { provide: HISTORIAL_PORT, useValue: { anota: vi.fn(), lista: vi.fn() } },
         {
           provide: CESTA_PORT,
           useValue: { productosQueLleva: async () => exito([]) },
@@ -393,7 +402,10 @@ describe('FichaPage', () => {
             especificaciones: async () => exito([]),
           },
         },
-        { provide: HISTORIAL_PORT, useValue: { anota: vi.fn(), lista: vi.fn() } },
+        // La miga de pan pide la cadena de categorías. Se devuelve VACÍA a propósito: aquí se prueba la
+      // pantalla, no la taxonomía.
+      { provide: TAXONOMIA_PORT, useValue: { migaDeCategoria: async () => exito([]) } },
+      { provide: HISTORIAL_PORT, useValue: { anota: vi.fn(), lista: vi.fn() } },
         {
           provide: CESTA_PORT,
           useValue: { productosQueLleva: async () => exito([]) },

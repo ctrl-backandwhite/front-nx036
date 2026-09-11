@@ -2533,7 +2533,7 @@ const diccionario: Record<string, string> = {
   'compliance.field.phone': 'Telefoon',
   'pdp.section.packing': 'Verpakking en verzending',
   'pdp.section.recommend': 'Aanbevolen door de verkoper',
-  'pdp.shipping.body': '7–14 dagen, met track & trace',
+  'pdp.shipping.body': '7–25 dagen, met track & trace',
   'pdp.shipping.title': 'Verzending',
   'pdp.size': 'Maat',
   'pdp.size.stock': 'Voorraad',

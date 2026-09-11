@@ -51,6 +51,15 @@ export interface TaxonomiaPort {
   categoriasRaiz(): Promise<Result<readonly Categoria[], AppError>>;
   /** El árbol completo con su recuento: es el que sabe qué categorías tienen productos de verdad. */
   arbolDeCategorias(): Promise<Result<readonly Categoria[], AppError>>;
+
+  /**
+   * La cadena de categorías hasta una hoja: raíz, intermedias y ella misma.
+   *
+   * <p>La resuelve el servidor y no el cliente a propósito: el árbol completo son cientos de nodos y
+   * la ficha no lo necesita para nada más, así que descargarlo entero para leer tres nombres sería
+   * pagar el catálogo de categorías por cada producto que alguien abre.
+   */
+  migaDeCategoria(idOrSlug: string): Promise<Result<readonly Categoria[], AppError>>;
   proveedores(): Promise<Result<readonly Proveedor[], AppError>>;
 }
 

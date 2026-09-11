@@ -1,13 +1,4 @@
-import {
-  Component,
-  computed,
-  inject,
-  input,
-  linkedSignal,
-  model,
-  output,
-  signal,
-} from '@angular/core';
+import { Component, computed, effect, inject, input, linkedSignal, model, output, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
@@ -37,7 +28,27 @@ import { VisorGaleria } from './visor-galeria';
   template: `
     <div class="flex flex-col sm:flex-row gap-3">
       <!-- Miniaturas SOLO a partir de sm: en el móvil se navega deslizando y con los puntos. -->
-      <div class="hidden sm:flex sm:flex-col gap-2 shrink-0 sm:max-h-136 sm:overflow-y-auto scrollbar-thin">
+      <!--
+        La tira de miniaturas ocupa EL ALTO DE LA FOTO, no un alto fijo.
+        Llevaba «max-h-136» —544 px escritos a mano— y la foto principal mide más en cuanto el
+        producto es vertical, que es la mayoría: la columna se quedaba corta y sobraba un hueco
+        blanco a su lado. Un alto escrito a mano solo acierta con las fotos que tenían el día que se
+        escribió.
+
+        El truco es la envoltura estirada más el desplazamiento en posición absoluta dentro. Si el
+        contenedor que se desplaza fuera el propio hijo del flex, su contenido decidiría el alto de
+        la fila —las miniaturas ESTIRARÍAN la galería en vez de desplazarse dentro de ella—. En
+        absoluto no aporta alto, así que manda la foto.
+
+        Solo a partir de «sm»: en el móvil no hay tira, se navega deslizando y con los puntos.
+      -->
+      <div class="hidden sm:block shrink-0 relative w-[5.5rem]">
+        <!-- El identificador es para que las pruebas no cuelguen de clases de maqueta: cambiar el
+             alto de la tira ya rompió sus selectores una vez. -->
+        <div
+          data-tira-miniaturas
+          class="absolute inset-0 flex flex-col gap-2 overflow-y-auto pr-1 scrollbar-thin"
+        >
         <!--
           Borrado en LOTE, solo para quien administra. Antes había que ir una por una, con su
           confirmación cada vez: limpiar una galería de ocho fotos del proveedor eran ocho gestos y ocho
@@ -168,6 +179,7 @@ import { VisorGaleria } from './visor-galeria';
             }
           </div>
         }
+        </div>
       </div>
 
       <!-- En escritorio, con que el cursor entre en la foto el pase se detiene: quien la está mirando
@@ -216,14 +228,42 @@ import { VisorGaleria } from './visor-galeria';
               class="absolute inset-0 w-full h-full cursor-zoom-in"
               [attr.aria-label]="titulo()"
             >
+              <!--
+                FUNDIDO de dos capas al cambiar de foto.
+                Antes había una animación de entrada, pero no se repetía: al cambiar solo el «src» el
+                navegador reutiliza el mismo elemento y una animación CSS no vuelve a dispararse sola.
+                Resultado: la primera foto entraba con fundido y todos los cambios posteriores —elegir
+                un color, pasar la galería— eran un salto seco.
+
+                Abajo se queda la foto ANTERIOR, quieta. Encima entra la nueva subiendo de opacidad en
+                cuanto termina de cargar, y solo entonces la de abajo se pone al día. Sin la capa de
+                abajo, bajar la opacidad de la única imagen enseñaría el fondo entre una y otra: un
+                parpadeo blanco, que es peor que el salto que veníamos a quitar.
+
+                Dos duraciones, y la diferencia importa: durante el pase automático el fundido es
+                decorativo y puede ser largo; en cuanto lo pide quien mira —elegir un color, pasar la
+                galería— tiene que ser corto, porque un fundido lento DESPUÉS de pulsar no se lee como
+                elegante, se lee como que la web va lenta.
+              -->
+              @if (anterior(); as previa) {
+                <img
+                  [ngSrc]="previa"
+                  fill
+                  [alt]="''"
+                  aria-hidden="true"
+                  class="object-contain bg-base-100"
+                />
+              }
               <img
                 id="nx-pdp-main-img"
                 [ngSrc]="foto"
                 fill
                 priority
                 [alt]="titulo()"
-                class="object-contain bg-base-100"
-                [class]="pasePasando() ? 'animate-fade-gallery' : 'animate-fade-gallery-fast'"
+                (load)="fotoCargada(foto)"
+                class="object-contain bg-base-100 transition-opacity ease-out"
+                [class]="pasePasando() ? 'duration-700' : 'duration-300'"
+                [class.opacity-0]="anterior() !== null && anterior() !== foto"
               />
             </button>
           } @else {
@@ -388,6 +428,20 @@ export class GaleriaFicha {
   protected borraLasMarcadas(): void {
     this.borraSeleccion.emit({ imagenes: [...this.marcadas()], video: this.videoMarcado() });
   }
+  /**
+   * La foto que se está enseñando DEBAJO mientras la nueva carga.
+   *
+   * <p>Arranca en nulo para que la primera no tenga nada que fundir: si empezara con un valor, la foto
+   * de apertura entraría en transparente y la ficha se abriría en blanco durante medio segundo, que es
+   * justo el momento en el que hay que ver el producto.
+   */
+  protected readonly anterior = signal<string | null>(null);
+
+  /** Al terminar de cargar la nueva, la de abajo se pone al día y el fundido queda hecho. */
+  protected fotoCargada(foto: string): void {
+    this.anterior.set(foto);
+  }
+
   protected readonly ampliada = signal(false);
   protected readonly arrastrada = signal<number | null>(null);
   private readonly inicioDelGesto = signal<number | null>(null);
@@ -395,6 +449,25 @@ export class GaleriaFicha {
   protected readonly cuantas = computed(() => this.fotos().length);
 
   /** Si hay foto de color sin miniatura propia, esa manda; si no, la activa de la galería. */
+  /**
+   * Elegir una variante SACA del vídeo.
+   *
+   * <p>La foto de la variante llega por un input, así que nadie apagaba el vídeo: quien lo estaba
+   * viendo elegía un color y la galería seguía reproduciendo, con la sensación de que el color no se
+   * había aplicado. Pulsar una miniatura sí salía —lo hace `elige`—, pero un cambio que viene de fuera
+   * no pasa por ahí.
+   *
+   * <p>Solo cuando HAY foto de variante: si la variante no trae la suya, no hay nada que enseñar y
+   * cortar el vídeo sería quitar lo único que se estaba viendo.
+   */
+  constructor() {
+    effect(() => {
+      if (this.fotoDeVariante()) {
+        this.enVideo.set(false);
+      }
+    });
+  }
+
   protected readonly principal = computed(
     () => this.fotoDeVariante() ?? this.fotos()[this.activa()]?.direccion,
   );

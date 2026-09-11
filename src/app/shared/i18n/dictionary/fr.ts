@@ -2534,7 +2534,7 @@ const diccionario: Record<string, string> = {
   'compliance.field.phone': 'Téléphone',
   'pdp.section.packing': 'Emballage et expédition',
   'pdp.section.recommend': 'Recommandé par le vendeur',
-  'pdp.shipping.body': '7–14 jours, avec suivi',
+  'pdp.shipping.body': '7–25 jours, avec suivi',
   'pdp.shipping.title': 'Livraison',
   'pdp.size': 'Taille',
   'pdp.size.stock': 'Stock',

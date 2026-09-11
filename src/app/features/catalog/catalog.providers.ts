@@ -31,6 +31,7 @@ import { ListadoStore } from './application/state/listado.store';
 import { TaxonomiaStore } from './application/state/taxonomia.store';
 import { ReferenciaDeCestaStore } from './application/state/referencia-de-cesta.store';
 import { AbreLaFicha } from './application/use-case/abre-la-ficha.use-case';
+import { MigaDeCategoria } from './application/use-case/miga-de-categoria.use-case';
 import { AlternaFavorito } from './application/use-case/alterna-favorito.use-case';
 import { AnadeALaCesta } from './application/use-case/anade-a-la-cesta.use-case';
 import { BuscaProductos } from './application/use-case/busca-productos.use-case';
@@ -53,6 +54,7 @@ export const APLICACION_DEL_CATALOGO: Provider[] = [
   TaxonomiaStore,
   ReferenciaDeCestaStore,
   AbreLaFicha,
+  MigaDeCategoria,
   AlternaFavorito,
   AnadeALaCesta,
   BuscaProductos,

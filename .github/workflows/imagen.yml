@@ -89,23 +89,18 @@ jobs:
         env:
           TESTIGO: ${{ secrets.NEXADROP_PRERENDER_TOKEN }}
         run: |
-          # DESARROLLO NO PRERENDERIZA. Su backend se apaga solo cuando nadie lo usa —el centinela lo
-          # levanta con la primera petición— así que casi siempre está dormido cuando se construye la
-          # imagen: la elección de fichas se queda sin servidor, salen cero, y la puerta tumba la
-          # entrega. Llevaba así desde que se encendió el apagado automático.
+          # YA NO SE PRERENDERIZA NINGUNA FICHA, en ningún entorno.
           #
-          # Y no hay nada que perder: el prerenderizado existe para las etiquetas de lo que se comparte
-          # y para lo que indexan los buscadores, y a DES no llega ninguno de los dos. En PRE y PRO la
-          # puerta sigue exigiendo fichas, que es donde importa.
-          if [ "${{ steps.entorno.outputs.entorno }}" = "des" ]; then
-            echo "::notice::Entorno de desarrollo: no se prerenderizan fichas (su backend se apaga por inactividad)."
-            echo "cuantas=0" >> "$GITHUB_OUTPUT"
-          elif [ -z "$TESTIGO" ]; then
-            echo "::warning::Sin NEXADROP_PRERENDER_TOKEN: se prerenderizan 15 fichas en vez de 300. Para subirlo, crea el secreto con el MISMO valor que RATELIMIT_BUILD_TOKEN en el backend de este entorno (ver el README de nexadrop-deploy)."
-            echo "cuantas=15" >> "$GITHUB_OUTPUT"
-          else
-            echo "cuantas=300" >> "$GITHUB_OUTPUT"
-          fi
+          # Desde que el detalle del producto exige cuenta, escribir su HTML al construir contradice la
+          # propia decisión: nginx sirve ese fichero a quien pida la dirección, sin pasar por ningún
+          # guardián —el guardián vive en el navegador y actúa DESPUÉS—, así que la ficha quedaría
+          # cerrada en la aplicación y abierta en el borde, cacheada además por Cloudflare.
+          #
+          # Se deja el parámetro en cero en vez de arrancar la puerta entera: sigue comprobando que la
+          # PORTADA se escribe con su contenido, que es lo que ahora se prerenderiza, y volver a
+          # encenderlo para fichas sería cambiar un número si algún día se abre el catálogo.
+          echo "::notice::El detalle de producto exige cuenta: no se prerenderizan fichas."
+          echo "cuantas=0" >> "$GITHUB_OUTPUT"
 
       - name: Construir y publicar
         uses: docker/build-push-action@v6

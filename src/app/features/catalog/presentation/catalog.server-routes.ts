@@ -1,5 +1,4 @@
-import { PrerenderFallback, RenderMode, ServerRoute } from '@angular/ssr';
-import { slugsAPrerenderizar } from './fichas-a-prerenderizar';
+import { RenderMode, ServerRoute } from '@angular/ssr';
 
 /**
  * Cómo se genera el HTML de las rutas de «catalog».
@@ -28,40 +27,23 @@ export const rutasDeServidor: ServerRoute[] = [
   { path: 'catalog', renderMode: RenderMode.Client },
 
   /**
-   * La FICHA: un subconjunto escrito al construir, el resto en el navegador.
+   * La FICHA la monta el NAVEGADOR, y ya no se escribe al construir.
    *
-   * <p>El problema es de tamaño: hay 7.729 productos y el HTML de una ficha pesa entre 105 y 466 kB,
-   * así que escribirlas todas serían del orden de 1,5 GB dentro de la imagen. Y no se arreglaría del
-   * todo: el catálogo crece entre despliegues, y lo que se cargue mañana volvería a quedarse sin
-   * etiquetas al compartirlo, que es justo el problema a resolver.
+   * <p>Desde que el detalle exige cuenta, prerenderizarlo sería contradecir la propia decisión: el HTML
+   * escrito al compilar lo sirve nginx como fichero estático a quien pida la dirección, sin pasar por
+   * ningún guardián —el guardián vive en el navegador y solo actúa DESPUÉS—. Es decir: la ficha
+   * quedaría cerrada en la aplicación y abierta en el borde, cacheada en Cloudflare y servida a
+   * cualquiera. Cerrar una pantalla y dejar su HTML público no es cerrarla.
    *
-   * <p>De ahí las dos mitades de esta declaración:
-   * <ul>
-   *   <li>`getPrerenderParams` elige las que MÁS SE COMPARTEN —las de la portada y las más vendidas—
-   *       preguntándoselo al backend al compilar. El criterio y el porqué, en
-   *       `fichas-a-prerenderizar.ts`.
-   *   <li>`fallback: PrerenderFallback.Client` es la mitad que garantiza que no se rompe nada: toda
-   *       ficha que quede fuera del subconjunto —incluidas las que se carguen DESPUÉS de compilar— se
-   *       sirve como hasta ahora, con el esqueleto y montada por el navegador. Ninguna ficha deja de
-   *       verse. Tiene que ser `Client` y no `Server`: aquí no hay servidor Node al que caer.
-   * </ul>
+   * <p>Lo que se pierde, dicho claro: las fichas dejan de ser indexables y las etiquetas para compartir
+   * de un enlace a producto dejan de resolverse solas. Es el precio de exigir cuenta para verlas, y es
+   * una decisión de negocio, no técnica. Si algún día se quiere lo uno y lo otro, la vía es servir a los
+   * robots una versión reducida —título, foto y precio— sin el resto de la ficha.
    *
-   * <p>Y convive con `seo-ficha.js`, que ya resuelve las etiquetas para compartir de las 7.729 en la
-   * pasarela: para las que SÍ están prerenderizadas, la pasarela toma el HTML ya pintado como
-   * plantilla en vez del esqueleto vacío, de modo que el robot recibe el `<head>` fresco Y el cuerpo
-   * del producto. El detalle está escrito en `seo-ficha.js` y en `nginx.conf`.
-   *
-   * <p>OJO al declararla: una ruta con parámetro en `Prerender` SIN `getPrerenderParams` tumba la
-   * compilación en seco con «getPrerenderParams is missing». Ya pasó una vez y dejó el repositorio sin
-   * poder construirse; por eso las dos llaves van juntas y por eso `admin/browse/:slug` sigue en
-   * `Client` en `app.routes.server.ts`, fuera del alcance del comodín.
+   * <p>FAVORITOS e HISTORIAL son de la cuenta: prerenderizarlos dejaría el esqueleto de una lista
+   * personal cacheado en el borde.
    */
-  {
-    path: 'catalog/:slug',
-    renderMode: RenderMode.Prerender,
-    fallback: PrerenderFallback.Client,
-    getPrerenderParams: async () => (await slugsAPrerenderizar()).map((slug) => ({ slug })),
-  },
+  { path: 'catalog/:slug', renderMode: RenderMode.Client },
 
   { path: 'favorites', renderMode: RenderMode.Client },
   { path: 'history', renderMode: RenderMode.Client },

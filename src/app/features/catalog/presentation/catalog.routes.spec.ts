@@ -1,6 +1,6 @@
-import { PrerenderFallback, RenderMode, ServerRoutePrerenderWithParams } from '@angular/ssr';
+import { RenderMode } from '@angular/ssr';
 import { Route } from '@angular/router';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { rutas } from './catalog.routes';
 import { rutasDeServidor } from './catalog.server-routes';
 
@@ -35,6 +35,19 @@ describe('rutas de catálogo', () => {
     }
   });
 
+  /**
+   * Qué pantallas del catálogo exigen cuenta.
+   *
+   * <p>La FICHA entra en la lista: enseña el precio con margen, el desglose de aranceles y el
+   * proveedor. Antes se llegaba a ella escribiendo la dirección aunque el listado sí estuviera
+   * cerrado, que es la forma más tonta de dejar abierta una pantalla que se creía cerrada.
+   */
+  it('las pantallas internas exigen cuenta', () => {
+    for (const camino of ['catalog', 'catalog/:slug', 'favorites', 'history']) {
+      expect(pantalla(camino)?.canActivate, camino).toBeDefined();
+    }
+  });
+
   /** El listado y la ficha son las dos rutas que más se visitan: su código se adelanta de fondo. */
   it('marca para precarga las dos rutas que más se visitan', () => {
     expect(pantalla('catalog')?.data?.['precarga']).toBe(true);
@@ -63,59 +76,23 @@ describe('rutas de servidor', () => {
     }
   });
 
-  describe('la ficha', () => {
-    const ficha = rutasDeServidor.find(
-      (ruta) => ruta.path === 'catalog/:slug',
-    ) as ServerRoutePrerenderWithParams;
+  /**
+   * La FICHA la monta el navegador desde que exige cuenta.
+   *
+   * <p>Antes se escribía al construir un cupo de las más compartidas. Eso ahora sería contradecir la
+   * decisión: nginx sirve el HTML escrito al compilar a quien pida la dirección, sin pasar por ningún
+   * guardián —el guardián vive en el navegador y actúa DESPUÉS—, así que la ficha quedaría cerrada en
+   * la aplicación y abierta en el borde. Cerrar una pantalla y dejar su HTML público no es cerrarla.
+   */
+  it('la ficha la monta el navegador, no se escribe al construir', () => {
+    expect(modo('catalog/:slug')).toBe(RenderMode.Client);
+  });
 
-    it('se escribe al construir', () => {
-      expect(ficha.renderMode).toBe(RenderMode.Prerender);
-    });
+  /** Y no queda rastro del cupo: una ruta con parámetro en «Prerender» exige `getPrerenderParams`. */
+  it('la ficha ya no declara parámetros de prerenderizado', () => {
+    const ficha = rutasDeServidor.find((r) => r.path === 'catalog/:slug');
 
-    /**
-     * Es la mitad que garantiza que no se rompe nada: con 7.729 productos solo entra un cupo, y lo
-     * que queda fuera —incluido lo que se cargue DESPUÉS de compilar— tiene que seguir viéndose. Y
-     * tiene que ser `Client`, no `Server`: aquí no hay servidor Node al que caer.
-     */
-    it('deja en manos del navegador todo lo que no entre en el cupo', () => {
-      expect(ficha.fallback).toBe(PrerenderFallback.Client);
-    });
-
-    /**
-     * La trampa conocida: una ruta con parámetro en `Prerender` SIN esta función tumba la compilación
-     * en seco con «getPrerenderParams is missing». Ya pasó una vez y dejó el repositorio sin poder
-     * construirse.
-     */
-    it('declara de dónde salen los parámetros', () => {
-      expect(ficha.getPrerenderParams).toBeTypeOf('function');
-    });
-
-    afterEach(() => vi.unstubAllGlobals());
-
-    /** Lo que devuelve tiene que ser la forma que espera Angular: un objeto por ruta, con su `slug`. */
-    it('devuelve un objeto por ficha, con la clave del parámetro', async () => {
-      vi.stubGlobal('fetch', () =>
-        Promise.resolve({
-          ok: true,
-          json: () =>
-            Promise.resolve({ sections: [{ items: [{ slug: 'una' }, { slug: 'otra' }] }] }),
-        }),
-      );
-
-      const parametros = await ficha.getPrerenderParams();
-
-      expect(parametros).toEqual([{ slug: 'una' }, { slug: 'otra' }]);
-    });
-
-    /**
-     * Sin backend accesible NO se rompe la compilación: se devuelve la lista vacía y, con el
-     * `fallback`, las 7.729 fichas se ven exactamente como antes de este cambio.
-     */
-    it('sin backend devuelve la lista vacía en vez de tumbar el build', async () => {
-      vi.stubGlobal('fetch', () => Promise.reject(new Error('sin red')));
-      vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-
-      await expect(ficha.getPrerenderParams()).resolves.toEqual([]);
-    });
+    expect(ficha).toBeDefined();
+    expect('getPrerenderParams' in (ficha ?? {})).toBe(false);
   });
 });

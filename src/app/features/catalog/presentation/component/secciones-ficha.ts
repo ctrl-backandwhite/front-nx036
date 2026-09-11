@@ -49,7 +49,32 @@ import { HistoricoDePrecios } from './historico-de-precios';
         @defer (on viewport; hydrate on viewport) {
           <nx-seccion-resenas [idDelProducto]="ficha().id" />
         } @placeholder {
-          <div class="skeleton h-40 w-full"></div>
+          <!--
+            El hueco tiene la FORMA de lo que va a llegar, no un rectángulo gris.
+            Era un «skeleton» liso de 160 px y se leía como un fallo: un cuadro apagado sin nada dentro,
+            justo debajo de un título que promete reseñas. Con la silueta —el encabezado y tres fichas—
+            se entiende que está cargando algo concreto.
+
+            Y mide parecido a lo que sustituye. El liso venía 200 px corto y, al resolverse, empujaba
+            hacia abajo todo lo que había debajo: quien acababa de pulsar «Reseñas» veía saltar la
+            página en el momento de llegar.
+          -->
+          <div class="space-y-4" aria-busy="true">
+            <div class="flex items-center justify-between">
+              <div class="skeleton h-6 w-48"></div>
+              <div class="skeleton h-8 w-36"></div>
+            </div>
+            @for (hueco of [0, 1, 2]; track hueco) {
+              <div class="flex gap-3">
+                <div class="skeleton h-10 w-10 shrink-0 rounded-full"></div>
+                <div class="flex-1 space-y-2">
+                  <div class="skeleton h-4 w-32"></div>
+                  <div class="skeleton h-3 w-full"></div>
+                  <div class="skeleton h-3 w-4/5"></div>
+                </div>
+              </div>
+            }
+          </div>
         }
       </section>
 

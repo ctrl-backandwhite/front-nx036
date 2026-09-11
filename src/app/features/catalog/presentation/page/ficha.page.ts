@@ -26,6 +26,7 @@ import {
   posicionEnLaGaleria,
 } from '../../domain/model/galeria';
 import { AbreLaFicha } from '../../application/use-case/abre-la-ficha.use-case';
+import { MigaDeCategoria } from '../../application/use-case/miga-de-categoria.use-case';
 import { AnadeALaCesta, esMotivoDeRechazo } from '../../application/use-case/anade-a-la-cesta.use-case';
 import { AlternaFavorito } from '../../application/use-case/alterna-favorito.use-case';
 import { RECUPERADOR_DE_SESION } from '@core/auth/recuperador-de-sesion.port';
@@ -179,6 +180,7 @@ export class FichaPage {
   readonly slug = input.required<string>();
 
   private readonly abre = inject(AbreLaFicha);
+  private readonly miga = inject(MigaDeCategoria);
   private readonly anadeALaCesta = inject(AnadeALaCesta);
   private readonly alterna = inject(AlternaFavorito);
   private readonly avisos = inject(AvisosStore);
@@ -299,9 +301,42 @@ export class FichaPage {
     this.noEncontrada() ? 'product.not_found' : 'product.load_error',
   );
   protected readonly galeria = computed(() => galeriaVisible(this.ficha()?.imagenes ?? []));
+  /**
+   * La cadena de categorías del producto. Se pide aparte porque el detalle solo trae el identificador.
+   *
+   * <p>Es un `resource` y no una llamada suelta para que se cancele sola al cambiar de producto: sin
+   * eso, abrir tres fichas seguidas dejaba tres peticiones en vuelo y ganaba la que respondiera la
+   * última, que no tiene por qué ser la de la ficha que se está mirando.
+   */
+  private readonly cadenaDeCategoria = resource({
+    params: () => ({ id: this.ficha()?.categoriaId, idioma: this.preferencias.idioma() }),
+    loader: async ({ params }) => {
+      if (!params.id) {
+        return [];
+      }
+      const resultado = await this.miga.ejecuta(params.id, params.idioma);
+      // Si falla, la miga se queda en «Inicio › Catálogo». Enseñar un error aquí sería desproporcionado:
+      // es una ayuda para situarse, no contenido del producto.
+      return resultado.ok ? resultado.valor : [];
+    },
+  });
+
+  /**
+   * La miga de pan: dónde está el producto, NO cómo se llama.
+   *
+   * <p>El último escalón era el título del producto, que ya está dos líneas más abajo en grande y en
+   * este catálogo ocupa tres renglones. Repetirlo gastaba la única línea capaz de decir de qué
+   * categoría viene, que es justo lo que hace falta para volver a una lista de productos parecidos.
+   *
+   * <p>Cada escalón LLEVA ENLACE, incluida la hoja: la gracia de saber la categoría es poder ir a ella.
+   */
   protected readonly migas = computed(() => [
     { etiqueta: this.t('breadcrumb.catalog'), destino: '/catalog' },
-    { etiqueta: this.ficha()?.titulo ?? '' },
+    ...(this.cadenaDeCategoria.value() ?? []).map((categoria) => ({
+      etiqueta: categoria.nombre,
+      destino: '/catalog',
+      parametros: { categoryId: categoria.id },
+    })),
   ]);
   protected readonly textoDelImpedimento = computed(() =>
     this.mensajeDe(this.seleccion.impedimento()),
@@ -377,7 +412,16 @@ export class FichaPage {
   protected async anade(): Promise<boolean> {
     const ficha = this.ficha();
     const impedimento = this.seleccion.impedimento();
-    if (!ficha || impedimento) {
+    if (impedimento) {
+      // NO se lanza aviso flotante: lo que falta ya está escrito bajo los botones, en el sitio donde
+      // se mira antes de pulsar y sin que haya que pulsar para enterarse. Salían los dos a la vez —el
+      // texto y el aviso rojo en la esquina— diciendo exactamente lo mismo, y dos mensajes idénticos
+      // no informan el doble: hacen dudar de si son dos problemas distintos.
+      return false;
+    }
+    if (!ficha) {
+      // Esto sí es un fallo de verdad y no una condición que quien compra pueda arreglar: la ficha no
+      // está cargada. Sin aviso quedaría un botón que no hace nada.
       this.avisos.error(this.mensajeDe(impedimento));
       return false;
     }

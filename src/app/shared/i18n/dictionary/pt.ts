@@ -2783,7 +2783,7 @@ const diccionario: Record<string, string> = {
   'compliance.field.phone': 'Telefone',
   'pdp.section.packing': 'Embalagem e envio',
   'pdp.section.recommend': 'Recomendado pelo vendedor',
-  'pdp.shipping.body': '7–14 dias, com rastreio',
+  'pdp.shipping.body': '7–25 dias, com rastreio',
   'pdp.shipping.title': 'Envio',
   'pdp.size': 'Tamanho',
   'pdp.size.stock': 'Estoque',

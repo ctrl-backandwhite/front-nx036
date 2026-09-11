@@ -39,6 +39,10 @@ export const rutas: Routes = [
       {
         // Misma razón: del listado a una ficha se pasa siempre, y es donde se decide la compra.
         path: 'catalog/:slug',
+        // La ficha es INTERNA, igual que el listado: el precio con margen, el desglose de aranceles y
+        // el proveedor solo se enseñan a quien tiene cuenta. Sin esto se llegaba al detalle completo
+        // con la dirección directa, saltándose el listado que sí estaba cerrado.
+        canActivate: [exigeSesion],
         data: { precarga: true },
         loadComponent: () => import('./page/ficha.page').then((m) => m.FichaPage),
       },
