@@ -73,9 +73,16 @@ export class SeleccionDeLaFicha {
         .flatMap((variante) => Object.values(variante.opciones ?? {})),
     );
     const valores = eje.valores.filter((valor) => conVariante.has(valor.valorZh));
-    // Si NINGUNO casa, se devuelve el eje entero: es señal de que las claves no cuadran entre ejes y
-    // variantes, y quedarse sin selector sería peor que enseñar uno con opciones de más.
-    return valores.length > 0 ? { ...eje, valores } : eje;
+    if (valores.length > 0) {
+      return { ...eje, valores };
+    }
+    // Si NINGUNO casa habiendo variantes, se devuelve el eje entero: es señal de que las claves no
+    // cuadran entre ejes y variantes, y quedarse sin selector sería peor que enseñar uno de más.
+    //
+    // Pero sin NINGUNA variante esa salida de emergencia hacía daño: ofrecía cuatro colores de un
+    // producto que no tiene ni un SKU detrás, y quien elegía uno se llevaba al carrito algo que no
+    // existe. Sin variantes no hay nada que ofrecer, y el aviso correcto es el de «sin stock».
+    return this.variantes().length > 0 ? eje : undefined;
   });
   readonly ejeDeTalla = computed(() => ejeDeTalla(this._ficha()?.ejesDeVariante ?? []));
 

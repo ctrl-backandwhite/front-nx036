@@ -21,7 +21,11 @@ const ES_TALLA = /size|talla|尺码|尺寸/i;
 const ES_COLOR = /color|colour|颜色/i;
 
 export function ejeDeTalla(ejes: readonly EjeDeVariante[]): EjeDeVariante | undefined {
-  return ejes.find((eje) => ES_TALLA.test(eje.nombre ?? eje.nombreZh ?? ''));
+  // Un eje SIN valores no es un eje: es un encabezado vacío que llegó del proveedor. Contarlo dejaba
+  // la ficha pidiendo «selecciona al menos una talla» sin ninguna talla que seleccionar, un callejón
+  // del que no se puede salir por mucho que se pulse. Medido en «t-887600913911», que declara un eje
+  // de talla con cero valores.
+  return ejes.find((eje) => ES_TALLA.test(eje.nombre ?? eje.nombreZh ?? '') && eje.valores.length > 0);
 }
 
 /**
@@ -33,9 +37,11 @@ export function ejeDeTalla(ejes: readonly EjeDeVariante[]): EjeDeVariante | unde
  */
 export function ejePrincipal(ejes: readonly EjeDeVariante[]): EjeDeVariante | undefined {
   const talla = ejeDeTalla(ejes);
+  // Mismo criterio que en la talla: un eje sin valores no ofrece nada que elegir.
+  const conValores = ejes.filter((eje) => eje.valores.length > 0);
   return (
-    ejes.find((eje) => ES_COLOR.test(eje.nombre ?? eje.nombreZh ?? '')) ??
-    ejes.find((eje) => eje !== talla)
+    conValores.find((eje) => ES_COLOR.test(eje.nombre ?? eje.nombreZh ?? '')) ??
+    conValores.find((eje) => eje !== talla)
   );
 }
 

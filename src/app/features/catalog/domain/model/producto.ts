@@ -249,10 +249,27 @@ export function estaRebajado(precio: PrecioParaMostrar): boolean {
   return !!precio.anteriorFormateado && (precio.descuentoPorcentaje ?? 0) > 0;
 }
 
-/** Las existencias vivas del producto, sumando solo las variantes activas. */
+/**
+ * Las existencias vivas del producto, sumando solo las variantes activas.
+ *
+ * <p>SIN NINGUNA VARIANTE no se puede afirmar que haya existencias. Esto devolvía `true` en ese caso, y
+ * el resultado era un producto que el listado marcaba «SIN STOCK» con su marca de agua y que la ficha
+ * dejaba añadir al carrito igualmente. Medido en «t-887600913911»: cero variantes, cero activas,
+ * `inventory_count` sin valor, y el botón de comprar habilitado.
+ *
+ * <p>El respaldo es lo que el proveedor declara en el producto entero: si dice un número mayor que
+ * cero, se vende; si dice cero, no; y si no dice nada —que es distinto de decir cero— tampoco, porque
+ * sin variantes no queda ninguna otra fuente que consultar. Es la misma asimetría que aplica
+ * {@link estaAgotado} en el listado pero al revés: allí la falta de dato no permite AFIRMAR que está
+ * agotado; aquí no permite afirmar que queda algo.
+ *
+ * <p>OJO con la norma de dropshipping: el stock no se descuenta con las ventas y el número es
+ * informativo del proveedor. Esto NO lo contradice —no se está consumiendo nada—, solo se deja de
+ * ofrecer lo que el proveedor dice que no tiene.
+ */
 export function hayExistencias(ficha: FichaDeProducto): boolean {
   if (ficha.variantes.length === 0) {
-    return true;
+    return (ficha.unidadesDisponibles ?? 0) > 0;
   }
   return ficha.variantes.reduce((suma, v) => suma + (v.activa ? v.existencias : 0), 0) > 0;
 }
