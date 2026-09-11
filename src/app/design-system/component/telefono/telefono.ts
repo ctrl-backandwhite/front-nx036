@@ -2,7 +2,15 @@ import { Component, computed, input, model, signal } from '@angular/core';
 import { DIAL_CODES } from '@shared/data/dial-codes';
 import { banderaDePais, nombreDePais } from '../pais/paises';
 
-/** Cuando el valor viene vacío o irreconocible se parte de España, que es el mercado principal. */
+/**
+ * A qué país se recurre cuando no hay nada mejor: ni número escrito, ni país que le pase quien monta
+ * el formulario.
+ *
+ * <p>Es el ÚLTIMO recurso, no la norma. Era lo único que había, y el resultado es que a quien entraba
+ * desde Colombia el formulario le proponía «+34»: un prefijo de otro continente delante de su propio
+ * teléfono. Quien monta el formulario casi siempre sabe el país —el de la cuenta, el que la dirección
+ * de red detecta, el que se acaba de elegir en el desplegable de al lado— y ahora puede pasarlo.
+ */
 const PAIS_POR_DEFECTO = 'ES';
 
 /** Los prefijos ordenados por nombre de país, que es como se buscan en un desplegable. */
@@ -16,7 +24,7 @@ const PREFIJOS_ORDENADOS = [...DIAL_CODES].sort((a, b) =>
  * <p>Varios países comparten prefijo —el «+1» lo usan una veintena—, así que se elige el prefijo MÁS
  * LARGO que encaje y, entre los que comparten ese prefijo, el primero del catálogo.
  */
-export function partePrefijo(valor: string): { codigo: string; numero: string } {
+export function partePrefijo(valor: string, paisDeReserva = PAIS_POR_DEFECTO): { codigo: string; numero: string } {
   const limpio = (valor ?? '').replace(/[^\d+]/g, '');
   if (limpio.startsWith('+')) {
     const porLongitud = [...DIAL_CODES].sort((a, b) => b.dial.length - a.dial.length);
@@ -25,7 +33,10 @@ export function partePrefijo(valor: string): { codigo: string; numero: string } 
       return { codigo: encaja.code, numero: limpio.slice(encaja.dial.length) };
     }
   }
-  return { codigo: PAIS_POR_DEFECTO, numero: limpio.replace(/^\+/, '') };
+  // Un país de reserva que no esté en la tabla no vale: dejaría el desplegable sin ninguna opción
+  // marcada y el navegador pintaría la primera de la lista, que no significa nada.
+  const conocido = DIAL_CODES.some((d) => d.code === paisDeReserva);
+  return { codigo: conocido ? paisDeReserva : PAIS_POR_DEFECTO, numero: limpio.replace(/^\+/, '') };
 }
 
 function prefijoDe(codigo: string): string {
@@ -82,6 +93,11 @@ export class Telefono {
   /** El valor completo en E.164. Vacío mientras no haya número: un prefijo suelto no es un teléfono. */
   readonly valor = model('');
   readonly clase = input('');
+  /**
+   * El país del que partir mientras no haya número: el de la cuenta, o el que detecte la dirección de
+   * red. Vacío o desconocido cae en el de por defecto.
+   */
+  readonly paisPorDefecto = input('');
   /** Rótulo accesible del selector de prefijo. Quien monta el formulario puede traducirlo. */
   readonly etiquetaPrefijo = input('Prefijo');
   /** Rótulo accesible del número nacional. */
@@ -98,9 +114,15 @@ export class Telefono {
   private readonly codigoElegido = signal<string | null>(null);
 
   protected readonly codigo = computed(
-    () => this.codigoElegido() ?? partePrefijo(this.valor()).codigo,
+    () => this.codigoElegido() ?? partePrefijo(this.valor(), this.reserva()).codigo,
   );
   protected readonly numero = computed(() => partePrefijo(this.valor()).numero);
+
+  /** El país que pase quien monta el formulario, normalizado; vacío deja mandar al de por defecto. */
+  private readonly reserva = computed(() => {
+    const pasado = this.paisPorDefecto().trim().toUpperCase();
+    return pasado.length === 2 ? pasado : PAIS_POR_DEFECTO;
+  });
 
   protected cambiaPrefijo(evento: Event): void {
     this.actualiza((evento.target as HTMLSelectElement).value, this.numero());

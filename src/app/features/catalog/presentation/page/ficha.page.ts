@@ -142,7 +142,6 @@ const CONFIRMACION_MS = 2000;
           [ficha]="producto"
           [trabajando]="anadiendo()"
           [anadido]="anadido()"
-          [aviso]="textoDelImpedimento()"
           (anade)="anade()"
           (compraAhora)="compraAhora()"
           (marcaFavorito)="marcaFavorito(producto.id)"
@@ -338,9 +337,6 @@ export class FichaPage {
       parametros: { categoryId: categoria.id },
     })),
   ]);
-  protected readonly textoDelImpedimento = computed(() =>
-    this.mensajeDe(this.seleccion.impedimento()),
-  );
 
   /** Se pasa por referencia a los gestos de administración, que recargan la ficha al terminar. */
   protected readonly recarga = (): void => {
@@ -412,16 +408,16 @@ export class FichaPage {
   protected async anade(): Promise<boolean> {
     const ficha = this.ficha();
     const impedimento = this.seleccion.impedimento();
-    if (impedimento) {
-      // NO se lanza aviso flotante: lo que falta ya está escrito bajo los botones, en el sitio donde
-      // se mira antes de pulsar y sin que haya que pulsar para enterarse. Salían los dos a la vez —el
-      // texto y el aviso rojo en la esquina— diciendo exactamente lo mismo, y dos mensajes idénticos
-      // no informan el doble: hacen dudar de si son dos problemas distintos.
-      return false;
-    }
-    if (!ficha) {
-      // Esto sí es un fallo de verdad y no una condición que quien compra pueda arreglar: la ficha no
-      // está cargada. Sin aviso quedaría un botón que no hace nada.
+    if (!ficha || impedimento) {
+      // El aviso va FLOTANTE y no bajo los botones.
+      //
+      // Antes estaban los dos y se quitó el flotante por redundante. Con solo el texto de abajo, el
+      // mensaje pasaba desapercibido: quien pulsa «Añadir al carrito» está mirando el botón y lo que
+      // aparece es una línea pequeña justo debajo, fuera del punto de atención, así que la sensación
+      // era que el botón no hacía nada. El flotante interrumpe, que es exactamente lo que hace falta
+      // cuando la acción que acabas de pedir no se ha podido hacer.
+      //
+      // Sigue habiendo UNO SOLO: el texto de abajo se ha retirado del panel de compra.
       this.avisos.error(this.mensajeDe(impedimento));
       return false;
     }

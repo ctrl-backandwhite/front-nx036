@@ -74,9 +74,16 @@ const LARGO_DEL_NOMBRE = 80;
 
             El teléfono es una pieza del sistema de diseño y no habla el protocolo de Signal Forms, así
             que se ata al VALOR del campo en vez de con la directiva; el estado sigue en el formulario.
+
+            El prefijo arranca en el PAÍS DE LA CUENTA, que está en el campo de aquí abajo. Antes
+            arrancaba siempre en «+34» porque el componente no tenía de dónde sacarlo, y a quien se da
+            de alta desde Bogotá le proponía un prefijo español delante de su propio número. Se ata al
+            valor del campo y no a una copia: si el país cambia, el prefijo le sigue mientras no haya
+            número escrito.
           -->
           <nx-telefono clase="mt-1" [valor]="formulario.telefono().value()"
                        (valorChange)="formulario.telefono().value.set($event)"
+                       [paisPorDefecto]="formulario.pais().value()"
                        [etiquetaNumero]="t('profile.phone')" />
         </div>
 

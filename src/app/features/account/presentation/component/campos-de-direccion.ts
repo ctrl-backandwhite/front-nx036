@@ -8,6 +8,7 @@ import {
   validate,
 } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
+import { CuentaStore } from '../../application/state/cuenta.store';
 import { SelectorPais } from '@ds/component/pais/selector-pais';
 import { SelectorProvincia } from '@ds/component/provincia/selector-provincia';
 import { Telefono } from '@ds/component/telefono/telefono';
@@ -49,6 +50,11 @@ const LARGO_DE_LA_CIUDAD = 120;
  */
 @Component({
   selector: 'nx-campos-de-direccion',
+  // Un elemento propio nace en línea, y una caja en línea NO ocupa la altura de su contenido: el
+  // «space-y-4» del formulario le pone el margen al hermano siguiente —la casilla de «predeterminada»—
+  // medido contra la línea de texto, no contra los campos, así que el hueco valía cero y la casilla
+  // salía pegada al último campo. Quinta vez que pasa en este proyecto.
+  host: { class: 'block' },
   imports: [SelectorPais, SelectorProvincia, Telefono, FormField],
   template: `
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -73,10 +79,14 @@ const LARGO_DE_LA_CIUDAD = 120;
 
           El teléfono es una pieza del sistema de diseño y no habla el protocolo de Signal Forms, así
           que se ata al VALOR del campo en vez de con la directiva; el estado sigue en el formulario.
+
+          Y el prefijo parte del país de ESTA dirección, no del de la cuenta: un teléfono de contacto
+          para una entrega es el de quien la recibe. Antes partía siempre de «+34».
         -->
         <nx-telefono
           [valor]="formulario.telefono().value()"
           (valorChange)="formulario.telefono().value.set($event)"
+          [paisPorDefecto]="paisParaElPrefijo()"
           [etiquetaNumero]="t('checkout.phone')"
         />
       </div>
@@ -156,8 +166,27 @@ export class CamposDeDireccion {
 
   private readonly traduccion = inject(TraduccionService);
   private readonly ayuda = inject(AYUDA_DE_DIRECCION_PORT);
+  private readonly cuenta = inject(CuentaStore);
 
   protected readonly t = this.traduccion.t;
+
+  /**
+   * De qué país parte el prefijo del teléfono.
+   *
+   * <p>Primero el de ESTA dirección: un teléfono de contacto para una entrega es el de quien la
+   * recibe. Pero en una dirección nueva ese campo está vacío —es lo primero que se ve al abrir la
+   * ventana—, y ahí caía en España para todo el mundo. El respaldo es el país en el que se REGISTRÓ
+   * la cuenta, que es el mejor dato disponible sobre dónde está quien escribe.
+   *
+   * <p>Se lee del almacén de la CUENTA y no de la sesión: medido el 11-sep, al entrar directo a
+   * `/profile` por su dirección el perfil tenía al titular cargado mientras `SesionActual` seguía
+   * vacío —la cabecera pintaba «Iniciar sesión» con la página del perfil delante—, así que el
+   * respaldo no llegaba nunca. Este almacén es el que alimenta el formulario de al lado, y si él no
+   * tiene los datos tampoco hay pantalla que enseñar.
+   */
+  protected readonly paisParaElPrefijo = computed(
+    () => this.datos().pais || this.cuenta.titular()?.pais || '',
+  );
 
   private readonly provincias = signal<readonly Provincia[]>([]);
 
