@@ -1,3 +1,4 @@
+import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
@@ -5,6 +6,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { exito, fallo } from '@shared/result/result';
 import { creaError } from '@shared/error/app-error';
 import { SesionActual } from '@core/auth/sesion-actual';
+import { TraduccionService } from '@core/i18n/traduccion.service';
 import { CATALOGO_PORT } from '../../domain/port/catalogo.port';
 import { RESENAS_PORT } from '../../domain/port/resenas.port';
 import { FichaDeProducto } from '../../domain/model/producto';
@@ -13,6 +15,7 @@ import { TablaAtributos } from './tabla-atributos';
 import { Recomendados } from './recomendados';
 import { VisorGaleria } from './visor-galeria';
 import { BloqueEnvio } from './bloque-envio';
+import { BloqueSubsidios } from './bloque-subsidios';
 import { TarjetaVendedor } from './tarjeta-vendedor';
 import { APLICACION_DEL_CATALOGO } from '../../catalog.providers';
 import { ANADIR_AL_CARRITO_PORT } from '@features/cart/domain/port/carrito-compartido.port';
@@ -357,6 +360,36 @@ describe('piezas fijas de la ficha', () => {
   it('el bloque de envío enseña las tres promesas', async () => {
     const vista = await render(BloqueEnvio);
     expect(vista.container.querySelectorAll('li')).toHaveLength(3);
+  });
+
+  /**
+   * Lo que pone la tienda tiene que decirse CON LETRA en la ficha.
+   *
+   * <p>En la tarjeta son dos iconos con su texto en el título emergente porque no hay sitio; aquí sí lo
+   * hay, y un icono verde suelto no lo lee nadie. La prueba mira el texto, no el dibujo.
+   */
+  it('la ficha dice con palabras qué paga la tienda', async () => {
+    const vista = await render(BloqueSubsidios, {
+      inputs: { envioCubierto: true, arancelCubierto: true },
+    });
+    const t = TestBed.inject(TraduccionService).t;
+    expect(vista.container.querySelectorAll('li')).toHaveLength(2);
+    expect(screen.getByText(t('catalog.shipping.covered'))).toBeInTheDocument();
+    expect(screen.getByText(t('catalog.duty.covered'))).toBeInTheDocument();
+  });
+
+  /** Sin nada que cubrir no se pinta un hueco: prometer «nada» ocupa sitio y no dice nada. */
+  it('sin subvención el bloque no existe', async () => {
+    const vista = await render(BloqueSubsidios);
+    expect(vista.container.querySelectorAll('li')).toHaveLength(0);
+  });
+
+  /** Las dos bolsas son estancas: que la tienda ponga porte no dice nada del arancel. */
+  it('cada bolsa se anuncia por su cuenta', async () => {
+    const vista = await render(BloqueSubsidios, { inputs: { envioCubierto: true } });
+    const t = TestBed.inject(TraduccionService).t;
+    expect(vista.container.querySelectorAll('li')).toHaveLength(1);
+    expect(screen.getByText(t('catalog.shipping.covered'))).toBeInTheDocument();
   });
 
   /** El cliente compra a la plataforma: los datos del proveedor de origen NO se enseñan. */

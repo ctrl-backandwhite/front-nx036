@@ -20,6 +20,7 @@ import { SelectorCantidad } from './selector-cantidad';
 import { BloquePrecio } from './bloque-precio';
 import { BloqueEnvio } from './bloque-envio';
 import { DistintivoArancel } from './distintivo-arancel';
+import { BloqueSubsidios } from './bloque-subsidios';
 import { PanelDeOrigen } from './admin/panel-de-origen';
 import { DesgloseEditable } from './admin/desglose-editable';
 
@@ -45,6 +46,7 @@ import { DesgloseEditable } from './admin/desglose-editable';
     BloquePrecio,
     BloqueEnvio,
     DistintivoArancel,
+    BloqueSubsidios,
     PanelDeOrigen,
     DesgloseEditable,
   ],
@@ -121,6 +123,16 @@ import { DesgloseEditable } from './admin/desglose-editable';
           }
         </nx-bloque-precio>
         <nx-distintivo-arancel [arancel]="ficha().arancel" (filtra)="filtraPorGrupo.emit()" />
+        <!--
+          Lo que pone la tienda va justo debajo del arancel y encima de los botones: es un argumento
+          de compra y ahí es donde se está decidiendo. En la tarjeta son dos iconos mudos porque no
+          hay sitio; aquí llevan el texto.
+        -->
+        <nx-bloque-subsidios
+          class="mt-2"
+          [envioCubierto]="!!ficha().envioCubierto"
+          [arancelCubierto]="ficha().arancel.cubierto"
+        />
       </div>
 
       <div class="order-6 lg:order-0"><nx-bloque-envio /></div>
@@ -146,13 +158,6 @@ import { DesgloseEditable } from './admin/desglose-editable';
           </button>
         </div>
 
-        @if (seleccion.impedimento()) {
-          <p role="status" class="text-xs flex items-center gap-1.5" [class]="tono()">
-            <fa-icon [icon]="iconos.informacion" class="text-[11px]" />
-            {{ aviso() }}
-          </p>
-        }
-
         @if (sesion.haySesion()) {
           <button
             type="button"
@@ -177,7 +182,6 @@ export class PanelDeCompra {
   readonly trabajando = input(false);
   readonly anadido = input(false);
   /** El texto que explica por qué todavía no se puede comprar. Lo compone la pantalla. */
-  readonly aviso = input('');
 
   readonly anade = output<void>();
   readonly compraAhora = output<void>();
@@ -228,10 +232,6 @@ export class PanelDeCompra {
       impedimento !== 'variante-sin-existencias'
     );
   });
-
-  protected readonly tono = computed(() =>
-    this.seleccion.impedimento() === 'variante-sin-existencias' ? 'text-red-600' : 'text-warning',
-  );
 
   protected cambiaTalla(cambio: CambioDeTalla): void {
     this.cambia.emit(cambio);
