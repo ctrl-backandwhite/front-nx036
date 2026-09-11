@@ -29,7 +29,21 @@ interface EntradaDeMenu {
   readonly etiqueta: string;
 }
 
-const MENU: readonly EntradaDeMenu[] = [
+/**
+ * ¿Se ofrecen ya los planes de suscripción?
+ *
+ * <p>Hoy NO: la contratación no está disponible todavía y se habilitará más adelante. Mientras tanto
+ * la sección no se enseña, porque una pantalla que invita a elegir plan y cobrar con la tarjeta
+ * guardada, en un producto que aún no vende planes, promete algo que no se puede cumplir.
+ *
+ * <p>Se apaga con una bandera y NO borrando el código: la pantalla está escrita y probada, y el día
+ * que se abra basta con poner esto a `true`. Borrarla obligaría a rehacerla y a redescubrir sus
+ * detalles. Con la entrada fuera del menú, un enlace guardado a `?section=plan` cae solo en «Datos
+ * personales», porque la sección activa se valida contra este menú.
+ */
+const PLANES_DISPONIBLES = false;
+
+const MENU_COMPLETO: readonly EntradaDeMenu[] = [
   { clave: 'personal', icono: faUser, etiqueta: 'profile.section.personal' },
   { clave: 'security', icono: faShieldHalved, etiqueta: 'profile.section.security' },
   { clave: 'addresses', icono: faLocationDot, etiqueta: 'profile.section.addresses' },
@@ -37,6 +51,10 @@ const MENU: readonly EntradaDeMenu[] = [
   { clave: 'plan', icono: faGem, etiqueta: 'profile.section.plan' },
   { clave: 'danger', icono: faTriangleExclamation, etiqueta: 'profile.danger.title' },
 ];
+
+const MENU: readonly EntradaDeMenu[] = MENU_COMPLETO.filter(
+  (entrada) => entrada.clave !== 'plan' || PLANES_DISPONIBLES,
+);
 
 /**
  * El perfil de la cuenta.

@@ -73,10 +73,14 @@ const LARGO_DE_LA_CIUDAD = 120;
 
           El teléfono es una pieza del sistema de diseño y no habla el protocolo de Signal Forms, así
           que se ata al VALOR del campo en vez de con la directiva; el estado sigue en el formulario.
+
+          Y el prefijo parte del país de ESTA dirección, no del de la cuenta: un teléfono de contacto
+          para una entrega es el de quien la recibe. Antes partía siempre de «+34».
         -->
         <nx-telefono
           [valor]="formulario.telefono().value()"
           (valorChange)="formulario.telefono().value.set($event)"
+          [paisPorDefecto]="formulario.pais().value()"
           [etiquetaNumero]="t('checkout.phone')"
         />
       </div>
