@@ -89,10 +89,20 @@ const TRAMOS: readonly { readonly limite: number; readonly unidad: Intl.Relative
               <!--
                 Un BOTÓN con cuerpo, no un enlace rojo suelto: echar a un dispositivo es una acción
                 destructiva y tiene que verse como algo que se pulsa, no como parte del texto.
+
+                Y el rojo es el de la ESCALA, no «text-error». En este tema «--color-error» es
+                «oklch(70% …)»: un rojo de luminosidad 70% pensado para ir DE FONDO en un botón
+                sólido. Puesto como texto sobre blanco se lava y el botón casi no se veía. El resto
+                del proyecto usa «red-600» para lo destructivo —el enlace de borrar una dirección, la
+                zona de peligro— y por eso ahí sí se lee. Tampoco se usa «btn-ghost»: sin fondo ni
+                borde, lo único que distinguía al botón era justo el color que no contrastaba.
               -->
               <button
                 type="button"
-                class="btn btn-ghost btn-xs shrink-0 self-start text-error hover:bg-red-50 sm:self-auto"
+                class="inline-flex shrink-0 items-center gap-1.5 self-start rounded-lg border
+                       border-red-200 px-2.5 py-1.5 text-[12px] font-medium text-red-600
+                       transition-colors hover:border-red-300 hover:bg-red-50
+                       disabled:cursor-not-allowed disabled:opacity-40 sm:self-auto"
                 [disabled]="ocupado()"
                 (click)="revoca(sesion.id)"
               >
