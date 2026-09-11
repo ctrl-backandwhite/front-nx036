@@ -2420,6 +2420,7 @@ const diccionario: Record<string, string> = {
   'home.cta.signup': 'Criar conta gratuita',
   'home.cta.docs':   'Ler a documentação',
   'home.feature.curated': 'Bestsellers selecionados nos rankings cross-border.',
+  'home.feature.subsidy': 'Em muitos produtos somos nós que pagamos parte do envio e a taxa aduaneira. Verá quais, assinalados na ficha, antes de pagar.',
   'home.feature.translate': 'Catálogos auto-traduzidos em {langCodes}.',
   'home.feature.fulfilment': 'Conecte Shopify e WooCommerce; encaminhamos os pedidos aos fornecedores.',
   'platform.menu_label': 'Plataforma',

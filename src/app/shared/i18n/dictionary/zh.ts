@@ -2420,6 +2420,7 @@ const diccionario: Record<string, string> = {
   'home.cta.signup': '免费创建账户',
   'home.cta.docs':   '阅读文档',
   'home.feature.curated': '精选跨境榜单的爆款商品。',
+  'home.feature.subsidy': '许多商品的部分运费和关税由我们承担。付款前可在商品页面看到标注。',
   'home.feature.translate': '目录自动翻译为 {langCodes}。',
   'home.feature.fulfilment': '连接 Shopify 与 WooCommerce；订单自动转发给供应商。',
   'platform.menu_label': '平台',

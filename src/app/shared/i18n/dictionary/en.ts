@@ -2431,6 +2431,7 @@ const diccionario: Record<string, string> = {
   'home.cta.signup': 'Create free account',
   'home.cta.docs':   'Read the docs',
   'home.feature.curated': 'Curated bestsellers from cross-border rankings.',
+  'home.feature.subsidy': 'On many products we cover part of the shipping and the customs duty ourselves. You will see which ones, marked on their page, before you pay.',
   'home.feature.translate': 'Auto-translated catalogs in {langCodes}.',
   'home.feature.fulfilment': 'Connect Shopify, WooCommerce; we forward orders to suppliers.',
   'platform.menu_label': 'Platform',

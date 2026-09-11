@@ -1355,6 +1355,7 @@ const diccionario: Record<string, string> = {
   'home.cta.signup':           'Maak gratis een account aan',
   'home.cta.docs':             'Lees de documentatie',
   'home.feature.curated':      'Geselecteerde bestsellers uit de grensoverschrijdende ranglijsten.',
+  'home.feature.subsidy':      'Bij veel producten betalen wij een deel van de verzending en het invoerrecht. Welke dat zijn, zie je op de productpagina, vóór het afrekenen.',
   'home.feature.translate':    'Automatisch vertaalde catalogi in {langCodes}.',
   'home.feature.fulfilment':   'Sluit Shopify, WooCommerce aan; wij sturen bestellingen door naar leveranciers.',
   'footer.tagline':            'Gebouwd voor grensoverschrijdende verkopers.',

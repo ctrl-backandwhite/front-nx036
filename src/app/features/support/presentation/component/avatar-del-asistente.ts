@@ -367,8 +367,24 @@ export class AvatarDelAsistente {
     // No se arrastró: fue una pulsación. Encogido despierta; activo enseña lo último que encontró.
     if (this.avatar.estado() === 'mini') {
       this.cambiaEstado('activo');
-    } else if (this.sugiere.items().length > 0) {
+      return;
+    }
+    if (this.sugiere.items().length > 0) {
       this.globo.set(!this.globo());
+      return;
+    }
+    // Sin nada guardado pero CON cesta, se pregunta ahora.
+    //
+    // Las sugerencias solo se pedían cuando la cesta cambiaba durante la visita, y en el primer
+    // pintado se calla a propósito —la cesta de una sesión anterior no es una novedad que merezca
+    // abrir un globo sobre quien acaba de llegar—. El efecto secundario era que quien volvía con algo
+    // ya en la cesta pulsaba el avatar y NO PASABA NADA: ni globo, ni consulta, ni aviso. Parecía
+    // roto, y desde fuera lo estaba.
+    //
+    // Una pulsación es una petición explícita, así que aquí no hay riesgo de interrumpir a nadie: si
+    // lo pides, se consulta y se enseña lo que haya.
+    if (this.lineasDeLaCesta().length > 0 && !this.sugiere.consultando()) {
+      void this.consulta();
     }
   }
 

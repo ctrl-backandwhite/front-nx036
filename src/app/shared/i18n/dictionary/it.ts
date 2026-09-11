@@ -1355,6 +1355,7 @@ const diccionario: Record<string, string> = {
   'home.cta.signup':           'Crea un account gratuito',
   'home.cta.docs':             'Leggi la documentazione',
   'home.feature.curated':      'Bestseller selezionati dai ranking transfrontalieri.',
+  'home.feature.subsidy':      'Su molti prodotti copriamo noi una parte della spedizione e il dazio doganale. Vedrai quali, indicati nella scheda, prima di pagare.',
   'home.feature.translate':    'Cataloghi tradotti automaticamente in {langCodes}.',
   'home.feature.fulfilment':   'Collega Shopify, WooCommerce; inoltriamo gli ordini ai fornitori.',
   'footer.tagline':            'Costruito per i venditori transfrontalieri.',

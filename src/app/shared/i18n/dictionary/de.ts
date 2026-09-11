@@ -1355,6 +1355,7 @@ const diccionario: Record<string, string> = {
   'home.cta.signup':           'Kostenloses Konto erstellen',
   'home.cta.docs':             'Dokumentation lesen',
   'home.feature.curated':      'Kuratierte Bestseller aus den grenzüberschreitenden Rankings.',
+  'home.feature.subsidy':      'Bei vielen Produkten übernehmen wir einen Teil des Versands und den Zoll. Welche das sind, steht auf der Produktseite — vor dem Bezahlen.',
   'home.feature.translate':    'Automatisch übersetzte Kataloge in {langCodes}.',
   'home.feature.fulfilment':   'Verbinden Sie Shopify, WooCommerce; wir leiten Bestellungen an Lieferanten weiter.',
   'footer.tagline':            'Für grenzüberschreitende Händler gebaut.',

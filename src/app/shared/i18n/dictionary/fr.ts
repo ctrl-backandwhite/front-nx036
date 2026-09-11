@@ -1350,6 +1350,7 @@ const diccionario: Record<string, string> = {
   'home.cta.signup':           'Créer un compte gratuit',
   'home.cta.docs':             'Lire la documentation',
   'home.feature.curated':      'Bestsellers sélectionnés à partir des classements transfrontaliers.',
+  'home.feature.subsidy':      'Sur de nombreux produits, nous prenons en charge une partie des frais de port et les droits de douane. Vous verrez lesquels, indiqués sur leur fiche, avant de payer.',
   'home.feature.translate':    'Catalogues traduits automatiquement en {langCodes}.',
   'home.feature.fulfilment':   'Connectez Shopify, WooCommerce ; nous transférons les commandes aux fournisseurs.',
   'footer.tagline':            'Conçu pour les vendeurs transfrontaliers.',

@@ -117,6 +117,19 @@ async function monta(opciones: Opciones = {}) {
 
 const LINEA = (cantidad: number): LineaDeCesta => ({ idProducto: 'p1', cantidad });
 
+/**
+ * Pulsar al personaje, que se maneja con eventos de PUNTERO y no con «click».
+ *
+ * <p>El mismo botón sirve para arrastrarlo y para pulsarlo: la diferencia es si el puntero se movió
+ * entre bajar y soltar. Por eso hay que mandar la pareja `pointerdown`/`pointerup` sin movimiento en
+ * medio; un `click` a secas no dispara ninguno de los dos y la prueba mide el vacío.
+ */
+async function pulsaElPersonaje(): Promise<void> {
+  const personaje = screen.getByRole('button', { name: 'Arrastra para moverlo' });
+  personaje.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, clientX: 10, clientY: 10 }));
+  personaje.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, clientX: 10, clientY: 10 }));
+}
+
 describe('AvatarDelAsistente', () => {
   beforeEach(() => {
     document.cookie = 'nx036-locale=es';
@@ -127,6 +140,36 @@ describe('AvatarDelAsistente', () => {
     it('la cesta que ya venía puesta NO es una novedad', async () => {
       const { consulta, asienta } = await monta({ cestaAlMontar: [LINEA(2)] });
 
+      await asienta();
+
+      expect(consulta).not.toHaveBeenCalled();
+    });
+
+    /**
+     * PULSARLO es pedirlo, y entonces sí se consulta.
+     *
+     * <p>La regla de arriba —la cesta que ya venía no es novedad— tenía un efecto secundario que
+     * hacía parecer roto al asistente: quien volvía con algo ya en la cesta lo pulsaba y no pasaba
+     * NADA, porque no había sugerencias guardadas que enseñar y nadie las pedía. Una pulsación es una
+     * petición explícita: ahí no se interrumpe a nadie.
+     */
+    it('al pulsarlo con la cesta puesta SÍ consulta, aunque no haya cambiado nada', async () => {
+      const { consulta, asienta } = await monta({ cestaAlMontar: [LINEA(2)] });
+      await asienta();
+      expect(consulta).not.toHaveBeenCalled();
+
+      await pulsaElPersonaje();
+      await asienta();
+
+      expect(consulta).toHaveBeenCalled();
+    });
+
+    /** Sin nada en la cesta no hay nada que sugerir: pulsarlo no dispara ninguna llamada. */
+    it('al pulsarlo con la cesta vacía no consulta', async () => {
+      const { consulta, asienta } = await monta({ cestaAlMontar: [] });
+      await asienta();
+
+      await pulsaElPersonaje();
       await asienta();
 
       expect(consulta).not.toHaveBeenCalled();
