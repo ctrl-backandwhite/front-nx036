@@ -2793,7 +2793,7 @@ const diccionario: Record<string, string> = {
   'compliance.field.phone': 'Teléfono',
   'pdp.section.packing': 'Embalaje y envío',
   'pdp.section.recommend': 'Recomendado por el vendedor',
-  'pdp.shipping.body': '7–14 días, con seguimiento',
+  'pdp.shipping.body': '7–25 días, con seguimiento',
   'pdp.shipping.title': 'Envío',
   'pdp.size': 'Talla',
   'pdp.size.stock': 'Stock',

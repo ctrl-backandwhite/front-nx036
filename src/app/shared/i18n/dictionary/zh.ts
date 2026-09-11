@@ -2783,7 +2783,7 @@ const diccionario: Record<string, string> = {
   'compliance.field.phone': '电话',
   'pdp.section.packing': '包装与发货',
   'pdp.section.recommend': '商家推荐',
-  'pdp.shipping.body': '7–14 天，可追踪',
+  'pdp.shipping.body': '7–25 天，可追踪',
   'pdp.shipping.title': '运输',
   'pdp.size': '尺码',
   'pdp.size.stock': '库存',

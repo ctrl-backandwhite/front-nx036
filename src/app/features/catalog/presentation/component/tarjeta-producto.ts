@@ -83,7 +83,30 @@ const CONFIRMACION_MS = 1400;
           />
         }
 
-        <div class="absolute top-2 left-2 flex flex-col gap-1">
+        <!--
+          MARCA DE AGUA sobre la foto cuando el producto está agotado.
+          El distintivo de la esquina se lee si uno lo busca; sobre una cuadrícula de treinta y seis
+          fotos, no. La banda cruzada se ve sin leer nada y deja la foto reconocible debajo, que es lo
+          que hace falta: el producto sigue interesando aunque hoy no se pueda comprar.
+
+          Va con el MISMO texto traducido que el distintivo, no con una palabra inglesa fija: es la
+          única marca del catálogo que se pinta encima del producto y en ocho idiomas.
+        -->
+        @if (agotado()) {
+          <span
+            aria-hidden="true"
+            class="absolute inset-0 z-10 flex items-center justify-center overflow-hidden"
+          >
+            <span
+              class="w-[140%] -rotate-12 bg-ink-900/55 py-1.5 text-center text-[11px] font-semibold
+                     uppercase tracking-wider text-white backdrop-blur-[1px]"
+            >
+              {{ t('product.out_of_stock') }}
+            </span>
+          </span>
+        }
+
+        <div class="absolute top-2 left-2 z-20 flex flex-col gap-1">
           @if (agotado()) {
             <span
               class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-ink-700 text-white shadow-sm"

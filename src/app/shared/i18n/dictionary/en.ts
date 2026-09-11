@@ -2820,7 +2820,7 @@ const diccionario: Record<string, string> = {
   'compliance.field.phone': 'Phone',
   'pdp.section.packing': 'Packing & shipping',
   'pdp.section.recommend': 'Merchant recommend',
-  'pdp.shipping.body': '7–14 days, tracked',
+  'pdp.shipping.body': '7–25 days, tracked',
   'pdp.shipping.title': 'Shipping',
   'pdp.size': 'Size',
   'pdp.size.stock': 'Stock',

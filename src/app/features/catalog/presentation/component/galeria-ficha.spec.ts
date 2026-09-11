@@ -210,19 +210,22 @@ describe('GaleriaFicha', () => {
   });
 
   /**
-   * Mientras el pase corre el fundido es largo —es decorativo—; en cuanto manda quien mira, el cambio
-   * tiene que ser inmediato: un fundido largo tras pulsar se percibe como que la web va lenta.
+   * Mientras el pase corre el fundido es largo —es decorativo—; en cuanto manda quien mira, es corto:
+   * un fundido lento tras pulsar no se lee como elegante, se lee como que la web va lenta.
+   *
+   * <p>Antes el cambio a mano era INMEDIATO, sin fundido, y se percibía como un salto seco al elegir
+   * una variante. Ahora hay fundido en los dos casos; lo que cambia es cuánto dura.
    */
   it('el fundido es largo durante el pase e inmediato después', async () => {
     const vista = await render(GaleriaFicha, {
       inputs: { fotos: FOTOS, titulo: 'Gorro', activa: 0, pasePasando: true },
     });
-    expect(screen.getByAltText('Gorro').className).toContain('animate-fade-gallery');
+    expect(screen.getByAltText('Gorro').className).toContain('duration-700');
 
     await vista.rerender({
       inputs: { fotos: FOTOS, titulo: 'Gorro', activa: 0, pasePasando: false },
     });
-    expect(screen.getByAltText('Gorro').className).toContain('animate-fade-gallery-fast');
+    expect(screen.getByAltText('Gorro').className).toContain('duration-300');
   });
 
   it('el contador dice en qué foto se está', async () => {

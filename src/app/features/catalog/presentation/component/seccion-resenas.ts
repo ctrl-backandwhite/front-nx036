@@ -97,18 +97,37 @@ const BORRADOR_VACIO: BorradorDeResena = { nota: '5', autor: '', titulo: '', cue
             (submit)="envia($event)"
             class="mt-4 rounded-box border border-base-200 p-3 space-y-2 bg-base-200/30"
           >
+            <!--
+              Cinco estrellas, no un desplegable.
+              Puntuar es el gesto más frecuente de este formulario y con un desplegable costaba tres
+              acciones —abrir, buscar la nota, elegir— para algo que en cualquier tienda es un solo
+              toque. Además obligaba a leer «5 ★» para entender qué significa cada opción; con las
+              estrellas a la vista, la escala se ve.
+
+              No se pinta el IDIOMA al lado: la reseña se escribe en el idioma en el que se está
+              navegando, no hay otra opción, y anunciarlo con una píldora hacía pensar que sí la había.
+            -->
             <div class="flex items-center gap-2">
-              <label for="resena-nota" class="text-[12px]">{{ t('reviews.your_rating') }}:</label>
-              <select
-                id="resena-nota"
-                class="select select-bordered select-sm w-20"
-                [formField]="formulario.nota"
+              <span id="resena-nota-etiqueta" class="text-[12px]">{{ t('reviews.your_rating') }}:</span>
+              <div
+                class="flex items-center gap-0.5"
+                role="radiogroup"
+                aria-labelledby="resena-nota-etiqueta"
               >
-                @for (n of [5, 4, 3, 2, 1]; track n) {
-                  <option [value]="n">{{ n }} ★</option>
+                @for (n of [1, 2, 3, 4, 5]; track n) {
+                  <button
+                    type="button"
+                    role="radio"
+                    [attr.aria-checked]="+borrador().nota === n"
+                    [attr.aria-label]="n + ' ★'"
+                    (click)="fijaNota(n)"
+                    class="text-[22px] leading-none px-0.5 transition-colors hover:scale-110"
+                    [class]="+borrador().nota >= n ? 'text-warning' : 'text-base-300'"
+                  >
+                    ★
+                  </button>
                 }
-              </select>
-              <span class="ml-auto badge badge-sm badge-outline">{{ idiomaEnMayusculas() }}</span>
+              </div>
             </div>
             <label class="sr-only" for="resena-autor">{{ t('reviews.name') }}</label>
             <!-- El bloqueo del nombre ya no va en el marcado: lo declara el esquema del formulario,
@@ -193,9 +212,11 @@ const BORRADOR_VACIO: BorradorDeResena = { nota: '5', autor: '', titulo: '', cue
                   <div class="flex items-center justify-between text-[12px]">
                     <span class="font-medium flex items-center gap-1.5">
                       {{ resena.autor || t('reviews.anon') }}
-                      @if (resena.idioma) {
-                        <span class="badge badge-xs badge-ghost">{{ resena.idioma.toUpperCase() }}</span>
-                      }
+                      <!--
+                        El idioma de la reseña NO se pinta. Quien compra solo ve las de su idioma —el
+                        selector es de administración—, así que la píldora repetía en cada línea algo
+                        que ya se sabe por estar leyéndolo.
+                      -->
                     </span>
                     <span class="text-warning" [attr.aria-label]="resena.valoracion + ' / 5'">
                       {{ estrellas(resena.valoracion) }}
@@ -338,6 +359,17 @@ export class SeccionResenas {
   protected readonly nombreDeLaSesion = computed(() => this.sesion.datos()?.nombreVisible ?? '');
   protected readonly idiomaEnMayusculas = computed(() => this.preferencias.idioma().toUpperCase());
   /** El desplegable devuelve cadenas; la reseña viaja con la nota como número. */
+  /**
+   * Fija la nota al pulsar una estrella.
+   *
+   * <p>Escribe en el BORRADOR y no en el campo del formulario porque ése es quien manda: el esquema
+   * valida sobre el borrador, así que tocar solo el control dejaría la validación mirando el valor
+   * viejo. La nota viaja como cadena porque así la espera el formulario, que nació de un desplegable.
+   */
+  protected fijaNota(nota: number): void {
+    this.borrador.update((previo) => ({ ...previo, nota: String(nota) }));
+  }
+
   private readonly notaElegida = computed(() => Number(this.borrador().nota));
 
   protected readonly visibles = computed(() => {

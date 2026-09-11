@@ -412,7 +412,16 @@ export class FichaPage {
   protected async anade(): Promise<boolean> {
     const ficha = this.ficha();
     const impedimento = this.seleccion.impedimento();
-    if (!ficha || impedimento) {
+    if (impedimento) {
+      // NO se lanza aviso flotante: lo que falta ya está escrito bajo los botones, en el sitio donde
+      // se mira antes de pulsar y sin que haya que pulsar para enterarse. Salían los dos a la vez —el
+      // texto y el aviso rojo en la esquina— diciendo exactamente lo mismo, y dos mensajes idénticos
+      // no informan el doble: hacen dudar de si son dos problemas distintos.
+      return false;
+    }
+    if (!ficha) {
+      // Esto sí es un fallo de verdad y no una condición que quien compra pueda arreglar: la ficha no
+      // está cargada. Sin aviso quedaría un botón que no hace nada.
       this.avisos.error(this.mensajeDe(impedimento));
       return false;
     }
