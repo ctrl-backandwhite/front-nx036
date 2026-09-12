@@ -230,9 +230,22 @@ describe('BloquePrecio', () => {
 });
 
 describe('PestanasFicha', () => {
-  it('ofrece las cinco secciones de la ficha', async () => {
+  /**
+   * El ORDEN es parte del requisito, no un detalle: «Detalles» va primera porque su sección va
+   * primera, y la barra tiene que seguir a lo que hay debajo. Contar las pestañas no lo comprobaba.
+   *
+   * <p>«Recomendado por el vendedor» ya no está: su bloque subió junto a la tarjeta del vendedor, por
+   * encima de esta barra, y una pestaña que lleva hacia arriba se sale de la propia barra.
+   */
+  it('ofrece las secciones de la ficha en el orden en que aparecen', async () => {
     await render(PestanasFicha);
-    expect(screen.getAllByRole('tab')).toHaveLength(5);
+
+    expect(screen.getAllByRole('tab').map((t) => t.textContent?.trim())).toEqual([
+      'Details',
+      'Reviews',
+      'Attributes',
+      'Packing',
+    ]);
   });
 
   /**
@@ -246,10 +259,13 @@ describe('PestanasFicha', () => {
     document.body.appendChild(seccion);
 
     const vista = await render(PestanasFicha);
-    await userEvent.click(screen.getAllByRole('tab')[2]);
+    // Se busca POR SU RÓTULO, no por su posición: el orden de la barra ya ha cambiado dos veces y un
+    // índice fijo convertía un cambio de orden en un fallo que no señalaba a nada.
+    const pestana = screen.getByRole('tab', { name: 'Packing' });
+    await userEvent.click(pestana);
     vista.fixture.detectChanges();
 
-    expect(screen.getAllByRole('tab')[2]).toHaveAttribute('aria-selected', 'true');
+    expect(pestana).toHaveAttribute('aria-selected', 'true');
     expect(seccion.scrollIntoView).toHaveBeenCalled();
     seccion.remove();
   });

@@ -49,19 +49,31 @@ const DICT_LANGS: DictLang[] = ['en', 'es', 'pt', 'zh', 'fr', 'de', 'it', 'nl']
  * Translate a Chinese variant value (color/size) to the given locale (cualquier código; los que no
  * estén en el diccionario caen a inglés). Returns the original input if no mapping exists.
  */
+/** Un solo ideograma basta: un valor a medias tampoco se puede leer. */
+const TIENE_IDEOGRAMAS = /[\u4e00-\u9fff]/
+
 export function translateVariantCN(zh: string | undefined | null, locale: string): string {
   if (!zh) return ''
   const l = (DICT_LANGS.includes(locale as DictLang) ? locale : 'en') as DictLang
   // exact match
   const exact = DICT[zh]
   if (exact) return exact[l] ?? zh
-  // partial match: scan substrings (e.g. "驼色M" → "驼色" base)
+  // Coincidencia parcial: el color viene con una talla o un código pegado («驼色M» → «Camel M»).
+  //
+  // El resto TIENE que ser legible en el idioma pedido. Si lo que sobra sigue llevando ideogramas no
+  // es un sufijo neutro, es la mitad del color sin traducir: «定制黑色» encontraba «黑色» y devolvía
+  // «Negro 定制», que quien navega en español lee como un fallo de la tienda. Y es peor que no
+  // traducir, porque tapa el hueco: la cadena ya «tiene traducción», así que nadie apunta que al
+  // diccionario le falta esa entrada.
+  //
+  // Sin traducción completa se devuelve el original y decide quien lo pinta: la báscula lo cambia
+  // por un guion cuando el idioma no es el chino, que es decir «no lo sé» sin fingir.
   for (const key of Object.keys(DICT)) {
-    if (zh.includes(key)) {
-      const suffix = zh.replace(key, '').trim()
-      const head = DICT[key][l] ?? key
-      return suffix ? `${head} ${suffix}` : head
-    }
+    if (!zh.includes(key)) continue
+    const suffix = zh.replace(key, '').trim()
+    if (TIENE_IDEOGRAMAS.test(suffix)) continue
+    const head = DICT[key][l] ?? key
+    return suffix ? `${head} ${suffix}` : head
   }
   return zh
 }

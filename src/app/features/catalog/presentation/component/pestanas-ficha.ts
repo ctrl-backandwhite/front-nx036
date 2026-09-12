@@ -1,15 +1,23 @@
 import { Component, DOCUMENT, inject, model } from '@angular/core';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 
-export type PestanaDeFicha = 'reviews' | 'attributes' | 'packing' | 'details' | 'recommend';
+export type PestanaDeFicha = 'details' | 'reviews' | 'attributes' | 'packing';
 
-const PESTANAS: readonly PestanaDeFicha[] = [
-  'reviews',
-  'attributes',
-  'packing',
-  'details',
-  'recommend',
-];
+/**
+ * El orden de las pestañas sigue al de las SECCIONES, no al revés.
+ *
+ * <p>«Detalles» va primera desde el 12-sep-2026, cuando su sección se movió encima de las reseñas: es
+ * lo que se mira para decidir la compra —medidas, materiales, cómo cae la prenda— y las reseñas se
+ * leen después, si se leen. Una barra de pestañas que no respeta el orden de lo que hay debajo hace
+ * que pulsar la primera salte hacia abajo y pulsar la cuarta salte hacia arriba.
+ *
+ * <p>«Recomendado por el vendedor» SALIÓ de la barra el mismo día, al subir su bloque debajo de
+ * «Vendido y enviado por NX036». La barra queda pegada arriba y solo indexa lo que hay POR DEBAJO de
+ * ella; una pestaña que lleva hacia arriba se sale de la propia barra, que es exactamente el salto
+ * que este orden evita. El bloque sigue teniendo su ancla `#tab-recommend`, así que los enlaces
+ * directos a esa sección siguen funcionando.
+ */
+const PESTANAS: readonly PestanaDeFicha[] = ['details', 'reviews', 'attributes', 'packing'];
 
 /**
  * Las pestañas que acompañan al desplazamiento por la ficha.

@@ -10,6 +10,7 @@ import {
 } from '@fortawesome/free-brands-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { AltaBoletin } from '@ds/component/boletin/alta-boletin';
+import { CONTENEDOR_DE_PAGINA } from './contenedor-de-pagina';
 
 /**
  * Las columnas del pie.
@@ -62,10 +63,15 @@ const REDES = [
     <!-- DIVERGENCIA DELIBERADA del front anterior, pedida por el titular el 6-sep-2026.
          Allí las cuatro columnas se apelotonan a la izquierda —ocupan 834 px de 1440— y el resto del
          pie queda vacío. Aquí se reparten a lo ancho con un tope, para que en una pantalla muy ancha
-         no acaben tan separadas que dejen de leerse como un grupo. El contenido es el mismo. -->
+         no acaben tan separadas que dejen de leerse como un grupo. El contenido es el mismo.
+
+         El tope y el relleno lateral vienen de CONTENEDOR_DE_PAGINA, el MISMO que usa el cuerpo de la
+         página: escritos aparte se separaron, y el recuadro gris quedaba 195 px más estrecho que las
+         tarjetas que tiene justo encima. -->
     <footer
-      class="hidden md:flex footer sm:footer-horizontal bg-base-200 text-base-content/80 border-t border-base-300 px-4 lg:px-10 py-10 mt-12
-             w-full max-w-screen-2xl mx-auto justify-between gap-8"
+      class="hidden md:flex footer sm:footer-horizontal bg-base-200 text-base-content/80 border-t border-base-300 py-10 mt-12
+             justify-between gap-8"
+      [class]="contenedor"
     >
       <aside class="max-w-xs">
         <a routerLink="/" class="inline-flex items-center gap-2 font-medium text-[15px]">
@@ -151,6 +157,9 @@ const REDES = [
   `,
 })
 export class PieSitio {
+  /** El ancho del contenido, el mismo que el cuerpo de la página. */
+  protected readonly contenedor = CONTENEDOR_DE_PAGINA;
+
   /** Cierto cuando el alta ya se ha mandado: entonces se enseña la confirmación en vez del formulario. */
   readonly boletinEnviado = input(false);
   /** Cierto si el correo ya estaba dado de alta. Cambia el texto, no el resultado. */

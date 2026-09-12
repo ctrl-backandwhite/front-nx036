@@ -40,6 +40,31 @@ export function claveDeImagen(direccion?: string): string {
  * <p>El vídeo se saca porque tiene su propio botón; los duplicados, porque la misma prenda repetida
  * tres veces en la tira hace pensar que hay más fotos de las que hay.
  */
+/**
+ * Si la foto es de la DESCRIPCIÓN del producto y no de su galería.
+ *
+ * <p>Sin distinguir mayúsculas, por la misma razón que en {@link fotoParaCompartir}: el papel viaja
+ * tal cual lo manda el backend.
+ */
+function esDeDetalle(imagen: ImagenDeProducto): boolean {
+  return imagen.papel?.toUpperCase() === 'DETAIL';
+}
+
+/**
+ * Las fotos de la DESCRIPCIÓN: las largas que el proveedor monta debajo de la ficha, con medidas,
+ * materiales y cómo se lleva la prenda.
+ *
+ * <p>Van aparte del carrusel principal a propósito. Mezcladas con las fotos del producto llenarían
+ * la galería de carteles en chino, así que se pintan en su propia galería horizontal dentro de la
+ * sección de detalle. Se conserva el orden que traen, que es el que el proveedor eligió para contar
+ * el producto.
+ */
+export function galeriaDeDetalle(
+  imagenes: readonly ImagenDeProducto[],
+): readonly ImagenDeProducto[] {
+  return imagenes.filter(esDeDetalle);
+}
+
 export function galeriaVisible(
   imagenes: readonly ImagenDeProducto[],
 ): readonly ImagenDeProducto[] {
@@ -47,6 +72,9 @@ export function galeriaVisible(
   const salida: ImagenDeProducto[] = [];
   for (const imagen of imagenes) {
     if (imagen.papel === 'video') {
+      continue;
+    }
+    if (esDeDetalle(imagen)) {
       continue;
     }
     const clave = claveDeImagen(imagen.direccion);
@@ -150,3 +178,42 @@ export function enEsteOrden(
   );
 }
 
+/**
+ * Reordena SOLO las imágenes nombradas, cada una en un hueco que ya ocupaba alguna de ellas.
+ *
+ * <p>Es la hermana de {@link enEsteOrden} para las galerías que son un TROZO de la lista, como las
+ * fotos de la descripción. `enEsteOrden` manda las nombradas al principio, que es lo correcto para el
+ * carrusel —allí la lista es toda la galería— y sería un desastre aquí: arrastrar un cartel del
+ * detalle colocaría sus seis fotos delante de las ocho del producto hasta recargar la página.
+ *
+ * <p>Hace lo mismo que el backend al guardar, y por eso lo que se ve tras soltar coincide con lo que
+ * se ve al recargar: las nombradas se permutan entre ellas y nadie más se mueve.
+ */
+export function enEsteOrdenDentroDelGrupo(
+  imagenes: readonly ImagenDeProducto[],
+  idsEnOrden: readonly string[],
+): readonly ImagenDeProducto[] {
+  const nombradas = new Set(idsEnOrden);
+  const huecos: number[] = [];
+  imagenes.forEach((imagen, indice) => {
+    if (nombradas.has(imagen.id)) {
+      huecos.push(indice);
+    }
+  });
+  if (huecos.length === 0) {
+    return imagenes;
+  }
+
+  const porId = new Map(huecos.map((hueco) => [imagenes[hueco].id, imagenes[hueco]]));
+  // Un identificador que no esté en la ficha se descarta aquí; si no, dejaría un hueco sin foto y la
+  // galería perdería una imagen por un dato viejo.
+  const enOrden = idsEnOrden
+    .map((id) => porId.get(id))
+    .filter((imagen) => imagen !== undefined);
+
+  const resultado = [...imagenes];
+  huecos.forEach((hueco, i) => {
+    resultado[hueco] = enOrden[i];
+  });
+  return resultado;
+}
