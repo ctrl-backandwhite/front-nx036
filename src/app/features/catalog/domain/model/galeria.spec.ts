@@ -6,6 +6,8 @@ import {
   estaEnLaGaleria,
   fotoParaCompartir,
   enEsteOrden,
+  enEsteOrdenDentroDelGrupo,
+  galeriaDeDetalle,
   galeriaVisible,
   pasosDelPase,
   posicionEnLaGaleria,
@@ -158,5 +160,91 @@ describe('enEsteOrden', () => {
 
     expect(original.map((i) => i.id)).toEqual(['a', 'b']);
     expect(orden).not.toBe(original);
+  });
+});
+
+describe('galería de detalle', () => {
+  /**
+   * Las fotos de la DESCRIPCIÓN son las largas que el proveedor monta debajo de la ficha —medidas,
+   * materiales, cómo se lleva—. Si se colaran en el carrusel principal, el comprador vería carteles
+   * en chino entre las fotos del producto. Por eso viajan con papel DETAIL y se pintan aparte, en su
+   * propia galería horizontal dentro de la sección de detalle.
+   */
+  it('el carrusel principal no enseña las fotos de la descripción', () => {
+    const fotos = [
+      imagen('1', 'https://cdn/O1CN01portada.jpg', 'MAIN'),
+      imagen('2', 'https://cdn/O1CN02galeria.jpg', 'GALLERY'),
+      imagen('3', 'https://cdn/O1CN03detalle.jpg', 'DETAIL'),
+    ];
+
+    expect(galeriaVisible(fotos).map((f) => f.id)).toEqual(['1', '2']);
+  });
+
+  it('la galería de detalle enseña SOLO las de la descripción', () => {
+    const fotos = [
+      imagen('1', 'https://cdn/O1CN01portada.jpg', 'MAIN'),
+      imagen('3', 'https://cdn/O1CN03detalle.jpg', 'DETAIL'),
+      imagen('4', 'https://cdn/O1CN04detalle.jpg', 'detail'),
+    ];
+
+    expect(galeriaDeDetalle(fotos).map((f) => f.id)).toEqual(['3', '4']);
+  });
+
+  it('un producto sin fotos de descripción devuelve una galería vacía', () => {
+    // Lo normal hoy: solo los productos cargados a partir del 12-sep-2026 las traen.
+    const fotos = [imagen('1', 'https://cdn/O1CN01portada.jpg', 'MAIN')];
+
+    expect(galeriaDeDetalle(fotos)).toEqual([]);
+  });
+});
+
+describe('enEsteOrdenDentroDelGrupo', () => {
+  const foto = (id: string, papel: string): ImagenDeProducto => ({
+    id,
+    direccion: `${id}.jpg`,
+    posicion: 0,
+    papel,
+  });
+
+  const MEZCLADAS = [
+    foto('g1', 'MAIN'),
+    foto('g2', 'GALLERY'),
+    foto('d1', 'DETAIL'),
+    foto('d2', 'DETAIL'),
+    foto('d3', 'DETAIL'),
+  ];
+
+  /**
+   * Lo que se rompería en producción si esta prueba fallara: arrastrar un cartel en la galería de la
+   * descripción reordenaría la ficha ENTERA en pantalla —las seis fotos del detalle saltarían delante
+   * de las ocho del carrusel— hasta que alguien recargase. Es lo que hace `enEsteOrden`, que sirve
+   * para el carrusel justamente porque allí la lista sí es toda la galería.
+   */
+  it('permuta solo las nombradas y deja al resto en su sitio', () => {
+    const orden = enEsteOrdenDentroDelGrupo(MEZCLADAS, ['d3', 'd1', 'd2']);
+
+    expect(orden.map((i) => i.id)).toEqual(['g1', 'g2', 'd3', 'd1', 'd2']);
+  });
+
+  /**
+   * Con una lista parcial se permutan SOLO las nombradas, entre los huecos que ya ocupaban; la que no
+   * se nombra no se mueve. Es lo que hace falta para que reordenar un grupo no arrastre a quien no
+   * participa en el gesto.
+   */
+  it('una lista parcial mueve solo a las nombradas', () => {
+    const orden = enEsteOrdenDentroDelGrupo(MEZCLADAS, ['d3', 'd1']);
+
+    expect(orden.map((i) => i.id)).toEqual(['g1', 'g2', 'd3', 'd2', 'd1']);
+  });
+
+  /** Sin nada que reordenar se devuelve lo mismo: ni se altera el orden ni se pierde ninguna. */
+  it('con la lista vacía no cambia nada', () => {
+    expect(enEsteOrdenDentroDelGrupo(MEZCLADAS, []).map((i) => i.id)).toEqual([
+      'g1',
+      'g2',
+      'd1',
+      'd2',
+      'd3',
+    ]);
   });
 });

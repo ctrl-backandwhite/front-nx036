@@ -4,6 +4,7 @@ import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { PieSitio } from './pie-sitio';
+import { CONTENEDOR_DE_PAGINA } from './contenedor-de-pagina';
 
 describe('PieSitio', () => {
   /**
@@ -95,5 +96,33 @@ describe('PieSitio', () => {
     });
 
     expect(screen.queryByRole('textbox')).toBeNull();
+  });
+});
+
+describe('PieSitio, ancho del contenedor', () => {
+  /**
+   * Lo que se rompería en producción si esta prueba fallara: el recuadro gris del pie volvería a no
+   * coincidir con las tarjetas que tiene justo encima. Ya pasó —tope de 1.440 contra 1.680— y no lo
+   * señaló nada: son dos cadenas de utilidades que nadie compara salvo mirando la pantalla.
+   *
+   * <p>Se comprueba sobre el elemento RENDERIZADO, no sobre la constante: lo que importa es que la
+   * clase llegue al `<footer>`, y con `[class]` junto a clases estáticas eso no es evidente.
+   */
+  it('el pie se pinta con el mismo contenedor que el cuerpo de la página', async () => {
+    const { container } = await render(PieSitio);
+
+    const pie = container.querySelector('footer');
+    for (const utilidad of CONTENEDOR_DE_PAGINA.split(' ')) {
+      expect(pie?.classList.contains(utilidad)).toBe(true);
+    }
+  });
+
+  /** Y las clases estáticas del propio pie NO se pierden al añadir la asociación. */
+  it('la asociación de clase no borra las que ya tenía', async () => {
+    const { container } = await render(PieSitio);
+
+    const pie = container.querySelector('footer');
+    expect(pie?.classList.contains('bg-base-200')).toBe(true);
+    expect(pie?.classList.contains('footer')).toBe(true);
   });
 });

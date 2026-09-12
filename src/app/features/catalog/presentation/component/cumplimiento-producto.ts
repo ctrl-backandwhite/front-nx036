@@ -50,6 +50,10 @@ export class AdvertenciasSeguridad {
  */
 @Component({
   selector: 'nx-identidad-cumplimiento',
+  // Un elemento personalizado nace EN LINEA y los margenes verticales no le hacen nada: el
+  // `space-y-10` del contenedor le ponia su hueco y se lo tragaba, asi que «Conformidad» y
+  // «Recomendado por el vendedor» quedaban pegados —0 px medidos, frente a 37 del resto—.
+  host: { class: 'block' },
   imports: [FaIconComponent],
   template: `
     @if (hayAlgoQuePublicar()) {

@@ -30,6 +30,7 @@ import { SombraAlDesplazar } from '@ds/directive/sombra-al-desplazar.directive';
 import { TransicionPagina } from '@ds/directive/transicion-pagina.directive';
 import { PieSitio } from './pie-sitio';
 import { BarraInferiorMovil } from './barra-inferior-movil';
+import { CONTENEDOR_DE_PAGINA } from './contenedor-de-pagina';
 
 /** Lo poco que el marco necesita saber de quien mira. El resto es asunto de cada contexto. */
 export interface UsuarioDelMarco {
@@ -275,7 +276,7 @@ const RUTA_DE_FICHA = /^\/(catalog|admin\/browse)\/[^/]+$/;
         lado a lado y leer un listado obligaría a barrer la cabeza; el ojo pierde el renglón mucho
         antes de eso.
       -->
-      <main class="flex-1 min-w-0 max-w-[1680px] w-full mx-auto px-4 lg:px-6 py-6 lg:py-10">
+      <main class="flex-1 min-w-0 py-6 lg:py-10" [class]="contenedor">
         @if (conMigas()) {
           <nx-migas />
         }
@@ -302,6 +303,9 @@ const RUTA_DE_FICHA = /^\/(catalog|admin\/browse)\/[^/]+$/;
   `,
 })
 export class MarcoEscaparate {
+  /** El ancho del contenido, compartido con el pie para que los bordes coincidan. */
+  protected readonly contenedor = CONTENEDOR_DE_PAGINA;
+
   readonly usuario = input<UsuarioDelMarco | null>(null);
   readonly lineasCesta = input(0);
   readonly avatarOculto = input(false);

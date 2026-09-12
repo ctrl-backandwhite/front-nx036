@@ -22,6 +22,8 @@ import { FichaDeProducto } from '../../domain/model/producto';
 import {
   fotoParaCompartir,
   enEsteOrden,
+  enEsteOrdenDentroDelGrupo,
+  galeriaDeDetalle,
   galeriaVisible,
   posicionEnLaGaleria,
 } from '../../domain/model/galeria';
@@ -38,6 +40,7 @@ import { GaleriaFicha } from '../component/galeria-ficha';
 import { PanelDeCompra } from '../component/panel-de-compra';
 import { TarjetaVendedor } from '../component/tarjeta-vendedor';
 import { PestanasFicha } from '../component/pestanas-ficha';
+import { Recomendados } from '../component/recomendados';
 import { SeccionesFicha } from '../component/secciones-ficha';
 import { FotosDeVariante } from '../component/admin/fotos-de-variante';
 import { ColorElegido } from '../component/selector-color';
@@ -66,6 +69,7 @@ const CONFIRMACION_MS = 2000;
     PanelDeCompra,
     TarjetaVendedor,
     PestanasFicha,
+    Recomendados,
     SeccionesFicha,
     FotosDeVariante,
   ],
@@ -156,8 +160,32 @@ const CONFIRMACION_MS = 2000;
       </section>
 
       <nx-tarjeta-vendedor />
+
+      <!--
+        Los RECOMENDADOS van aquí, pegados a «Vendido y enviado por NX036», y no al final de la página
+        (petición del dueño, 12-sep-2026). Son otros productos del mismo vendedor: se miran MIENTRAS se
+        decide esta compra, no después de haber leído las reseñas, la báscula y la conformidad.
+
+        Lleva su propio margen superior de 40 px para que el hueco sea el mismo que separa entre sí a
+        las secciones de abajo: el bloque está fuera del contenedor que reparte ese espacio y, sin
+        margen propio, se quedaba pegado a la tarjeta del vendedor.
+      -->
+      <section id="tab-recommend" class="block mt-10">
+        <nx-recomendados [idDelProducto]="producto.id" />
+      </section>
+
       <nx-pestanas-ficha />
-      <nx-secciones-ficha [ficha]="producto" />
+      <!-- Las fotos de la descripción se pintan DENTRO de la tarjeta «Detalles del producto», que es
+           donde el comprador va a leerlas. La página conserva las acciones de administración porque es
+           quien tiene el caso de uso; la sección solo avisa de lo que se ha pulsado. -->
+      <nx-secciones-ficha
+        [ficha]="producto"
+        [fotosDeDetalle]="detalle()"
+        [puedeEditar]="sesion.esAdministrador()"
+        (borraImagen)="admin.borraImagen($event, () => quitaFotos([$event]))"
+        (borraSeleccion)="admin.borraSeleccion($event, null, quitaFotos, quitaVideo)"
+        (reordenaDetalle)="admin.reordena(producto.id, $event, () => reordenaDetalle($event))"
+      />
     } @else {
       <div class="card max-w-xl mx-auto">
         <div class="card-body items-center text-center">
@@ -288,6 +316,20 @@ export class FichaPage {
     );
   };
 
+  /**
+   * Aplica el nuevo orden de las fotos de la DESCRIPCIÓN, también sin volver a pedir la ficha.
+   *
+   * <p>No vale {@link reordenaFotos}: esa manda las nombradas al principio de la lista, que es lo
+   * correcto para el carrusel —allí la lista es toda la galería— y aquí colocaría las fotos de la
+   * descripción por delante de las del producto hasta recargar la página. El servidor permuta cada
+   * grupo por separado, y esto hace lo mismo para que lo que se ve al soltar coincida con lo guardado.
+   */
+  protected readonly reordenaDetalle = (idsEnOrden: readonly string[]): void => {
+    this.ficha.update((actual) =>
+      actual ? { ...actual, imagenes: enEsteOrdenDentroDelGrupo(actual.imagenes, idsEnOrden) } : actual,
+    );
+  };
+
   protected readonly aplica = (actualizada: FichaDeProducto | null): void => {
     if (actualizada) {
       this.ficha.set(actualizada);
@@ -300,6 +342,8 @@ export class FichaPage {
     this.noEncontrada() ? 'product.not_found' : 'product.load_error',
   );
   protected readonly galeria = computed(() => galeriaVisible(this.ficha()?.imagenes ?? []));
+  /** Las fotos de la DESCRIPCIÓN, que se pintan aparte del carrusel en la sección de detalle. */
+  protected readonly detalle = computed(() => galeriaDeDetalle(this.ficha()?.imagenes ?? []));
   /**
    * La cadena de categorías del producto. Se pide aparte porque el detalle solo trae el identificador.
    *
