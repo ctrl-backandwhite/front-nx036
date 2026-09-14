@@ -773,10 +773,19 @@ select.input {
 @keyframes nx-fade-up    { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes nx-scale-in   { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
 @keyframes nx-slide-right{ from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
+/* Las que MUEVEN algo van con `backwards`, NO con `both`, y esto no es un detalle de estilo.
+   `both` retiene el último fotograma para siempre; ese último fotograma es `translateY(0)` o
+   `scale(1)`, que parecen no hacer nada pero son un `transform` distinto de `none`. Un elemento con
+   transform es el bloque contenedor de sus descendientes `position: fixed`, así que la sección
+   animada se quedaba secuestrando a cualquier visor o modal a pantalla completa que naciera dentro:
+   `fixed inset-0` pasaba a medir la sección en vez de la ventana. Se vio en la ficha de producto —al
+   ampliar una foto, el fondo negro cubría solo el trozo de la sección y la imagen se salía por
+   abajo—. Con `backwards` el transform existe únicamente durante la animación. El fundido puro no
+   mueve nada, así que ese sí puede fijarse. */
 .animate-fade-in   { animation: nx-fade-in    var(--motion-slow)   var(--motion-easing-standard) both; }
-.animate-fade-up   { animation: nx-fade-up    var(--motion-slower) var(--motion-easing-emph)     both; }
-.animate-scale-in  { animation: nx-scale-in   var(--motion-base)   var(--motion-easing-emph)     both; }
-.animate-slide-rt  { animation: nx-slide-right var(--motion-slow)  var(--motion-easing-emph)     both; }
+.animate-fade-up   { animation: nx-fade-up    var(--motion-slower) var(--motion-easing-emph)     backwards; }
+.animate-scale-in  { animation: nx-scale-in   var(--motion-base)   var(--motion-easing-emph)     backwards; }
+.animate-slide-rt  { animation: nx-slide-right var(--motion-slow)  var(--motion-easing-emph)     backwards; }
 /* Transición de 1s al cambiar de pestaña/filtro en el buzón de notificaciones (como la navegación entre páginas). */
 .animate-nx-fade   { animation: nx-fade-in 1s var(--motion-easing-standard, ease) both; }
 @media (prefers-reduced-motion: reduce) { .animate-nx-fade { animation: none !important; } }
@@ -827,14 +836,14 @@ select.input {
 }
 
 /* DROP-331: modales con fade+scale. daisyUI ya pinta el backdrop. */
-dialog.modal[open] .modal-box { animation: nx-scale-in var(--motion-base) var(--motion-easing-emph) both; }
+dialog.modal[open] .modal-box { animation: nx-scale-in var(--motion-base) var(--motion-easing-emph) backwards; }
 dialog.modal[open]::backdrop { animation: nx-fade-in var(--motion-base) var(--motion-easing-standard) both; }
 
 /* DROP-332: toasts con slide-in. */
-.toast > * { animation: nx-fade-up var(--motion-base) var(--motion-easing-emph) both; }
+.toast > * { animation: nx-fade-up var(--motion-base) var(--motion-easing-emph) backwards; }
 
 /* DROP-333: dropdowns con fade+translate-y. */
-.dropdown .dropdown-content { animation: nx-fade-up var(--motion-fast) var(--motion-easing-standard) both; }
+.dropdown .dropdown-content { animation: nx-fade-up var(--motion-fast) var(--motion-easing-standard) backwards; }
 
 /* DROP-334: collapse / accordion con altura animada — la mayor parte la maneja
  * el browser via [open], aquí solo suavizamos contenido. */
