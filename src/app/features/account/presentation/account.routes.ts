@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { proveeAccount } from '../account.providers';
-import { exigeSesion } from './guard/sesion-de-cuenta.guard';
+import { exigeSesion } from '@core/auth/sesion.guard';
 
 /**
  * Rutas del contexto «account».

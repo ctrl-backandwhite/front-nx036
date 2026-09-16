@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { proveePedidos } from '../orders.providers';
-import { exigeSesion } from './guard/sesion.guard';
+import { exigeSesion } from '@core/auth/sesion.guard';
 
 /**
  * Rutas del contexto «orders».

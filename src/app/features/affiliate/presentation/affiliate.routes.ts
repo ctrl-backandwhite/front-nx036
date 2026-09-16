@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { proveeAfiliado } from '../affiliate.providers';
-import { exigeSesion } from './guard/sesion.guard';
+import { exigeSesion } from '@core/auth/sesion.guard';
 
 /**
  * Rutas del contexto «affiliate».
