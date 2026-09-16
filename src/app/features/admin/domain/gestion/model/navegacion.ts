@@ -15,6 +15,14 @@ export interface EntradaDelPanel {
   readonly destino: string;
   /** Qué familia de icono le corresponde; la pantalla decide el dibujo concreto. */
   readonly icono: 'catalogo' | 'ventas' | 'llave' | 'personas';
+  /**
+   * Lo que sí puede abrir quien da soporte. Todo lo demás le queda fuera.
+   *
+   * <p>Se repite el marcador del menú lateral en vez de compartirlo porque son dos listas distintas a
+   * propósito: el menú es el mapa completo del panel y esto un atajo curado. Que no se separen lo
+   * garantiza `admin.routes.spec.ts`, que comprueba que lo ofrecido aquí se puede abrir de verdad.
+   */
+  readonly permitidaAOperador?: boolean;
 }
 
 export const MAPA_DEL_PANEL: readonly EntradaDelPanel[] = [
@@ -23,16 +31,31 @@ export const MAPA_DEL_PANEL: readonly EntradaDelPanel[] = [
   { seccion: 'admin.section.catalog', etiqueta: 'admin.nav.suppliers', destino: '/admin/suppliers', icono: 'catalogo' },
   { seccion: 'admin.section.catalog', etiqueta: 'admin.nav.warehouses', destino: '/admin/warehouses', icono: 'catalogo' },
   { seccion: 'admin.section.catalog', etiqueta: 'admin.nav.pricing', destino: '/admin/pricing', icono: 'catalogo' },
-  { seccion: 'admin.section.operations', etiqueta: 'admin.nav.orders', destino: '/admin/orders', icono: 'ventas' },
+  { seccion: 'admin.section.operations', etiqueta: 'admin.nav.orders', destino: '/admin/orders', icono: 'ventas', permitidaAOperador: true },
+  { seccion: 'admin.section.operations', etiqueta: 'operator.nav.earnings', destino: '/admin/operator/earnings', icono: 'ventas', permitidaAOperador: true },
   { seccion: 'admin.section.operations', etiqueta: 'admin.nav.shops', destino: '/admin/shops', icono: 'ventas' },
   { seccion: 'admin.section.finance', etiqueta: 'admin.nav.billing', destino: '/admin/billing', icono: 'llave' },
   { seccion: 'admin.section.finance', etiqueta: 'admin.nav.wallets', destino: '/admin/wallets', icono: 'llave' },
   { seccion: 'admin.section.system', etiqueta: 'admin.nav.users', destino: '/admin/users', icono: 'personas' },
   { seccion: 'admin.section.system', etiqueta: 'admin.nav.partners', destino: '/admin/partners', icono: 'llave' },
   { seccion: 'admin.section.system', etiqueta: 'admin.notifications.title', destino: '/admin/notifications', icono: 'llave' },
-  { seccion: 'admin.section.account', etiqueta: 'admin.nav.profile', destino: '/admin/profile', icono: 'personas' },
+  { seccion: 'admin.section.account', etiqueta: 'admin.nav.profile', destino: '/admin/profile', icono: 'personas', permitidaAOperador: true },
   { seccion: 'admin.section.account', etiqueta: 'admin.nav.styleguide', destino: '/admin/styleguide', icono: 'personas' },
 ];
+
+/**
+ * Filtra el índice por QUIÉN mira.
+ *
+ * <p>La paleta no filtraba por papel: a quien da soporte le ofrecía precios, facturación, carteras,
+ * usuarios y socios, que el backend le cierra. Ofrecer un atajo que rebota al escaparate es peor que no
+ * ofrecerlo, y de paso le enseñaba la estructura del negocio en los propios rótulos.
+ */
+export function filtraPorPapel(
+  entradas: readonly EntradaDelPanel[],
+  esOperador: boolean,
+): readonly EntradaDelPanel[] {
+  return esOperador ? entradas.filter((entrada) => entrada.permitidaAOperador) : entradas;
+}
 
 /**
  * Filtra el índice por lo tecleado.

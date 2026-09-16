@@ -17,6 +17,17 @@ import { join } from 'node:path';
 export const CLIENTE = { correo: 'cert-cliente@local.test', clave: 'CertLocal2026!' };
 export const ADMIN = { correo: 'cert-admin@local.test', clave: 'CertLocal2026!' };
 
+/**
+ * La cuenta con papel OPERATOR: quien da soporte y procesa pedidos.
+ *
+ * <p>No existía y por eso NADA comprobaba en el navegador lo que ve ese papel. El panel dejaba entrar a
+ * un operador en dieciocho pantallas que el backend reserva a administración —catálogo, proveedores,
+ * precios, facturación, usuarios—, y se descubrió leyendo las rutas, no corriendo la certificación.
+ * Misma contraseña que las otras dos; se creó a mano en la base local, como ellas, porque el alta por la
+ * API exige CAPTCHA.
+ */
+export const OPERADOR = { correo: 'cert-operador@local.test', clave: 'CertLocal2026!' };
+
 type Cookies = Awaited<ReturnType<BrowserContext['storageState']>>['cookies'];
 
 interface SesionGuardada {

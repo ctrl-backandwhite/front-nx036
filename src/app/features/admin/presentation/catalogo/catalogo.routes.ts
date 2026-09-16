@@ -24,7 +24,14 @@ function delCatalogo(camino: string, pantalla: Route['loadComponent']): Route {
     loadComponent: pantalla,
     // NO es la seguridad: esa la aplica el backend en cada petición. Aquí solo se evita enseñar una
     // pantalla que de todos modos no se va a poder usar.
-    canActivate: [exigeRol('ADMIN', 'OPERATOR')],
+    //
+    // SOLO administración. Decía `('ADMIN', 'OPERATOR')` y abría el catálogo entero —productos,
+    // categorías, proveedores, grupos de declaración— a quien da soporte, que en el backend no tiene
+    // nada de esto: `/api/admin/catalog/**` cae en la regla general de `/api/admin/**`, que es ADMIN.
+    // El menú ya no se lo ofrecía; solo las rutas lo dejaban entrar escribiendo la dirección. Lo que se
+    // le enseñaba no eran datos sino la ESTRUCTURA del negocio: las columnas de coste y margen, los
+    // filtros por proveedor y los formularios, que se pintan antes de que llegue el 403.
+    canActivate: [exigeRol('ADMIN')],
     providers: [proveeAdminCatalogo()],
   };
 }

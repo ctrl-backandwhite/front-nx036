@@ -35,14 +35,6 @@ export const rutas: Routes = [
     path: '',
     providers: [proveeAdminGestion()],
     children: [
-      // ── Resumen ────────────────────────────────────────────────────────────────────────────
-      {
-        path: '',
-        pathMatch: 'full',
-        canActivate: [OPERACION],
-        loadComponent: () => import('./page/panel.page').then((m) => m.PanelPage),
-      },
-
       // ── Sistema: cuentas ───────────────────────────────────────────────────────────────────
       {
         path: 'users',
@@ -97,12 +89,12 @@ export const rutas: Routes = [
       },
       {
         path: 'academy',
-        canActivate: [OPERACION],
+        canActivate: [SOLO_ADMINISTRACION],
         loadComponent: () => import('./page/academia.page').then((m) => m.AcademiaPage),
       },
       {
         path: 'mentors',
-        canActivate: [OPERACION],
+        canActivate: [SOLO_ADMINISTRACION],
         loadComponent: () => import('./page/mentores.page').then((m) => m.MentoresPage),
       },
 
@@ -115,7 +107,7 @@ export const rutas: Routes = [
        */
       {
         path: 'support',
-        canActivate: [OPERACION],
+        canActivate: [SOLO_ADMINISTRACION],
         loadComponent: () => import('./page/soporte.page').then((m) => m.SoportePage),
       },
 
@@ -144,7 +136,7 @@ export const rutas: Routes = [
       },
       {
         path: 'styleguide',
-        canActivate: [OPERACION],
+        canActivate: [SOLO_ADMINISTRACION],
         loadComponent: () => import('./page/guia-de-estilo.page').then((m) => m.GuiaDeEstiloPage),
       },
 

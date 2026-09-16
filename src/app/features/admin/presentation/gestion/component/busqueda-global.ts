@@ -6,8 +6,9 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { FormField, form } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
+import { SesionActual } from '@core/auth/sesion-actual';
 import {
-  MAPA_DEL_PANEL, agrupaPorSeccion, filtraElMapa,
+  MAPA_DEL_PANEL, agrupaPorSeccion, filtraElMapa, filtraPorPapel,
 } from '../../../domain/gestion/model/navegacion';
 
 /** El dibujo de cada familia de icono. La familia la decide el mapa; el dibujo, la pantalla. */
@@ -107,8 +108,21 @@ export class BusquedaGlobal {
 
   private readonly campo = viewChild<ElementRef<HTMLInputElement>>('campo');
 
+  private readonly sesion = inject(SesionActual);
+
+  /**
+   * Primero QUIÉN mira y después qué teclea.
+   *
+   * <p>En ese orden a propósito: filtrar solo por texto le ofrecía a quien da soporte los atajos a
+   * precios, facturación, carteras, usuarios y socios —que el backend le cierra— y cada uno acababa
+   * devolviéndole al escaparate.
+   */
   protected readonly resultados = computed(() =>
-    filtraElMapa(MAPA_DEL_PANEL, this.modelo().consulta, this.traduccion.t),
+    filtraElMapa(
+      filtraPorPapel(MAPA_DEL_PANEL, this.sesion.rol() === 'OPERATOR'),
+      this.modelo().consulta,
+      this.traduccion.t,
+    ),
   );
   protected readonly grupos = computed(() => agrupaPorSeccion(this.resultados()));
 

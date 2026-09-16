@@ -1,9 +1,16 @@
 import { Routes } from '@angular/router';
-import { exigeRol } from '@core/auth/sesion.guard';
+import { coincideSiTieneRol, exigeRol } from '@core/auth/sesion.guard';
 import { proveeAdminGestion } from '../gestion.providers';
 
-/** Quien puede entrar en el resumen: la casa, no solo quien administra. */
-const OPERACION = exigeRol('ADMIN', 'OPERATOR');
+/**
+ * El PANEL DE CONTROL es de quien administra, y no «de la casa» como decía antes.
+ *
+ * <p>Se alimenta de `/api/admin/dashboard/**`, que el backend reserva a ADMIN igual que todo
+ * `/api/admin/**` salvo pedidos y las ganancias del operador. A quien da soporte le salían las tarjetas
+ * de facturación, márgenes y usuarios —rotuladas y maquetadas, porque eso se pinta antes de la primera
+ * petición— para terminar vacías por un 403.
+ */
+const SOLO_ADMINISTRACION = exigeRol('ADMIN');
 
 /**
  * Rutas del panel de administración.
@@ -38,10 +45,26 @@ export const rutas: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    canActivate: [OPERACION],
+    // `canMatch` y no solo `canActivate`: al negar, deja que el enrutador pruebe la ruta siguiente en
+    // vez de cortar la navegación. Es lo que convierte `/admin` en dos destinos según quién mire.
+    canMatch: [coincideSiTieneRol('ADMIN')],
+    canActivate: [SOLO_ADMINISTRACION],
     providers: [proveeAdminGestion()],
     loadComponent: () => import('./gestion/page/panel.page').then((m) => m.PanelPage),
   },
+
+  /*
+   * La puerta de quien da soporte.
+   *
+   * <p>Al entrar se le manda a `/admin` igual que a quien administra —lo decide `destinoPorDefecto`—,
+   * así que cerrar el panel de control sin más le dejaba en el escaparate en cada acceso: una regresión
+   * causada por el propio arreglo. Aquí se le lleva a los pedidos, que es su trabajo y lo único del
+   * panel que el backend le abre entero.
+   *
+   * <p>Va DESPUÉS del panel de control y antes de los tres grupos en diferido: solo lo alcanza quien no
+   * ha pasado el `canMatch` anterior.
+   */
+  { path: '', pathMatch: 'full', redirectTo: 'orders' },
   {
     path: '',
     loadChildren: () => import('./catalogo/catalogo.routes').then((m) => m.rutas),

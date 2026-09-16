@@ -15,12 +15,20 @@ import { exigeRol } from './guard/exige-rol.guard';
  * pedidos también trabaja aquí. Esto NO es la seguridad —la aplica el backend en cada petición—, solo
  * evita pintar pantallas que saldrían vacías.
  *
+ * <p>Eso lo decía este comentario y el código NO lo hacía: había UN guardián para las diez pantallas,
+ * con los dos papeles, así que quien da soporte entraba también en compras, almacenes, aranceles,
+ * límites de transportista, cumplimiento y el informe de operadores. El reparto se escribe ahora ruta a
+ * ruta y sigue exactamente la regla del backend (`BffSecurityConfig`): solo `/api/admin/orders/**` y
+ * `/api/admin/operator/**` admiten OPERATOR. Ojo con `/api/admin/operators/**`, en plural: es el
+ * informe de operadores, otra ruta, y es de administración.
+ *
  * <p>Los caminos son los MISMOS que los del front anterior: hay enlaces guardados y correos enviados con
  * ellos, y cambiarlos ahora deja un 404 en manos de quien opera.
  */
 export const rutas: Routes = [
   {
     path: '',
+    // La unión de los dos papeles: es la puerta del área. Cada pantalla afina debajo.
     canActivate: [exigeRol('ADMIN', 'OPERATOR')],
     providers: [proveeAdminLogistica()],
     children: [
@@ -36,27 +44,33 @@ export const rutas: Routes = [
       { path: 'ordenes', redirectTo: 'orders', pathMatch: 'full' },
       {
         path: 'purchases',
+        canActivate: [exigeRol('ADMIN')],
         loadComponent: () => import('./page/compras.page').then((m) => m.ComprasPage),
       },
       {
         path: 'carrier-limits',
+        canActivate: [exigeRol('ADMIN')],
         loadComponent: () =>
           import('./page/limites-de-transportista.page').then((m) => m.LimitesDeTransportistaPage),
       },
       {
         path: 'warehouses',
+        canActivate: [exigeRol('ADMIN')],
         loadComponent: () => import('./page/almacenes.page').then((m) => m.AlmacenesPage),
       },
       {
         path: 'compliance',
+        canActivate: [exigeRol('ADMIN')],
         loadComponent: () => import('./page/cumplimiento.page').then((m) => m.CumplimientoPage),
       },
       {
         path: 'taxes',
+        canActivate: [exigeRol('ADMIN')],
         loadComponent: () => import('./page/impuestos.page').then((m) => m.ImpuestosPage),
       },
       {
         path: 'operators',
+        canActivate: [exigeRol('ADMIN')],
         loadComponent: () => import('./page/operadores.page').then((m) => m.OperadoresPage),
       },
       {

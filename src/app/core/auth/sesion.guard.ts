@@ -1,5 +1,5 @@
 import { inject } from '@angular/core';
-import { CanActivateFn, GuardResult, Router, RouterStateSnapshot } from '@angular/router';
+import { CanActivateFn, CanMatchFn, GuardResult, Router, RouterStateSnapshot } from '@angular/router';
 import { RolDeSesion, SesionActual } from './sesion-actual';
 import { RECUPERADOR_DE_SESION } from './recuperador-de-sesion.port';
 
@@ -76,5 +76,28 @@ export function exigeRol(...roles: readonly RolDeSesion[]): CanActivateFn {
       return conSesion;
     }
     return sesion.tiene(...roles) ? true : router.createUrlTree(['/catalog']);
+  };
+}
+
+/**
+ * Igual que `exigeRol`, pero decide si la ruta COINCIDE en vez de si se puede entrar.
+ *
+ * <p>La diferencia importa: al negar, `canActivate` corta la navegación y redirige; `canMatch` deja que
+ * el enrutador pruebe la ruta siguiente. Es lo que hace falta cuando un mismo camino lleva a sitios
+ * distintos según quién mire —`/admin` es el panel de control para quien administra y un desvío a los
+ * pedidos para quien da soporte—, sin que ninguno de los dos tenga que saber del otro.
+ *
+ * <p>No redirige por su cuenta ni cuando no hay sesión: devuelve que no coincide y deja que sea la ruta
+ * siguiente, con su propio guardián, quien mande a la pantalla de acceso. Así solo hay un sitio que
+ * decida adónde va quien no ha entrado.
+ */
+export function coincideSiTieneRol(...roles: readonly RolDeSesion[]): CanMatchFn {
+  return async () => {
+    const sesion = inject(SesionActual);
+
+    if (!sesion.resuelta()) {
+      await inject(RECUPERADOR_DE_SESION).asegura();
+    }
+    return sesion.tiene(...roles);
   };
 }

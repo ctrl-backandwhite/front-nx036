@@ -46,7 +46,11 @@ export const RUTAS_PRIVADAS: readonly string[] = [
 ];
 
 /**
- * Exigen sesión Y papel de administrador u operador.
+ * Exigen sesión Y papel de ADMINISTRACIÓN.
+ *
+ * <p>Decía «administrador u operador» y describía el defecto, no la regla: el panel dejaba entrar a
+ * quien da soporte en dieciocho pantallas que el servidor le reserva a administración. Lo suyo son
+ * pedidos, sus ganancias y su perfil, y eso se certifica aparte en `acciones/operador.spec.ts`.
  *
  * <p>Se quitaron cuatro entradas que no son rutas: el comodín literal `/admin/*` y tres caminos que
  * salían de concatenar mal el prefijo del panel al extraerlas del enrutador original. Comprobar que
