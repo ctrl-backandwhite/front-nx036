@@ -1,4 +1,5 @@
 import { Component, inject, input } from '@angular/core';
+import { FormatoDeFecha } from '@core/i18n/formato-de-fecha';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faHourglassHalf } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
@@ -66,6 +67,7 @@ export class ComisionesPendientesPanel {
   readonly ahora = input(Date.now());
 
   protected readonly iconoReloj = faHourglassHalf;
+  private readonly fechas = inject(FormatoDeFecha);
   private readonly traduccion = inject(TraduccionService);
   protected readonly t = this.traduccion.t;
 
@@ -84,6 +86,6 @@ export class ComisionesPendientesPanel {
   }
 
   protected soloFecha(valor: string): string {
-    return new Date(valor).toLocaleDateString();
+    return this.fechas.soloFecha(valor);
   }
 }

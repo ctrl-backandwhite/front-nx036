@@ -1,4 +1,5 @@
 import { Component, computed, inject, input } from '@angular/core';
+import { FormatoDeFecha } from '@core/i18n/formato-de-fecha';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faTruckFast } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
@@ -60,6 +61,7 @@ export class LineaDeTiempoDeSeguimiento {
   readonly seguimiento = input<Seguimiento | null>(null);
 
   protected readonly iconoCamion = faTruckFast;
+  private readonly fechas = inject(FormatoDeFecha);
   protected readonly t = inject(TraduccionService).t;
 
   protected readonly hayQueContar = computed(() => {
@@ -68,6 +70,6 @@ export class LineaDeTiempoDeSeguimiento {
   });
 
   protected soloFecha(valor: string): string {
-    return new Date(valor).toLocaleDateString();
+    return this.fechas.soloFecha(valor);
   }
 }

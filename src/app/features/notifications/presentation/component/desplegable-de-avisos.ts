@@ -1,4 +1,5 @@
 import { Component, DestroyRef, ElementRef, computed, inject, signal } from '@angular/core';
+import { FormatoDeFecha } from '@core/i18n/formato-de-fecha';
 import { RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
@@ -103,6 +104,7 @@ const CADA_MS = 60_000;
   `,
 })
 export class DesplegableDeAvisos {
+  private readonly fechas = inject(FormatoDeFecha);
   private readonly consulta = inject(ConsultaElBuzon);
   private readonly lee = inject(LeeUnAviso);
   private readonly buzon = inject(BuzonStore);
@@ -145,7 +147,7 @@ export class DesplegableDeAvisos {
   }
 
   protected cuando(iso: string): string {
-    return new Date(iso).toLocaleString();
+    return this.fechas.fechaYHora(iso);
   }
 
   protected async marcaTodos(): Promise<void> {

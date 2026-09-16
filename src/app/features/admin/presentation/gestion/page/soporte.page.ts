@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { FormatoDeFecha } from '@core/i18n/formato-de-fecha';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCircleCheck, faHeadset, faTicket } from '@fortawesome/free-solid-svg-icons';
 import { FormField, form } from '@angular/forms/signals';
@@ -131,6 +132,7 @@ const SILUETAS = [0, 1, 2, 3];
   `,
 })
 export class SoportePage {
+  private readonly fechas = inject(FormatoDeFecha);
   protected readonly t = inject(TraduccionService).t;
   private readonly dialogo = inject(DialogoStore);
   private readonly consulta = inject(ConsultaTickets);
@@ -166,7 +168,7 @@ export class SoportePage {
   }
 
   protected fecha(ticket: Ticket): string {
-    return new Date(ticket.creadoEl).toLocaleString();
+    return this.fechas.fechaYHora(ticket.creadoEl);
   }
 
   protected admiteCierre(ticket: Ticket): boolean {

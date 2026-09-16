@@ -1,4 +1,5 @@
 import { Component, DestroyRef, computed, effect, inject, input, signal } from '@angular/core';
+import { FormatoDeFecha } from '@core/i18n/formato-de-fecha';
 import { RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCircleCheck } from '@fortawesome/free-solid-svg-icons';
@@ -133,6 +134,8 @@ export class PedidoPage {
    */
   readonly paid = input('');
 
+  private readonly fechas = inject(FormatoDeFecha);
+
   private readonly consulta = inject(ConsultaPedido);
   private readonly sigue = inject(SiguePedido);
   private readonly descargaFactura = inject(DescargaFactura);
@@ -224,6 +227,6 @@ export class PedidoPage {
   }
 
   protected fechaYHora(valor: string): string {
-    return new Date(valor).toLocaleString();
+    return this.fechas.fechaYHora(valor);
   }
 }

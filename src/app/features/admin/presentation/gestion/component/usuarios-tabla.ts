@@ -1,4 +1,5 @@
 import { Component, computed, inject, input, output } from '@angular/core';
+import { FormatoDeFecha } from '@core/i18n/formato-de-fecha';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
   faCircleCheck,
@@ -230,6 +231,8 @@ export class UsuariosTabla {
     borra: faTrash,
   };
 
+  private readonly fechas = inject(FormatoDeFecha);
+
   protected readonly t = inject(TraduccionService).t;
 
   /**
@@ -253,7 +256,7 @@ export class UsuariosTabla {
 
   protected fecha(usuario: UsuarioGestionado): string {
     const cuando = fechaDeReferencia(usuario);
-    return cuando ? new Date(cuando).toLocaleDateString() : '—';
+    return cuando ? this.fechas.soloFecha(cuando) : '—';
   }
 
   /**

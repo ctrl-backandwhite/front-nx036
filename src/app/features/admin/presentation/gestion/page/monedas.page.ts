@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { FormatoDeFecha } from '@core/i18n/formato-de-fecha';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
   faCircleCheck, faCircleXmark, faCoins, faRotate,
@@ -141,6 +142,7 @@ import {
   `,
 })
 export class MonedasPage {
+  private readonly fechas = inject(FormatoDeFecha);
   protected readonly t = inject(TraduccionService).t;
   protected readonly tCon = inject(TraduccionService).tCon;
   private readonly dialogo = inject(DialogoStore);
@@ -166,7 +168,7 @@ export class MonedasPage {
   protected readonly activas = computed(() => this.divisas().filter((d) => d.activa).length);
   protected readonly sincronizadaEl = computed(() => {
     const marca = ultimaSincronizacion(this.divisas());
-    return marca ? new Date(marca).toLocaleString() : '';
+    return marca ? this.fechas.fechaYHora(marca) : '';
   });
   protected readonly filtrosPuestos = computed(
     () => (this.texto().trim() ? 1 : 0) + (this.estado() ? 1 : 0),

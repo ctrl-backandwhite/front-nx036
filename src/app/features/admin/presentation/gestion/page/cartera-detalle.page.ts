@@ -1,4 +1,5 @@
 import { Component, effect, inject, input, linkedSignal, signal } from '@angular/core';
+import { FormatoDeFecha } from '@core/i18n/formato-de-fecha';
 import { RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
@@ -224,6 +225,8 @@ export class CarteraDetallePage {
     movimientos: faClockRotateLeft,
   };
 
+  private readonly fechas = inject(FormatoDeFecha);
+
   protected readonly t = inject(TraduccionService).t;
 
   private readonly consulta = inject(ConsultaLaCartera);
@@ -341,6 +344,6 @@ export class CarteraDetallePage {
   }
 
   protected fecha(movimiento: MovimientoDeCartera): string {
-    return new Date(movimiento.creadoEl).toLocaleString();
+    return this.fechas.fechaYHora(movimiento.creadoEl);
   }
 }

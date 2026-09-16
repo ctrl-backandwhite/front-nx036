@@ -1,4 +1,5 @@
 import { Component, computed, inject, input, linkedSignal, output } from '@angular/core';
+import { FormatoDeFecha } from '@core/i18n/formato-de-fecha';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
   faArrowLeft,
@@ -158,6 +159,7 @@ import {
   `,
 })
 export class LecturaDeAviso {
+  private readonly fechas = inject(FormatoDeFecha);
   private readonly traduccion = inject(TraduccionService);
   protected readonly t = this.traduccion.t;
 
@@ -248,7 +250,7 @@ export class LecturaDeAviso {
   }
 
   protected cuando(iso: string): string {
-    return new Date(iso).toLocaleString();
+    return this.fechas.fechaYHora(iso);
   }
 
   protected mandaLaRespuesta(): void {

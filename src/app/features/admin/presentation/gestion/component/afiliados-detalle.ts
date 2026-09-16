@@ -1,4 +1,5 @@
 import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
+import { FormatoDeFecha } from '@core/i18n/formato-de-fecha';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
 import { Comision, DetalleDeAfiliado } from '../../../domain/gestion/model/afiliados';
@@ -128,6 +129,8 @@ export class AfiliadosDetalle {
   /** Se resolvió una revisión: el listado de detrás tiene que releerse. */
   readonly cambia = output<void>();
 
+  private readonly fechas = inject(FormatoDeFecha);
+
   protected readonly t = inject(TraduccionService).t;
   private readonly importes = inject(ImportesStore);
   private readonly avisos = inject(AvisosStore);
@@ -180,7 +183,7 @@ export class AfiliadosDetalle {
   }
 
   protected fecha(comision: Comision): string {
-    return comision.creadaEl ? new Date(comision.creadaEl).toLocaleDateString() : '—';
+    return comision.creadaEl ? this.fechas.soloFecha(comision.creadaEl) : '—';
   }
 
   protected async resuelve(idComision: string, aprueba: boolean): Promise<void> {

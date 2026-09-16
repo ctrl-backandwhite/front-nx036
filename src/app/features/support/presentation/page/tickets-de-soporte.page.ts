@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { FormatoDeFecha } from '@core/i18n/formato-de-fecha';
 import { FormField, form } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCircleCheck, faHeadset, faTicket } from '@fortawesome/free-solid-svg-icons';
@@ -112,6 +113,7 @@ const ESTADOS = ['OPEN', 'RESOLVED', 'CLOSED'] as const;
   `,
 })
 export class TicketsDeSoportePage {
+  private readonly fechas = inject(FormatoDeFecha);
   private readonly atiende = inject(AtiendeTickets);
   private readonly avisos = inject(AvisosStore);
 
@@ -156,7 +158,7 @@ export class TicketsDeSoportePage {
   }
 
   protected cuando(iso: string): string {
-    return new Date(iso).toLocaleString();
+    return this.fechas.fechaYHora(iso);
   }
 
   protected selecciona(ticket: Ticket): void {

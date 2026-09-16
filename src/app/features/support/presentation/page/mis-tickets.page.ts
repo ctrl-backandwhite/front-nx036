@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { FormatoDeFecha } from '@core/i18n/formato-de-fecha';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faPlus, faTicket } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
@@ -97,6 +98,7 @@ import { colorDeClase, colorDeEstado, colorDePrioridad } from '../component/colo
   `,
 })
 export class MisTicketsPage {
+  private readonly fechas = inject(FormatoDeFecha);
   private readonly misTickets = inject(MisTickets);
   private readonly avisos = inject(AvisosStore);
 
@@ -126,7 +128,7 @@ export class MisTicketsPage {
   }
 
   protected cuando(iso: string): string {
-    return new Date(iso).toLocaleString();
+    return this.fechas.fechaYHora(iso);
   }
 
   /**

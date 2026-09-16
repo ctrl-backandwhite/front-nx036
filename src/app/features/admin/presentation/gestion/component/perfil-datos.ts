@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { FormatoDeFecha } from '@core/i18n/formato-de-fecha';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCircleCheck, faPen, faUserPen } from '@fortawesome/free-solid-svg-icons';
 import { FormField, form, pattern } from '@angular/forms/signals';
@@ -99,6 +100,7 @@ const PAIS_ISO = /^[A-Za-z]{2}$/;
   `,
 })
 export class PerfilDatos {
+  private readonly fechas = inject(FormatoDeFecha);
   private readonly traduccion = inject(TraduccionService);
   private readonly sesion = inject(SesionActual);
   private readonly dialogo = inject(DialogoStore);
@@ -151,7 +153,7 @@ export class PerfilDatos {
   protected readonly nombreDelIdioma = computed(() => nombreDeIdioma(this.ficha()?.idioma));
   protected readonly creado = computed(() => {
     const fecha = this.ficha()?.creadoEl;
-    return fecha ? new Date(fecha).toLocaleString() : '—';
+    return fecha ? this.fechas.fechaYHora(fecha) : '—';
   });
 
   constructor() {

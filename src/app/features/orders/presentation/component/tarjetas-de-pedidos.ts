@@ -1,4 +1,5 @@
 import { Component, inject, input, output } from '@angular/core';
+import { FormatoDeFecha } from '@core/i18n/formato-de-fecha';
 import { RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faRoute } from '@fortawesome/free-solid-svg-icons';
@@ -53,6 +54,7 @@ export class TarjetasDePedidos {
   readonly cancela = output<ResumenDePedido>();
 
   protected readonly iconoRuta = faRoute;
+  private readonly fechas = inject(FormatoDeFecha);
   protected readonly t = inject(TraduccionService).t;
 
   protected conEnvio(pedido: ResumenDePedido): boolean {
@@ -60,7 +62,7 @@ export class TarjetasDePedidos {
   }
 
   protected fecha(valor?: string): string {
-    return valor ? new Date(valor).toLocaleString() : '—';
+    return valor ? this.fechas.fechaYHora(valor) : '—';
   }
 
   protected pideCancelar(evento: Event, pedido: ResumenDePedido): void {

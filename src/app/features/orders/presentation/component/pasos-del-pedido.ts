@@ -1,4 +1,5 @@
 import { Component, computed, inject, input } from '@angular/core';
+import { FormatoDeFecha } from '@core/i18n/formato-de-fecha';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
   IconDefinition,
@@ -82,12 +83,13 @@ export class PasosDelPedido {
   protected readonly pasos = PASOS_DEL_PEDIDO;
   protected readonly adornos = ADORNOS;
   protected readonly iconoPendiente = faCircle;
+  private readonly fechas = inject(FormatoDeFecha);
   protected readonly t = inject(TraduccionService).t;
 
   protected readonly activo = computed(() => pasoActivo(this.pedido()));
   protected readonly cancelado = computed(() => estaCancelado(this.pedido().estado));
 
   protected fechaYHora(valor: string): string {
-    return new Date(valor).toLocaleString();
+    return this.fechas.fechaYHora(valor);
   }
 }

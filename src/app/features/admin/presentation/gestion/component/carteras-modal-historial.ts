@@ -1,4 +1,5 @@
 import { Component, inject, input, output } from '@angular/core';
+import { FormatoDeFecha } from '@core/i18n/formato-de-fecha';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { MovimientoDeCartera, traduceNota } from '../../../domain/gestion/model/carteras';
 import { ImportesStore } from '../../../application/gestion/state/importes.store';
@@ -84,6 +85,8 @@ export class CarterasModalHistorial {
 
   readonly cierra = output<void>();
 
+  private readonly fechas = inject(FormatoDeFecha);
+
   protected readonly t = inject(TraduccionService).t;
   protected readonly importes = inject(ImportesStore);
 
@@ -110,6 +113,6 @@ export class CarterasModalHistorial {
   }
 
   protected fecha(movimiento: MovimientoDeCartera): string {
-    return new Date(movimiento.creadoEl).toLocaleString();
+    return this.fechas.fechaYHora(movimiento.creadoEl);
   }
 }

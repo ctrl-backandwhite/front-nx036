@@ -1,4 +1,5 @@
 import { Component, inject, input } from '@angular/core';
+import { FormatoDeFecha } from '@core/i18n/formato-de-fecha';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { Comision, EstadoDeComision } from '../../domain/model/afiliado';
 
@@ -60,6 +61,8 @@ const INSIGNIA: Readonly<Record<EstadoDeComision, string>> = {
 export class TablaDeComisiones {
   readonly comisiones = input.required<readonly Comision[]>();
 
+  private readonly fechas = inject(FormatoDeFecha);
+
   protected readonly t = inject(TraduccionService).t;
 
   protected insignia(estado: EstadoDeComision): string {
@@ -67,6 +70,6 @@ export class TablaDeComisiones {
   }
 
   protected fecha(valor?: string): string {
-    return valor ? new Date(valor).toLocaleDateString() : '—';
+    return valor ? this.fechas.soloFecha(valor) : '—';
   }
 }

@@ -1,4 +1,5 @@
 import { Component, inject, input } from '@angular/core';
+import { FormatoDeFecha } from '@core/i18n/formato-de-fecha';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faBoxOpen } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
@@ -75,6 +76,7 @@ export class BultoDeEnvio {
   readonly total = input.required<number>();
 
   protected readonly iconoBulto = faBoxOpen;
+  private readonly fechas = inject(FormatoDeFecha);
   protected readonly t = inject(TraduccionService).t;
 
   protected kilos(): string {
@@ -82,6 +84,6 @@ export class BultoDeEnvio {
   }
 
   protected soloFecha(valor: string): string {
-    return new Date(valor).toLocaleDateString();
+    return this.fechas.soloFecha(valor);
   }
 }

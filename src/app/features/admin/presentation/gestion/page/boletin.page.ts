@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { FormatoDeFecha } from '@core/i18n/formato-de-fecha';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faEnvelopeOpenText, faPaperPlane, faUsers } from '@fortawesome/free-solid-svg-icons';
 import { FormField, form, validate } from '@angular/forms/signals';
@@ -141,6 +142,7 @@ import {
   `,
 })
 export class BoletinPage {
+  private readonly fechas = inject(FormatoDeFecha);
   private readonly traduccion = inject(TraduccionService);
   protected readonly t = this.traduccion.t;
   private readonly tCon = this.traduccion.tCon;
@@ -194,7 +196,7 @@ export class BoletinPage {
   }
 
   protected fecha(campana: CampanaDelBoletin): string {
-    return campana.creadaEl ? new Date(campana.creadaEl).toLocaleString() : '—';
+    return campana.creadaEl ? this.fechas.fechaYHora(campana.creadaEl) : '—';
   }
 
   protected async envia(): Promise<void> {

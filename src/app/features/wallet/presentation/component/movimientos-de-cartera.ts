@@ -1,4 +1,5 @@
 import { Component, inject, input } from '@angular/core';
+import { FormatoDeFecha } from '@core/i18n/formato-de-fecha';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
   IconDefinition,
@@ -87,6 +88,8 @@ const NEUTRO = { icono: faGears, color: 'text-ink-500' };
 export class MovimientosDeCartera {
   readonly movimientos = input.required<readonly MovimientoDeCartera[]>();
 
+  private readonly fechas = inject(FormatoDeFecha);
+
   protected readonly t = inject(TraduccionService).t;
 
   protected adorno(movimiento: MovimientoDeCartera): { icono: IconDefinition; color: string } {
@@ -94,6 +97,6 @@ export class MovimientosDeCartera {
   }
 
   protected fechaYHora(valor: string): string {
-    return new Date(valor).toLocaleString();
+    return this.fechas.fechaYHora(valor);
   }
 }

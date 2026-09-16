@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { FormatoDeFecha } from '@core/i18n/formato-de-fecha';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
   faCircleCheck,
@@ -93,6 +94,7 @@ import { CompruebaEstadoDelServicio } from '../../application/use-case/comprueba
   `,
 })
 export class EstadoDelServicioPage {
+  private readonly fechas = inject(FormatoDeFecha);
   private readonly plataforma = inject(Plataforma);
   private readonly comprueba = inject(CompruebaEstadoDelServicio);
   protected readonly t = inject(TraduccionService).t;
@@ -132,6 +134,6 @@ export class EstadoDelServicioPage {
 
   private async mide(): Promise<void> {
     this.salud.set(await this.comprueba.ejecuta());
-    this.comprobadoA.set(new Date().toLocaleString());
+    this.comprobadoA.set(this.fechas.fechaYHora(new Date().toISOString()));
   }
 }

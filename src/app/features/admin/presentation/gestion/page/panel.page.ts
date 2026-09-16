@@ -1,4 +1,5 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
+import { FormatoDeFecha } from '@core/i18n/formato-de-fecha';
 import { RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
@@ -151,6 +152,7 @@ const PUBLICADO_SANO = 80;
   `,
 })
 export class PanelPage {
+  private readonly fechas = inject(FormatoDeFecha);
   protected readonly t = inject(TraduccionService).t;
   protected readonly importes = inject(ImportesStore);
   private readonly sesion = inject(SesionActual);
@@ -206,7 +208,7 @@ export class PanelPage {
   }
 
   protected fecha(pedido: PedidoReciente): string {
-    return pedido.realizadoEl ? new Date(pedido.realizadoEl).toLocaleString() : '—';
+    return pedido.realizadoEl ? this.fechas.fechaYHora(pedido.realizadoEl) : '—';
   }
 
   private async carga(): Promise<void> {
