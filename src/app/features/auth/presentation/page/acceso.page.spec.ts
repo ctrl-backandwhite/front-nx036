@@ -9,6 +9,7 @@ import { Credenciales, Usuario } from '../../domain/model/usuario';
 import { IniciaSesion } from '../../application/use-case/inicia-sesion.use-case';
 import { RESUMEN_DE_ALMACENES_PORT } from '../../domain/port/resumen-de-almacenes.port';
 import { AccesoPage } from './acceso.page';
+import { DESTINO_TRAS_ACCESO_PORT } from '../../domain/port/destino-tras-acceso.port';
 
 /**
  * La puerta por la que entra todo el mundo, y no tenía ni una prueba.
@@ -70,11 +71,20 @@ async function monta(opciones: Opciones = {}) {
   const iniciaSesion = {
     ejecuta: vi.fn(async (_credenciales: Credenciales) => respuestas.shift() ?? exito(ANA)),
   };
+  const destino = {
+    recuerda: vi.fn(),
+    recoge: vi.fn().mockReturnValue(null),
+    recuerdaTestigo: vi.fn(),
+    consumeTestigo: vi.fn().mockReturnValue(null),
+  };
 
   const vista = await render(AccesoPage, {
     providers: [
       provideRouter([{ path: '**', component: Vacia }]),
       { provide: IniciaSesion, useValue: iniciaSesion },
+      // El puerto que sobrevive al salto al proveedor: destino pretendido y testigo del flujo. El doble
+      // se declara aquí para que la prueba lo controle, en vez de depender de lo que provea la raíz.
+      { provide: DESTINO_TRAS_ACCESO_PORT, useValue: destino },
       {
         provide: RESUMEN_DE_ALMACENES_PORT,
         useValue: {
@@ -102,6 +112,7 @@ async function monta(opciones: Opciones = {}) {
     vista,
     iniciaSesion,
     direccion,
+    destino,
     router: vista.fixture.debugElement.injector.get(Router),
   };
 }
@@ -238,21 +249,24 @@ describe('AccesoPage', () => {
 
       await userEvent.click(screen.getByRole('button', { name: 'Google' }));
 
-      expect(direccion.saltos).toEqual([
-        'https://api.nx036.com/oauth2/authorization/google',
-      ]);
+      // Lleva además el testigo de un solo uso del flujo: sin él, el retorno acepta los testigos de
+      // cualquiera y un enlace basta para secuestrar la sesión.
+      expect(direccion.saltos).toHaveLength(1);
+      expect(direccion.saltos[0]).toMatch(
+        /^https:\/\/api\.nx036\.com\/oauth2\/authorization\/google\?nonce=[\w-]+$/,
+      );
       direccion.restaura();
     });
 
     it('deja escrito el destino antes de salir del navegador', async () => {
-      const { direccion } = await monta({ busqueda: '?volverA=/account/orders' });
-      sessionStorage.removeItem('nx-login-from');
+      const { direccion, destino } = await monta({ busqueda: '?volverA=/account/orders' });
 
       await userEvent.click(screen.getByRole('button', { name: 'GitHub' }));
 
       /* El salto sale de la aplicación y vuelve por otra pantalla: lo que esté en memoria se pierde por
-       * el camino, así que el destino tiene que quedar escrito antes de saltar. */
-      expect(sessionStorage.getItem('nx-login-from')).toBe('/account/orders');
+       * el camino, así que el destino tiene que quedar escrito antes de saltar. Va por el PUERTO y no
+       * escribiendo `sessionStorage` a mano: la clave estaba repetida como literal en tres sitios. */
+      expect(destino.recuerda).toHaveBeenCalledWith('/account/orders');
       direccion.restaura();
     });
 

@@ -14,6 +14,7 @@ import { FormField, email as validaEmail, form, required } from '@angular/forms/
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { APP_CONFIG } from '@core/config/app-config';
 import { IniciaSesion } from '../../application/use-case/inicia-sesion.use-case';
+import { DESTINO_TRAS_ACCESO_PORT } from '../../domain/port/destino-tras-acceso.port';
 import { RESUMEN_DE_ALMACENES_PORT } from '../../domain/port/resumen-de-almacenes.port';
 import { PanelDeMarca } from '../component/panel-de-marca';
 
@@ -148,6 +149,7 @@ export class AccesoPage {
   private readonly almacenes = inject(RESUMEN_DE_ALMACENES_PORT);
   private readonly config = inject(APP_CONFIG);
   private readonly router = inject(Router);
+  private readonly destinoTrasAcceso = inject(DESTINO_TRAS_ACCESO_PORT);
 
   protected readonly t = this.traduccion.t;
 
@@ -274,15 +276,18 @@ export class AccesoPage {
    * se deja escrito antes de saltar al proveedor.
    */
   protected entraCon(proveedor: 'google' | 'github'): void {
+    // Por el PUERTO, no escribiendo `sessionStorage` a mano: la clave estaba repetida como literal en
+    // tres sitios y el adaptador ya resuelve el almacenamiento bloqueado sin lanzar.
     const volverA = this.destino();
     if (volverA) {
-      try {
-        sessionStorage.setItem('nx-login-from', volverA);
-      } catch {
-        /* Almacenamiento bloqueado: se volverá al destino por defecto según el papel. */
-      }
+      this.destinoTrasAcceso.recuerda(volverA);
     }
-    location.href = `${this.config.apiBase}/oauth2/authorization/${proveedor}`;
+    // El testigo de un solo uso del flujo: se guarda en ESTA pestaña y vuelve en el fragmento. Es lo que
+    // permite al retorno distinguir «vengo de un acceso que yo empecé» de «alguien me ha mandado un
+    // enlace con unos testigos dentro» — sin él, cualquiera secuestraba la sesión con un enlace.
+    const testigo = crypto.randomUUID();
+    this.destinoTrasAcceso.recuerdaTestigo(testigo);
+    location.href = `${this.config.apiBase}/oauth2/authorization/${proveedor}?nonce=${testigo}`;
   }
 
   /** Adónde quería ir quien fue desviado hasta aquí. Se comprueba que sea una ruta interna. */

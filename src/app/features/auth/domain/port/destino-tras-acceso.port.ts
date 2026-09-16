@@ -19,6 +19,20 @@ export interface DestinoTrasAccesoPort {
   recuerda(destino: string): void;
   /** Lo devuelve y lo BORRA: se consume una sola vez. */
   recoge(): string | null;
+
+  /**
+   * Anota el testigo de un solo uso con el que esta pestaña arranca el flujo.
+   *
+   * <p>Es lo que permite distinguir, al volver, «vengo de un acceso que yo empecé» de «alguien me ha
+   * mandado un enlace con unos testigos dentro». Sin él, la única comprobación posible era que los
+   * testigos tuvieran FORMA de JWT, y eso no distingue basura de un JWT auténtico de otra cuenta:
+   * bastaba con publicar un enlace a `/auth/callback#token=…` con los del atacante para que la víctima
+   * acabara operando dentro de su cuenta.
+   */
+  recuerdaTestigo(testigo: string): void;
+
+  /** Lo devuelve y lo BORRA: un testigo vale una vez, para que un retorno no se pueda reutilizar. */
+  consumeTestigo(): string | null;
 }
 
 export const DESTINO_TRAS_ACCESO_PORT = new InjectionToken<DestinoTrasAccesoPort>(

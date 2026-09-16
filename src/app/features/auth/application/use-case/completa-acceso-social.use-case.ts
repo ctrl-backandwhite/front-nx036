@@ -35,6 +35,15 @@ export class CompletaAccesoSocial {
     if (!pareceCredencial(token)) {
       return null;
     }
+    // Y que venga de un flujo que arrancó ESTA pestaña. Comprobar la forma del testigo no basta: un JWT
+    // auténtico de otra cuenta también la tiene, y ahí está el ataque —un enlace a
+    // `/auth/callback#token=…` con las credenciales del atacante deja a la víctima operando dentro de su
+    // cuenta, con el refresco plantado para que sobreviva a la caducidad—. El testigo lo generó esta
+    // pestaña antes de saltar al proveedor y se consume aquí: uno vale una vez.
+    const esperado = this.destino.consumeTestigo();
+    if (!esperado || parametros.get('nonce') !== esperado) {
+      return null;
+    }
     this.tokens.guarda(token, pareceCredencial(refresco) ? refresco : null);
 
     // Si el perfil no responde —red caída, un 500— se sigue adelante igual: la sesión ya está guardada

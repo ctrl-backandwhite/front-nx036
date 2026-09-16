@@ -5,6 +5,9 @@ import { DestinoTrasAccesoPort } from '../domain/port/destino-tras-acceso.port';
 /** La clave con la que se apunta. Es la MISMA que escribe la pantalla de acceso antes de saltar. */
 const CLAVE = 'nx-login-from';
 
+/** El testigo del flujo en curso. De sesión por lo mismo: muere con la pestaña. */
+const CLAVE_TESTIGO = 'nx-login-nonce';
+
 /**
  * El destino pretendido, guardado en el almacenamiento de SESIÓN del navegador.
  *
@@ -31,12 +34,31 @@ export class DestinoTrasAccesoSesionAdapter implements DestinoTrasAccesoPort {
   }
 
   recoge(): string | null {
+    return this.consume(CLAVE);
+  }
+
+  recuerdaTestigo(testigo: string): void {
+    if (!this.disponible) {
+      return;
+    }
+    try {
+      sessionStorage.setItem(CLAVE_TESTIGO, testigo);
+    } catch {
+      /* Almacenamiento bloqueado: sin testigo el retorno se rechaza, que es el lado seguro. */
+    }
+  }
+
+  consumeTestigo(): string | null {
+    return this.consume(CLAVE_TESTIGO);
+  }
+
+  private consume(clave: string): string | null {
     if (!this.disponible) {
       return null;
     }
     try {
-      const guardado = sessionStorage.getItem(CLAVE);
-      sessionStorage.removeItem(CLAVE);
+      const guardado = sessionStorage.getItem(clave);
+      sessionStorage.removeItem(clave);
       return guardado;
     } catch {
       return null;

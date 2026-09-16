@@ -315,7 +315,12 @@ export class AltaPage {
       return;
     }
     this.destinoTrasAcceso.recuerda('/');
-    location.href = `${this.config.apiBase}/oauth2/authorization/${proveedor}`;
+    // El testigo de un solo uso del flujo: se guarda en ESTA pestaña y vuelve en el fragmento. Es lo
+    // que permite al retorno distinguir «vengo de un acceso que yo empecé» de «alguien me ha mandado un
+    // enlace con unos testigos dentro» — sin él, cualquiera secuestraba la sesión con un enlace.
+    const testigo = crypto.randomUUID();
+    this.destinoTrasAcceso.recuerdaTestigo(testigo);
+    location.href = `${this.config.apiBase}/oauth2/authorization/${proveedor}?nonce=${testigo}`;
   }
 
   protected async envia(evento: Event): Promise<void> {

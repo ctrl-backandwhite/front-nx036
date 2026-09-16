@@ -77,7 +77,15 @@ async function monta(opciones: Opciones = {}) {
         opciones.respuesta ?? exito({ mensaje: 'del servidor', idDeUsuario: 'u1' }),
     ),
   };
-  const destino = { recuerda: vi.fn() };
+  // El doble cubre el puerto ENTERO: además del destino, el testigo de un solo uso con el que esta
+  // pestaña arranca el flujo social. Un doble a medias deja la prueba roja por un método ausente, no
+  // por lo que quiere afirmar.
+  const destino = {
+    recuerda: vi.fn(),
+    recoge: vi.fn().mockReturnValue(null),
+    recuerdaTestigo: vi.fn(),
+    consumeTestigo: vi.fn().mockReturnValue(null),
+  };
 
   const vista = await render(AltaPage, {
     providers: [
@@ -208,7 +216,11 @@ describe('AltaPage', () => {
       await userEvent.click(screen.getByRole('button', { name: 'GitHub' }));
 
       expect(destino.recuerda).toHaveBeenCalledWith('/');
-      expect(direccion.saltos).toEqual(['https://api.nx036.com/oauth2/authorization/github']);
+      // Con el testigo del flujo: es lo que permite al retorno rechazar unos testigos que no pidió.
+      expect(direccion.saltos[0]).toMatch(
+        /^https:\/\/api\.nx036\.com\/oauth2\/authorization\/github\?nonce=[\w-]+$/,
+      );
+      expect(destino.recuerdaTestigo).toHaveBeenCalled();
       direccion.restaura();
     });
 
