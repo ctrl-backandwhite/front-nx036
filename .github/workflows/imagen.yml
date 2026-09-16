@@ -126,7 +126,11 @@ jobs:
             ENTORNO=${{ steps.entorno.outputs.entorno }}
             NEXADROP_API_INTERNA=${{ steps.entorno.outputs.api }}
             NEXADROP_FICHAS_PRERENDERIZADAS=${{ steps.fichas.outputs.cuantas }}
-            NEXADROP_PRERENDER_TOKEN=${{ secrets.NEXADROP_PRERENDER_TOKEN }}
+          # El testigo NO va aquí: `build-args` queda en `docker history` y, con
+          # `mode=max`, en la caché exportada. Va por `secrets`, que BuildKit monta
+          # como fichero solo durante el comando que lo pide.
+          secrets: |
+            nexadrop_prerender_token=${{ secrets.NEXADROP_PRERENDER_TOKEN }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

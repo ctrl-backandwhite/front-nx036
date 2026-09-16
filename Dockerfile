@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # ══════════════════════════════════════════════════════════════════════════════
 # Etapa 1 · Construcción
 # ══════════════════════════════════════════════════════════════════════════════
@@ -102,11 +103,26 @@ ENV NEXADROP_FICHAS_PRERENDERIZADAS=${NEXADROP_FICHAS_PRERENDERIZADAS}
 # compila. VACÍO por defecto: sin él todo se comporta como antes y el cupo real vuelve a ser el del
 # escaparate, así que conviene bajar `NEXADROP_FICHAS_PRERENDERIZADAS` si no se configura.
 #
-# No queda en la imagen final: esta etapa es la de compilación y no se copia al servidor de estáticos.
-ARG NEXADROP_PRERENDER_TOKEN=
-ENV NEXADROP_PRERENDER_TOKEN=${NEXADROP_PRERENDER_TOKEN}
-
-RUN npm run build:${ENTORNO}
+# VIAJA COMO SECRETO DE BUILDKIT, no como argumento de construcción. Aquí decía «no queda en la imagen
+# final: esta etapa es la de compilación y no se copia al servidor de estáticos», y de la imagen FINAL
+# es verdad. Pero no era donde se escapaba:
+#
+#   · Un `ENV` queda en la metadata de TODAS las capas posteriores de su etapa. La etapa sigue
+#     existiendo como imagen aunque no se copie.
+#   · El flujo de trabajo publica con `cache-to: type=gha,mode=max`, y `mode=max` exporta justamente
+#     las capas intermedias. El testigo acababa en claro en la caché de Actions del repositorio, que
+#     puede leer cualquier ejecución, no solo quien tiene acceso al panel de secretos.
+#   · Un argumento de construcción, además, lo enseña `docker history` de esa etapa.
+#
+# Montado como secreto, el valor existe como fichero SOLO mientras corre este comando: no entra en
+# ninguna capa, ni en la caché exportada, ni en `docker history`. Lo comprueba
+# `scripts/verifica-secretos-de-construccion.mjs`.
+#
+# El `|| true` es deliberado: sin testigo la construcción sigue, tal como estaba. Lo que se pierde es
+# el cupo alto, y eso ya lo avisa la puerta del prerenderizado más abajo.
+RUN --mount=type=secret,id=nexadrop_prerender_token \
+    NEXADROP_PRERENDER_TOKEN="$(cat /run/secrets/nexadrop_prerender_token 2>/dev/null || true)" \
+    npm run build:${ENTORNO}
 
 # PUERTA. `ng build` no mira lo que queda DENTRO de las páginas que escribe: si el backend contesta un
 # 429 —su límite anti-volcado son 100 peticiones por minuto y por IP, y una ficha son unas cuatro— la
