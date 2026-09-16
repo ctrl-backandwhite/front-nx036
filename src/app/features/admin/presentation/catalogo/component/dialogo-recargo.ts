@@ -73,7 +73,10 @@ export class DialogoRecargo {
 
   protected readonly t = inject(TraduccionService).t;
 
-  protected readonly modelo = signal<FormularioDeRecargo>({ importe: null, ambito: 'todo' });
+  // El ámbito por defecto es el MENOS destructivo. Venía en 'todo': quien tecleaba un importe y
+  // pulsaba Guardar sin mirar los radios reescribía el recargo de los ~7.600 productos del catálogo,
+  // con un UPDATE sin WHERE y sin forma de recuperar los valores individuales anteriores.
+  protected readonly modelo = signal<FormularioDeRecargo>({ importe: null, ambito: 'seleccion' });
 
   /**
    * Las dos reglas del recargo, declaradas donde se pueden leer de una vez.

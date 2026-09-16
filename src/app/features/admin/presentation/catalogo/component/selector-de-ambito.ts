@@ -22,10 +22,23 @@ export type AmbitoElegido = 'seleccion' | 'categoria' | 'todo';
   template: `
     <fieldset class="space-y-1.5">
       <legend class="sr-only">{{ t('admin.catalog.surcharge.title') }}</legend>
-      <label class="flex items-center gap-2 text-[13px] cursor-pointer">
-        <input type="radio" class="radio radio-xs" value="seleccion" [formField]="campo()" />
-        {{ etiquetaDeSeleccion() }}
-      </label>
+      <!--
+        Con CERO marcados la opción se enseña apagada y NO se ata al formulario, igual que la de categoría
+        sin filtro. Estaba siempre activa, y elegirla con la lista vacía no significaba «ninguno» para el
+        servidor: una lista vacía cae en la rama global y reescribe el catálogo ENTERO. La pantalla decía
+        «Seleccionados (0)» y se actualizaban miles de productos.
+      -->
+      @if (seleccionados() > 0) {
+        <label class="flex items-center gap-2 text-[13px] cursor-pointer">
+          <input type="radio" class="radio radio-xs" value="seleccion" [formField]="campo()" />
+          {{ etiquetaDeSeleccion() }}
+        </label>
+      } @else {
+        <label class="flex items-center gap-2 text-[13px] cursor-pointer opacity-50">
+          <input type="radio" class="radio radio-xs" disabled />
+          {{ etiquetaDeSeleccion() }}
+        </label>
+      }
       <!--
         Sin categoría en el filtro no hay a qué aplicarlo: la opción se enseña apagada y NO se ata al
         formulario. Una opción que no se puede elegir no forma parte de lo que se envía, y apagarla desde

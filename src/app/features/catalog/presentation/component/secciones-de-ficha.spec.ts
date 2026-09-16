@@ -108,6 +108,47 @@ describe('BasculaVariantes', () => {
   });
 
   /** Sin el cruce con las opciones, la tabla enseñaba los colores en chino. */
+  /**
+   * Lo que se rompía en producción: un valor que el diccionario marca «__BORRAR__» —una referencia de
+   * fábrica como «06965枪色【单扣头+气泡袋】»— no tiene traducción, así que el eje lo declara con su
+   * valor en ideogramas y sin etiqueta localizada.
+   *
+   * <p>Hasta el 12-sep el traductor del front devolvía media traducción («Negro 定制») y se colaba en
+   * el mapa. Al corregir eso para que devuelva el ORIGINAL, el mapa pasó a llenarse de chino y la
+   * báscula lo enseñaba tal cual, saltándose su propio guion. El mapa solo puede llevar traducciones
+   * de verdad: lo que sigue en ideogramas no es una.
+   */
+  it('un valor sin traducción sale como guion, no en ideogramas', async () => {
+    const sinTraducir = ficha({
+      variantes: [
+        {
+          id: 'v',
+          existencias: 1,
+          opciones: { Color: '06965枪色【单扣头+气泡袋】' },
+          activa: true,
+          pesoGramos: 200,
+          largoMm: 150,
+          anchoMm: 150,
+          altoMm: 45,
+        },
+      ],
+      ejesDeVariante: [
+        {
+          id: 'color',
+          nombreZh: '颜色',
+          nombre: 'Color',
+          posicion: 0,
+          valores: [{ id: '1', valorZh: '06965枪色【单扣头+气泡袋】', posicion: 0 }],
+        },
+      ],
+    });
+
+    const { container } = await render(BasculaVariantes, { inputs: { ficha: sinTraducir } });
+
+    expect(container.textContent).not.toContain('枪色');
+    expect(screen.getByText('—')).toBeInTheDocument();
+  });
+
   it('traduce el valor de la variante con las opciones del producto', async () => {
     const conBascula = ficha({
       variantes: [

@@ -89,10 +89,13 @@ export class DialogoSubvencion {
 
   protected readonly t = inject(TraduccionService).t;
 
+  // El ámbito por defecto es el MENOS destructivo. Venía en 'todo': quien tecleaba un importe y
+  // pulsaba Guardar sin mirar los radios reescribía el recargo de los ~7.600 productos del catálogo,
+  // con un UPDATE sin WHERE y sin forma de recuperar los valores individuales anteriores.
   protected readonly modelo = signal<FormularioDeSubvencion>({
     envio: null,
     arancel: null,
-    ambito: 'todo',
+    ambito: 'seleccion',
   });
 
   /**

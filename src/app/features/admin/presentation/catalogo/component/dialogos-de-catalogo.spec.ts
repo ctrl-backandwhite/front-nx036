@@ -58,8 +58,17 @@ describe('DialogoRecargo', () => {
     expect(screen.getByRole('button', { name: t('actions.save') })).toBeDisabled();
   });
 
-  /** Por omisión se aplica a TODO el catálogo, que es la decisión que hay que tomar a conciencia. */
-  it('por omisión el ámbito es el catálogo entero', async () => {
+  /**
+   * Por omisión se aplica a lo MARCADO, que es el ámbito menos destructivo.
+   *
+   * Venía marcado «todo el catálogo», y el comentario de esta prueba lo defendía diciendo que era «la
+   * decisión que hay que tomar a conciencia» — precisamente por eso no puede ser el valor por defecto.
+   * Quien tecleaba un importe y pulsaba Guardar sin mirar los radios reescribía el recargo de los ~7.600
+   * productos: el backend, sin identificadores ni categoría, cae en un UPDATE sin WHERE, y los valores
+   * individuales anteriores no se pueden recuperar. Aplicarlo a todo sigue siendo posible; ahora hay que
+   * elegirlo.
+   */
+  it('por omisión el ámbito es lo seleccionado, no el catálogo entero', async () => {
     const peticiones: PeticionDeRecargo[] = [];
     await pinta(peticiones);
 
@@ -68,9 +77,24 @@ describe('DialogoRecargo', () => {
 
     expect(peticiones[0]).toEqual({
       recargoCny: 3,
-      productoIds: undefined,
+      productoIds: ['p1', 'p2'],
       categoriaId: undefined,
     });
+  });
+
+  /**
+   * Con CERO marcados, «seleccionados» ni siquiera se puede elegir.
+   *
+   * Una lista vacía no significa «ninguno» para el servidor: cae en la misma rama global. La pantalla
+   * decía «Seleccionados (0)» y se actualizaba el catálogo entero.
+   */
+  it('sin nada marcado, el ámbito de selección queda apagado', async () => {
+    await render(DialogoRecargo, {
+      inputs: { seleccion: [], categoriaId: null, nombreDeCategoria: null },
+      on: { confirma: () => undefined },
+    });
+
+    expect(screen.getByLabelText(rx('admin.catalog.surcharge.scope_selected'))).toBeDisabled();
   });
 
   it('con el ámbito en lo seleccionado, viajan los identificadores marcados', async () => {

@@ -101,13 +101,20 @@ export class BasculaVariantes {
       : this.variantes().slice(0, TOPE_ANTES_DE_COLAPSAR),
   );
 
-  /** El diccionario chino → idioma activo, construido una vez con las opciones del producto. */
+  /**
+   * El diccionario chino → idioma activo, construido una vez con las opciones del producto.
+   *
+   * <p>Solo entran TRADUCCIONES DE VERDAD. Lo que sigue en ideogramas no lo es, y colarlo aquí anula
+   * el guion de más abajo: la tabla acabaría enseñando «06965枪色【单扣头+气泡袋】» a quien navega en
+   * español. Pasa con los valores que el diccionario marca para no publicar —referencias de fábrica—,
+   * que no tienen traducción y cuyo traductor devuelve el original.
+   */
   private readonly traduccionDeValor = computed(() => {
     const mapa = new Map<string, string>();
     for (const eje of this.ficha().ejesDeVariante) {
       for (const valor of eje.valores) {
         const etiqueta = etiquetaDeValor(valor, this.preferencias.idioma());
-        if (valor.valorZh && etiqueta) {
+        if (valor.valorZh && etiqueta && !this.esChino(etiqueta)) {
           mapa.set(valor.valorZh, etiqueta);
         }
       }
