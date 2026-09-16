@@ -69,8 +69,20 @@ export class RealizaElPedido {
   private readonly retiraLoCaducado = inject(RetiraLoQueYaNoEsta);
   private readonly traduccion = inject(TraduccionService);
 
-  /** El pedido ya creado para esta cesta, para que un reintento no cree otro. */
-  private pedidoEnCurso: { firma: string; id: string } | null = null;
+  /**
+   * El intento de compra en curso: la cesta que se está comprando, su clave de idempotencia y el pedido
+   * que ya se creó para ella.
+   *
+   * Los tres van JUNTOS a propósito. Estaban en dos campos distintos con la misma firma por llave, y
+   * mantenerlos de acuerdo quedaba a mano: la rama que reutiliza el pedido no pasaba por donde se fijaba
+   * la clave, así que había un camino por el que la clave del cobro se inventaba de cero en cada llamada
+   * —y entonces no deduplica nada—. Con un solo registro eso no se puede dar.
+   *
+   * La clave es la misma mientras el comprador no cambie lo que compra: así un doble clic o el reintento
+   * del navegador reutilizan el pedido en vez de crear otro, con su segundo cobro. Cambia con la firma
+   * de la cesta, porque comprar otra cosa —o lo mismo otra vez, más tarde— sí es un intento nuevo.
+   */
+  private intento: { firma: string; clave: string; idDePedido: string | null } | null = null;
   /** Cerrojo SÍNCRONO: el botón se desactiva un instante después, y un triple clic creaba tres pedidos. */
   private enCurso = false;
 
@@ -82,7 +94,15 @@ export class RealizaElPedido {
     this.estado.marcaCobrando(true);
     this.estado.fijaError(null);
     try {
-      return await this.compra(items);
+      const resultado = await this.compra(items);
+      if (resultado.tipo === 'pagado' || resultado.tipo === 'creado') {
+        // La compra terminó: se cierra el intento. El servicio vive lo que vive la aplicación y la firma
+        // son solo los artículos, así que sin esto volver a comprar la misma cesta devolvía el pedido YA
+        // PAGADO: la pantalla vaciaba la cesta, decía «¡Pedido realizado!» y llevaba al pedido viejo, sin
+        // cobro y sin mercancía. Comprar lo mismo otra vez es una compra nueva, no un reintento.
+        this.intento = null;
+      }
+      return resultado;
     } finally {
       this.enCurso = false;
       this.estado.marcaCobrando(false);
@@ -130,15 +150,6 @@ export class RealizaElPedido {
     return { id: creada.valor.id };
   }
 
-  /**
-   * Clave del intento de compra en curso.
-   *
-   * La misma mientras el comprador no cambie lo que compra: así un doble clic o el reintento del
-   * navegador reutilizan el pedido en vez de crear otro —con su segundo cobro—. Cambia con la firma del
-   * carrito, porque comprar otra cosa (o lo mismo otra vez, más tarde) sí es un intento nuevo. Va atada
-   * a la firma y no a la petición: una clave nueva por petición no deduplicaría nada.
-   */
-  private intento: { firma: string; clave: string } | null = null;
 
   /**
    * Clave del cobro dentro del intento en curso. Cuelga de la del pedido para que todo lo que hace una
@@ -146,15 +157,22 @@ export class RealizaElPedido {
    * guardada son cosas distintas y no deben deduplicarse entre sí.
    */
   private claveDelCobro(sufijo: string): string {
-    const raiz = this.intento?.clave ?? crypto.randomUUID();
-    return `${raiz}:${sufijo}`;
+    // Sin repuesto a propósito: compra() siempre pasa antes por creaOReutilizaElPedido, que deja el
+    // intento fijado. Un `?? crypto.randomUUID()` aquí daría una clave nueva en cada llamada —dejando de
+    // deduplicar— y lo haría en silencio, que en el camino del dinero es la peor forma de degradar.
+    const intento = this.intento;
+    if (!intento) {
+      throw new Error('No hay intento de compra en curso: el pedido se crea antes de cobrar');
+    }
+    return `${intento.clave}:${sufijo}`;
   }
 
-  private claveDelIntento(firma: string): string {
+  /** El intento para esta cesta: el mismo si no ha cambiado lo que se compra, nuevo si sí. */
+  private intentoPara(firma: string): { firma: string; clave: string; idDePedido: string | null } {
     if (this.intento?.firma !== firma) {
-      this.intento = { firma, clave: crypto.randomUUID() };
+      this.intento = { firma, clave: crypto.randomUUID(), idDePedido: null };
     }
-    return this.intento.clave;
+    return this.intento;
   }
 
   private async creaOReutilizaElPedido(
@@ -162,8 +180,9 @@ export class RealizaElPedido {
     direccion: { id: string } | { suelta: DireccionDeEnvio },
   ): Promise<string | null> {
     const firma = items.map((i) => `${i.productId}:${i.variantId ?? ''}:${i.cantidad}`).sort().join('|');
-    if (this.pedidoEnCurso?.firma === firma) {
-      return this.pedidoEnCurso.id;
+    const intento = this.intentoPara(firma);
+    if (intento.idDePedido) {
+      return intento.idDePedido;
     }
 
     const solicitud: SolicitudDePedido = {
@@ -175,12 +194,12 @@ export class RealizaElPedido {
       idDeDireccion: 'id' in direccion ? direccion.id : undefined,
       direccionSuelta: 'suelta' in direccion ? direccion.suelta : undefined,
     };
-    const creado = await this.pedidos.crea(solicitud, this.claveDelIntento(firma));
+    const creado = await this.pedidos.crea(solicitud, intento.clave);
     if (!creado.ok) {
       this.estado.fijaError(this.mensaje(creado.error));
       return null;
     }
-    this.pedidoEnCurso = { firma, id: creado.valor.id };
+    intento.idDePedido = creado.valor.id;
     return creado.valor.id;
   }
 
@@ -230,16 +249,22 @@ export class RealizaElPedido {
     idDePedido: string,
     metodo: MetodoDePago,
   ): Promise<ResultadoDeLaCompra> {
+    if (metodo === 'WALLET') {
+      // Con saldo NO se pide un segundo cobro: el pedido ya se cobró al crearlo. `POST /me/orders/checkout`
+      // con paymentMethod WALLET debita el monedero, deja el pedido PAGADO y planifica la compra al
+      // proveedor; pedir después un payment-intent para ese mismo pedido es pedir que se cobre otra vez, y
+      // el servidor lo rechaza con «Order is already PAID». Se hacía, y el comprador veía su saldo
+      // debitado, su pedido pagado y su factura enviada, y en pantalla un error en inglés con la cesta sin
+      // vaciar y ningún pedido al que ir.
+      return { tipo: 'creado', idDePedido };
+    }
+
     const iniciado = await this.pagos.inicia(idDePedido, metodo, this.claveDelCobro(`pago:${metodo}`));
     if (!iniciado.ok) {
       this.estado.fijaError(this.mensaje(iniciado.error));
       return { tipo: 'error' };
     }
     const cobro = iniciado.valor;
-
-    if (metodo === 'WALLET') {
-      return { tipo: 'creado', idDePedido };
-    }
     if (metodo === 'USDT') {
       // Se queda en pantalla enseñando la dirección del depósito; lo confirma el aviso del proveedor.
       this.estado.fijaDepositoEnCripto(cobro);

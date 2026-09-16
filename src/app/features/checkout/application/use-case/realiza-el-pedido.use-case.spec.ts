@@ -154,14 +154,43 @@ function monta({ conDireccion = true } = {}) {
 }
 
 describe('el camino feliz', () => {
-  it('con monedero, el pedido queda creado y cobrado', async () => {
+  /**
+   * Con saldo, el pedido YA se cobró al crearlo: `POST /me/orders/checkout` con `paymentMethod: WALLET`
+   * debita el monedero, deja el pedido PAGADO y planifica la compra al proveedor. Pedir después un
+   * `payment-intent` para el mismo pedido es pedir un segundo cobro, y el servidor lo rechaza con
+   * «Order is already PAID».
+   *
+   * Esta prueba afirmaba lo contrario —que SÍ se llamaba a `inicia`— y pasaba porque el doble de pagos
+   * responde bien a todo. El backend real no: el comprador veía su saldo debitado, su pedido pagado y su
+   * factura enviada, y en pantalla un error en inglés, la cesta sin vaciar y ningún pedido al que ir.
+   */
+  it('con monedero NO se pide un segundo cobro: el pedido ya se cobró al crearlo', async () => {
     const { caso, pagos, estado } = monta();
     estado.eligeMetodo('wallet', 'WALLET', null);
 
     const resultado = await caso.ejecuta(ITEMS);
 
     expect(resultado).toEqual({ tipo: 'creado', idDePedido: 'o1' });
-    expect(pagos.llamadas).toEqual(['inicia:o1:WALLET']);
+    expect(pagos.llamadas).toEqual([]);
+  });
+
+  /**
+   * Comprar lo mismo otra vez es una compra NUEVA, no el reintento de la anterior.
+   *
+   * El intento se recuerda para que un doble clic o un reintento del navegador reutilicen el pedido en
+   * vez de crear otro. Pero el servicio vive lo que vive la aplicación y la firma son solo los artículos,
+   * así que sin cerrar el intento al terminar, volver a comprar la misma cesta devolvía el pedido YA
+   * PAGADO: la pantalla vaciaba la cesta, decía «¡Pedido realizado!» y llevaba al pedido viejo. Sin cobro
+   * y sin mercancía.
+   */
+  it('comprar la misma cesta otra vez crea un pedido nuevo, no reutiliza el ya pagado', async () => {
+    const { caso, pedidos, estado } = monta();
+    estado.eligeMetodo('wallet', 'WALLET', null);
+
+    await caso.ejecuta(ITEMS);
+    await caso.ejecuta(ITEMS);
+
+    expect(pedidos.veces).toBe(2);
   });
 
   it('con pasarela externa, sale del sitio y NO vacía la cesta', async () => {

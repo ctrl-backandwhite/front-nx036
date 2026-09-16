@@ -63,12 +63,18 @@ describe('casos de uso de la cartera', () => {
   it('IniciaRecarga manda el importe con la divisa activa', async () => {
     recarga.inicia.mockResolvedValue(exito({ idDePago: 'p1' }));
     await TestBed.inject(IniciaRecarga).ejecuta('CARD', '50');
-    expect(recarga.inicia).toHaveBeenCalledWith({
-      metodo: 'CARD',
-      divisa: 'EUR',
-      importe: 50,
-      cadenaCripto: undefined,
-    });
+    // La clave del intento viaja como segundo argumento: identifica el gesto de recargar, no la petición,
+    // así que un doble clic no abre dos cobros. Su valor es un UUID y no se fija aquí; lo que se fija es
+    // que SE MANDE, porque sin ella el servidor responde 400.
+    expect(recarga.inicia).toHaveBeenCalledWith(
+      {
+        metodo: 'CARD',
+        divisa: 'EUR',
+        importe: 50,
+        cadenaCripto: undefined,
+      },
+      expect.any(String),
+    );
   });
 
   /** Un importe inválido no llega a salir a la red: viajaría como una recarga sin importe. */
