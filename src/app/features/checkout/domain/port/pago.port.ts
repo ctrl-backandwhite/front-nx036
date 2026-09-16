@@ -13,8 +13,18 @@ import { MetodoDePago } from '../model/pedido';
  * de un componente; aquí la pantalla no conoce ninguna dirección.
  */
 export interface PagoPort {
-  /** Arranca el cobro del pedido por el método elegido. */
-  inicia(idDePedido: string, metodo: MetodoDePago): Promise<Result<CobroIniciado, AppError>>;
+  /**
+   * Arranca el cobro del pedido por el método elegido.
+   *
+   * @param claveDeIntento identifica el intento de pagar ESE pedido de ESA manera. Se repite en los
+   * reintentos del mismo gesto para que el servidor no abra un segundo cobro, y cambia al intentarlo con
+   * otro método.
+   */
+  inicia(
+    idDePedido: string,
+    metodo: MetodoDePago,
+    claveDeIntento: string,
+  ): Promise<Result<CobroIniciado, AppError>>;
 
   /** Confirma contra el proveedor un cobro ya aprobado. Es lo que hace la pantalla de retorno. */
   confirma(idDePedido: string, idDeCobro: string): Promise<Result<void, AppError>>;
@@ -35,7 +45,15 @@ export const PAGO_PORT = new InjectionToken<PagoPort>('PagoPort');
  * cobrar una tarjeta guardada, y un doble de prueba de la primera no debería tener que fingir la segunda.
  */
 export interface PagoConTarjetaGuardadaPort {
-  cobra(idDePedido: string, idDeMetodo: string): Promise<Result<CobroConTarjetaGuardada, AppError>>;
+  /**
+   * @param claveDeIntento este camino captura dinero de verdad en la pasarela: sin clave, dos peticiones
+   * son dos cargos reales a la tarjeta, y al cancelar solo se devuelve uno.
+   */
+  cobra(
+    idDePedido: string,
+    idDeMetodo: string,
+    claveDeIntento: string,
+  ): Promise<Result<CobroConTarjetaGuardada, AppError>>;
   /** Cierra el cobro después de que el navegador haya resuelto la autenticación reforzada. */
   confirma(idDePedido: string, idDeCobro: string): Promise<Result<void, AppError>>;
 }

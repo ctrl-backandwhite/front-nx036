@@ -130,6 +130,33 @@ export class RealizaElPedido {
     return { id: creada.valor.id };
   }
 
+  /**
+   * Clave del intento de compra en curso.
+   *
+   * La misma mientras el comprador no cambie lo que compra: así un doble clic o el reintento del
+   * navegador reutilizan el pedido en vez de crear otro —con su segundo cobro—. Cambia con la firma del
+   * carrito, porque comprar otra cosa (o lo mismo otra vez, más tarde) sí es un intento nuevo. Va atada
+   * a la firma y no a la petición: una clave nueva por petición no deduplicaría nada.
+   */
+  private intento: { firma: string; clave: string } | null = null;
+
+  /**
+   * Clave del cobro dentro del intento en curso. Cuelga de la del pedido para que todo lo que hace una
+   * misma compra comparta raíz, con un sufijo por operación: iniciar el cobro y cargar una tarjeta
+   * guardada son cosas distintas y no deben deduplicarse entre sí.
+   */
+  private claveDelCobro(sufijo: string): string {
+    const raiz = this.intento?.clave ?? crypto.randomUUID();
+    return `${raiz}:${sufijo}`;
+  }
+
+  private claveDelIntento(firma: string): string {
+    if (this.intento?.firma !== firma) {
+      this.intento = { firma, clave: crypto.randomUUID() };
+    }
+    return this.intento.clave;
+  }
+
   private async creaOReutilizaElPedido(
     items: readonly ItemDelPedido[],
     direccion: { id: string } | { suelta: DireccionDeEnvio },
@@ -148,7 +175,7 @@ export class RealizaElPedido {
       idDeDireccion: 'id' in direccion ? direccion.id : undefined,
       direccionSuelta: 'suelta' in direccion ? direccion.suelta : undefined,
     };
-    const creado = await this.pedidos.crea(solicitud);
+    const creado = await this.pedidos.crea(solicitud, this.claveDelIntento(firma));
     if (!creado.ok) {
       this.estado.fijaError(this.mensaje(creado.error));
       return null;
@@ -166,7 +193,11 @@ export class RealizaElPedido {
     idDePedido: string,
     idDeTarjeta: string,
   ): Promise<ResultadoDeLaCompra> {
-    const cobro = await this.tarjetaGuardada.cobra(idDePedido, idDeTarjeta);
+    const cobro = await this.tarjetaGuardada.cobra(
+      idDePedido,
+      idDeTarjeta,
+      this.claveDelCobro(`tarjeta:${idDeTarjeta}`),
+    );
     if (!cobro.ok) {
       this.estado.fijaError(this.mensaje(cobro.error));
       return { tipo: 'error' };
@@ -199,7 +230,7 @@ export class RealizaElPedido {
     idDePedido: string,
     metodo: MetodoDePago,
   ): Promise<ResultadoDeLaCompra> {
-    const iniciado = await this.pagos.inicia(idDePedido, metodo);
+    const iniciado = await this.pagos.inicia(idDePedido, metodo, this.claveDelCobro(`pago:${metodo}`));
     if (!iniciado.ok) {
       this.estado.fijaError(this.mensaje(iniciado.error));
       return { tipo: 'error' };

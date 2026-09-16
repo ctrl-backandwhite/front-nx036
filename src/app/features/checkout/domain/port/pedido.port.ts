@@ -5,7 +5,12 @@ import { DireccionDeEnvio, DireccionGuardada, PedidoCreado, SolicitudDePedido } 
 
 /** Crear el pedido. Una capacidad y un método: es la operación que no se puede repetir a la ligera. */
 export interface PedidoPort {
-  crea(solicitud: SolicitudDePedido): Promise<Result<PedidoCreado, AppError>>;
+  /**
+   * @param claveDeIntento identifica UN intento de compra, no una petición. Se repite en los reintentos
+   * del mismo carrito para que el servidor reutilice el pedido en vez de crear otro, y cambia cuando el
+   * comprador cambia lo que compra.
+   */
+  crea(solicitud: SolicitudDePedido, claveDeIntento: string): Promise<Result<PedidoCreado, AppError>>;
 }
 
 export const PEDIDO_PORT = new InjectionToken<PedidoPort>('PedidoPort');

@@ -49,13 +49,21 @@ export class RecargaHttpAdapter implements RecargaPort {
    * moneda de cobro. Mandar ya convertido significaría dos tipos de cambio distintos —el del navegador y
    * el del servidor— para un mismo cobro.
    */
-  async inicia(peticion: PeticionDeRecarga): Promise<Result<Recarga, AppError>> {
-    const respuesta = await this.api.post<RecargaDto>('/me/wallet/recharge', {
-      method: peticion.metodo,
-      currencyDisplay: peticion.divisa,
-      amountDisplay: peticion.importe,
-      cryptoChain: peticion.metodo === 'USDT' ? peticion.cadenaCripto : undefined,
-    });
+  async inicia(
+    peticion: PeticionDeRecarga,
+    claveDeIntento: string,
+  ): Promise<Result<Recarga, AppError>> {
+    const respuesta = await this.api.post<RecargaDto>(
+      '/me/wallet/recharge',
+      {
+        method: peticion.metodo,
+        currencyDisplay: peticion.divisa,
+        amountDisplay: peticion.importe,
+        cryptoChain: peticion.metodo === 'USDT' ? peticion.cadenaCripto : undefined,
+      },
+      // Sin esta cabecera, dos peticiones son dos cobros.
+      { cabeceras: { 'Idempotency-Key': claveDeIntento } },
+    );
     return mapea(respuesta, (dto) => ({
       idDePago: dto.paymentId,
       metodo: dto.method,

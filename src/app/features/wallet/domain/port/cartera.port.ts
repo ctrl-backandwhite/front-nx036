@@ -27,7 +27,11 @@ export interface PeticionDeRecarga {
  */
 export interface RecargaPort {
   opciones(divisa: string): Promise<Result<OpcionesDeRecarga, AppError>>;
-  inicia(peticion: PeticionDeRecarga): Promise<Result<Recarga, AppError>>;
+  /**
+   * @param claveDeIntento identifica el gesto de recargar, no la petición: la misma mientras no cambie
+   * lo que se recarga, para que un doble clic no abra dos cobros.
+   */
+  inicia(peticion: PeticionDeRecarga, claveDeIntento: string): Promise<Result<Recarga, AppError>>;
   /** Confirmación al volver de la pasarela (Stripe Checkout). Es lo que ACREDITA el saldo. */
   confirma(idDePago: string): Promise<Result<void, AppError>>;
   /** Captura del pago de PayPal al volver de su aprobación. */

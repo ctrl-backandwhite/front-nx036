@@ -58,7 +58,7 @@ function aDireccionDto(direccion: DireccionDeEnvio): Record<string, unknown> {
 export class PedidoHttpAdapter implements PedidoPort {
   private readonly api = inject(ApiService);
 
-  async crea(solicitud: SolicitudDePedido): Promise<Result<PedidoCreado, AppError>> {
+  async crea(solicitud: SolicitudDePedido, claveDeIntento: string): Promise<Result<PedidoCreado, AppError>> {
     const respuesta = await this.api.post<{ id: string; orderNumber?: string }>(
       '/me/orders/checkout',
       {
@@ -76,6 +76,9 @@ export class PedidoHttpAdapter implements PedidoPort {
           ? aDireccionDto(solicitud.direccionSuelta)
           : undefined,
       },
+      // Sin esta cabecera el servidor crea un pedido NUEVO en cada POST: un doble clic en «Pagar» son dos
+      // pedidos, dos cobros y dos compras al proveedor. La clave identifica el intento, no la petición.
+      { cabeceras: { 'Idempotency-Key': claveDeIntento } },
     );
     return mapea(respuesta, (dto) => ({ id: dto.id, numero: dto.orderNumber }));
   }

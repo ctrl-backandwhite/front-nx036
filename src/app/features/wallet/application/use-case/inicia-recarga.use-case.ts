@@ -24,6 +24,26 @@ export class IniciaRecarga {
     return this.recarga.opciones(this.preferencias.moneda());
   }
 
+  /**
+   * Clave del intento de recarga: la misma mientras no cambie lo que se recarga, para que el doble clic
+   * —o el reintento del navegador— no abran un segundo cobro. Cambia al cambiar método, divisa o importe,
+   * porque eso ya es otra intención.
+   */
+  private intento: { firma: string; clave: string } | null = null;
+
+  private claveDelIntento(peticion: {
+    metodo: string;
+    divisa: string;
+    importe: number;
+    cadenaCripto?: string;
+  }): string {
+    const firma = `${peticion.metodo}|${peticion.divisa}|${peticion.importe}|${peticion.cadenaCripto ?? ''}`;
+    if (this.intento?.firma !== firma) {
+      this.intento = { firma, clave: crypto.randomUUID() };
+    }
+    return this.intento.clave;
+  }
+
   ejecuta(
     metodo: MetodoDeRecarga,
     importeTecleado: string,
@@ -32,11 +52,12 @@ export class IniciaRecarga {
     if (!importeValido(importeTecleado)) {
       return Promise.resolve(fallo(creaError('peticion-invalida')));
     }
-    return this.recarga.inicia({
+    const peticion = {
       metodo,
       divisa: this.preferencias.moneda(),
       importe: Number.parseFloat(importeTecleado),
       cadenaCripto,
-    });
+    };
+    return this.recarga.inicia(peticion, this.claveDelIntento(peticion));
   }
 }

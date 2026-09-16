@@ -28,10 +28,13 @@ export class PagoHttpAdapter implements PagoPort {
   async inicia(
     idDePedido: string,
     metodo: MetodoDePago,
+    claveDeIntento: string,
   ): Promise<Result<CobroIniciado, AppError>> {
-    const respuesta = await this.api.post<CobroDto>(`/me/orders/${idDePedido}/payment-intent`, {
-      method: metodo,
-    });
+    const respuesta = await this.api.post<CobroDto>(
+      `/me/orders/${idDePedido}/payment-intent`,
+      { method: metodo },
+      { cabeceras: { 'Idempotency-Key': claveDeIntento } },
+    );
     return mapea(respuesta, (dto) => ({
       id: dto.id,
       idDePedido: dto.orderId ?? idDePedido,
@@ -65,12 +68,17 @@ export class PagoConTarjetaGuardadaHttpAdapter implements PagoConTarjetaGuardada
   async cobra(
     idDePedido: string,
     idDeMetodo: string,
+    claveDeIntento: string,
   ): Promise<Result<CobroConTarjetaGuardada, AppError>> {
     const respuesta = await this.api.post<{
       status: string;
       clientSecret: string | null;
       paymentId: string | null;
-    }>(`/me/orders/${idDePedido}/pay-saved-card`, { paymentMethodId: idDeMetodo });
+    }>(
+      `/me/orders/${idDePedido}/pay-saved-card`,
+      { paymentMethodId: idDeMetodo },
+      { cabeceras: { 'Idempotency-Key': claveDeIntento } },
+    );
     return mapea(respuesta, (dto) => ({
       resuelto: dto.status === 'succeeded',
       secretoDeCliente: dto.clientSecret ?? undefined,

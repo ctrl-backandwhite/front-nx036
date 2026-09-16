@@ -18,6 +18,22 @@ describe('RecargaHttpAdapter', () => {
 
   afterEach(() => red.verify());
 
+  /**
+   * Abrir una recarga mueve dinero: sin clave de idempotencia, un doble clic en «Recargar» son dos
+   * cobros. La clave identifica el intento —el gesto de la persona—, no la petición HTTP.
+   */
+  it('manda la clave del intento al abrir la recarga', async () => {
+    const promesa = adaptador.inicia(
+      { metodo: 'CARD', divisa: 'EUR', importe: 50 },
+      'intento-recarga',
+    );
+
+    const peticion = red.expectOne((r) => r.url === '/api/me/wallet/recharge');
+    expect(peticion.request.headers.get('Idempotency-Key')).toBe('intento-recarga');
+    peticion.flush({ paymentId: 'p1', method: 'CARD', status: 'REQUIRES_ACTION', amountUsdCents: 5000 });
+    await promesa;
+  });
+
   it('pide los importes sugeridos en la divisa activa', async () => {
     const promesa = adaptador.opciones('EUR');
 
@@ -34,7 +50,7 @@ describe('RecargaHttpAdapter', () => {
    * convertido significaría dos tipos de cambio distintos para un mismo cobro.
    */
   it('manda el importe en la divisa activa, sin convertir', async () => {
-    const promesa = adaptador.inicia({ metodo: 'CARD', divisa: 'EUR', importe: 50 });
+    const promesa = adaptador.inicia({ metodo: 'CARD', divisa: 'EUR', importe: 50 }, 'i-1');
 
     const peticion = red.expectOne('/api/me/wallet/recharge');
     expect(peticion.request.body).toMatchObject({
@@ -63,7 +79,7 @@ describe('RecargaHttpAdapter', () => {
       divisa: 'EUR',
       importe: 10,
       cadenaCripto: 'TRC20',
-    });
+    }, 'i-2');
 
     const peticion = red.expectOne('/api/me/wallet/recharge');
     expect(peticion.request.body.cryptoChain).toBeUndefined();
@@ -99,7 +115,7 @@ describe('RecargaHttpAdapter', () => {
   });
 
   it('traduce el rechazo del cobro a un error de la aplicación', async () => {
-    const promesa = adaptador.inicia({ metodo: 'CARD', divisa: 'EUR', importe: 1 });
+    const promesa = adaptador.inicia({ metodo: 'CARD', divisa: 'EUR', importe: 1 }, 'i-3');
     red
       .expectOne('/api/me/wallet/recharge')
       .flush({ message: 'Importe fuera de rango' }, { status: 422, statusText: 'Unprocessable' });

@@ -153,7 +153,7 @@ describe('PedidoHttpAdapter', () => {
       metodoDePago: 'WALLET',
       idDeDireccion: 'd1',
       opcionDeEnvio: 'FZZXR',
-    });
+    }, 'intento-1');
 
     const peticion = http.expectOne((r) => r.url.endsWith('/api/me/orders/checkout'));
     expect(JSON.stringify(peticion.request.body)).not.toMatch(/price|amount|total/i);
@@ -164,6 +164,32 @@ describe('PedidoHttpAdapter', () => {
     expect(resultado.ok && resultado.valor).toEqual({ id: 'o1', numero: 'NX-1' });
   });
 
+  /**
+   * La clave de idempotencia identifica UN intento de compra, no una petición.
+   *
+   * Sin ella el servidor crea un pedido nuevo en cada POST, así que un doble clic en «Pagar con saldo»
+   * —o el reintento del navegador tras un tiempo de espera— son dos pedidos, dos débitos del monedero y
+   * dos compras planificadas al proveedor. No hace falta concurrencia: pasa en secuencia. La app móvil ya
+   * la mandaba; el escaparate no, y la documentación que este mismo front enseña a los integradores les
+   * dice que la manden en cada POST.
+   */
+  it('manda la clave del intento para que un reintento no cree un segundo pedido', async () => {
+    const http = monta();
+    const promesa = TestBed.inject(PedidoHttpAdapter).crea(
+      {
+        items: [{ productId: 'p1', variantId: '', cantidad: 1 }],
+        metodoDePago: 'WALLET',
+        idDeDireccion: 'd1',
+      },
+      'intento-abc',
+    );
+
+    const peticion = http.expectOne((r) => r.url.endsWith('/api/me/orders/checkout'));
+    expect(peticion.request.headers.get('Idempotency-Key')).toBe('intento-abc');
+    peticion.flush({ id: 'o1', orderNumber: 'NX-1' });
+    await promesa;
+  });
+
   it('la dirección suelta viaja traducida al vocabulario del backend', async () => {
     const http = monta();
     const promesa = TestBed.inject(PedidoHttpAdapter).crea({
@@ -172,7 +198,7 @@ describe('PedidoHttpAdapter', () => {
       direccionSuelta: {
         nombreCompleto: 'Ana', linea1: 'Mayor 1', ciudad: 'Madrid', pais: 'ES', codigoPostal: '28001',
       },
-    });
+    }, 'intento-2');
 
     const peticion = http.expectOne((r) => r.url.endsWith('/api/me/orders/checkout'));
     expect(peticion.request.body.shippingAddressInline).toMatchObject({
@@ -221,9 +247,24 @@ describe('DireccionesDeEnvioHttpAdapter', () => {
 });
 
 describe('PagoHttpAdapter', () => {
+  /**
+   * Arrancar el cobro es una operación que mueve dinero: sin clave, dos peticiones son dos cobros. Aquí
+   * la clave identifica el intento de pagar ESE pedido con ESE método, así que un reintento del mismo
+   * gesto la repite y volver a intentarlo con otro método trae una nueva.
+   */
+  it('manda la clave del intento al arrancar el cobro', async () => {
+    const http = monta();
+    const promesa = TestBed.inject(PagoHttpAdapter).inicia('o1', 'CARD', 'intento-pago');
+
+    const peticion = http.expectOne((r) => r.url.endsWith('/api/me/orders/o1/payment-intent'));
+    expect(peticion.request.headers.get('Idempotency-Key')).toBe('intento-pago');
+    peticion.flush({ id: 'c1' });
+    await promesa;
+  });
+
   it('inicia el cobro y traduce la dirección de aprobación y el depósito', async () => {
     const http = monta();
-    const promesa = TestBed.inject(PagoHttpAdapter).inicia('o1', 'USDT');
+    const promesa = TestBed.inject(PagoHttpAdapter).inicia('o1', 'USDT', 'i-usdt');
 
     const peticion = http.expectOne((r) => r.url.endsWith('/api/me/orders/o1/payment-intent'));
     expect(peticion.request.body).toEqual({ method: 'USDT' });
@@ -239,7 +280,7 @@ describe('PagoHttpAdapter', () => {
 
   it('sin datos de cripto no inventa un depósito', async () => {
     const http = monta();
-    const promesa = TestBed.inject(PagoHttpAdapter).inicia('o1', 'CARD');
+    const promesa = TestBed.inject(PagoHttpAdapter).inicia('o1', 'CARD', 'i-card');
 
     http.expectOne((r) => r.url.includes('payment-intent')).flush({ id: 'c1', approveUrl: 'https://x' });
     const resultado = await promesa;
@@ -263,9 +304,24 @@ describe('PagoHttpAdapter', () => {
 });
 
 describe('PagoConTarjetaGuardadaHttpAdapter', () => {
+  /**
+   * Este camino captura dinero de verdad en la pasarela, sin salir del sitio. Sin clave, un doble clic
+   * son dos cargos reales a la tarjeta — y al cancelar solo se devuelve uno, porque la devolución toma
+   * el primer cobro con éxito que encuentra.
+   */
+  it('manda la clave del intento al cobrar la tarjeta guardada', async () => {
+    const http = monta();
+    const promesa = TestBed.inject(PagoConTarjetaGuardadaHttpAdapter).cobra('o1', 'pm_1', 'intento-tarjeta');
+
+    const peticion = http.expectOne((r) => r.url.endsWith('/api/me/orders/o1/pay-saved-card'));
+    expect(peticion.request.headers.get('Idempotency-Key')).toBe('intento-tarjeta');
+    peticion.flush({ status: 'succeeded', clientSecret: null, paymentId: 'p1' });
+    await promesa;
+  });
+
   it('un cobro resuelto no pide autenticación', async () => {
     const http = monta();
-    const promesa = TestBed.inject(PagoConTarjetaGuardadaHttpAdapter).cobra('o1', 'pm_1');
+    const promesa = TestBed.inject(PagoConTarjetaGuardadaHttpAdapter).cobra('o1', 'pm_1', 'i-tarjeta-1');
 
     http.expectOne((r) => r.url.endsWith('/api/me/orders/o1/pay-saved-card')).flush({
       status: 'succeeded',
@@ -283,7 +339,7 @@ describe('PagoConTarjetaGuardadaHttpAdapter', () => {
 
   it('cuando el banco exige el reto, llega el secreto', async () => {
     const http = monta();
-    const promesa = TestBed.inject(PagoConTarjetaGuardadaHttpAdapter).cobra('o1', 'pm_1');
+    const promesa = TestBed.inject(PagoConTarjetaGuardadaHttpAdapter).cobra('o1', 'pm_1', 'i-tarjeta-2');
 
     http.expectOne((r) => r.url.includes('pay-saved-card')).flush({
       status: 'requires_action',
