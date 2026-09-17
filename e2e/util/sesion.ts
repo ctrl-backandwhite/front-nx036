@@ -28,6 +28,20 @@ export const ADMIN = { correo: 'cert-admin@local.test', clave: 'CertLocal2026!' 
  */
 export const OPERADOR = { correo: 'cert-operador@local.test', clave: 'CertLocal2026!' };
 
+/**
+ * Lo único que se guarda y se repone: las CREDENCIALES.
+ *
+ * <p>Antes se copiaba el almacén entero, y con él viajaban `nx036-country` —que decide el idioma y la
+ * divisa— y la cesta de invitado. Una sola prueba que cambiara de país se lo heredaba a TODAS las
+ * siguientes, que a partir de ahí se ejecutaban en inglés: los selectores escritos en español dejaban
+ * de casar y sus pruebas se SALTABAN en vez de fallar. Así desapareció del recuento la que comprueba
+ * que el recargo en lote no apunta al catálogo entero.
+ *
+ * <p>Una sesión es quién eres, no cómo tienes puesta la aplicación. Lo segundo lo pone cada prueba si
+ * lo necesita, y empezar siempre igual es justo lo que la hace repetible.
+ */
+const CLAVES_DE_SESION = new Set(['nx-access-token', 'nx-refresh-token']);
+
 type Cookies = Awaited<ReturnType<BrowserContext['storageState']>>['cookies'];
 
 interface SesionGuardada {
@@ -131,7 +145,9 @@ export async function entra(
   const almacen: Record<string, string> = {};
   for (const origen of estado.origins) {
     for (const par of origen.localStorage) {
-      almacen[par.name] = par.value;
+      if (CLAVES_DE_SESION.has(par.name)) {
+        almacen[par.name] = par.value;
+      }
     }
   }
   escribe(base, cuenta.correo, { cookies: estado.cookies, almacen, cuando: Date.now() });

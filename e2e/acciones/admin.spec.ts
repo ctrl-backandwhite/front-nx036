@@ -361,13 +361,22 @@ test.describe('acciones de administración', () => {
    */
   test('el recargo en lote no viene apuntando al catálogo entero', async ({ page }) => {
     const errores = vigilaLaConsola(page);
+    // Faltaba ENTRAR. Sin sesión, `/admin/catalog` lleva al acceso, allí no hay botón de recargo, y el
+    // `test.skip` que había convertía eso en un salto silencioso: la prueba no ha corrido nunca.
+    await entra(page, ANGULAR, ADMIN);
     await prohibeBorrar(page);
     await abre(page, `${ANGULAR}/admin/catalog`);
     await apartaAlAsistente(page);
 
     const peticiones = vigilaLasPeticiones(page);
+    /*
+     * Se ESPERA al botón, no se cuenta. Contarlo nada más navegar daba cero —la barra de acciones se
+     * pinta cuando llega el catálogo— y el `test.skip` que lo protegía convertía esa carrera en un
+     * salto: la prueba desaparecía del recuento en vez de ponerse roja. Como el botón no tiene ninguna
+     * condición en la plantilla, si algún día no está es un defecto y tiene que verse como tal.
+     */
     const abrir = page.getByRole('button', { name: /Recargo/i }).first();
-    test.skip((await abrir.count()) === 0, 'esta vista no ofrece el recargo en lote');
+    await expect(abrir, 'el catálogo del panel ya no ofrece el recargo en lote').toBeVisible();
     await abrir.click();
 
     const todoElCatalogo = page.getByLabel(/Todos los productos del catálogo/i);
