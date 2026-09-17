@@ -26,6 +26,7 @@ import {
 } from '../../application/use-case/direcciones.use-case';
 import { CamposDeDireccion } from '../component/campos-de-direccion';
 import { TarjetaDeDireccion } from '../component/tarjeta-de-direccion';
+import { RecuperaCuenta } from '../../application/use-case/recupera-cuenta.use-case';
 
 /**
  * La página dedicada a las direcciones de envío.
@@ -134,6 +135,8 @@ import { TarjetaDeDireccion } from '../component/tarjeta-de-direccion';
   `,
 })
 export class DireccionesPage {
+
+  private readonly recuperaLaCuenta = inject(RecuperaCuenta);
   private readonly traduccion = inject(TraduccionService);
   private readonly dialogo = inject(DialogoStore);
   private readonly carga = inject(CargaDirecciones);
@@ -170,6 +173,12 @@ export class DireccionesPage {
   protected readonly valido = computed(() => direccionCompleta(this.datos()));
 
   constructor() {
+    /*
+     * La pantalla pide SUS datos: el país de la cuenta siembra el formulario de dirección. Antes lo
+     * cargaba el guardián de la ruta, y al retirar ese guardián duplicado se fue con él la única
+     * llamada. Un guardián decide si se pasa; no es donde se cargan los datos de una pantalla.
+     */
+    void this.recuperaLaCuenta.aseguraCargada();
     void this.carga.ejecuta();
   }
 

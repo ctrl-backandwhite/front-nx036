@@ -29,6 +29,7 @@ import {
   SESIONES_ACTIVAS_PORT,
 } from '../../domain/port/seguridad.port';
 import { CuentaStore } from '../../application/state/cuenta.store';
+import { TokenStore } from '@core/auth/token-store';
 import { PerfilPage } from './perfil.page';
 import { DireccionesPage } from './direcciones.page';
 import { PlanesPage } from './planes.page';
@@ -159,6 +160,36 @@ describe('PerfilPage', () => {
     vista.fixture.detectChanges();
     return vista;
   }
+
+  /**
+   * La pantalla CARGA la cuenta por su cuenta.
+   *
+   * <p>No lo hacía: quien la cargaba era el guardián de la ruta, que además de decidir el acceso
+   * llamaba a `RecuperaCuenta`. Al retirar ese guardián duplicado —el bueno vive en el núcleo— se fue
+   * con él la única llamada, y `/profile` y `/addresses` se quedaron en «Cargando…» para siempre.
+   *
+   * <p>Ninguna prueba lo vio porque el montaje de esta misma spec llamaba a `fija(TITULAR)` a mano,
+   * supliendo exactamente la pieza que faltaba. Por eso aquí NO se siembra el almacén: se comprueba
+   * que la pantalla acaba enseñando al titular partiendo de que no se sabe quién es.
+   *
+   * <p>Un guardián decide si se pasa; no es el sitio donde se cargan los datos de la pantalla. Cuando
+   * lo es, retirarlo se lleva por delante algo que nadie relacionaba con él.
+   */
+  it('pide la cuenta cuando aún no se sabe quién es', async () => {
+    const { providers } = puertos();
+    const vista = await render(PerfilPage, {
+      providers: [
+        ...APLICACION_DE_ACCOUNT,
+        provideRouter([{ path: '**', component: Vacia }]),
+        ...providers,
+        // Con credencial guardada: sin ella no se pregunta al backend, y con razón.
+        { provide: TokenStore, useValue: { acceso: () => 'jwt-de-prueba' } },
+      ],
+    });
+
+    await waitFor(() => expect(screen.getByDisplayValue('ana@nx036.test')).toBeTruthy());
+    vista.fixture.detectChanges();
+  });
 
   /** Sin saber quién mira no se pinta el perfil de nadie. */
   it('mientras no se sabe quién mira, solo se anuncia que está cargando', async () => {

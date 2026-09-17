@@ -19,6 +19,23 @@ export class RecuperaCuenta {
   private readonly tokens = inject(TokenStore);
   private readonly cuenta = inject(CuentaStore);
 
+  /**
+   * «Que esté cargada», para las PANTALLAS que necesitan al titular.
+   *
+   * <p>Es lo que piden perfil y direcciones al abrirse, y se navega entre ellas: preguntar en cada
+   * salto añadiría una ida y vuelta al servidor a cada clic.
+   *
+   * <p>Separado de `ejecuta` a propósito. `GuardaPerfil` llama a aquel porque necesita RELEER —el
+   * servidor normaliza el teléfono, recorta el nombre y decide el idioma—, y hacer idempotente el
+   * único método habría dejado la pantalla enseñando lo tecleado en vez de lo guardado.
+   */
+  async aseguraCargada(): Promise<void> {
+    if (this.cuenta.resuelta()) {
+      return;
+    }
+    await this.ejecuta();
+  }
+
   async ejecuta(): Promise<void> {
     if (!this.tokens.acceso()) {
       this.cuenta.fija(null);

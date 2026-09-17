@@ -19,6 +19,7 @@ import { MiSuscripcion } from '../component/mi-suscripcion';
 import { SeguridadDeLaCuenta } from '../component/seguridad-de-la-cuenta';
 import { SelectorDePlan } from '../component/selector-de-plan';
 import { ZonaDePeligro } from '../component/zona-de-peligro';
+import { RecuperaCuenta } from '../../application/use-case/recupera-cuenta.use-case';
 
 /** Las secciones del perfil, en orden lógico: identidad → seguridad → envío → pago → plan → baja. */
 type Seccion = 'personal' | 'security' | 'addresses' | 'payment' | 'plan' | 'danger';
@@ -125,6 +126,18 @@ const MENU: readonly EntradaDeMenu[] = MENU_COMPLETO.filter(
   `,
 })
 export class PerfilPage {
+
+  private readonly recuperaLaCuenta = inject(RecuperaCuenta);
+
+  constructor() {
+    /*
+     * La pantalla pide SUS datos. Antes los cargaba el guardián de la ruta —además de decidir el
+     * acceso—, y al retirar ese guardián duplicado se fue con él la única llamada: `/profile` se
+     * quedaba en «Cargando…» para siempre. Un guardián decide si se pasa; no es donde se cargan los
+     * datos de una pantalla.
+     */
+    void this.recuperaLaCuenta.aseguraCargada();
+  }
   /**
    * La sección pedida en la dirección (`?section=`).
    *
