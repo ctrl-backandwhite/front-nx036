@@ -135,11 +135,7 @@ export async function entra(
     }
   });
 
-  await page.goto(`${base}/login`, { waitUntil: 'domcontentloaded' });
-  await page.locator('input[type="email"]').first().fill(cuenta.correo);
-  await page.locator('input[type="password"]').first().fill(cuenta.clave);
-  await page.locator('button[type="submit"]').first().click();
-  await page.waitForURL((url) => !url.pathname.startsWith('/login'), { timeout: 30_000 });
+  await rellenaYEnvia(page, base, cuenta);
 
   const estado = await page.context().storageState();
   const almacen: Record<string, string> = {};
@@ -151,6 +147,50 @@ export async function entra(
     }
   }
   escribe(base, cuenta.correo, { cookies: estado.cookies, almacen, cuando: Date.now() });
+}
+
+/** Cuántas veces se intenta entrar por el formulario antes de rendirse. */
+const INTENTOS_DE_ACCESO = 3;
+
+/**
+ * Rellena el formulario y espera a salir de `/login`, reintentando si el limitador nos frena.
+ *
+ * <p>El backend limita los accesos —a partir del undécimo en poco rato responde 429— y la pantalla se
+ * queda donde está. Eso se manifestaba como un `waitForURL` agotando treinta segundos con un mensaje
+ * que no menciona el motivo («waiting for navigation until load»), y la prueba pasaba al reintento
+ * porque para entonces la ventana del limitador ya había corrido.
+ *
+ * <p>Un fallo así es peor que uno rojo: se etiqueta como «inestable», se normaliza, y a partir de ahí
+ * cualquier avería de verdad en el acceso se lee igual y no se investiga. Aquí se reintenta a
+ * propósito, se ESPERA a que pase la ventana en vez de repetir en vano, y si aun así no se entra se
+ * dice por qué.
+ */
+async function rellenaYEnvia(
+  page: Page,
+  base: string,
+  cuenta: { correo: string; clave: string },
+): Promise<void> {
+  for (let intento = 1; intento <= INTENTOS_DE_ACCESO; intento++) {
+    await page.goto(`${base}/login`, { waitUntil: 'domcontentloaded' });
+    await page.locator('input[type="email"]').first().fill(cuenta.correo);
+    await page.locator('input[type="password"]').first().fill(cuenta.clave);
+    await page.locator('button[type="submit"]').first().click();
+
+    try {
+      await page.waitForURL((url) => !url.pathname.startsWith('/login'), { timeout: 15_000 });
+      return;
+    } catch {
+      if (intento === INTENTOS_DE_ACCESO) {
+        throw new Error(
+          `no se pudo entrar con ${cuenta.correo} tras ${INTENTOS_DE_ACCESO} intentos. La causa ` +
+            'habitual es el limitador de accesos del backend (429): la batería entra muchas veces en ' +
+            'poco rato. Si se repite, sube la vigencia de la sesión guardada en vez de reintentar más.',
+        );
+      }
+      // Se espera a que corra la ventana del limitador. Repetir al instante solo gasta otro intento.
+      await page.waitForTimeout(20_000);
+    }
+  }
 }
 
 /**
