@@ -348,6 +348,51 @@ test.describe('acciones de administración', () => {
    * BORRAR EL PRODUCTO — cancelando. Se comprueba que el diálogo aparece, que DICE lo que debe, y que
    * al cancelar no sale ninguna petición de borrado. Nunca se confirma.
    */
+  /**
+   * El recargo en lote NO viene apuntando a todo el catálogo.
+   *
+   * <p>Venía. Quien tecleaba un importe y pulsaba Guardar sin mirar los radios reescribía el recargo de
+   * los ~7.600 productos: sin identificadores ni categoría, el servidor cae en un UPDATE sin WHERE y los
+   * valores individuales anteriores no se pueden recuperar. Y elegir «Productos seleccionados (0)»
+   * hacía exactamente lo mismo, con la pantalla afirmando lo contrario.
+   *
+   * <p>Se certifica el ESTADO del diálogo y se cierra sin aplicar: la regla de la casa es no destruir
+   * datos, y aquí «aplicar» sería reescribir el catálogo del titular.
+   */
+  test('el recargo en lote no viene apuntando al catálogo entero', async ({ page }) => {
+    const errores = vigilaLaConsola(page);
+    await prohibeBorrar(page);
+    await abre(page, `${ANGULAR}/admin/catalog`);
+    await apartaAlAsistente(page);
+
+    const peticiones = vigilaLasPeticiones(page);
+    const abrir = page.getByRole('button', { name: /Recargo/i }).first();
+    test.skip((await abrir.count()) === 0, 'esta vista no ofrece el recargo en lote');
+    await abrir.click();
+
+    const todoElCatalogo = page.getByLabel(/Todos los productos del catálogo/i);
+    await expect(
+      todoElCatalogo,
+      'el ámbito por omisión es «todo el catálogo»: un descuido reescribe el catálogo entero',
+    ).not.toBeChecked();
+
+    // Con cero marcados, «seleccionados» no puede elegirse: una lista vacía cae en la rama global.
+    const seleccionados = page.getByLabel(/Productos seleccionados \(0\)/i);
+    if ((await seleccionados.count()) > 0) {
+      await expect(
+        seleccionados,
+        'con 0 marcados el ámbito de selección sigue elegible, y aplica a TODO',
+      ).toBeDisabled();
+    }
+
+    await page.keyboard.press('Escape');
+    expect(
+      peticionesDestructivas(peticiones),
+      'solo abrir el diálogo de recargo ha mandado una petición',
+    ).toEqual([]);
+    sinErroresDeConsola(errores, 'el diálogo de recargo en lote');
+  });
+
   test('borrar el producto pide confirmación y cancelar no manda nada', async ({ page }) => {
     const errores = vigilaLaConsola(page);
     await prohibeBorrar(page);

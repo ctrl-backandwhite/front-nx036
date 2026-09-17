@@ -239,6 +239,16 @@ test.describe('presentación · las transiciones acompañan', () => {
       document
         .getAnimations()
         .filter((a) => a.playState === 'running')
+        /*
+         * El BRILLO DEL ESQUELETO no cuenta, y no es una excepción de conveniencia: es justo lo
+         * contrario de lo que esta prueba impide. Un esqueleto que brilla mientras llega la respuesta
+         * ANUNCIA que se está cargando; lo que molesta es que el contenido que YA estaba se desvanezca
+         * y vuelva. Su animación es un bucle de 1,4 s, así que entraba por el filtro de «larga».
+         *
+         * Además hacía la prueba dependiente del servidor: si la respuesta llegaba rápida no había
+         * esqueletos y pasaba; si tardaba, fallaba. Ese es el motivo de que estuviera inestable.
+         */
+        .filter((a) => (a as unknown as { animationName?: string }).animationName !== 'skeleton-shimmer')
         .map((a) => Number(a.effect?.getTiming().duration ?? 0))
         .filter((d) => d >= 800),
     );

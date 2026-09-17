@@ -718,7 +718,9 @@ test.describe('acciones del cliente en el móvil', () => {
     await sinDesplazamientoHorizontal(page);
     await page.getByLabel('Etiqueta (Casa, Oficina…)').fill(etiqueta);
     await page.getByLabel('Nombre completo').fill('Certificación móvil');
-    await page.getByLabel('País (ISO)').selectOption('ES');
+    // La etiqueta es «País» desde el 11-sep: el commit 273b9a1 quitó el «(ISO)» a propósito y esta
+    // prueba se quedó buscando el rótulo viejo. Llevaba seis días en rojo sin que nadie lo mirara.
+    await page.getByLabel('País', { exact: false }).selectOption('ES');
     await page.getByLabel('Dirección', { exact: true }).fill('Calle de la Certificación 1');
     await page.getByLabel('Ciudad').fill('Madrid');
     await page.getByLabel('Código postal').fill('28001');

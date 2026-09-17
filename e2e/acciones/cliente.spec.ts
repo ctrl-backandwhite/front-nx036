@@ -662,7 +662,9 @@ test.describe('acciones del cliente', () => {
     await page.getByLabel('Nombre completo').fill('Certificación E2E');
     // El desplegable del país lleva su propio nombre accesible: el PRIMER «select» del formulario es
     // el prefijo del teléfono, y elegir ahí no rellenaría la dirección.
-    await page.getByLabel('País (ISO)').selectOption('ES');
+    // La etiqueta es «País» desde el 11-sep: el commit 273b9a1 quitó el «(ISO)» a propósito y esta
+    // prueba se quedó buscando el rótulo viejo. Llevaba seis días en rojo sin que nadie lo mirara.
+    await page.getByLabel('País', { exact: false }).selectOption('ES');
     await page.getByLabel('Dirección', { exact: true }).fill('Calle de la Certificación 1');
     await page.getByLabel('Ciudad').fill('Madrid');
     await page.getByLabel('Código postal').fill('28001');

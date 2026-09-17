@@ -98,6 +98,29 @@ export async function entra(
     return;
   }
 
+  /*
+   * Se VACÍA la pestaña antes de ir al formulario.
+   *
+   * <p>Sin esto, una prueba que entra dos veces sobre la misma pestaña —y las hay: la de la barra de
+   * pestañas recorre dos pantallas— se encontraba con que la segunda vez la sesión guardada ya no
+   * valía, tomaba el camino del formulario, y el token caducado SEGUÍA en el almacén del navegador.
+   * `soloSinSesion` hace entonces lo que debe —no dejar entrar encima de una sesión abierta— y rebota
+   * `/login` al catálogo, así que el campo de correo no aparecía nunca.
+   *
+   * <p>El fallo se leía como «el acceso no se puede usar en móvil», que es un defecto de la
+   * aplicación, cuando lo que fallaba era el arnés.
+   */
+  await page.context().clearCookies();
+  await page.goto(`${base}/`, { waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => {
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch {
+      /* una ventana privada puede negarse; entonces no había nada que limpiar */
+    }
+  });
+
   await page.goto(`${base}/login`, { waitUntil: 'domcontentloaded' });
   await page.locator('input[type="email"]').first().fill(cuenta.correo);
   await page.locator('input[type="password"]').first().fill(cuenta.clave);

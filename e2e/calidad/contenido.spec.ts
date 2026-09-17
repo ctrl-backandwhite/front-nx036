@@ -81,6 +81,36 @@ test.describe('paridad de contenido', () => {
     }
   });
 
+  /**
+   * Las fechas se escriben en el idioma ELEGIDO, no en el del navegador.
+   *
+   * <p>Estaban escritas a mano en 33 sitios como `new Date(iso).toLocaleString()`, **sin argumento**.
+   * Sin idioma, esa función usa el del NAVEGADOR: una aplicación con ocho diccionarios, cuya cabecera
+   * `X-Lang` decide hasta el texto de los errores del servidor, pintaba las fechas en un noveno idioma
+   * que nadie había elegido. Quien tuviera el navegador en inglés y la web en español leía
+   * «9/16/2026, 6:21 PM» al lado de un texto en español.
+   *
+   * <p>Se certifica con el navegador en INGLÉS y la web en ESPAÑOL, que es justo la combinación que lo
+   * destapa: si la fecha sale en formato anglosajón, la aplicación está ignorando la preferencia.
+   */
+  test('las fechas se escriben en el idioma elegido, no en el del navegador', async ({ browser }) => {
+    const contexto = await browser.newContext({ locale: 'en-US', timezoneId: 'Europe/Madrid' });
+    const page = await contexto.newPage();
+    await contexto.addCookies([{ name: 'nx036-locale', value: 'es', url: ANGULAR }]);
+    await abre(page, `${ANGULAR}/legal/terms`);
+
+    const texto = await page.locator('body').innerText();
+    // El mes en letra delata el idioma: en español va en minúscula y con «de».
+    const anglosajona = texto.match(/\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},\s+\d{4}/);
+    expect(
+      anglosajona,
+      `la página escribe la fecha en inglés («${anglosajona?.[0]}») con la web en español`,
+    ).toBeNull();
+    // Y el formato numérico anglosajón (M/D/YYYY) tampoco: en español es D/M/YYYY.
+    expect(texto, 'hay una fecha con hora en formato anglosajón (AM/PM)').not.toMatch(/\d{1,2}\/\d{1,2}\/\d{4},?\s*\d{1,2}:\d{2}\s*(AM|PM)/);
+    await contexto.close();
+  });
+
   test('el tema oscuro no deja texto ilegible', async ({ page }) => {
     await page.emulateMedia({ colorScheme: 'dark' });
     await abre(page, `${ANGULAR}/`);
