@@ -326,7 +326,22 @@
    * para el micro-feedback de pulsación y los pequeños lifts de transform (si translateY tardara
    * 1s el hover se sentiría pegajoso). `slow/slower` para animaciones de entrada más amplias. */
   --motion-fast:    300ms;
-  --motion-base:    1000ms;
+  /* RESPUESTA A UN GESTO, no contenido. Estuvo en 1000ms, y es el MISMO error que ya se corrigió más
+     abajo para el valor por defecto de las utilidades Tailwind —con su medición y su razonamiento— sin
+     llegar hasta aquí. Basta ver dónde se usa: el foco de inputs y selects, el hover de botones, de
+     tarjetas y de filas de tabla, el fondo de las píldoras. Todo eso es contestar a un dedo o a un
+     puntero, y ahí un segundo no se lee como suavidad sino como que la web va lenta: el puntero ya se
+     ha ido antes de que termine.
+
+     El propio `.btn` lo delataba: su `transform` ya estaba en `--motion-fast` (300ms) mientras sus
+     colores seguían en un segundo, dentro de la misma regla.
+
+     Y tenía coste medible: la certificación detectaba la caja de búsqueda del catálogo animándose un
+     segundo entero al teclear en ella. Es el mismo síntoma que dejó el corazón de favoritos imposible
+     de pulsar de forma fiable («element is not stable»).
+
+     Lo que quiera durar un segundo lo pide con `--motion-slow`, que existe justo para eso. */
+  --motion-base:    200ms;
   --motion-slow:    1000ms;
   /* Fundido entre fotos de la galería del producto. Debe ser MENOR que el intervalo del pase automático
      (AUTOPLAY_STEP_MS en useGalleryAutoplay), o la foto cambiaría antes de acabar de aparecer.
