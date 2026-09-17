@@ -75,8 +75,29 @@ npm run build && npx http-server dist/front-nx036/browser -p 3004
 ```
 
 **Cuentas de certificación** (ya existen en la base local, son borrables):
-`cert-cliente@local.test` y `cert-admin@local.test`, contraseña `CertLocal2026!`, con saldo en el
-monedero. No se crean por la API: el alta exige CAPTCHA.
+`cert-cliente@local.test`, `cert-admin@local.test` y `cert-operador@local.test`, contraseña
+`CertLocal2026!`. No se crean por la API: el alta exige CAPTCHA.
+
+**EL MONEDERO DEL CLIENTE HAY QUE REPONERLO.** `acciones/compra.spec.ts` compra de verdad —es la única
+forma de certificar el cobro— y cada pasada gasta unos 40 $ entre sus dos pruebas. Cuando el saldo no
+llega, el botón de confirmar sale deshabilitado y las pruebas se SALTAN: no se ponen en rojo, se caen
+del recuento y la certificación cierra en verde sin haber comprado nada. Ya pasó.
+
+Se repone por el panel, que deja asiento, en vez de tocando la tabla:
+
+```bash
+ADM=$(curl -s -X POST http://localhost:18082/api/auth/login -H 'Content-Type: application/json' \
+  -d '{"email":"cert-admin@local.test","password":"CertLocal2026!"}' | python3 -c "import sys,json;print(json.load(sys.stdin)['token'])")
+CLI=$(docker exec nexadrop-postgres psql -U nexadrop -d nexadrop -tAc \
+  "select id from users where email='cert-cliente@local.test';" | tr -d ' ')
+curl -s -X POST "http://localhost:18082/api/admin/wallets/$CLI/topup" \
+  -H "Authorization: Bearer $ADM" -H 'Content-Type: application/json' \
+  -H "Idempotency-Key: $(cat /proc/sys/kernel/random/uuid)" \
+  -d '{"amountCents": 50000, "description": "Reposicion del monedero de certificacion e2e"}'
+```
+
+La cuenta de OPERADOR existe para certificar lo que ve quien da soporte: el panel abría dieciocho
+pantallas que el servidor le reserva a administración y no había ninguna prueba con ese papel.
 
 **Antes de certificar, reconstruir.** Si se ha tocado el backend, el contenedor sigue viendo el jar
 viejo aunque Maven lo haya reescrito (cambia el inode y el montaje no lo sigue). `mvn verify`, después

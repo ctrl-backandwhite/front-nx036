@@ -34,6 +34,30 @@ test.describe('la compra', () => {
   });
 
   /**
+   * La cesta se vacía POR LA API, nunca pulsando botones: limpiar por la interfaz contamina las pasadas
+   * siguientes —es norma de la casa— y además aquí no funcionaría, porque lo que hay que garantizar es
+   * el punto de partida, no el final.
+   *
+   * <p>Hace falta porque cada pasada AÑADE un artículo, y una pasada que no llegue a comprar lo deja
+   * ahí. Diez intentos después la cesta sumaba más que el saldo y el botón de confirmar salía
+   * deshabilitado: la prueba culpaba al pago de algo que había dejado ella misma.
+   */
+  async function vaciaLaCesta(page: import('@playwright/test').Page): Promise<void> {
+    const respuesta = await page.evaluate(async () => {
+      const testigo = (localStorage.getItem('nx-access-token') ?? '').replace(/^"|"$/g, '');
+      if (!testigo) {
+        return 0;
+      }
+      const r = await fetch('/api/me/cart', {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${testigo}` },
+      });
+      return r.status;
+    });
+    expect(respuesta, 'no se pudo dejar la cesta vacía antes de empezar').toBeLessThan(400);
+  }
+
+  /**
    * Pagar con saldo termina bien: ni error en pantalla, ni cesta sin vaciar.
    *
    * <p>Lo que se afirma es lo que ve el comprador: que NO aparece un mensaje de error, y que la
@@ -45,8 +69,9 @@ test.describe('la compra', () => {
     await entra(page, ANGULAR, CLIENTE);
     await descartaElAvisoDeGalletas(page);
 
+    await vaciaLaCesta(page);
     const saldo = await hayCestaConSaldo(page);
-    test.skip(!saldo, 'la cuenta de certificación no tiene cesta o saldo con los que comprar');
+    test.skip(!saldo, 'no hay catálogo o la cuenta de certificación se ha quedado sin saldo');
 
     const peticiones = vigilaLasPeticiones(page);
     await pulsaConfirmar(page);
@@ -84,8 +109,9 @@ test.describe('la compra', () => {
       }
     });
 
+    await vaciaLaCesta(page);
     const saldo = await hayCestaConSaldo(page);
-    test.skip(!saldo, 'la cuenta de certificación no tiene cesta o saldo con los que comprar');
+    test.skip(!saldo, 'no hay catálogo o la cuenta de certificación se ha quedado sin saldo');
     await pulsaConfirmar(page);
 
     expect(claves.length, 'no salió ninguna petición de cobro que certificar').toBeGreaterThan(0);
@@ -93,7 +119,19 @@ test.describe('la compra', () => {
       .toBe(true);
   });
 
-  /** Deja la cesta con algo y devuelve si se puede pagar con saldo. */
+  /**
+   * Deja la cesta con algo, ELIGE pagar con saldo y devuelve si se ha podido.
+   *
+   * <p>Esta función estaba rota de tres maneras distintas, y el efecto era el peor posible: la sección
+   * «Método de pago» viene PLEGADA, así que el rótulo del monedero no estaba en el árbol, la función
+   * devolvía `false` y las dos pruebas se SALTABAN. No se ponían en rojo: desaparecían del recuento y
+   * la certificación cerraba en verde sin haber comprado nada.
+   *
+   * <p>Las otras dos: no se llegaba a ELEGIR el monedero —confirmar habría pagado con tarjeta, que es
+   * el método por defecto, y la prueba del saldo no habría probado el saldo—, y el botón de confirmar
+   * no se llama «Confirmar pedido» sino «Pedido con obligación de pago», que es lo que exige la norma
+   * europea de comercio electrónico.
+   */
   async function hayCestaConSaldo(page: import('@playwright/test').Page): Promise<boolean> {
     await abre(page, `${ANGULAR}/catalog`);
     await apartaAlAsistente(page);
@@ -101,16 +139,39 @@ test.describe('la compra', () => {
     if ((await tarjeta.count()) === 0) {
       return false;
     }
-    await tarjeta.getByRole('button', { name: /Añadir al carrito/i }).click();
+    /*
+     * Se espera a que el carrito RESPONDA antes de navegar. Pulsar y saltar acto seguido a `/checkout`
+     * llegaba a veces con la cesta todavía vacía —«Nada para hacer checkout»— y entonces no hay
+     * sección de pago que desplegar. Salía bien o mal según lo que tardara el servidor, que es la
+     * peor clase de prueba: la que a veces prueba.
+     */
+    await Promise.all([
+      page.waitForResponse(
+        // PUT, no POST: el carrito se ESTABLECE por línea, no se añade a una colección.
+        (r) => r.request().method() === 'PUT' && /\/me\/cart$/.test(r.url()) && r.ok(),
+        { timeout: 20_000 },
+      ),
+      tarjeta.getByRole('button', { name: /Añadir al carrito/i }).click(),
+    ]);
+
     await abre(page, `${ANGULAR}/checkout`);
     await apartaAlAsistente(page);
-    // El método de saldo solo se ofrece si la cuenta lo tiene: si no está, no hay nada que certificar.
-    const conSaldo = page.getByText(/Pago con tu wallet/i);
-    return (await conSaldo.count()) > 0;
+
+    await page.getByRole('button', { name: /Método de pago/i }).first().click();
+
+    const conSaldo = page.getByRole('button', { name: /Pago con tu wallet/i }).first();
+    if (!(await conSaldo.isVisible().catch(() => false))) {
+      return false;
+    }
+    await conSaldo.click();
+    // Se comprueba que ha QUEDADO elegido: si no, se estaría certificando el pago con tarjeta.
+    await expect(conSaldo).toHaveAttribute('aria-pressed', 'true');
+    return true;
   }
 
   async function pulsaConfirmar(page: import('@playwright/test').Page): Promise<void> {
-    const confirmar = page.getByRole('button', { name: /Confirmar pedido/i }).first();
+    const confirmar = page.getByRole('button', { name: /Pedido con obligación de pago/i }).first();
+    await expect(confirmar).toBeEnabled();
     await confirmar.click();
     await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => undefined);
   }
