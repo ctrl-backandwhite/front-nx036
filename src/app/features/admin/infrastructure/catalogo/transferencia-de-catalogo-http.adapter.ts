@@ -32,6 +32,30 @@ function aEstado(dto: ReindexadoDto): EstadoDeReindexado {
 }
 
 /**
+ * El filtro, en los parámetros que entiende el backend.
+ *
+ * <p>Está en UN sitio porque los tres caminos —contar, tramo y volcado— tienen que mandar exactamente
+ * lo mismo: si a uno se le olvida un filtro, los tramos que el panel ofrece no cuadran con lo que
+ * después se descarga, y eso no da error, da un fichero equivocado.
+ */
+export function aParametros(
+  filtro: FiltroDeExportacion,
+): Readonly<Record<string, string | number | boolean | null | undefined>> {
+  return {
+    createdFrom: filtro.creadoDesde || undefined,
+    createdTo: filtro.creadoHasta || undefined,
+    verified: filtro.verificado,
+    status: filtro.estado,
+    categoryId: filtro.categoriaId,
+    q: filtro.texto,
+    minCost: filtro.costeMinimo,
+    maxCost: filtro.costeMaximo,
+    minSales: filtro.ventasMinimas,
+    minTrend: filtro.tendenciaMinima,
+  };
+}
+
+/**
  * La importación y la exportación del catálogo contra nuestro backend.
  *
  * <p>Las dos van juntas porque son la MISMA vía en los dos sentidos: lo que sale de un entorno tiene
@@ -71,11 +95,7 @@ export class TransferenciaDeCatalogoHttpAdapter
   async cuenta(filtro: FiltroDeExportacion): Promise<Result<number, AppError>> {
     const respuesta = await this.api.get<{ count: number }>(
       '/admin/catalog/products/export/count',
-      {
-        createdFrom: filtro.creadoDesde || undefined,
-        createdTo: filtro.creadoHasta || undefined,
-        verified: filtro.verificado,
-      },
+      aParametros(filtro),
     );
     return mapea(respuesta, (cuerpo) => cuerpo.count ?? 0);
   }
@@ -88,9 +108,7 @@ export class TransferenciaDeCatalogoHttpAdapter
     const respuesta = await this.api.get<FilaDeImportacion[]>('/admin/catalog/products/export', {
       from: desde,
       to: hasta,
-      createdFrom: filtro.creadoDesde || undefined,
-      createdTo: filtro.creadoHasta || undefined,
-      verified: filtro.verificado,
+      ...aParametros(filtro),
     });
     return mapea(respuesta, (filas) => filas ?? []);
   }

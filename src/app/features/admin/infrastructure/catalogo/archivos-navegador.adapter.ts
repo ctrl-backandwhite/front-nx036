@@ -4,6 +4,7 @@ import { TokenStore } from '@core/auth/token-store';
 import { AppError, creaError } from '@shared/error/app-error';
 import { Result, exito, fallo } from '@shared/result/result';
 import { FiltroDeExportacion } from '../../domain/catalogo/model/exportacion';
+import { aParametros } from './transferencia-de-catalogo-http.adapter';
 import { FilaDeImportacion } from '../../domain/catalogo/model/importacion-masiva';
 import {
   ArchivoLocal,
@@ -151,15 +152,13 @@ export class ArchivosNavegadorAdapter
     nombre: string,
     destino: WritableStream | null,
   ): Promise<Result<boolean, AppError>> {
+    // Los MISMOS parámetros que el contador y los tramos, salidos del mismo sitio: el volcado no puede
+    // acotar distinto que el recuento del que salen los tramos que se ofrecen.
     const parametros = new URLSearchParams({ batch: String(LOTE_DEL_VOLCADO) });
-    if (filtro.creadoDesde) {
-      parametros.set('createdFrom', filtro.creadoDesde);
-    }
-    if (filtro.creadoHasta) {
-      parametros.set('createdTo', filtro.creadoHasta);
-    }
-    if (filtro.verificado !== undefined) {
-      parametros.set('verified', String(filtro.verificado));
+    for (const [clave, valor] of Object.entries(aParametros(filtro))) {
+      if (valor !== undefined && valor !== null && valor !== '') {
+        parametros.set(clave, String(valor));
+      }
     }
     try {
       const respuesta = await fetch(

@@ -1,3 +1,5 @@
+import { CriterioDeCatalogo, EstadoDeProducto } from './producto-admin';
+
 /**
  * La exportación de productos: la vía por la que el catálogo cruza de un entorno a otro.
  *
@@ -5,11 +7,53 @@
  * importar tal cual. Va por segmentos porque un catálogo entero en un solo fichero no se descarga: cada
  * ficha pesa unos 33 kB con sus ocho idiomas, variantes e imágenes.
  */
+
+/**
+ * Con qué se acota una exportación: LOS MISMOS filtros que la lista del panel, más el rango por fecha
+ * de carga, que solo existe aquí.
+ *
+ * <p>Antes solo llevaba fecha y certificación, así que filtrar la lista a treinta productos y abrir
+ * «Exportar» ofrecía los nueve mil del catálogo: lo que se descargaba no era lo que se estaba mirando,
+ * y nada lo advertía.
+ */
 export interface FiltroDeExportacion {
   readonly creadoDesde?: string;
   readonly creadoHasta?: string;
   /** Sin valor = todos; `true` = solo certificados; `false` = solo pendientes. */
   readonly verificado?: boolean;
+  readonly estado?: EstadoDeProducto;
+  readonly categoriaId?: string;
+  readonly texto?: string;
+  /** Coste YA en yuanes, que es como lo guarda el backend; la columna del panel lo convierte al pintar. */
+  readonly costeMinimo?: number;
+  readonly costeMaximo?: number;
+  readonly ventasMinimas?: number;
+  /** De 0 a 1, como lo guarda el backend. */
+  readonly tendenciaMinima?: number;
+}
+
+/**
+ * El filtro de exportación que corresponde a lo que la lista está enseñando.
+ *
+ * <p>La página y el orden NO viajan: la exportación recorre todo lo que cumple el filtro, no la página
+ * que se ve. El rango de fechas tampoco sale de aquí porque la lista no lo tiene; lo añade el diálogo.
+ */
+export function filtroDesdeLaLista(
+  criterio: CriterioDeCatalogo,
+  fechas: Pick<FiltroDeExportacion, 'creadoDesde' | 'creadoHasta'> = {},
+): FiltroDeExportacion {
+  return {
+    creadoDesde: fechas.creadoDesde || undefined,
+    creadoHasta: fechas.creadoHasta || undefined,
+    verificado: criterio.verificado,
+    estado: criterio.estado,
+    categoriaId: criterio.categoriaId,
+    texto: criterio.texto,
+    costeMinimo: criterio.costeMinimo,
+    costeMaximo: criterio.costeMaximo,
+    ventasMinimas: criterio.ventasMinimas,
+    tendenciaMinima: criterio.tendenciaMinima,
+  };
 }
 
 export interface SegmentoDeExportacion {

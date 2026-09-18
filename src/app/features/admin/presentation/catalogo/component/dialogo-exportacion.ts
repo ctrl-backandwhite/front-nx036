@@ -9,9 +9,11 @@ import {
   ExportaCatalogoCompleto,
   ExportaSegmento,
 } from '../../../application/catalogo/use-case/exporta-productos.use-case';
+import { CatalogoAdminStore } from '../../../application/catalogo/state/catalogo-admin.store';
 import {
   FiltroDeExportacion,
   SegmentoDeExportacion,
+  filtroDesdeLaLista,
   segmentos,
   tamanoDelSegmento,
 } from '../../../domain/catalogo/model/exportacion';
@@ -21,12 +23,17 @@ import { VentanaModal } from './ventana-modal';
 /** Cuántos productos trae cada fichero por omisión. */
 const TAMANO_DE_SEGMENTO = 1000;
 
-/** Lo que se rellena en el diálogo: el tamaño del tramo y el filtro con el que se cuenta. */
+/**
+ * Lo que se rellena AQUÍ: el tamaño del tramo y el rango por fecha de carga.
+ *
+ * <p>El resto del filtro —estado, categoría, texto, certificación, coste, ventas y tendencia— NO se
+ * repite: se hereda de la lista. Duplicarlo obligaba a acertar dos veces y, mientras no se acertaba,
+ * lo que se descargaba no era lo que se estaba mirando.
+ */
 interface FormularioDeExportacion {
   tamano: number | null;
   desde: string;
   hasta: string;
-  verificado: string;
 }
 
 /**
@@ -46,7 +53,27 @@ interface FormularioDeExportacion {
     <nx-ventana-modal [titulo]="t('admin.export.title')" ancho="sm:max-w-lg" (cierra)="cierra.emit()">
       <p class="text-[12px] text-ink-500">{{ t('admin.export.help') }}</p>
 
-      <div class="flex flex-col sm:flex-row sm:items-end gap-3 mt-3">
+      <!--
+        Qué se va a llevar. Se dice ARRIBA y con el recuento delante porque es la decisión que se toma
+        aquí: la diferencia entre bajarse las treinta fichas que se estaban mirando y las nueve mil del
+        catálogo no se puede deducir de una lista de botones con tramos.
+      -->
+      <div
+        class="mt-3 rounded-md border border-ink-100 bg-ink-50/60 px-3 py-2 text-[12px] text-ink-600"
+      >
+        <span class="font-medium">
+          {{ total.isLoading() ? '…' : tCon('admin.export.total', { n: cuantos() }) }}
+        </span>
+        <span class="text-ink-500">
+          · {{ heredaFiltros() ? t('admin.export.scope_filtered') : t('admin.export.scope_all') }}
+        </span>
+      </div>
+
+      <!--
+        Una rejilla, no una fila: a la anchura del diálogo los tres campos y el botón no caben seguidos,
+        y ajustando por filas el último caía suelto contra el borde. En el móvil es una columna.
+      -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-x-3 gap-y-2 mt-3">
         <div>
           <label for="export-tamano" class="text-[12px] font-medium text-ink-600 mb-1 block">
             {{ t('admin.export.segment_size') }}
@@ -54,19 +81,13 @@ interface FormularioDeExportacion {
           <input
             id="export-tamano"
             type="number"
-            class="input input-bordered input-sm w-32"
+            class="input input-bordered input-sm w-full"
             [formField]="formulario.tamano"
           />
           @if (fallo(formulario.tamano()); as texto) {
             <div class="text-[11px] text-error mt-0.5">{{ texto }}</div>
           }
         </div>
-        <div class="text-[12px] text-ink-500 pb-1.5">
-          {{ total.isLoading() ? '…' : tCon('admin.export.total', { n: cuantos() }) }}
-        </div>
-      </div>
-
-      <div class="flex flex-col sm:flex-row sm:items-end gap-3 flex-wrap mt-3">
         <div>
           <label for="export-desde" class="text-[12px] font-medium text-ink-600 mb-1 block">
             {{ t('admin.export.date_from') }}
@@ -74,7 +95,7 @@ interface FormularioDeExportacion {
           <input
             id="export-desde"
             type="date"
-            class="input input-bordered input-sm"
+            class="input input-bordered input-sm w-full"
             [max]="modelo().hasta || null"
             [formField]="formulario.desde"
           />
@@ -86,7 +107,7 @@ interface FormularioDeExportacion {
           <input
             id="export-hasta"
             type="date"
-            class="input input-bordered input-sm"
+            class="input input-bordered input-sm w-full"
             [min]="modelo().desde || null"
             [formField]="formulario.hasta"
           />
@@ -94,32 +115,16 @@ interface FormularioDeExportacion {
             <div class="text-[11px] text-error mt-0.5">{{ texto }}</div>
           }
         </div>
-        <!--
-          La certificación va en la MISMA fila que las fechas porque se combinan entre sí, no se
-          excluyen. Reutiliza las etiquetas del filtro de la lista para que quien las conoce allí las
-          reconozca aquí.
-        -->
-        <div>
-          <label for="export-verificado" class="text-[12px] font-medium text-ink-600 mb-1 block">
-            {{ t('admin.catalog.col.verified') }}
-          </label>
-          <select
-            id="export-verificado"
-            class="select select-bordered select-sm"
-            [formField]="formulario.verificado"
-          >
-            <option value="">{{ t('admin.export.verified_all') }}</option>
-            <option value="true">{{ t('admin.catalog.verified.yes') }}</option>
-            <option value="false">{{ t('admin.catalog.verified.no') }}</option>
-          </select>
-        </div>
-        @if (hayFiltro()) {
-          <button type="button" class="btn btn-ghost btn-xs self-end pb-1.5" (click)="limpia()">
+      </div>
+
+      <div class="flex items-center justify-between gap-2 mt-1">
+        <p class="text-[11px] text-ink-400">{{ t('admin.export.date_hint') }}</p>
+        @if (hayFechas()) {
+          <button type="button" class="btn btn-ghost btn-xs shrink-0" (click)="limpia()">
             {{ t('admin.export.date_clear') }}
           </button>
         }
       </div>
-      <p class="text-[11px] text-ink-400 mt-1">{{ t('admin.export.date_hint') }}</p>
 
       @if (cuantos() > 0) {
         <button
@@ -184,6 +189,7 @@ export class DialogoExportacion {
   protected readonly t = inject(TraduccionService).t;
   protected readonly tCon = inject(TraduccionService).tCon;
   private readonly avisos = inject(AvisosStore);
+  private readonly almacen = inject(CatalogoAdminStore);
   private readonly cuenta = inject(CuentaExportables);
   private readonly exportaSegmento = inject(ExportaSegmento);
   private readonly exportaTodo = inject(ExportaCatalogoCompleto);
@@ -194,7 +200,6 @@ export class DialogoExportacion {
     tamano: TAMANO_DE_SEGMENTO,
     desde: '',
     hasta: '',
-    verificado: '',
   });
 
   /**
@@ -219,15 +224,24 @@ export class DialogoExportacion {
   /** Qué se está descargando: `'todo'`, la clave de un tramo, o nada. */
   protected readonly ocupado = signal<string | null>(null);
 
-  protected readonly filtro = computed<FiltroDeExportacion>(() => ({
-    creadoDesde: this.modelo().desde || undefined,
-    creadoHasta: this.modelo().hasta || undefined,
-    verificado: this.modelo().verificado === '' ? undefined : this.modelo().verificado === 'true',
-  }));
-
-  protected readonly hayFiltro = computed(
-    () => !!this.modelo().desde || !!this.modelo().hasta || !!this.modelo().verificado,
+  /**
+   * Lo que se va a exportar: EXACTAMENTE lo que la lista está enseñando, más el rango de fechas.
+   *
+   * <p>Es el arreglo del defecto: antes este diálogo solo conocía fecha y certificación, así que con la
+   * lista filtrada a treinta productos ofrecía los nueve mil del catálogo. Y no avisaba de nada —los
+   * tramos salían del total sin filtrar—, así que quien descargaba creía llevarse su selección.
+   */
+  protected readonly filtro = computed<FiltroDeExportacion>(() =>
+    filtroDesdeLaLista(this.almacen.criterio(), {
+      creadoDesde: this.modelo().desde || undefined,
+      creadoHasta: this.modelo().hasta || undefined,
+    }),
   );
+
+  protected readonly hayFechas = computed(() => !!this.modelo().desde || !!this.modelo().hasta);
+
+  /** Si la lista está filtrada, se dice: la diferencia entre exportar 30 fichas y exportar 9.000. */
+  protected readonly heredaFiltros = computed(() => this.almacen.hayFiltros());
 
   /**
    * El recuento se pide con el FILTRO puesto: los tramos que se ofrecen salen de este total, y contar
@@ -260,7 +274,7 @@ export class DialogoExportacion {
   }
 
   protected limpia(): void {
-    this.modelo.update((actual) => ({ ...actual, desde: '', hasta: '', verificado: '' }));
+    this.modelo.update((actual) => ({ ...actual, desde: '', hasta: '' }));
   }
 
   protected async descarga(tramo: SegmentoDeExportacion): Promise<void> {
