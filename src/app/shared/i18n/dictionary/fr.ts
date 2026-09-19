@@ -383,6 +383,7 @@ const diccionario: Record<string, string> = {
   'admin.users.actions.action_error': 'L\'action n\'a pas pu être effectuée.',
   'admin.users.role.ADMIN': 'Administrateur',
   'admin.users.role.OPERATOR': 'Opérateur',
+  'admin.users.role.REVIEWER': 'Relecteur',
   'admin.users.role.PARTNER': 'Partner',
   'admin.users.role.USER': 'Client',
   'admin.variants.actions': 'Actions',

@@ -389,6 +389,7 @@ const diccionario: Record<string, string> = {
   'admin.users.actions.action_error': 'De actie kon niet worden voltooid.',
   'admin.users.role.ADMIN': 'Beheerder',
   'admin.users.role.OPERATOR': 'Operator',
+  'admin.users.role.REVIEWER': 'Beoordelaar',
   'admin.users.role.PARTNER': 'Partner',
   'admin.users.role.USER': 'Klant',
   'admin.variants.actions': 'Acties',

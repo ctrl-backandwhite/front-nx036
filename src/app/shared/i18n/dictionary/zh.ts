@@ -1606,6 +1606,7 @@ const diccionario: Record<string, string> = {
   'admin.users.actions.invite_sent': '已向 {email} 发送邀请。',
   'admin.users.role.ADMIN': '管理员',
   'admin.users.role.OPERATOR': '运营',
+  'admin.users.role.REVIEWER': '审核员',
   'admin.users.role.PARTNER': '合作伙伴',
   'admin.users.role.USER': '用户',
   'admin.profile.title': '我的资料',

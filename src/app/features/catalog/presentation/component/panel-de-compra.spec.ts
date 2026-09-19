@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { SesionActual } from '@core/auth/sesion-actual';
+import { RolDeSesion, SesionActual } from '@core/auth/sesion-actual';
 import { EDICION_DE_FICHA_PORT } from '../../domain/port/edicion-de-ficha.port';
 import { EjeDeVariante, FichaDeProducto } from '../../domain/model/producto';
 import { SeleccionDeLaFicha } from '../seleccion-de-la-ficha';
@@ -63,7 +63,7 @@ function ficha(cambios: Partial<FichaDeProducto> = {}): FichaDeProducto {
   };
 }
 
-async function monta(entrada: FichaDeProducto, esAdministrador = false) {
+async function monta(entrada: FichaDeProducto, rol?: RolDeSesion) {
   const anade = vi.fn();
   const marcaFavorito = vi.fn();
   const vista = await render(PanelDeCompra, {
@@ -71,23 +71,72 @@ async function monta(entrada: FichaDeProducto, esAdministrador = false) {
     on: { anade, marcaFavorito },
     providers: [
       ...APLICACION_DEL_CATALOGO,
-        CESTA_DE_OTRO_CONTEXTO,
+      CESTA_DE_OTRO_CONTEXTO,
       SeleccionDeLaFicha,
       { provide: EDICION_DE_FICHA_PORT, useValue: {} },
     ],
   });
   const seleccion = vista.fixture.debugElement.injector.get(SeleccionDeLaFicha);
   seleccion.empieza(entrada);
-  if (esAdministrador) {
+  if (rol) {
     vista.fixture.debugElement.injector
       .get(SesionActual)
-      .publica({ id: 'u1', rol: 'ADMIN', nombreVisible: 'Ana', pais: 'ES' });
+      .publica({ id: 'u1', rol, nombreVisible: 'Ana', pais: 'ES' });
   }
   vista.fixture.detectChanges();
+  await vista.fixture.whenStable();
   return { vista, anade, marcaFavorito, seleccion };
 }
 
 describe('PanelDeCompra', () => {
+  /**
+   * El reparto de la ficha entre los dos papeles internos, que es TODO el rol de revisor.
+   *
+   * <p>El bloque de origen y el desglose de precio están pegados en la misma columna y colgaban del
+   * mismo `esAdministrador()`. Al abrir el origen al revisor hay que comprobar que el desglose NO se
+   * fue con él: son el coste, el margen y las dos bolsas de subvención. El backend además se lo vacía
+   * —hay prueba propia—, pero eso no vuelve superflua esta: si el `@if` se relajara, bastaría con que
+   * alguien devolviera el desglose por otro camino para publicárselo.
+   */
+  /**
+   * Los dos bloques cuelgan de condiciones DISTINTAS y hay que verlo: el de origen mira
+   * `puedeRevisarFichas()`, el desglose sigue mirando `esAdministrador()`. Colgaban los dos del mismo
+   * sitio, y si alguien los volviera a juntar, el revisor vería el coste y el margen.
+   *
+   * <p>El contenido va en `@defer`, que en pruebas no se resuelve, así que se cuentan los BLOQUES
+   * diferidos: cuando el `@if` de fuera es falso, el bloque ni llega a crearse. Con ficha completa,
+   * el administrador tiene los dos, el revisor solo el de origen y quien compra ninguno.
+   */
+  async function bloquesDeAdministracion(rol: RolDeSesion | undefined) {
+    const conDesglose = ficha({
+      urlDeOrigen: 'https://detail.1688.com/offer/1.html',
+      desglose: { baseFormateado: '11,43 €', ivaFormateado: '1,49 €', recargoCny: 8.98 },
+    });
+    const { vista } = await monta(conDesglose, rol);
+    return { cuantos: (await vista.fixture.getDeferBlocks()).length, vista };
+  }
+
+  it('el revisor ve el bloque de origen y NO el desglose de precio', async () => {
+    const { cuantos, vista } = await bloquesDeAdministracion('REVIEWER');
+
+    expect(vista.container.querySelector('div.order-3')).not.toBeNull();
+    expect(cuantos).toBe(1);
+  });
+
+  it('el administrador ve los dos', async () => {
+    const { cuantos, vista } = await bloquesDeAdministracion('ADMIN');
+
+    expect(vista.container.querySelector('div.order-3')).not.toBeNull();
+    expect(cuantos).toBe(2);
+  });
+
+  it('quien compra no ve ninguno', async () => {
+    const { cuantos, vista } = await bloquesDeAdministracion('USER');
+
+    expect(vista.container.querySelector('div.order-3')).toBeNull();
+    expect(cuantos).toBe(0);
+  });
+
   it('enseña el título, la valoración y el precio', async () => {
     await monta(ficha());
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Gorro de lana');

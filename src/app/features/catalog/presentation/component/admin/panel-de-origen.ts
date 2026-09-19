@@ -2,6 +2,7 @@ import { Component, computed, inject, input, output, signal } from '@angular/cor
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faPenToSquare, faShop, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
+import { SesionActual } from '@core/auth/sesion-actual';
 import { DialogoStore } from '@ds/component/dialogo/dialogo.store';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
 import { FichaDeProducto } from '../../../domain/model/producto';
@@ -13,9 +14,13 @@ import { Result } from '@shared/result/result';
  * El bloque de administración de la ficha: de dónde salió el producto, si está revisado y cómo
  * borrarlo.
  *
- * <p>Se carga EN DIFERIDO y solo para el administrador: nada de esto —ni el enlace al proveedor, ni el
- * código externo, ni el botón de borrar— debe viajar al navegador de quien compra. El enlace de origen
- * es especialmente delicado: enseñarlo invitaría a comprar directamente al proveedor.
+ * <p>Se carga EN DIFERIDO y solo para quien administra o revisa: nada de esto —ni el enlace al
+ * proveedor, ni el código externo, ni el botón de borrar— debe viajar al navegador de quien compra. El
+ * enlace de origen es especialmente delicado: enseñarlo invitaría a comprar directamente al proveedor.
+ *
+ * <p>El REVISOR ve el origen —lo necesita para comparar la galería con lo que vende el proveedor— pero
+ * no las dos acciones del final: «Verificado» lo decide el dueño, y borrar el producto es de otro
+ * oficio. Se ocultan aquí, en el único sitio donde viven, en vez de partir el componente en dos.
  *
  * <p>El enlace se pide en un FORMULARIO y no en una cadena de preguntas sueltas, para poder revisar lo
  * pegado antes de guardar. El dominio lo valida el backend, que es quien manda.
@@ -55,7 +60,11 @@ import { Result } from '@shared/result/result';
           class="btn btn-sm btn-ghost gap-2 w-full sm:w-auto"
         >
           <fa-icon [icon]="iconos.lapiz" />
-          {{ ficha().urlDeOrigen ? t('admin.product.source_url.edit') : t('admin.product.source_url.add') }}
+          {{
+            ficha().urlDeOrigen
+              ? t('admin.product.source_url.edit')
+              : t('admin.product.source_url.add')
+          }}
         </button>
       </div>
 
@@ -68,28 +77,34 @@ import { Result } from '@shared/result/result';
            propio que validar o enviar. Lo que enseña es la ficha que llega, y marcarla es un GESTO que
            llama al servidor al instante. Darle un modelo local sería crear una segunda verdad sobre un
            dato que manda el backend, y quedaría desincronizada en cuanto el guardado fallara. -->
-      <label class="flex items-center gap-2 pt-2 border-t border-warning/30 cursor-pointer text-[12px]">
-        <input
-          type="checkbox"
-          class="checkbox checkbox-xs checkbox-success"
-          [checked]="!!ficha().verificado"
-          [disabled]="trabajando()"
-          (change)="marcaVerificado($any($event.target).checked)"
-        />
-        <span class="font-medium">{{ t('admin.catalog.col.verified') }}</span>
-        <span class="opacity-60">
-          {{ ficha().verificado ? t('admin.catalog.verified.yes') : t('admin.catalog.verified.no') }}
-        </span>
-      </label>
+      @if (esAdministrador()) {
+        <label
+          class="flex items-center gap-2 pt-2 border-t border-warning/30 cursor-pointer text-[12px]"
+        >
+          <input
+            type="checkbox"
+            class="checkbox checkbox-xs checkbox-success"
+            [checked]="!!ficha().verificado"
+            [disabled]="trabajando()"
+            (change)="marcaVerificado($any($event.target).checked)"
+          />
+          <span class="font-medium">{{ t('admin.catalog.col.verified') }}</span>
+          <span class="opacity-60">
+            {{
+              ficha().verificado ? t('admin.catalog.verified.yes') : t('admin.catalog.verified.no')
+            }}
+          </span>
+        </label>
 
-      <button
-        type="button"
-        [disabled]="trabajando()"
-        (click)="borraElProducto()"
-        class="btn btn-sm btn-error btn-outline gap-2 w-full mt-1"
-      >
-        <fa-icon [icon]="iconos.papelera" /> {{ t('admin.catalog.product.delete') }}
-      </button>
+        <button
+          type="button"
+          [disabled]="trabajando()"
+          (click)="borraElProducto()"
+          class="btn btn-sm btn-error btn-outline gap-2 w-full mt-1"
+        >
+          <fa-icon [icon]="iconos.papelera" /> {{ t('admin.catalog.product.delete') }}
+        </button>
+      }
     </div>
   `,
 })
@@ -112,6 +127,8 @@ export class PanelDeOrigen {
   private readonly avisos = inject(AvisosStore);
 
   protected readonly t = inject(TraduccionService).t;
+  /** «Verificado» y el borrado son solo del administrador; el revisor ve el resto del bloque. */
+  protected readonly esAdministrador = inject(SesionActual).esAdministrador;
   protected readonly iconos = { tienda: faShop, lapiz: faPenToSquare, papelera: faTrash };
   protected readonly trabajando = signal(false);
 

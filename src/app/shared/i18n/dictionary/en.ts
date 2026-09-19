@@ -1221,6 +1221,7 @@ const diccionario: Record<string, string> = {
   'admin.users.actions.invite_sent': 'Invite sent to {email}.',
   'admin.users.role.ADMIN': 'Administrator',
   'admin.users.role.OPERATOR': 'Operator',
+  'admin.users.role.REVIEWER': 'Reviewer',
   'admin.users.role.PARTNER': 'Partner',
   'admin.users.role.USER': 'User',
   'admin.profile.title': 'My profile',

@@ -24,7 +24,7 @@ export interface UsuarioGestionado {
 }
 
 /** Los papeles que se pueden asignar desde el panel, en el orden en que se enseñan. */
-export const ROLES: readonly Rol[] = ['ADMIN', 'OPERATOR', 'PARTNER', 'USER'];
+export const ROLES: readonly Rol[] = ['ADMIN', 'OPERATOR', 'REVIEWER', 'PARTNER', 'USER'];
 
 /** Lo que se puede cambiar de una cuenta desde la ficha de edición. */
 export interface CambiosDeUsuario {

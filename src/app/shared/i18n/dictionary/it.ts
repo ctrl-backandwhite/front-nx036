@@ -389,6 +389,7 @@ const diccionario: Record<string, string> = {
   'admin.users.actions.action_error': 'Impossibile completare l\'azione.',
   'admin.users.role.ADMIN': 'Amministratore',
   'admin.users.role.OPERATOR': 'Operatore',
+  'admin.users.role.REVIEWER': 'Revisore',
   'admin.users.role.PARTNER': 'Partner',
   'admin.users.role.USER': 'Cliente',
   'admin.variants.actions': 'Azioni',

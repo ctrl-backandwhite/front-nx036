@@ -124,7 +124,7 @@ const CONFIRMACION_MS = 2000;
               [titulo]="producto.titulo"
               [fotoDeVariante]="seleccion.fotoDelColor() ?? undefined"
               [pasePasando]="pase.corriendo()"
-              [puedeEditar]="sesion.esAdministrador()"
+              [puedeEditar]="sesion.puedeRevisarFichas()"
               [activa]="fotoActiva()"
               (activaChange)="eligeFoto($event)"
               (interactua)="pase.cancela()"
@@ -135,7 +135,7 @@ const CONFIRMACION_MS = 2000;
             />
           </div>
 
-          @if (sesion.esAdministrador()) {
+          @if (sesion.puedeRevisarFichas()) {
             @defer (on idle) {
               <nx-fotos-de-variante [ficha]="producto" />
             }
@@ -181,7 +181,7 @@ const CONFIRMACION_MS = 2000;
       <nx-secciones-ficha
         [ficha]="producto"
         [fotosDeDetalle]="detalle()"
-        [puedeEditar]="sesion.esAdministrador()"
+        [puedeEditar]="sesion.puedeRevisarFichas()"
         (borraImagen)="admin.borraImagen($event, () => quitaFotos([$event]))"
         (borraSeleccion)="admin.borraSeleccion($event, null, quitaFotos, quitaVideo)"
         (reordenaDetalle)="admin.reordena(producto.id, $event, () => reordenaDetalle($event))"
@@ -523,7 +523,7 @@ export class FichaPage {
   }
 
   protected admiteFoto(evento: DragEvent): void {
-    if (!this.sesion.esAdministrador()) {
+    if (!this.sesion.puedeRevisarFichas()) {
       return;
     }
     evento.preventDefault();
@@ -533,7 +533,7 @@ export class FichaPage {
   protected sueltaFoto(evento: DragEvent, ficha: FichaDeProducto): void {
     this.arrastrandoFoto.set(false);
     const direccion = evento.dataTransfer?.getData('text/uri-list');
-    if (!this.sesion.esAdministrador() || !direccion) {
+    if (!this.sesion.puedeRevisarFichas() || !direccion) {
       return;
     }
     evento.preventDefault();

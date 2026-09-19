@@ -16,7 +16,7 @@ import { Service, computed, signal } from '@angular/core';
  * <p>Quien ESCRIBE aquí es únicamente el almacén de sesión de «auth», al entrar y al salir. Todos los
  * demás leen.
  */
-export type RolDeSesion = 'ADMIN' | 'OPERATOR' | 'PARTNER' | 'USER';
+export type RolDeSesion = 'ADMIN' | 'OPERATOR' | 'REVIEWER' | 'PARTNER' | 'USER';
 
 export interface DatosDeSesion {
   readonly id: string;
@@ -46,6 +46,23 @@ export class SesionActual {
   readonly esPersonalInterno = computed(() => {
     const rol = this.rol();
     return rol === 'ADMIN' || rol === 'OPERATOR';
+  });
+
+  /**
+   * Quién puede arreglar el MATERIAL GRÁFICO de una ficha: galería, fotos de la descripción, fotos de
+   * color, vídeo y el enlace a la oferta de origen contra el que se cotejan.
+   *
+   * <p>Es distinto de `esAdministrador` a propósito, y esa diferencia es todo el rol: el revisor edita
+   * las fotos pero NO ve el desglose de precio, NO marca «Verificado» —eso lo decide el dueño— y NO
+   * borra el producto. Esos tres siguen preguntando por `esAdministrador`, que es lo que impide que
+   * «puede editar» se convierta con el tiempo en «es admin».
+   *
+   * <p>Esto NO es la seguridad: el backend enumera las rutas del revisor una a una. Aquí solo se decide
+   * qué botones se pintan.
+   */
+  readonly puedeRevisarFichas = computed(() => {
+    const rol = this.rol();
+    return rol === 'ADMIN' || rol === 'REVIEWER';
   });
 
   /** ¿Tiene alguno de estos papeles? Para ocultar lo que no va a poder usar. */

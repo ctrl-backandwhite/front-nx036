@@ -69,7 +69,7 @@ import { DesgloseEditable } from './admin/desglose-editable';
         <h1 class="text-lg sm:text-2xl font-medium mt-1.5 leading-snug">{{ ficha().titulo }}</h1>
       </header>
 
-      @if (sesion.esAdministrador()) {
+      @if (sesion.puedeRevisarFichas()) {
         <div class="order-3 lg:order-0">
           @defer (on idle) {
             <nx-panel-de-origen
@@ -86,7 +86,7 @@ import { DesgloseEditable } from './admin/desglose-editable';
           <nx-selector-color
             [eje]="eje"
             [elegido]="seleccion.color()"
-            [puedeEditar]="sesion.esAdministrador()"
+            [puedeEditar]="sesion.puedeRevisarFichas()"
             (elige)="eligeColor.emit($event)"
             (borra)="borraVariante.emit($event)"
           />

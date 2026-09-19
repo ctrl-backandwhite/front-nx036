@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { exito, fallo } from '@shared/result/result';
 import { creaError } from '@shared/error/app-error';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
+import { RolDeSesion, SesionActual } from '@core/auth/sesion-actual';
 import { DialogoStore } from '@ds/component/dialogo/dialogo.store';
 import { EDICION_DE_FICHA_PORT } from '../../domain/port/edicion-de-ficha.port';
 import { FichaDeProducto } from '../../domain/model/producto';
@@ -54,21 +55,66 @@ function ficha(cambios: Partial<FichaDeProducto> = {}): FichaDeProducto {
 }
 
 describe('PanelDeOrigen', () => {
-  async function monta(puerto: Record<string, unknown>, entrada = ficha()) {
+  /**
+   * El papel va como parámetro porque el bloque NO es el mismo para todos: el revisor ve el origen y
+   * el enlace, pero ni «Verificado» ni el borrado. Sin sesión publicada el componente se comporta como
+   * el caso más restrictivo, así que hay que decir siempre quién mira.
+   */
+  async function monta(
+    puerto: Record<string, unknown>,
+    entrada = ficha(),
+    rol: RolDeSesion = 'ADMIN',
+  ) {
     const cambiada = vi.fn();
     const borrada = vi.fn();
     const vista = await render(PanelDeOrigen, {
       inputs: { ficha: entrada },
       on: { cambiada, borrada },
-      providers: [...APLICACION_DEL_CATALOGO,
-        CESTA_DE_OTRO_CONTEXTO, { provide: EDICION_DE_FICHA_PORT, useValue: puerto }],
+      providers: [
+        ...APLICACION_DEL_CATALOGO,
+        CESTA_DE_OTRO_CONTEXTO,
+        { provide: EDICION_DE_FICHA_PORT, useValue: puerto },
+      ],
     });
+    vista.fixture.debugElement.injector.get(SesionActual).publica({
+      id: 'u1',
+      rol,
+      nombreVisible: 'Quien mira',
+      pais: 'ES',
+    });
+    await vista.fixture.whenStable();
     return { vista, cambiada, borrada };
   }
 
   it('enseña de dónde salió el producto y su código externo', async () => {
     await monta({});
     expect(screen.getByText('EXT-1')).toBeInTheDocument();
+  });
+
+  /**
+   * El REVISOR ve el origen y puede corregir el enlace —es contra lo que coteja las fotos— pero no las
+   * dos acciones del final. Importa que se comprueben juntas: son las dos que convertirían el rol en
+   * un administrador de facto, «Verificado» porque lo decide el dueño y solo él, y el borrado porque
+   * vacía el catálogo.
+   */
+  it('el revisor ve el origen pero no puede verificar ni borrar el producto', async () => {
+    const { vista } = await monta({}, ficha(), 'REVIEWER');
+
+    expect(screen.getByText('EXT-1')).toBeInTheDocument();
+    expect(vista.container.querySelector('input[type=checkbox]')).toBeNull();
+    // El de borrar es el único botón de error del bloque; se busca por ahí y no por su texto, que
+    // depende del idioma cargado en la prueba.
+    expect(vista.container.querySelector('button.btn-error')).toBeNull();
+    // Y el enlace de origen, que sí es suyo, sigue estando.
+    expect(vista.container.querySelector('button.btn-ghost')).not.toBeNull();
+  });
+
+  /** Y al administrador se le siguen dando las dos, que es de quien son. */
+  it('el administrador conserva verificar y borrar', async () => {
+    const { vista } = await monta({});
+
+    expect(vista.container.querySelector('input[type=checkbox]')).not.toBeNull();
+    expect(vista.container.querySelector('button.btn-error')).not.toBeNull();
   });
 
   /**
@@ -213,7 +259,9 @@ describe('DesgloseEditable', () => {
     document.cookie = 'nx036-locale=es; Path=/';
     const { vista, guarda } = await monta();
 
-    const lapices = [...vista.container.querySelectorAll<HTMLElement>('button[aria-label^="Editar"]')];
+    const lapices = [
+      ...vista.container.querySelectorAll<HTMLElement>('button[aria-label^="Editar"]'),
+    ];
     expect(lapices.length, 'no hay ningún botón de editar').toBeGreaterThan(0);
     await userEvent.click(lapices[0]);
     vista.fixture.detectChanges();
@@ -239,7 +287,9 @@ describe('DesgloseEditable', () => {
     document.cookie = 'nx036-locale=es; Path=/';
     const { vista, cambiado } = await monta();
 
-    const lapices = [...vista.container.querySelectorAll<HTMLElement>('button[aria-label^="Editar"]')];
+    const lapices = [
+      ...vista.container.querySelectorAll<HTMLElement>('button[aria-label^="Editar"]'),
+    ];
     await userEvent.click(lapices[0]);
     vista.fixture.detectChanges();
     const campo = vista.container.querySelector<HTMLInputElement>('input[type=number]')!;

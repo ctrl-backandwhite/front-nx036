@@ -5,7 +5,7 @@
  * cambia el adaptador y esto sigue igual. Cuando un modelo de dominio tiene exactamente la forma del
  * JSON que llega, la dependencia está invertida y el negocio ha quedado atado al transporte.
  */
-export type Rol = 'ADMIN' | 'OPERATOR' | 'PARTNER' | 'USER';
+export type Rol = 'ADMIN' | 'OPERATOR' | 'REVIEWER' | 'PARTNER' | 'USER';
 
 export interface Usuario {
   readonly id: string;
