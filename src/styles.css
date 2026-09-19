@@ -1385,9 +1385,25 @@ pre {
  * Cuándo añadir uno aquí: cuando un componente esté DENTRO de una rejilla o una caja flexible y su
  * raíz sea quien tiene que comportarse como celda. Se detecta comparando la altura del componente con
  * la de su hermano. */
-:is(nx-panel-de-marca, nx-panel-de-alta, nx-indice-de-documentacion) {
+:is(nx-panel-de-marca, nx-panel-de-alta, nx-indice-de-documentacion, nx-panel-de-compra) {
   display: contents;
 }
+
+/* Por qué la ficha de producto entró en la lista de arriba (19-sep-2026).
+ *
+ * En el móvil, la ficha coloca sus bloques con una sola escala de `order` compartida entre la página y
+ * el panel de compra: título (1), precio (2), bloque de origen (3), GALERÍA (4), variantes (5), envío
+ * (6), botones (7). La galería vive en la página y todo lo demás dentro de `nx-panel-de-compra`, de
+ * modo que para que esos números se intercalen tienen que ser hermanos en la MISMA caja flexible.
+ *
+ * El `<aside class="contents">` del panel ya lo intentaba, pero no bastaba: el anfitrión
+ * `<nx-panel-de-compra>` seguía generando su propia caja, así que la sección veía solo DOS hijos —la
+ * galería y el panel entero— y el `order-4` de la galería la mandaba detrás de todo el panel. El
+ * resultado era que en el teléfono las fotos del producto aparecían al final, después del precio y de
+ * los botones, y había que desplazarse media pantalla para ver lo que se está comprando.
+ *
+ * En escritorio no se notaba —ahí la rejilla de dos columnas pone la galería a la izquierda pase lo que
+ * pase— y por eso sobrevivió: el defecto solo existe en el ancho en el que casi nadie prueba. */
 
 /* Los vídeos de producto no ofrecen sonido.
  *
