@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { ROLES } from '../../domain/gestion/model/usuarios';
 import { UsuariosEnLoteHttpAdapter, UsuariosHttpAdapter } from './usuarios-http.adapter';
 
 describe('UsuariosHttpAdapter', () => {
@@ -24,11 +25,19 @@ describe('UsuariosHttpAdapter', () => {
     peticion.flush({
       items: [
         {
-          id: 'u1', email: 'ana@nx036.local', role: 'OPERATOR', active: true,
-          displayName: 'Ana', country: 'ES', failedLoginCount: 2, lockedUntil: null,
+          id: 'u1',
+          email: 'ana@nx036.local',
+          role: 'OPERATOR',
+          active: true,
+          displayName: 'Ana',
+          country: 'ES',
+          failedLoginCount: 2,
+          lockedUntil: null,
         },
       ],
-      totalElements: 1, totalPages: 1, page: 0,
+      totalElements: 1,
+      totalPages: 1,
+      page: 0,
     });
 
     const resultado = await promesa;
@@ -45,12 +54,36 @@ describe('UsuariosHttpAdapter', () => {
   it('un papel desconocido se degrada a USER', async () => {
     const promesa = adaptador.busca({ pagina: 0, tamano: 25 });
 
-    http.expectOne((p) => p.url === '/api/admin/users')
+    http
+      .expectOne((p) => p.url === '/api/admin/users')
       .flush({ items: [{ id: 'u1', email: 'x@y.z', role: 'SUPERADMIN', active: true }] });
 
     const resultado = await promesa;
     if (resultado.ok) {
       expect(resultado.valor.elementos[0].rol).toBe('USER');
+    }
+  });
+
+  /**
+   * EL FALLO QUE ESTA PRUEBA FIJA (19-sep-2026): la lista de papeles válidos estaba escrita a mano
+   * aquí dentro y se quedó sin `REVIEWER` al añadir el rol. El resultado era el peor de los posibles,
+   * porque no parecía un fallo de lectura: el cambio de rol se guardaba bien en el servidor, pero al
+   * recargar la tabla la cuenta salía como «Cliente» y daba toda la impresión de no haberse guardado.
+   *
+   * <p>Se recorren TODOS los papeles en vez de comprobar el nuevo: lo que hay que garantizar no es
+   * que `REVIEWER` funcione, es que ninguno se pierda por el camino la próxima vez.
+   */
+  it.each([...ROLES])('el papel %s sobrevive a la traducción', async (papel) => {
+    const promesa = adaptador.busca({ pagina: 0, tamano: 25 });
+
+    http
+      .expectOne((p) => p.url === '/api/admin/users')
+      .flush({ items: [{ id: 'u1', email: 'x@y.z', role: papel, active: true }] });
+
+    const resultado = await promesa;
+    expect(resultado.ok).toBe(true);
+    if (resultado.ok) {
+      expect(resultado.valor.elementos[0].rol).toBe(papel);
     }
   });
 
@@ -71,7 +104,11 @@ describe('UsuariosHttpAdapter', () => {
     const peticion = http.expectOne('/api/admin/users/u1');
     expect(peticion.request.method).toBe('PUT');
     expect(peticion.request.body).toEqual({
-      displayName: 'Ana', companyName: null, country: null, language: null, active: false,
+      displayName: 'Ana',
+      companyName: null,
+      country: null,
+      language: null,
+      active: false,
     });
     peticion.flush({});
 
@@ -90,7 +127,8 @@ describe('UsuariosHttpAdapter', () => {
   it('convierte un rechazo HTTP en un AppError con su tipo', async () => {
     const promesa = adaptador.borra('u1');
 
-    http.expectOne('/api/admin/users/u1')
+    http
+      .expectOne('/api/admin/users/u1')
       .flush({ message: 'No puedes' }, { status: 403, statusText: 'Forbidden' });
 
     const resultado = await promesa;
@@ -125,7 +163,11 @@ describe('UsuariosEnLoteHttpAdapter', () => {
 
     const resultado = await promesa;
     if (resultado.ok) {
-      expect(resultado.valor).toEqual({ correctos: 2, fallidos: 1, errores: ['c: ya estaba activo'] });
+      expect(resultado.valor).toEqual({
+        correctos: 2,
+        fallidos: 1,
+        errores: ['c: ya estaba activo'],
+      });
     }
   });
 

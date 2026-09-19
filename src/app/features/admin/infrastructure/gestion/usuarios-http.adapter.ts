@@ -5,7 +5,10 @@ import { AppError } from '@shared/error/app-error';
 import { Rol } from '@features/auth/domain/model/usuario';
 import { Pagina, ResultadoMasivo } from '../../domain/gestion/model/pagina';
 import {
-  CambiosDeUsuario, FiltroDeUsuarios, UsuarioGestionado,
+  CambiosDeUsuario,
+  FiltroDeUsuarios,
+  ROLES,
+  UsuarioGestionado,
 } from '../../domain/gestion/model/usuarios';
 import { UsuariosEnLotePort, UsuariosPort } from '../../domain/gestion/port/usuarios.port';
 import { PaginaDto, ResultadoMasivoDto, aPagina, aResultadoMasivo } from './pagina.dto';
@@ -26,9 +29,16 @@ interface UsuarioDto {
   createdAt?: string | null;
 }
 
-/** Un papel desconocido se trata como el más bajo: nunca se asciende a nadie por un dato raro. */
+/**
+ * Un papel desconocido se trata como el más bajo: nunca se asciende a nadie por un dato raro.
+ *
+ * <p>La lista sale de `ROLES` y NO se reescribe aquí. Estaba escrita a mano, sin `REVIEWER`, y el
+ * efecto era desconcertante: el cambio de rol se guardaba bien en el servidor, pero al recargar la
+ * tabla el revisor aparecía como «Cliente» —cayendo por el `else`— y parecía que no se hubiera
+ * guardado nada. Sin error, sin aviso: el papel correcto llegaba y se tiraba al leerlo.
+ */
 function aRol(crudo: string): Rol {
-  return crudo === 'ADMIN' || crudo === 'OPERATOR' || crudo === 'PARTNER' ? crudo : 'USER';
+  return (ROLES as readonly string[]).includes(crudo) ? (crudo as Rol) : 'USER';
 }
 
 function aUsuario(dto: UsuarioDto): UsuarioGestionado {
@@ -136,7 +146,9 @@ export class UsuariosEnLoteHttpAdapter implements UsuariosEnLotePort {
   }
 
   cambiaRol(ids: readonly string[], rol: string): Promise<Result<ResultadoMasivo, AppError>> {
-    return this.lote(this.api.put<ResultadoMasivoDto>('/admin/users/bulk-role', { ids, role: rol }));
+    return this.lote(
+      this.api.put<ResultadoMasivoDto>('/admin/users/bulk-role', { ids, role: rol }),
+    );
   }
 
   borra(ids: readonly string[]): Promise<Result<ResultadoMasivo, AppError>> {
