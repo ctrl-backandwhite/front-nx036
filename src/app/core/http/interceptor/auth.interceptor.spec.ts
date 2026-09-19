@@ -81,6 +81,38 @@ describe('authInterceptor', () => {
     await enCurso;
   });
 
+  /**
+   * El defecto que cerraba la sesión a la hora en punto.
+   *
+   * <p>`/api/auth/refresh` se llama justo cuando el acceso acaba de caducar. Si se le adjunta, el
+   * servidor de recursos valida ESA cabecera antes de llegar al controlador, la encuentra caducada y
+   * responde 401 sin mirar siquiera el refresco del cuerpo. Medido contra el backend el 19-sep-2026:
+   * con el mismo refresco válido, sin cabecera devuelve 200 y con una caducada, 401.
+   */
+  it('NO pone la credencial en la renovación: es lo que la hacía fallar siempre', async () => {
+    const { http, red } = monta();
+
+    const enCurso = firstValueFrom(
+      http.post(`${BACKEND}/api/auth/refresh`, { refreshToken: 'refresco' }),
+    );
+    const peticion = red.expectOne(`${BACKEND}/api/auth/refresh`);
+
+    expect(peticion.request.headers.has('Authorization')).toBe(false);
+    peticion.flush({ token: 'nuevo', refreshToken: 'nuevo-refresco' });
+    await enCurso;
+  });
+
+  it('tampoco en el acceso, que todavía no tiene credencial que dar', async () => {
+    const { http, red } = monta();
+
+    const enCurso = firstValueFrom(http.post(`${BACKEND}/api/auth/login`, {}));
+    const peticion = red.expectOne(`${BACKEND}/api/auth/login`);
+
+    expect(peticion.request.headers.has('Authorization')).toBe(false);
+    peticion.flush({});
+    await enCurso;
+  });
+
   it('sin sesión no inventa ninguna cabecera', async () => {
     const { http, red } = monta(null, null);
 

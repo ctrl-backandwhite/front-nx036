@@ -29,8 +29,25 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const esAbsoluta = /^https?:\/\//i.test(req.url);
   const esNuestroBackend = !esAbsoluta || (!!config.apiBase && req.url.startsWith(config.apiBase));
 
+  /**
+   * A las rutas de la propia autenticación NO se les pone credencial, y esto no es una optimización:
+   * es lo que hace que la renovación pueda funcionar.
+   *
+   * <p>`/api/auth/refresh` se llama precisamente cuando el testigo de acceso acaba de caducar. Si se
+   * adjunta, el servidor de recursos lo valida ANTES de llegar al controlador, lo encuentra caducado y
+   * responde 401 — con el testigo de refresco intacto en el cuerpo, sin llegar a mirarlo. O sea: la
+   * renovación fallaba siempre, y fallaba justo en el único momento en que se la necesita.
+   *
+   * <p>Medido el 19-sep-2026 con el MISMO refresco válido en el cuerpo: sin cabecera responde 200; con
+   * una cabecera caducada, 401. Lo que cambia es solo la cabecera.
+   *
+   * <p>El síntoma que producía: la sesión se caía exactamente a la hora —lo que dura el acceso—, con
+   * contraseña y con Google, y el front lo leía como «la sesión se acabó», borraba los testigos y
+   * mandaba a la pantalla de acceso. En el servidor no quedaba nada útil: la respuesta es el mismo
+   * `SE002` genérico que una contraseña equivocada.
+   */
   const conCredencial = (peticion: HttpRequest<unknown>, token: string | null) =>
-    token && esNuestroBackend
+    token && esNuestroBackend && !esLlamadaDeAutenticacion(peticion.url)
       ? peticion.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
       : peticion;
 
