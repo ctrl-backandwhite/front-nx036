@@ -27,12 +27,32 @@ export class TokenStore {
   /** Hay sesión mientras haya token de acceso. Que siga siendo válido lo dice el backend. */
   readonly haySesion = computed(() => this._acceso() !== null);
 
+  /**
+   * Guarda el par de credenciales. Los DOS, siempre: sin refresco, el que hubiera se BORRA.
+   *
+   * <p>Antes el refresco solo se escribía `if (refresco)`, así que quien pasara nulo —lo hace el
+   * retorno del acceso social cuando el fragmento no trae un refresco con forma de credencial— dejaba
+   * un acceso NUEVO emparejado con un refresco VIEJO. Esa pareja funciona exactamente lo que dura el
+   * acceso, una hora, y muere en la primera renovación: el backend rechaza el refresco caducado o
+   * revocado con un 401, el front lo lee como «la sesión se acabó» y echa a quien estaba navegando.
+   *
+   * <p>Se vio en el registro de la pasarela el 17-sep-2026: acceso correcto a las 22:10, y a las
+   * 23:12:03 —sesenta y dos minutos después— `POST /api/auth/refresh` con 401. A partir de ahí, sin
+   * testigos. El rechazo no deja rastro en el servidor (el motivo se escribe a nivel DEBUG y la
+   * respuesta es el mismo `SE002` genérico que una contraseña equivocada), así que el fallo solo se
+   * puede reconstruir desde fuera.
+   *
+   * <p>Media sesión no es una sesión: o se guardan las dos credenciales, o no se guarda ninguna.
+   */
   guarda(acceso: string, refresco?: string | null): void {
     this.almacen.guarda(CLAVE_ACCESO, acceso);
     this._acceso.set(acceso);
     if (refresco) {
       this.almacen.guarda(CLAVE_REFRESCO, refresco);
       this._refresco.set(refresco);
+    } else {
+      this.almacen.borra(CLAVE_REFRESCO);
+      this._refresco.set(null);
     }
   }
 
