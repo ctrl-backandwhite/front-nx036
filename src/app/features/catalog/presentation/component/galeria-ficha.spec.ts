@@ -148,6 +148,31 @@ describe('GaleriaFicha', () => {
     expect(screen.getByAltText('Gorro')).toHaveAttribute('src', 'c.jpg');
   });
 
+  /**
+   * EL FALLO QUE FIJA ESTA PRUEBA (20-sep-2026): los botones de borrar llevaban «opacity-0» a secas
+   * y solo se hacían visibles con «group-hover». En un teléfono no hay «encima», así que el botón
+   * existía, ocupaba su sitio y se podía pulsar, pero NO SE VEÍA NUNCA: quien administraba el
+   * catálogo desde el móvil no tenía forma de quitar una foto. En pantalla grande no se notaba.
+   *
+   * La comprobación es sobre las clases porque el defecto ES de presentación: el botón siempre
+   * estuvo en el árbol, y cualquier prueba que solo mirase su existencia habría pasado en verde
+   * mientras el botón seguía invisible.
+   */
+  it('el botón de borrar se ve en el móvil, no solo al pasar el ratón', async () => {
+    const vista = await render(GaleriaFicha, {
+      inputs: { fotos: FOTOS, titulo: 'Gorro', activa: 0, puedeEditar: true },
+    });
+
+    const borrar = [...vista.container.querySelectorAll<HTMLElement>('button.bg-error')];
+    expect(borrar.length).toBeGreaterThan(0);
+    for (const boton of borrar) {
+      // Sin prefijo, «opacity-0» vale para TODOS los tamaños y deja el botón invisible en el móvil.
+      expect([...boton.classList]).not.toContain('opacity-0');
+      expect([...boton.classList]).toContain('opacity-100');
+      expect([...boton.classList]).toContain('sm:opacity-0');
+    }
+  });
+
   /** Reordenar deja la PRIMERA como imagen principal del producto. */
   it('el administrador reordena arrastrando una miniatura', async () => {
     const reordena = vi.fn();

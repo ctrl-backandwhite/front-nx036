@@ -1,12 +1,17 @@
-import { Component, computed, effect, inject, input, linkedSignal, model, output, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  linkedSignal,
+  model,
+  output,
+  signal,
+} from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import {
-  faChevronLeft,
-  faChevronRight,
-  faPlay,
-  faTrash,
-} from '@fortawesome/free-solid-svg-icons';
+import { faChevronLeft, faChevronRight, faPlay, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { ImagenDeProducto } from '../../domain/model/producto';
 import { VisorGaleria } from './visor-galeria';
@@ -49,136 +54,150 @@ import { VisorGaleria } from './visor-galeria';
           data-tira-miniaturas
           class="absolute inset-0 flex flex-col gap-2 overflow-y-auto pr-1 scrollbar-thin"
         >
-        <!--
+          <!--
           Borrado en LOTE, solo para quien administra. Antes había que ir una por una, con su
           confirmación cada vez: limpiar una galería de ocho fotos del proveedor eran ocho gestos y ocho
           preguntas. Ahora se marcan y se quitan de una, con UNA sola pregunta que dice cuántas son.
         -->
-        @if (puedeEditar() && cuantasMarcadas() > 0) {
-          <div class="sticky top-0 z-10 flex flex-col gap-1 rounded-lg border border-primary/30 bg-primary/10 p-1.5">
-            <span class="text-[10px] font-medium">{{ textoDeMarcadas() }}</span>
-            <button
-              type="button"
-              class="btn btn-error btn-xs text-[10px]"
-              (click)="borraLasMarcadas()"
+          @if (puedeEditar() && cuantasMarcadas() > 0) {
+            <div
+              class="sticky top-0 z-10 flex flex-col gap-1 rounded-lg border border-primary/30 bg-primary/10 p-1.5"
             >
-              <fa-icon [icon]="iconos.papelera" /> {{ t('admin.catalog.images.delete_selected') }}
-            </button>
-            <button type="button" class="btn btn-ghost btn-xs text-[10px]" (click)="limpiaSeleccion()">
-              {{ t('admin.catalog.images.clear_sel') }}
-            </button>
-          </div>
-        }
-        @if (urlDelVideo(); as video) {
-          <div class="relative w-20 shrink-0 group">
-            <!-- El aviso de interacción va ANTES de abrir el vídeo: sin él, el pase automático seguía
-                 corriendo y a los cinco segundos cambiaba la foto, lo que cerraba el vídeo a media
-                 reproducción. El pase es solo para las FOTOS. -->
-            <button
-              type="button"
-              (click)="interactua.emit(); enVideo.set(true)"
-              class="aspect-square w-full border border-base-200 rounded-lg overflow-hidden relative hover:border-primary block"
-              [attr.aria-label]="t('product.play_video')"
-            >
-              <video
-                [src]="video"
-                [muted]="true"
-                (loadedmetadata)="silencia($event)"
-                (volumechange)="silencia($event)"
-                playsinline
-                class="w-full h-full object-cover"
-              ></video>
-              <span class="absolute inset-0 flex items-center justify-center bg-black/30 text-white">
-                <fa-icon [icon]="iconos.play" />
-              </span>
-            </button>
-            @if (puedeEditar()) {
-              <!-- El vídeo se marca como una foto más: quien limpia una galería lo quiere quitar en el
-                   mismo gesto, no con una segunda vuelta y una segunda pregunta. -->
-              <label
-                class="absolute top-0.5 left-0.5 z-20 cursor-pointer"
-                [title]="t('admin.catalog.images.select')"
-              >
-                <input
-                  type="checkbox"
-                  class="checkbox checkbox-xs checkbox-primary [&:not(:checked)]:bg-white/90"
-                  [checked]="videoMarcado()"
-                  (change)="alternaVideo()"
-                  [attr.aria-label]="t('admin.catalog.video.select')"
-                />
-              </label>
+              <span class="text-[10px] font-medium">{{ textoDeMarcadas() }}</span>
               <button
                 type="button"
-                (click)="borraVideo.emit(); $event.stopPropagation()"
-                [title]="t('admin.catalog.video.delete')"
-                class="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-error text-white text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow z-10"
+                class="btn btn-error btn-xs text-[10px]"
+                (click)="borraLasMarcadas()"
               >
-                <fa-icon [icon]="iconos.papelera" />
+                <fa-icon [icon]="iconos.papelera" /> {{ t('admin.catalog.images.delete_selected') }}
               </button>
-            }
-          </div>
-        }
-        @for (foto of fotos(); track foto.id; let i = $index) {
-          <div
-            class="relative w-20 shrink-0 group"
-            [class.cursor-move]="puedeEditar()"
-            [attr.draggable]="puedeEditar() ? true : null"
-            (dragstart)="arrastrada.set(i)"
-            (dragover)="permiteSoltar($event)"
-            (drop)="suelta(i)"
-          >
-            <button
-              type="button"
-              (click)="elige(i)"
-              [attr.aria-label]="t('product.image_n') + ' ' + (i + 1)"
-              [attr.aria-current]="i === activa() && !enVideo() && !fotoDeVariante()"
-              class="aspect-square w-full border rounded-lg overflow-hidden transition-colors block"
-              [class]="
-                i === activa() && !enVideo() && !fotoDeVariante()
-                  ? 'border-primary ring-2 ring-primary/20'
-                  : 'border-base-200 hover:border-base-content/30'
-              "
+              <button
+                type="button"
+                class="btn btn-ghost btn-xs text-[10px]"
+                (click)="limpiaSeleccion()"
+              >
+                {{ t('admin.catalog.images.clear_sel') }}
+              </button>
+            </div>
+          }
+          @if (urlDelVideo(); as video) {
+            <div class="relative w-20 shrink-0 group">
+              <!-- El aviso de interacción va ANTES de abrir el vídeo: sin él, el pase automático seguía
+                 corriendo y a los cinco segundos cambiaba la foto, lo que cerraba el vídeo a media
+                 reproducción. El pase es solo para las FOTOS. -->
+              <button
+                type="button"
+                (click)="interactua.emit(); enVideo.set(true)"
+                class="aspect-square w-full border border-base-200 rounded-lg overflow-hidden relative hover:border-primary block"
+                [attr.aria-label]="t('product.play_video')"
+              >
+                <video
+                  [src]="video"
+                  [muted]="true"
+                  (loadedmetadata)="silencia($event)"
+                  (volumechange)="silencia($event)"
+                  playsinline
+                  class="w-full h-full object-cover"
+                ></video>
+                <span
+                  class="absolute inset-0 flex items-center justify-center bg-black/30 text-white"
+                >
+                  <fa-icon [icon]="iconos.play" />
+                </span>
+              </button>
+              @if (puedeEditar()) {
+                <!-- El vídeo se marca como una foto más: quien limpia una galería lo quiere quitar en el
+                   mismo gesto, no con una segunda vuelta y una segunda pregunta. -->
+                <label
+                  class="absolute top-0.5 left-0.5 z-20 cursor-pointer"
+                  [title]="t('admin.catalog.images.select')"
+                >
+                  <input
+                    type="checkbox"
+                    class="checkbox checkbox-xs checkbox-primary [&:not(:checked)]:bg-white/90"
+                    [checked]="videoMarcado()"
+                    (change)="alternaVideo()"
+                    [attr.aria-label]="t('admin.catalog.video.select')"
+                  />
+                </label>
+                <!--
+                Visible SIEMPRE en el móvil y solo al pasar por encima a partir de sm. Estaba al
+                revés —opacity-0 a secas— y en un teléfono no hay «encima»: el botón existía, se
+                podía pulsar y no se veía nunca. Quien administra desde el móvil no tenía forma de
+                borrar una foto.
+              -->
+                <button
+                  type="button"
+                  (click)="borraVideo.emit(); $event.stopPropagation()"
+                  [title]="t('admin.catalog.video.delete')"
+                  class="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-error text-white text-[10px] flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 transition-opacity shadow z-10"
+                >
+                  <fa-icon [icon]="iconos.papelera" />
+                </button>
+              }
+            </div>
+          }
+          @for (foto of fotos(); track foto.id; let i = $index) {
+            <div
+              class="relative w-20 shrink-0 group"
+              [class.cursor-move]="puedeEditar()"
+              [attr.draggable]="puedeEditar() ? true : null"
+              (dragstart)="arrastrada.set(i)"
+              (dragover)="permiteSoltar($event)"
+              (drop)="suelta(i)"
             >
-              <img
-                [src]="foto.direccion"
-                alt=""
-                loading="lazy"
-                class="w-full h-full object-contain bg-base-100"
-              />
-            </button>
-            @if (puedeEditar()) {
-              <!-- La casilla va SIEMPRE visible, no al pasar el ratón: es la que dice qué está marcado,
+              <button
+                type="button"
+                (click)="elige(i)"
+                [attr.aria-label]="t('product.image_n') + ' ' + (i + 1)"
+                [attr.aria-current]="i === activa() && !enVideo() && !fotoDeVariante()"
+                class="aspect-square w-full border rounded-lg overflow-hidden transition-colors block"
+                [class]="
+                  i === activa() && !enVideo() && !fotoDeVariante()
+                    ? 'border-primary ring-2 ring-primary/20'
+                    : 'border-base-200 hover:border-base-content/30'
+                "
+              >
+                <img
+                  [src]="foto.direccion"
+                  alt=""
+                  loading="lazy"
+                  class="w-full h-full object-contain bg-base-100"
+                />
+              </button>
+              @if (puedeEditar()) {
+                <!-- La casilla va SIEMPRE visible, no al pasar el ratón: es la que dice qué está marcado,
                    y algo que informa no puede esconderse. La papelera de una sola foto sí sigue
                    apareciendo al pasar por encima, que es un gesto puntual. -->
-              <label
-                class="absolute top-0.5 left-0.5 z-20 cursor-pointer"
-                [title]="t('admin.catalog.images.select')"
-              >
-                <!-- El fondo blanco SOLO cuando no está marcada. Puesto sin condición pisaba el
+                <label
+                  class="absolute top-0.5 left-0.5 z-20 cursor-pointer"
+                  [title]="t('admin.catalog.images.select')"
+                >
+                  <!-- El fondo blanco SOLO cuando no está marcada. Puesto sin condición pisaba el
                      color con el que se pinta el estado marcado —la utilidad de Tailwind gana al
                      componente—, así que la casilla se quedaba blanca y la marca, blanca sobre
                      blanco: se seleccionaban tres fotos, la barra decía «3 seleccionadas» y no se
                      veía ni una marcada. El blanco hace falta para que la casilla se distinga sobre
                      la foto, pero solo mientras está vacía. -->
-                <input
-                  type="checkbox"
-                  class="checkbox checkbox-xs checkbox-primary [&:not(:checked)]:bg-white/90"
-                  [checked]="marcadas().has(foto.id)"
-                  (change)="alterna(foto.id)"
-                  [attr.aria-label]="t('admin.catalog.images.select') + ' ' + (i + 1)"
-                />
-              </label>
-              <button
-                type="button"
-                (click)="borraImagen.emit(foto.id); $event.stopPropagation()"
-                [title]="t('admin.catalog.images.delete')"
-                class="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-error text-white text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow"
-              >
-                <fa-icon [icon]="iconos.papelera" />
-              </button>
-            }
-          </div>
-        }
+                  <input
+                    type="checkbox"
+                    class="checkbox checkbox-xs checkbox-primary [&:not(:checked)]:bg-white/90"
+                    [checked]="marcadas().has(foto.id)"
+                    (change)="alterna(foto.id)"
+                    [attr.aria-label]="t('admin.catalog.images.select') + ' ' + (i + 1)"
+                  />
+                </label>
+                <button
+                  type="button"
+                  (click)="borraImagen.emit(foto.id); $event.stopPropagation()"
+                  [title]="t('admin.catalog.images.delete')"
+                  class="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-error text-white text-[10px] flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 transition-opacity shadow"
+                >
+                  <fa-icon [icon]="iconos.papelera" />
+                </button>
+              }
+            </div>
+          }
         </div>
       </div>
 

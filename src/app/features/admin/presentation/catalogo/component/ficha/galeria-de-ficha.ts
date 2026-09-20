@@ -3,10 +3,19 @@ import { NgOptimizedImage } from '@angular/common';
 import { FormField, form } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
-  faArrowLeft, faArrowRight, faImage, faMagnifyingGlassPlus, faPlus, faTrash,
+  faArrowLeft,
+  faArrowRight,
+  faImage,
+  faMagnifyingGlassPlus,
+  faPlus,
+  faTrash,
 } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
-import { EjeDeVariacion, esEjeDeColor, fotoDelValor } from '../../../../domain/catalogo/model/eje-de-variacion';
+import {
+  EjeDeVariacion,
+  esEjeDeColor,
+  fotoDelValor,
+} from '../../../../domain/catalogo/model/eje-de-variacion';
 import {
   FotoDeVariante,
   ImagenDeProducto,
@@ -52,7 +61,9 @@ const LADO_DE_LA_MINIATURA = 400;
       >
         @if (orden().length > 0) {
           @if (marcadas().size > 0) {
-            <div class="flex items-center gap-2 mb-2 p-2 rounded bg-primary/10 border border-primary/30">
+            <div
+              class="flex items-center gap-2 mb-2 p-2 rounded bg-primary/10 border border-primary/30"
+            >
               <span class="text-[12px] font-medium">{{ textoDeMarcadas() }}</span>
               <button
                 type="button"
@@ -61,7 +72,11 @@ const LADO_DE_LA_MINIATURA = 400;
               >
                 <fa-icon [icon]="iconos.borrar" /> {{ t('admin.catalog.images.delete_selected') }}
               </button>
-              <button type="button" class="btn btn-ghost btn-xs text-[12px]" (click)="marcadas.set(nuevoConjunto())">
+              <button
+                type="button"
+                class="btn btn-ghost btn-xs text-[12px]"
+                (click)="marcadas.set(nuevoConjunto())"
+              >
                 {{ t('admin.catalog.images.clear_sel') }}
               </button>
             </div>
@@ -77,7 +92,10 @@ const LADO_DE_LA_MINIATURA = 400;
                 (dragover)="$event.preventDefault()"
                 (drop)="suelta(i)"
               >
-                <label class="absolute top-1 left-1 z-20 cursor-pointer" [title]="t('admin.catalog.images.select')">
+                <label
+                  class="absolute top-1 left-1 z-20 cursor-pointer"
+                  [title]="t('admin.catalog.images.select')"
+                >
                   <input
                     type="checkbox"
                     class="checkbox checkbox-xs checkbox-primary bg-white/90"
@@ -87,11 +105,17 @@ const LADO_DE_LA_MINIATURA = 400;
                   />
                 </label>
                 @if (i === 0) {
-                  <span class="absolute bottom-1 left-1 z-10 badge badge-primary badge-xs text-[9px]">
+                  <span
+                    class="absolute bottom-1 left-1 z-10 badge badge-primary badge-xs text-[9px]"
+                  >
                     {{ t('admin.catalog.images.main') }}
                   </span>
                 }
-                <button type="button" class="w-full h-full block" (click)="amplia.emit(direccion(imagen))">
+                <button
+                  type="button"
+                  class="w-full h-full block"
+                  (click)="amplia.emit(direccion(imagen))"
+                >
                   <!--
                     Sin marcar la primera como PRIORITARIA, y no es un olvido.
 
@@ -121,7 +145,7 @@ const LADO_DE_LA_MINIATURA = 400;
                 </button>
                 <button
                   type="button"
-                  class="absolute top-1 right-1 btn btn-error btn-xs btn-square opacity-0 group-hover:opacity-100 transition-opacity"
+                  class="absolute top-1 right-1 btn btn-error btn-xs btn-square opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 transition-opacity"
                   [title]="t('admin.catalog.images.delete')"
                   [attr.aria-label]="t('admin.catalog.images.delete')"
                   (click)="elimina.emit([imagen.id])"
@@ -174,7 +198,9 @@ const LADO_DE_LA_MINIATURA = 400;
           <h4 class="text-[12px] font-medium text-ink-600 mb-1">
             {{ t('admin.catalog.images.from_variants') }}
           </h4>
-          <p class="text-[11px] text-ink-400 mb-2">{{ t('admin.catalog.images.from_variants_hint') }}</p>
+          <p class="text-[11px] text-ink-400 mb-2">
+            {{ t('admin.catalog.images.from_variants_hint') }}
+          </p>
           <div class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2">
             @for (foto of fotosDeVariante(); track foto.id) {
               <div
@@ -192,7 +218,9 @@ const LADO_DE_LA_MINIATURA = 400;
                   class="w-full h-full object-cover rounded"
                 />
                 @if (foto.etiqueta) {
-                  <span class="absolute bottom-0 inset-x-0 bg-black/50 text-white text-[9px] truncate px-1 py-0.5 rounded-b">
+                  <span
+                    class="absolute bottom-0 inset-x-0 bg-black/50 text-white text-[9px] truncate px-1 py-0.5 rounded-b"
+                  >
                     {{ foto.etiqueta }}
                   </span>
                 }
@@ -268,12 +296,14 @@ export class GaleriaDeFicha {
    * El orden que se ve mientras se arrastra. `linkedSignal` lo REINICIA cuando cambian las imágenes del
    * servidor: sin eso, al añadir o quitar una, la galería seguía enseñando el orden viejo.
    */
-  protected readonly orden = linkedSignal<readonly ImagenDeProducto[], readonly ImagenDeProducto[]>({
-    source: () => this.imagenes(),
-    // Las que no traen ninguna dirección no se pintan: no hay nada que enseñar y el componente de
-    // imagen optimizada se niega a intentarlo.
-    computation: (imagenes) => imagenes.filter((imagen) => !!direccionDeImagen(imagen)),
-  });
+  protected readonly orden = linkedSignal<readonly ImagenDeProducto[], readonly ImagenDeProducto[]>(
+    {
+      source: () => this.imagenes(),
+      // Las que no traen ninguna dirección no se pintan: no hay nada que enseñar y el componente de
+      // imagen optimizada se niega a intentarlo.
+      computation: (imagenes) => imagenes.filter((imagen) => !!direccionDeImagen(imagen)),
+    },
+  );
 
   protected readonly marcadas = linkedSignal<readonly ImagenDeProducto[], ReadonlySet<string>>({
     source: () => this.imagenes(),

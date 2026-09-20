@@ -62,7 +62,9 @@ export interface ColorElegido {
                     class="w-full h-full object-contain bg-base-100"
                   />
                 } @else {
-                  <span class="flex items-center justify-center w-full h-full text-[10px] px-1 text-center">
+                  <span
+                    class="flex items-center justify-center w-full h-full text-[10px] px-1 text-center"
+                  >
                     {{ etiqueta(valor) }}
                   </span>
                 }
@@ -75,11 +77,15 @@ export interface ColorElegido {
                 </span>
               }
               @if (puedeEditar()) {
+                <!--
+                  Visible SIEMPRE en el móvil; solo se esconde tras el puntero a partir de sm, donde de
+                  verdad hay un puntero. Con opacity-0 a secas no se veía nunca en un teléfono.
+                -->
                 <button
                   type="button"
                   (click)="borra.emit(valor.id); $event.stopPropagation()"
                   [title]="t('admin.catalog.variant.delete')"
-                  class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-error text-white text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow z-10"
+                  class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-error text-white text-[10px] flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 transition-opacity shadow z-10"
                 >
                   <fa-icon [icon]="iconos.papelera" />
                 </button>
