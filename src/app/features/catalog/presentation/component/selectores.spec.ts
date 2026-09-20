@@ -70,6 +70,33 @@ describe('SelectorColor', () => {
     });
     expect(container.textContent?.trim()).toBe('');
   });
+
+  /*
+   * El nombre del eje se guarda en la base EN ESPAÑOL y no tiene tabla de traducción, así que se
+   * pintaba igual en los ocho idiomas: quien compraba en alemán leía «Farbe» arriba y «Talla»
+   * debajo. Ahora se traduce por clave.
+   */
+  it('traduce el nombre del eje que viene en español', async () => {
+    const { container } = await render(SelectorColor, {
+      inputs: {
+        eje: eje('Altura recomendada', [{ valor: '120 cm' }]),
+        elegido: '120 cm',
+      },
+    });
+    // Las pruebas corren con el diccionario en inglés: si se tradujo, aquí pone «Recommended
+    // height» y no el «Altura recomendada» que viene de la base ni la clave sin resolver.
+    expect(container.textContent).toContain('Recommended height');
+    expect(container.textContent).not.toContain('Altura recomendada');
+    expect(container.textContent).not.toContain('attr.recommended_height');
+  });
+
+  /** Y lo que no está en el mapa se enseña tal cual: mejor el nombre del proveedor que nada. */
+  it('deja pasar el nombre que no sabe traducir', async () => {
+    const { container } = await render(SelectorColor, {
+      inputs: { eje: eje('Acabado especial', [{ valor: 'Mate' }]), elegido: 'Mate' },
+    });
+    expect(container.textContent).toContain('Acabado especial');
+  });
 });
 
 describe('TablaTallas', () => {
