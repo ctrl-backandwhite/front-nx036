@@ -266,7 +266,10 @@
 
   --color-info:    #4a8cab;
   --color-info-content: #071720;
-  --color-success: #2e9070;
+  /* Subido desde #2e9070: ese verde daba 4.47:1 sobre el fondo del tema, justo por debajo del 4.5
+   * que pide la norma, y se usa en cifras pequeñas como los indicadores del panel. El tono apenas
+   * cambia y pasa a 5.24:1 sobre base-100 y 4.70:1 sobre base-200. */
+  --color-success: #339d7c;
   --color-success-content: #05160f;
   --color-warning: #e0a63a;
   --color-warning-content: #201502;
@@ -298,6 +301,12 @@
   --color-ink-900: #14212e;
   --color-ink-700: #2c3e4e;
   --color-ink-500: #5c6e7c;
+  /* `ink-200` faltaba en una escala que por lo demás va de 50 a 900. No es un hueco inofensivo: la
+   * clase `border-ink-200` se usa en 21 sitios y, al no generarse la utilidad, `border-color` cae en
+   * `currentColor` —el color del TEXTO—. Medido en la propia web: borde #14212e (negro) en el tema
+   * claro y #e7eef3 (blanco) en el oscuro, justo donde se pedía el gris más suave de la escala. Los
+   * bordes no faltaban: estaban a máximo contraste. */
+  --color-ink-200: #ccd5db;
   --color-ink-300: #b7c2cb;
   --color-ink-100: #e1e7ec;
   --color-ink-50:  #f4f7f9;
@@ -951,6 +960,16 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
   }
   .product-card .font-medium { color: var(--color-base-content) !important; }
 
+  /* La regla de arriba tiñe de `primary` cualquier `.text-primary-content` que viva en una `.card`,
+   * y está pensada para los PRECIOS de las tarjetas del catálogo. De paso atrapaba la cita del panel
+   * de marca de acceso y registro, que es un `figure.card` sobre una foto oscura: el texto salía del
+   * color exacto del fondo de su tarjeta —1.00:1, invisible—. Allí el color correcto es el que fija
+   * `.auth-hero-img`, así que se devuelve. */
+  .auth-hero-img .card .text-primary-content { color: var(--color-primary-content) !important; }
+  /* Y tampoco a un avatar: ahí `text-primary-content` es el texto SOBRE el círculo de color, que es
+   * justo lo que la regla de arriba convertía en invisible. */
+  .avatar .text-primary-content { color: var(--color-primary-content) !important; }
+
   /* DROP-427: features del pricing legibles */
   .card .text-success, .card .text-warning, .card .text-info { filter: brightness(1.2); }
 
@@ -987,8 +1006,40 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
   }
   /* Tarjetas brand-50 (cyan claro): en dark son ilegibles → invertir tinte. */
   .bg-brand-50 { background-color: color-mix(in oklch, var(--color-primary) 22%, var(--color-base-100)) !important; }
+  /* `brand-100` se quedó fuera y es el mismo caso: el avatar del perfil del panel es
+   * `bg-brand-100 text-brand-700`, y con el texto ya remapeado a un tono claro quedaban las iniciales
+   * a 2.32:1 sobre un fondo que seguía siendo azul claro de tema claro. */
+  .bg-brand-100 { background-color: color-mix(in oklch, var(--color-primary) 30%, var(--color-base-100)) !important; }
+
+  /* Los FONDOS de la escala `ink` son claros por definición y no dependen del tema: en oscuro se
+   * quedaban tal cual mientras el texto de encima sí se remapeaba arriba a tonos claros. El resultado
+   * era texto casi blanco sobre fondo casi blanco. Medido en este mismo tema:
+   *
+   *   .text-ink-900 sobre .bg-ink-50   -> 1.07:1     .text-ink-700 sobre .bg-ink-100 -> 1.22:1
+   *   .text-ink-600 sobre .bg-ink-100  -> 1.50:1     .text-ink-500 sobre .bg-ink-50  -> 2.67:1
+   *
+   * El mínimo de la norma para texto corriente es 4.5:1, así que eran bloques ILEGIBLES, no bloques
+   * flojos. Afectaba a 58 ficheros —cartera, pedidos, cuenta, afiliado y buena parte del panel—, que
+   * es justo donde hay tablas y fichas con fondo tenue.
+   *
+   * Se traducen a las superficies del tema, que es lo que ya se hizo arriba con `.bg-brand-50`. Las
+   * clases se enumeran una a una a propósito: con `[class*="bg-ink-50"]` entrarían también las
+   * variantes `hover:bg-ink-50`, y el fondo se pintaría SIEMPRE en vez de solo al pasar por encima. */
+  .bg-ink-50,
+  .bg-ink-50\/40,
+  .bg-ink-50\/50,
+  .bg-ink-50\/60 { background-color: var(--color-base-200) !important; }
+  .bg-ink-100 { background-color: var(--color-base-300) !important; }
+  /* Mismo motivo que los fondos: un borde de la escala `ink` es claro por definición. */
+  .border-ink-200 { border-color: var(--color-base-300) !important; }
+  .hover\:bg-ink-50:hover,
+  .hover\:bg-ink-50\/50:hover { background-color: var(--color-base-200) !important; }
   .border-brand-100 { border-color: color-mix(in oklch, var(--color-primary) 35%, transparent) !important; }
-  .text-brand-700, .text-brand-600 { color: oklch(72% 0.16 248) !important; }
+  /* `brand-800` y `brand-900` entran con los otros dos: son el MISMO caso y se quedaron fuera. El
+   * chip de filtro activo (`border-brand-300 bg-brand-50 text-brand-800`) dejaba su valor a 1.40:1
+   * sobre el fondo oscuro — en el catálogo se leía «Ordenar por:» y el valor simplemente no estaba. */
+  .text-brand-700, .text-brand-600,
+  .text-brand-800, .text-brand-900 { color: oklch(72% 0.16 248) !important; }
 
   /* DROP-430: topbar admin sin tinte rosado */
   .navbar { background-color: var(--color-base-100) !important; }
@@ -1135,7 +1186,20 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
 
 /* Panel de marca (login/register): imagen e-commerce de fondo (Unsplash, uso libre) con
  * velo azul en degradado para que el texto claro quede legible. Imagen z0, velo z1, contenido z2. */
-.auth-hero-img { position: relative; }
+.auth-hero-img {
+  position: relative;
+  /* El velo de debajo es SIEMPRE oscuro (`#08111d`, aquí mismo, sin variante por tema), así que el
+   * texto de encima tiene que ser SIEMPRE claro. Usaba `primary-content`, que se invierte con el
+   * tema: en claro vale casi blanco y se leía bien, y en oscuro pasa a casi negro. Resultado: en el
+   * tema oscuro la columna de marca entera —titular, párrafo, las tres ventajas y la firma de la
+   * cita— quedaba ILEGIBLE sobre la foto; el texto de la cita medía 1.00:1, es decir, exactamente el
+   * color del fondo.
+   *
+   * Se fija la variable AQUÍ en vez de cambiar las siete clases del componente: así entran también
+   * las variantes con opacidad (`/90`, `/95`, `/80`, `/60`) y el fondo y el borde de la tarjeta de
+   * la cita, que son la misma decisión. En el tema claro no cambia nada: es el valor que ya tenía. */
+  --color-primary-content: #eef4fc;
+}
 .auth-hero-img::before {
   content: ""; position: absolute; inset: 0; z-index: 0;
   background-image: url("/login-bg.jpg");

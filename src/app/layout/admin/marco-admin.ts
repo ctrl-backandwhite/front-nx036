@@ -122,10 +122,15 @@ export interface UsuarioDelPanel {
                     <img [src]="quien.avatar" alt="" class="w-8 h-8 rounded-full object-cover" />
                   } @else {
                     <div class="avatar avatar-placeholder">
-                      <!-- Blanco explícito y no «text-primary-content»: en el tema oscuro este último
-                           quedaba del mismo color que el fondo y las iniciales desaparecían. -->
+                      <!-- El par correcto del tema es bg-primary + text-primary-content. Estuvo en
+                           blanco fijo porque así las iniciales desaparecían en el tema oscuro, pero la
+                           causa no era esa variable: este avatar vive dentro de una .card y le llegaba
+                           el parche que tiñe de primary cualquier texto con esa clase ahí dentro, es
+                           decir, el mismo color que su propio fondo. El parche ya está acotado en la
+                           hoja de estilos, así que el blanco fijo sobra: sobre el azul claro del tema
+                           oscuro se quedaba en 3.18:1, por debajo del mínimo exigible. -->
                       <div
-                        class="bg-primary text-white w-8 h-8 rounded-full flex items-center justify-center"
+                        class="bg-primary text-primary-content w-8 h-8 rounded-full flex items-center justify-center"
                       >
                         <span class="text-[11px] font-medium leading-none">{{ iniciales() }}</span>
                       </div>

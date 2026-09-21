@@ -58,8 +58,14 @@ import { DesgloseEditable } from './admin/desglose-editable';
             <span class="badge badge-ghost">{{ ficha().marca }}</span>
           }
           @if (ficha().valoracion !== undefined) {
-            <span class="inline-flex items-center gap-1 text-warning text-[13px]">
-              <fa-icon [icon]="iconos.estrella" /> {{ valoracion() }}
+            <!--
+              El ámbar se queda en la ESTRELLA y no en el número. Teñir de ámbar todo el bloque dejaba
+              la nota y el recuento a 2.32:1 sobre el fondo tenue de la cabecera, por debajo del 4.5:1
+              que pide la norma para texto de este tamaño: el dato que se viene a leer era lo que peor
+              se leía. El icono mantiene el color de marca; la cifra hereda el color de texto.
+            -->
+            <span class="inline-flex items-center gap-1 text-[13px]">
+              <fa-icon [icon]="iconos.estrella" class="text-warning" /> {{ valoracion() }}
               <span class="opacity-60 text-[12px]">({{ ficha().numeroDeResenas }})</span>
             </span>
           }
