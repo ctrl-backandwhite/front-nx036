@@ -56,7 +56,7 @@ const NEUTRO = { icono: faGears, color: 'text-ink-500' };
                   [icon]="adorno(movimiento).icono"
                   [class]="'mr-1 ' + adorno(movimiento).color"
                 />
-                <span class="text-xs uppercase font-medium">{{ movimiento.clase }}</span>
+                <span class="text-xs uppercase font-medium">{{ nombreDe(movimiento) }}</span>
               </td>
               <td
                 class="px-4 py-2 font-mono"
@@ -91,6 +91,22 @@ export class MovimientosDeCartera {
   private readonly fechas = inject(FormatoDeFecha);
 
   protected readonly t = inject(TraduccionService).t;
+
+  /**
+   * El nombre del tipo de movimiento, en el idioma de quien mira.
+   *
+   * <p>Se pintaba el valor crudo del backend: en una tabla con «Tipo», «Importe» y «Saldo después»
+   * traducidos, las filas decían PAYMENT y DEPOSIT.
+   *
+   * <p>Si apareciera una clase que el diccionario todavía no tiene, se enseña el valor tal cual y no
+   * la clave: `t()` devuelve la clave misma cuando no encuentra traducción, y «wallet.movement.X» en
+   * mitad de la tabla es peor que la palabra en inglés.
+   */
+  protected nombreDe(movimiento: MovimientoDeCartera): string {
+    const clave = `wallet.movement.${movimiento.clase}`;
+    const traducido = this.t(clave);
+    return traducido === clave ? movimiento.clase : traducido;
+  }
 
   protected adorno(movimiento: MovimientoDeCartera): { icono: IconDefinition; color: string } {
     return ADORNOS[movimiento.clase] ?? NEUTRO;

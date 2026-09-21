@@ -98,6 +98,61 @@ describe('CarteraPage', () => {
   });
 
   /**
+   * El tipo de movimiento llega del backend en inglés y en mayúsculas (`DEPOSIT`, `PAYMENT`). Se
+   * pintaba tal cual, en una tabla cuyas cabeceras sí estaban traducidas.
+   */
+  it('traduce el tipo de movimiento en vez de enseñar el valor del backend', async () => {
+    consulta.ultimosMovimientos.mockResolvedValue(
+      exito({
+        total: 1,
+        movimientos: [
+          {
+            id: 't1',
+            clase: 'DEPOSIT',
+            importeFormateado: '+10,00 €',
+            saldoPosteriorFormateado: '10,00 €',
+            esEntrada: true,
+            creadoEl: '2026-09-01T10:00:00Z',
+          },
+        ],
+      }),
+    );
+
+    await monta();
+
+    expect(await screen.findByText('Ingreso')).toBeInTheDocument();
+    expect(screen.queryByText('DEPOSIT')).not.toBeInTheDocument();
+  });
+
+  /**
+   * Si el backend estrena una clase que el diccionario aún no tiene, se enseña su valor y NO la clave
+   * de traducción: `t()` devuelve la clave cuando no encuentra nada, y «wallet.movement.X» en mitad
+   * de la tabla es peor que la palabra en inglés.
+   */
+  it('ante una clase desconocida enseña su valor, nunca la clave de traducción', async () => {
+    consulta.ultimosMovimientos.mockResolvedValue(
+      exito({
+        total: 1,
+        movimientos: [
+          {
+            id: 't2',
+            clase: 'CASHBACK' as never,
+            importeFormateado: '+1,00 €',
+            saldoPosteriorFormateado: '11,00 €',
+            esEntrada: true,
+            creadoEl: '2026-09-01T10:00:00Z',
+          },
+        ],
+      }),
+    );
+
+    await monta();
+
+    expect(await screen.findByText('CASHBACK')).toBeInTheDocument();
+    expect(screen.queryByText('wallet.movement.CASHBACK')).not.toBeInTheDocument();
+  });
+
+  /**
    * Las comisiones son decorado: quien no es afiliado recibe un rechazo del servidor y eso no puede
    * impedir que se vea el saldo.
    */

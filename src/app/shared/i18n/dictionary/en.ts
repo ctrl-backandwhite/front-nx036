@@ -588,6 +588,13 @@ const diccionario: Record<string, string> = {
   'wallet.col.type': 'Type',
   'wallet.col.amount': 'Amount',
   'wallet.col.balance_after': 'Balance after',
+  'wallet.movement.DEPOSIT': 'Deposit',
+  'wallet.movement.REFUND': 'Refund',
+  'wallet.movement.RELEASE': 'Release',
+  'wallet.movement.ADJUSTMENT': 'Adjustment',
+  'wallet.movement.PAYMENT': 'Payment',
+  'wallet.movement.WITHDRAW': 'Withdrawal',
+  'wallet.movement.HOLD': 'Hold',
   // recharge
   'recharge.title': 'Recharge wallet',
   'recharge.subtitle': 'Recharge in your active currency. Your balance is kept in USD and shown in your preferred currency.',
