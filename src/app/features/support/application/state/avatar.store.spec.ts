@@ -84,10 +84,23 @@ describe('AvatarStore', () => {
     expect(avatar.guiaAbierta()).toBe(false);
   });
 
-  it('«ahora no» la retira sin marcarla como vista para siempre', () => {
+  it('«ahora no» la retira Y deja marca: no puede volver en la siguiente carga', () => {
     avatar.hidrata();
     avatar.descartaLaGuia();
     expect(avatar.guiaPendiente()).toBe(false);
+    // La marca es lo que hace que la decisión sobreviva: sin ella la invitación volvía en cada
+    // recarga, y su capa a pantalla completa tapa el contenido e impide pulsar hasta responderla.
+    expect(almacen.lee('nx036.welcome.v1')).not.toBeNull();
+
+    // Otra visita: ya no se ofrece.
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [{ provide: ALMACEN_LOCAL, useValue: almacen }],
+    });
+    const enLaSiguienteVisita = TestBed.inject(AvatarStore);
+    enLaSiguienteVisita.hidrata();
+
+    expect(enLaSiguienteVisita.guiaPendiente()).toBe(false);
   });
 
   it('mover NO guarda; soltar sí: guardar en cada píxel serían decenas de escrituras', () => {

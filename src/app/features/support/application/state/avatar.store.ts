@@ -107,8 +107,21 @@ export class AvatarStore {
   }
 
   /** «Ahora no»: no se abre, pero tampoco se vuelve a ofrecer en esta visita. */
+  /**
+   * «Ahora no» también deja marca, igual que cerrarla del todo.
+   *
+   * <p>Antes solo apagaba la señal en memoria, así que la decisión se perdía en la siguiente carga del
+   * documento: al recargar, al abrir la web desde un enlace o al entrar directamente a una ficha, la
+   * invitación volvía —y con ella su capa a pantalla completa, que tapa el precio de la ficha, las
+   * tarjetas del catálogo o la tabla de movimientos e impide pulsar nada hasta responderla otra vez—.
+   * Una invitación que no se puede quitar deja de ser una invitación.
+   *
+   * <p>Se escribe la MISMA marca que pone la guía al terminarla, con su fecha: lleva versión, así que
+   * el día que la guía cambie de fondo se volverá a ofrecer a todo el mundo.
+   */
   descartaLaGuia(): void {
     this._guiaPendiente.set(false);
+    this.almacen.guarda(CLAVE_GUIA, new Date().toISOString());
   }
 
   private leeValidado<T>(clave: string, valido: (valor: unknown) => valor is T): T | null {
