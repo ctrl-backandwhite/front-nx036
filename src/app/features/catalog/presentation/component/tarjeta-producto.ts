@@ -11,7 +11,7 @@ import {
   faHeart as faCorazonLleno,
   faStar,
   faTruckFast,
-  faTruckRampBox,
+  faTruck,
 } from '@fortawesome/free-solid-svg-icons';
 import { faHeart as faCorazonVacio } from '@fortawesome/free-regular-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
@@ -270,8 +270,12 @@ export class TarjetaProducto {
     camion: faTruckFast,
     // Deliberadamente DISTINTO del camión de «envío gratis»: dos cosas distintas no pueden compartir
     // dibujo en la misma tarjeta. Aquel promete que no se paga porte; este dice que la tienda pone
-    // parte del que hay.
-    porteQuePonemos: faTruckRampBox,
+    // parte del que hay. Se distinguen además por dónde y cómo salen: el de envío gratis es un
+    // distintivo macizo sobre la foto, y este un icono suelto junto al precio.
+    //
+    // Era `faTruckRampBox` y a 13 px no se leía como un camión, sino como una caja con una rampa:
+    // el dibujo no contaba lo que promete la frase que lo acompaña en la ficha.
+    porteQuePonemos: faTruck,
     rayo: faBolt,
     anadir: faCartPlus,
     hecho: faCircleCheck,

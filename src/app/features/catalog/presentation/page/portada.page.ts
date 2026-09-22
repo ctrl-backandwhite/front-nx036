@@ -7,7 +7,7 @@ import {
   faChartLine,
   faCubesStacked,
   faGlobe,
-  faTruckRampBox,
+  faTruck,
   faRocket,
   faShieldHalved,
 } from '@fortawesome/free-solid-svg-icons';
@@ -293,7 +293,7 @@ export class PortadaPage {
     // primera pantalla. Por eso remata mandando a la ficha, que es donde el dato es cierto o no.
     {
       clave: 'home.feature.subsidy',
-      icono: faTruckRampBox,
+      icono: faTruck,
       tono: 'text-emerald-600',
       texto: this.t('home.feature.subsidy'),
     },

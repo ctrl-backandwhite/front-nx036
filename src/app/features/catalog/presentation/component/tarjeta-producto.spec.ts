@@ -181,12 +181,12 @@ describe('TarjetaProducto', () => {
    */
   it('marca los productos a los que la tienda pone parte del porte', async () => {
     const { container } = await monta(producto({ envioCubierto: true }));
-    expect(container.querySelector('[data-icon="truck-ramp-box"]')).not.toBeNull();
+    expect(container.querySelector('[data-icon="truck"]')).not.toBeNull();
   });
 
   it('no lo marca cuando el producto no lleva subvención de envío', async () => {
     const { container } = await monta(producto({ envioCubierto: false }));
-    expect(container.querySelector('[data-icon="truck-ramp-box"]')).toBeNull();
+    expect(container.querySelector('[data-icon="truck"]')).toBeNull();
   });
 
   /** Son dos cosas distintas y se ven las dos: una la paga la aduana y la otra el transportista. */
@@ -195,7 +195,7 @@ describe('TarjetaProducto', () => {
       producto({ arancel: { centimosExtra: null, cubierto: true }, envioCubierto: true }),
     );
     expect(container.querySelector('[data-icon="hand-holding-dollar"]')).not.toBeNull();
-    expect(container.querySelector('[data-icon="truck-ramp-box"]')).not.toBeNull();
+    expect(container.querySelector('[data-icon="truck"]')).not.toBeNull();
   });
 
   it('enseña la valoración y las ventas abreviadas', async () => {

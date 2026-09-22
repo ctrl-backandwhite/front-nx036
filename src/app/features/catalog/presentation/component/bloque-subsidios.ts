@@ -1,6 +1,6 @@
 import { Component, inject, input } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faHandHoldingDollar, faTruckRampBox } from '@fortawesome/free-solid-svg-icons';
+import { faHandHoldingDollar, faTruck } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 
 /**
@@ -51,6 +51,6 @@ export class BloqueSubsidios {
   protected readonly t = inject(TraduccionService).t;
   // Los MISMOS dibujos que la tarjeta, a propósito: quien llega a la ficha desde el listado tiene que
   // reconocer la promesa que le trajo hasta aquí.
-  protected readonly iconoPorte = faTruckRampBox;
+  protected readonly iconoPorte = faTruck;
   protected readonly iconoArancel = faHandHoldingDollar;
 }
