@@ -52,7 +52,7 @@ export class LineaDeEndpoint {
   selector: 'nx-ficha-de-endpoint',
   imports: [LineaDeEndpoint, PestanasDeCodigo, BloqueDeCodigo],
   template: `
-    <div class="border border-ink-100 rounded-md p-4 my-4 bg-white">
+    <div class="border border-ink-100 rounded-md p-4 my-4 bg-base-100">
       <nx-linea-de-endpoint
         [metodo]="ficha().metodo"
         [ruta]="ficha().ruta"

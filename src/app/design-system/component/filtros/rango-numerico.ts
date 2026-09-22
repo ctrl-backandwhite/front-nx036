@@ -53,7 +53,7 @@ function aTexto(valor: number | null): string {
          metería entre el mínimo y el máximo. -->
     <div>
       <div
-        class="inline-flex items-center gap-1.5 text-[12px] rounded-full border border-ink-200 bg-white px-2 py-0.5"
+        class="inline-flex items-center gap-1.5 text-[12px] rounded-full border border-ink-200 bg-base-100 px-2 py-0.5"
       >
         <span class="text-ink-500 pl-1">{{ etiqueta() }}:</span>
         <input

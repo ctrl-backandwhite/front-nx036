@@ -79,7 +79,7 @@ const ENTRADA_MS = 250;
               @for (producto of promo.productos; track producto.id) {
                 <a
                   [routerLink]="['/catalog', producto.slug]"
-                  class="group w-28 shrink-0 rounded-2xl bg-white p-2 text-ink-900 shadow-sm transition hover:-translate-y-1 hover:shadow-lg sm:w-32"
+                  class="group w-28 shrink-0 rounded-2xl bg-base-100 p-2 text-ink-900 shadow-sm transition hover:-translate-y-1 hover:shadow-lg sm:w-32"
                 >
                   <div class="aspect-square overflow-hidden rounded-xl bg-[#f4f6f9]">
                     <nx-imagen-segura

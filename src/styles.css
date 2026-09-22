@@ -575,7 +575,16 @@ code, pre, .font-mono { font-family: var(--font-mono); }
 
 /* DROP-374: outline coherente (borde primary suave, hover fill 8%). */
 .btn-outline { border-color: color-mix(in oklch, var(--color-primary) 45%, var(--color-base-300)); }
-.btn-outline:hover { background-color: color-mix(in oklch, var(--color-primary) 10%, transparent); border-color: var(--color-primary); }
+.btn-outline:hover {
+  background-color: color-mix(in oklch, var(--color-primary) 10%, transparent);
+  border-color: var(--color-primary);
+  /* El COLOR DEL TEXTO entra aquí a propósito. daisyUI rellena el botón entero al pasar el ratón y por
+   * eso invierte la letra a `primary-content`, que es casi blanca. Arriba se sustituye ese relleno por
+   * uno del 10%, pero la letra seguía invertida: en el tema claro quedaba blanco sobre blanco —medido
+   * en «Escribir una reseña» de la ficha: 8.44:1 en reposo y 1.09:1 al señalarlo—. Con relleno tenue,
+   * el texto tiene que seguir siendo el del contorno. */
+  color: var(--color-primary);
+}
 
 /* DROP-380: sidebar menu — activo en pastel lavanda. */
 .menu :where(li > *:not(ul, .menu-title, details, .btn).menu-active),
@@ -1041,6 +1050,27 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
   .text-brand-700, .text-brand-600,
   .text-brand-800, .text-brand-900 { color: oklch(72% 0.16 248) !important; }
 
+  /* Las VARIANTES DE ESTADO de esos mismos colores.
+   *
+   * Tailwind genera `hover:text-brand-700` como `.hover\:text-brand-700:hover`, que es otro selector:
+   * las reglas de arriba, escritas sobre la clase base, no lo alcanzan. Resultado: el color se
+   * remapeaba en reposo y al pasar el ratón volvía el tono ORIGINAL, pensado para fondo claro. En la
+   * miga de pan de la ficha —`hover:text-brand-700`— el enlace señalado pasaba a #0b3d78, un azul casi
+   * negro sobre el fondo oscuro: justo el elemento que se está señalando era el que no se leía.
+   *
+   * Van los mismos valores que sus clases base, para que señalar algo no cambie de paleta. */
+  .hover\:text-ink-900:hover { color: oklch(95% 0.015 245) !important; }
+  .hover\:text-ink-700:hover { color: oklch(86% 0.018 245) !important; }
+  .hover\:text-brand-700:hover,
+  .hover\:text-brand-800:hover { color: oklch(72% 0.16 248) !important; }
+  .group:hover .group-hover\:text-ink-600 { color: oklch(80% 0.020 245) !important; }
+  .group:hover .group-hover\:text-brand-700,
+  .group:hover .group-hover\:text-brand-600 { color: oklch(72% 0.16 248) !important; }
+
+  /* Y lo mismo con el fondo de realce: `bg-brand-50` ya se traduce arriba, pero su variante al pasar
+   * el ratón no, y dejaba un azul claro de tema claro debajo del texto. */
+  .hover\:bg-brand-50:hover { background-color: color-mix(in oklch, var(--color-primary) 22%, var(--color-base-100)) !important; }
+
   /* DROP-430: topbar admin sin tinte rosado */
   .navbar { background-color: var(--color-base-100) !important; }
   .navbar.bg-base-100\/95 { background-color: color-mix(in oklch, var(--color-base-100) 95%, transparent) !important; }
@@ -1078,6 +1108,9 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
   .btn-outline:hover {
     background-color: color-mix(in oklch, var(--color-primary) 20%, transparent) !important;
     border-color: var(--color-primary) !important;
+    /* Aquí el relleno es tenue sobre un fondo OSCURO, así que lo legible es la letra clara: se
+     * mantiene `base-content` en vez del `primary` que fija la regla general. */
+    color: var(--color-base-content) !important;
   }
   .btn-ghost {
     border: 1px solid color-mix(in oklch, var(--color-base-300) 60%, transparent);

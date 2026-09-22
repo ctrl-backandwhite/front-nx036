@@ -70,7 +70,7 @@ import { EnfocaAlAparecer } from '../../directive/enfoca-al-aparecer.directive';
       @if (abierto()) {
         <div
           role="listbox"
-          class="absolute right-0 w-[90vw] max-w-xs bg-white border border-ink-200 rounded-md shadow-md z-50 overflow-hidden"
+          class="absolute right-0 w-[90vw] max-w-xs bg-base-100 border border-ink-200 rounded-md shadow-md z-50 overflow-hidden"
           [class.bottom-full]="haciaArriba()"
           [class.mb-1]="haciaArriba()"
           [class.top-full]="!haciaArriba()"

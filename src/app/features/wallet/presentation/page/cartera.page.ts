@@ -43,10 +43,14 @@ const LATIDO_MS = 60_000;
             <span class="ml-3">· {{ t('wallet.hold') }}: {{ retenido }}</span>
           }
         </div>
+        <!--
+          Superficie del TEMA y no blanco fijo. El texto era text-brand-700, que en el tema oscuro se
+          remapea a un azul claro: sobre el blanco del botón se quedaba en 3.18:1.
+        -->
         <div class="mt-6 flex gap-2 flex-wrap">
           <a
             routerLink="/wallet/recharge"
-            class="btn btn-primary bg-white text-brand-700 hover:bg-brand-50"
+            class="btn btn-primary bg-base-100 text-primary hover:bg-base-200"
           >
             <fa-icon [icon]="iconoMas" /> {{ t('wallet.recharge') }}
           </a>
