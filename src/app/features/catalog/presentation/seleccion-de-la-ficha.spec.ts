@@ -1,5 +1,9 @@
+import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { exito } from '@shared/result/result';
+import { ConsultaElPrecioPorCantidad } from '../application/use-case/consulta-el-precio-por-cantidad.use-case';
+import { PRECIO_POR_CANTIDAD_PORT } from '../domain/port/precio-por-cantidad.port';
 import { EjeDeVariante, FichaDeProducto } from '../domain/model/producto';
 import { SeleccionDeLaFicha } from './seleccion-de-la-ficha';
 
@@ -47,14 +51,30 @@ const CON_TALLAS = ficha({
   ],
 });
 
+/** Escalera de cantidades: a partir de diez unidades el proveedor baja el precio. */
+const TRAMOS = [
+  { cantidadMinima: 1, cantidadMaxima: 9, precioUnitario: 10, divisa: 'EUR', precioUnitarioFormateado: '10,00 €' },
+  { cantidadMinima: 10, precioUnitario: 8, divisa: 'EUR', precioUnitarioFormateado: '8,00 €' },
+];
+
 describe('SeleccionDeLaFicha', () => {
   let seleccion: SeleccionDeLaFicha;
+  let cotizado: ReturnType<typeof vi.fn>;
 
-  beforeEach(() => {
+  function monta(): void {
     TestBed.resetTestingModule();
-    TestBed.configureTestingModule({ providers: [SeleccionDeLaFicha] });
+    cotizado = vi.fn(async () => exito({ unitarioFormateado: '7,60 €', totalFormateado: '76,00 €' }));
+    TestBed.configureTestingModule({
+      providers: [
+        SeleccionDeLaFicha,
+        ConsultaElPrecioPorCantidad,
+        { provide: PRECIO_POR_CANTIDAD_PORT, useValue: { cotiza: cotizado } },
+      ],
+    });
     seleccion = TestBed.inject(SeleccionDeLaFicha);
-  });
+  }
+
+  beforeEach(() => monta());
 
   /** Con «pedido mín. 6» se arranca en 6, no en 1: descubrirlo al pagar obliga a rehacerlo todo. */
   it('empieza respetando el pedido mínimo', () => {
@@ -172,5 +192,54 @@ describe('SeleccionDeLaFicha', () => {
   it('rotula un valor de eje en el idioma activo', () => {
     seleccion.empieza(CON_TALLAS);
     expect(seleccion.etiquetaDe({ id: '1', valorZh: '黑色', posicion: 0 })).not.toBe('');
+  });
+
+  /**
+   * El precio grande de la ficha con un tramo alcanzado sale del SERVIDOR.
+   *
+   * <p>Qué se rompía en producción antes de esta prueba: mandaba el precio de la variante y la
+   * cantidad no se miraba. Con mil unidades en la cesta la ficha seguía anunciando el precio de una,
+   * mientras el cobro sí aplicaba el tramo: el «veo X y me cobran Y» de siempre, esta vez a favor de
+   * la tienda y por tanto todavía peor.
+   *
+   * <p>No se compone aquí porque no se puede: el tramo es del producto, la variante tiene su coste, y
+   * el escalón se aplica como una proporción sobre ella. Multiplicar en el navegador es justo lo que
+   * la norma del proyecto prohíbe.
+   */
+  it('con un tramo alcanzado, el precio destacado es el que dice el servidor', async () => {
+    seleccion.empieza(ficha({ tramosDePrecio: TRAMOS }));
+    seleccion.fijaCantidad(10);
+    // Leer el precio es lo que engancha la consulta: el recurso es perezoso y no arranca hasta que
+    // alguien lo mira. Es justo lo que se quiere —una ficha que nadie abre no pide nada—.
+    //
+    // Mientras la respuesta viaja se enseña el precio del tramo tal cual lo publica la ficha (8,00 €).
+    // Es una aproximación buena —y la única que había antes—, pero no es la que se cobra: le falta
+    // aplicar la proporción sobre el precio de ESTA variante, y eso solo lo sabe el servidor.
+    expect(seleccion.precioDestacado().formateado).toBe('8,00 €');
+    await TestBed.inject(ApplicationRef).whenStable();
+
+    expect(cotizado).toHaveBeenCalledWith('p1', undefined, 10);
+    expect(seleccion.precioDestacado().formateado).toBe('7,60 €');
+  });
+
+  /** Por debajo del primer escalón el precio de la ficha ya es el bueno: no se molesta al servidor. */
+  it('con una sola unidad no pregunta nada y deja el precio de la ficha', async () => {
+    seleccion.empieza(ficha({ tramosDePrecio: TRAMOS }));
+    seleccion.fijaCantidad(1);
+    expect(seleccion.precioDestacado().formateado).toBe('10,00 €');
+    await TestBed.inject(ApplicationRef).whenStable();
+
+    expect(cotizado).not.toHaveBeenCalled();
+    expect(seleccion.precioDestacado().formateado).toBe('10,00 €');
+  });
+
+  /** Sin escalera no hay nada que cotizar por mucha cantidad que se pida. */
+  it('sin tramos no pregunta nada aunque se pidan mil unidades', async () => {
+    seleccion.empieza(ficha());
+    seleccion.fijaCantidad(1000);
+    void seleccion.precioDestacado();
+    await TestBed.inject(ApplicationRef).whenStable();
+
+    expect(cotizado).not.toHaveBeenCalled();
   });
 });

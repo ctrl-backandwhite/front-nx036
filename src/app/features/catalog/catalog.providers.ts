@@ -14,6 +14,7 @@ import { ALTA_EN_EL_BOLETIN_PORT } from './domain/port/alta-en-el-boletin.port';
 import { ANALITICA_DE_PRODUCTO_PORT } from './domain/port/analitica-de-producto.port';
 import { EDICION_DE_FICHA_PORT } from './domain/port/edicion-de-ficha.port';
 import { CESTA_PORT } from './domain/port/cesta.port';
+import { PRECIO_POR_CANTIDAD_PORT } from './domain/port/precio-por-cantidad.port';
 import { GUIA_DE_BIENVENIDA_PORT } from './domain/port/guia-de-bienvenida.port';
 import { CatalogoHttpAdapter } from './infrastructure/catalogo-http.adapter';
 import { FavoritosHttpAdapter, HistorialHttpAdapter } from './infrastructure/favoritos-http.adapter';
@@ -26,6 +27,7 @@ import { AnaliticaHttpAdapter } from './infrastructure/analitica-http.adapter';
 import { EdicionDeFichaHttpAdapter } from './infrastructure/edicion-de-ficha-http.adapter';
 import { CestaHttpAdapter } from './infrastructure/cesta-http.adapter';
 import { GuiaDeBienvenidaHttpAdapter } from './infrastructure/guia-de-bienvenida-http.adapter';
+import { PrecioPorCantidadHttpAdapter } from './infrastructure/precio-por-cantidad-http.adapter';
 import { FavoritosStore } from './application/state/favoritos.store';
 import { ListadoStore } from './application/state/listado.store';
 import { TaxonomiaStore } from './application/state/taxonomia.store';
@@ -38,6 +40,7 @@ import { BuscaProductos } from './application/use-case/busca-productos.use-case'
 import { EditaLaFicha } from './application/use-case/edita-la-ficha.use-case';
 import { ListaFavoritos, ListaHistorial } from './application/use-case/lista-guardados.use-case';
 import { PublicaResena } from './application/use-case/publica-resena.use-case';
+import { ConsultaElPrecioPorCantidad } from './application/use-case/consulta-el-precio-por-cantidad.use-case';
 
 /**
  * Los casos de uso y el estado de «catalog».
@@ -58,6 +61,7 @@ export const APLICACION_DEL_CATALOGO: Provider[] = [
   AlternaFavorito,
   AnadeALaCesta,
   BuscaProductos,
+  ConsultaElPrecioPorCantidad,
   EditaLaFicha,
   ListaFavoritos,
   ListaHistorial,
@@ -152,6 +156,11 @@ export function proveeCatalogo(): EnvironmentProviders {
 
     CestaHttpAdapter,
     { provide: CESTA_PORT, useFactory: () => inject(CestaHttpAdapter) },
+
+    /* El precio de una selección con su cantidad: el tramo por cantidad no se puede componer en el
+     * navegador, así que la ficha se lo pregunta al mismo presupuesto que usa la cesta. */
+    PrecioPorCantidadHttpAdapter,
+    { provide: PRECIO_POR_CANTIDAD_PORT, useFactory: () => inject(PrecioPorCantidadHttpAdapter) },
 
     GuiaDeBienvenidaHttpAdapter,
     { provide: GUIA_DE_BIENVENIDA_PORT, useFactory: () => inject(GuiaDeBienvenidaHttpAdapter) },

@@ -46,6 +46,7 @@ export interface TramoDto {
   maxQty?: number | null;
   unitPrice: number;
   currency?: string;
+  surchargeCny?: number | null;
 }
 
 export interface CumplimientoDto {

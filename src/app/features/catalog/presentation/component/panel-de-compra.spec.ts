@@ -6,7 +6,9 @@ import { EDICION_DE_FICHA_PORT } from '../../domain/port/edicion-de-ficha.port';
 import { EjeDeVariante, FichaDeProducto } from '../../domain/model/producto';
 import { SeleccionDeLaFicha } from '../seleccion-de-la-ficha';
 import { PanelDeCompra } from './panel-de-compra';
+import { exito } from '@shared/result/result';
 import { APLICACION_DEL_CATALOGO } from '../../catalog.providers';
+import { PRECIO_POR_CANTIDAD_PORT } from '../../domain/port/precio-por-cantidad.port';
 import { ANADIR_AL_CARRITO_PORT } from '@features/cart/domain/port/carrito-compartido.port';
 
 /**
@@ -71,6 +73,7 @@ async function monta(entrada: FichaDeProducto, rol?: RolDeSesion) {
     on: { anade, marcaFavorito },
     providers: [
       ...APLICACION_DEL_CATALOGO,
+      PRECIO_SIN_TRAMOS,
       CESTA_DE_OTRO_CONTEXTO,
       SeleccionDeLaFicha,
       { provide: EDICION_DE_FICHA_PORT, useValue: {} },
@@ -87,6 +90,18 @@ async function monta(entrada: FichaDeProducto, rol?: RolDeSesion) {
   await vista.fixture.whenStable();
   return { vista, anade, marcaFavorito, seleccion };
 }
+
+/**
+ * El precio por cantidad es de OTRO viaje: lo resuelve el servidor y aquí no se mide.
+ *
+ * <p>Se responde sin importe, que es como se comporta cuando no hay escalón que aplicar: quien pinta
+ * cae al precio de la ficha. Sin este doble, montar el panel revienta con un NG0201 porque la
+ * selección pregunta el precio en cuanto alguien lo lee.
+ */
+const PRECIO_SIN_TRAMOS = {
+  provide: PRECIO_POR_CANTIDAD_PORT,
+  useValue: { cotiza: async () => exito({}) },
+};
 
 describe('PanelDeCompra', () => {
   /**
@@ -190,6 +205,7 @@ describe('PanelDeCompra', () => {
       on: { compraAhora },
       providers: [
         ...APLICACION_DEL_CATALOGO,
+      PRECIO_SIN_TRAMOS,
         CESTA_DE_OTRO_CONTEXTO,
         SeleccionDeLaFicha,
         { provide: EDICION_DE_FICHA_PORT, useValue: {} },
@@ -209,6 +225,7 @@ describe('PanelDeCompra', () => {
       on: { marcaFavorito },
       providers: [
         ...APLICACION_DEL_CATALOGO,
+      PRECIO_SIN_TRAMOS,
         CESTA_DE_OTRO_CONTEXTO,
         SeleccionDeLaFicha,
         { provide: EDICION_DE_FICHA_PORT, useValue: {} },
@@ -234,6 +251,7 @@ describe('PanelDeCompra', () => {
       on: { filtraPorGrupo },
       providers: [
         ...APLICACION_DEL_CATALOGO,
+      PRECIO_SIN_TRAMOS,
         CESTA_DE_OTRO_CONTEXTO,
         SeleccionDeLaFicha,
         { provide: EDICION_DE_FICHA_PORT, useValue: {} },
@@ -263,6 +281,7 @@ describe('PanelDeCompra', () => {
       on: { eligeColor, cambia },
       providers: [
         ...APLICACION_DEL_CATALOGO,
+      PRECIO_SIN_TRAMOS,
         CESTA_DE_OTRO_CONTEXTO,
         SeleccionDeLaFicha,
         { provide: EDICION_DE_FICHA_PORT, useValue: {} },

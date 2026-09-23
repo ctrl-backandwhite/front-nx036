@@ -1,10 +1,14 @@
 import { Component, computed, inject, input, linkedSignal, output } from '@angular/core';
-import { FormField, applyEach, form, min } from '@angular/forms/signals';
+import { FormField, applyEach, disabled, form, min } from '@angular/forms/signals';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { CatalogoAdminStore } from '../../../../application/catalogo/state/catalogo-admin.store';
-import { FichaDeProducto, etiquetaDeTramo } from '../../../../domain/catalogo/model/ficha-de-producto';
+import {
+  FichaDeProducto,
+  TramoDePrecio,
+  etiquetaDeTramo,
+} from '../../../../domain/catalogo/model/ficha-de-producto';
 import { traduceOpciones } from '../../../../domain/catalogo/model/glosario-de-variantes';
 import {
   VarianteDeProducto,
@@ -38,6 +42,9 @@ import {
                 <tr>
                   <th class="font-medium">{{ t('admin.catalog.detail.tiers.qty') }}</th>
                   <th class="font-medium text-right">{{ t('admin.catalog.detail.tiers.unit') }}</th>
+                  <th class="font-medium text-right">
+                    {{ t('admin.catalog.detail.tiers.surcharge') }}
+                  </th>
                   <th class="w-10"></th>
                 </tr>
               </thead>
@@ -47,6 +54,30 @@ import {
                     <td>{{ etiqueta(tramo) }}</td>
                     <td class="text-right font-mono">
                       {{ tramo.precioUnitario.toFixed(2) }} {{ tramo.divisa }}
+                    </td>
+                    <td class="text-right">
+                      <div class="flex items-center justify-end gap-1.5">
+                        <label [for]="'recargo-' + tramo.cantidadMinima" class="sr-only">
+                          {{ t('admin.catalog.detail.tiers.surcharge') }}
+                        </label>
+                        <!--
+                          Vacío NO es cero: la casilla en blanco devuelve el tramo al recargo del
+                          producto, y un 0 escrito es un recargo de cero. Por eso el marcador de
+                          posición dice de qué hereda en vez de enseñar un 0 que nadie ha puesto.
+                        -->
+                        <input
+                          [id]="'recargo-' + tramo.cantidadMinima"
+                          type="number"
+                          step="0.01"
+                          class="input input-xs w-24 text-right font-mono"
+                          [title]="t('admin.catalog.detail.tiers.surcharge_hint')"
+                          [placeholder]="t('admin.catalog.detail.tiers.surcharge_inherits')"
+                          [formField]="formularioDeRecargos[tramo.cantidadMinima]"
+                          (blur)="confirmaRecargo(tramo)"
+                          (keydown.enter)="$any($event.target).blur()"
+                        />
+                        <span class="text-[10px] text-ink-400">{{ ficha().divisa }}</span>
+                      </div>
                     </td>
                     <td class="text-right">
                       <button
@@ -131,6 +162,7 @@ export class PreciosDeFicha {
 
   readonly borraTramo = output<number>();
   readonly cambiaPrecio = output<{ id: string; precio: number; anterior: number }>();
+  readonly cambiaRecargoDeTramo = output<{ cantidadMinima: number; recargoCny: number | null }>();
 
   protected readonly t = inject(TraduccionService).t;
   private readonly almacen = inject(CatalogoAdminStore);
@@ -169,6 +201,34 @@ export class PreciosDeFicha {
     applyEach(ruta, (precio) => min(precio, 0));
   });
 
+  /**
+   * Un recargo editable por tramo, indexado por su cantidad mínima —que es lo que identifica al tramo.
+   *
+   * <p>Se rehace con cada ficha nueva, igual que los precios de variante, para que la casilla no se
+   * quede enseñando el recargo de antes de guardar.
+   */
+  private readonly recargos = linkedSignal<FichaDeProducto, Record<number, number | null>>({
+    source: () => this.ficha(),
+    computation: (ficha) =>
+      Object.fromEntries(
+        ficha.tramos.map((tramo) => [tramo.cantidadMinima, tramo.recargoCny ?? null]),
+      ),
+  });
+
+  /**
+   * Un recargo negativo restaría del precio de venta, que es justo lo contrario de lo que es.
+   *
+   * <p>El mínimo y el bloqueo mientras se guarda van en el ESQUEMA, no como atributos del marcado:
+   * Signal Forms es dueña de `min` y `disabled` y el compilador rechaza ponerlos a mano. Además, un
+   * `min="0"` del marcado solo frena las flechas del navegador —un −5 tecleado llegaba al guardado—.
+   */
+  protected readonly formularioDeRecargos = form(this.recargos, (ruta) => {
+    applyEach(ruta, (recargo) => {
+      min(recargo, 0);
+      disabled(recargo, { when: () => this.ocupado() });
+    });
+  });
+
   protected etiqueta(tramo: { cantidadMinima: number; cantidadMaxima?: number | null }): string {
     return etiquetaDeTramo({ ...tramo, precioUnitario: 0, divisa: '' });
   }
@@ -193,6 +253,26 @@ export class PreciosDeFicha {
   protected textoDeDesviacion(variante: VarianteDeProducto): string {
     const valor = this.desviacion(variante);
     return valor === 0 ? '—' : `${valor > 0 ? '+' : ''}${valor.toFixed(1)}%`;
+  }
+
+  /**
+   * Manda el recargo al soltar el foco, y SOLO si ha cambiado.
+   *
+   * <p>Pasar por la casilla sin tocarla no debe guardar nada: cada guardado recalcula el precio del
+   * tramo y recarga la ficha, así que un viaje de más se nota.
+   */
+  protected confirmaRecargo(tramo: TramoDePrecio): void {
+    const escrito = this.recargos()[tramo.cantidadMinima];
+    // Una casilla vacía llega como null; un número inválido también. Las dos cosas son «sin recargo
+    // propio», que es un valor legítimo y hay que poder guardar.
+    const recargoCny = escrito === null || !Number.isFinite(escrito) ? null : escrito;
+    if (this.formularioDeRecargos[tramo.cantidadMinima]().invalid()) {
+      return;
+    }
+    if (recargoCny === (tramo.recargoCny ?? null)) {
+      return;
+    }
+    this.cambiaRecargoDeTramo.emit({ cantidadMinima: tramo.cantidadMinima, recargoCny });
   }
 
   protected confirma(variante: VarianteDeProducto): void {

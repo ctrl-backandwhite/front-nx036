@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { DialogoStore } from '@ds/component/dialogo/dialogo.store';
 import { AccionesDeFicha } from './ficha-acciones';
+import { CambiaRecargoDeTramo } from '../../../application/catalogo/use-case/cambia-recargo-de-tramo.use-case';
 import { EliminaTramoDePrecio } from '../../../application/catalogo/use-case/elimina-tramo-de-precio.use-case';
 import { EliminaImagenes } from '../../../application/catalogo/use-case/elimina-imagenes.use-case';
 import { ActualizaFicha } from '../../../application/catalogo/use-case/actualiza-ficha.use-case';
@@ -31,7 +32,7 @@ import { exito, fallo } from '@shared/result/result';
 describe('AccionesDeFicha · confirmaciones antes de borrar', () => {
   /** Lo que de verdad se mira: si el caso de uso llegó a ejecutarse o no. */
   function monta(sobrescribe: Record<string, unknown> = {}) {
-    const ejecutado = { tramo: 0, imagenes: [] as (readonly string[])[] };
+    const ejecutado = { tramo: 0, recargoDeTramo: 0, imagenes: [] as (readonly string[])[] };
     const nada = () => ({ ejecuta: () => Promise.resolve(exito(undefined)) });
 
     TestBed.configureTestingModule({
@@ -39,6 +40,15 @@ describe('AccionesDeFicha · confirmaciones antes de borrar', () => {
         AccionesDeFicha,
         DialogoStore,
         AvisosStore,
+        {
+          provide: CambiaRecargoDeTramo,
+          useValue: {
+            ejecuta: () => {
+              ejecutado.recargoDeTramo += 1;
+              return Promise.resolve(exito(undefined));
+            },
+          },
+        },
         {
           provide: EliminaTramoDePrecio,
           useValue: {
@@ -97,6 +107,20 @@ describe('AccionesDeFicha · confirmaciones antes de borrar', () => {
 
     expect(await enCurso).toBe(true);
     expect(ejecutado.tramo).toBe(1);
+  });
+
+  /**
+   * Cambiar el recargo de un tramo NO pregunta, a diferencia de borrarlo.
+   *
+   * <p>Es la diferencia entre un dato que se corrige volviendo a escribirlo y una regla de venta que
+   * hay que reconstruir de memoria. Preguntar aquí convertiría en dos gestos algo que se hace en
+   * cadena, tramo a tramo, mientras se ajusta el precio de un producto.
+   */
+  it('cambiar el recargo de un tramo guarda sin preguntar', async () => {
+    const { acciones, ejecutado } = monta();
+
+    expect(await acciones.cambiaRecargoDeTramo('p1', 200, 0.8)).toBe(true);
+    expect(ejecutado.recargoDeTramo).toBe(1);
   });
 
   it('quitar una foto pregunta antes, y si se dice que no NO se borra', async () => {

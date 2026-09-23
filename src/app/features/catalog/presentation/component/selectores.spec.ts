@@ -102,10 +102,14 @@ describe('SelectorColor', () => {
 describe('TablaTallas', () => {
   const tallas = eje('Talla', [{ valor: 'S' }, { valor: 'M' }]);
 
-  async function monta(existencias: (talla: string) => number, unidades = {}) {
+  async function monta(
+    existencias: (talla: string) => number,
+    unidades = {},
+    precio: (talla: string) => string | undefined = () => undefined,
+  ) {
     const cambia = vi.fn();
     const vista = await render(TablaTallas, {
-      inputs: { eje: tallas, unidades, existencias },
+      inputs: { eje: tallas, unidades, existencias, precio },
       on: { cambia },
     });
     return { vista, cambia };
@@ -114,7 +118,26 @@ describe('TablaTallas', () => {
   it('enseña las existencias de cada talla', async () => {
     await monta((talla) => (talla === 'S' ? 4 : 0));
     expect(screen.getByText('S')).toBeInTheDocument();
-    expect(screen.getByText('4')).toBeInTheDocument();
+    expect(screen.getByText(/4/)).toBeInTheDocument();
+  });
+
+  /*
+   * El precio va EN LA FILA, como en la ficha del proveedor: en calzado y ropa la talla grande cuesta
+   * más, y sin verlo hay que ir tocando tallas una por una para descubrir cuál vale cuánto.
+   */
+  it('enseña el precio de cada talla cuando lo hay', async () => {
+    await monta(() => 5, {}, (talla) => (talla === 'S' ? '9,90 €' : '11,40 €'));
+
+    expect(screen.getByText('9,90 €')).toBeInTheDocument();
+    expect(screen.getByText('11,40 €')).toBeInTheDocument();
+  });
+
+  /** Y si el backend no da precio para esa combinación, la fila sale sin él y no con un cero. */
+  it('sin precio, la fila no inventa ninguno', async () => {
+    const { vista } = await monta(() => 5);
+
+    expect(vista.container.textContent).not.toContain('0,00');
+    expect(screen.getByText('S')).toBeInTheDocument();
   });
 
   it('una talla agotada no se puede pedir', async () => {

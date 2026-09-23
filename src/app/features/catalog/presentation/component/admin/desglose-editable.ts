@@ -136,7 +136,6 @@ export class DesgloseEditable {
   protected readonly filasFijas = computed(() =>
     [
       { clave: 'product.price.base', mostrado: this.desglose().baseFormateado },
-      { clave: 'product.price.iva', mostrado: this.desglose().ivaFormateado },
       { clave: 'product.price.shipping', mostrado: this.desglose().envioFormateado },
     ].filter((fila): fila is { clave: string; mostrado: string } => !!fila.mostrado),
   );
@@ -144,6 +143,15 @@ export class DesgloseEditable {
   protected readonly filasEditables = computed<readonly FilaEditable[]>(() => {
     const desglose = this.desglose();
     const posibles: FilaEditable[] = [
+      {
+        // El IVA se editaba solo por el importador, reenviando la ficha entera. El 13 % es lo
+        // habitual en el proveedor, no una regla: cuando no cuadra hay que poder corregirlo aquí.
+        campo: 'ivaCny',
+        clave: 'product.price.iva',
+        claveDeAyuda: 'product.price.iva_dbl',
+        mostrado: desglose.ivaFormateado ?? '',
+        crudo: desglose.ivaCny ?? null,
+      },
       {
         campo: 'surchargeCny',
         clave: 'product.price.surcharge',

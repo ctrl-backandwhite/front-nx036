@@ -11,6 +11,7 @@ import {
   RenombraValorDeVariacion,
 } from '../../../application/catalogo/use-case/edita-valores-de-variacion.use-case';
 import { EliminaImagenes } from '../../../application/catalogo/use-case/elimina-imagenes.use-case';
+import { CambiaRecargoDeTramo } from '../../../application/catalogo/use-case/cambia-recargo-de-tramo.use-case';
 import { EliminaTramoDePrecio } from '../../../application/catalogo/use-case/elimina-tramo-de-precio.use-case';
 import { ReordenaImagenes } from '../../../application/catalogo/use-case/reordena-imagenes.use-case';
 import { CambiosDeFicha } from '../../../domain/catalogo/model/ficha-de-producto';
@@ -31,6 +32,7 @@ export class AccionesDeFicha {
   private readonly dialogo = inject(DialogoStore);
   private readonly actualiza = inject(ActualizaFicha);
   private readonly borraTramo = inject(EliminaTramoDePrecio);
+  private readonly recargoDeTramo = inject(CambiaRecargoDeTramo);
   private readonly anade = inject(AnadeImagenes);
   private readonly borraImagenes = inject(EliminaImagenes);
   private readonly reordena_ = inject(ReordenaImagenes);
@@ -74,6 +76,24 @@ export class AccionesDeFicha {
       this.avisos.error(mensajeDeError(this.t, resultado.error, 'admin.catalog.edit.error'));
     }
     return resultado.ok;
+  }
+
+  /**
+   * Fija el recargo de un tramo. NO pregunta, a diferencia de borrarlo: cambiar un número se deshace
+   * volviendo a escribirlo, mientras que un tramo borrado hay que reconstruirlo de memoria.
+   */
+  async cambiaRecargoDeTramo(
+    id: string,
+    cantidadMinima: number,
+    recargoCny: number | null,
+  ): Promise<boolean> {
+    const resultado = await this.recargoDeTramo.ejecuta(id, cantidadMinima, recargoCny);
+    if (!resultado.ok) {
+      this.avisos.error(mensajeDeError(this.t, resultado.error, 'admin.catalog.edit.error'));
+      return false;
+    }
+    this.avisos.exito(this.t('admin.catalog.edit.ok'));
+    return true;
   }
 
   /**

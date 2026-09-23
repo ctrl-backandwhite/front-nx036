@@ -9,12 +9,6 @@ import { etiquetaDeValor } from '../../domain/model/seleccion-de-variante';
 
 /** A partir de aquí se colapsa la lista: treinta tallas convierten la ficha en una columna infinita. */
 const TOPE_ANTES_DE_COLAPSAR = 10;
-/**
- * A partir de cuántos caracteres la rejilla pasa a celdas anchas. El umbral está medido sobre el
- * catálogo: deja fuera las tallas usuales (S, XXL, 110 cm) y captura las que llegan descritas.
- */
-const LARGO_QUE_PIDE_ANCHO = 14;
-
 export interface CambioDeTalla {
   readonly talla: string;
   readonly cantidad: number;
@@ -23,10 +17,10 @@ export interface CambioDeTalla {
 /**
  * Las tallas con sus existencias y cuántas unidades se lleva de cada una.
  *
- * <p>La rejilla se decide POR PRODUCTO, no por talla: o todas anchas o todas estrechas. Mezclar anchos
- * en la misma rejilla deja filas descuadradas —«90*190cm» estrecha junto a «120*200cm Sábana
- * individual» ancha— y se ve peor que el texto apilado que se quería arreglar. Basta con que UNA talla
- * necesite sitio para que todas lo tengan.
+ * <p>Una talla por FILA, como la ficha del proveedor. Antes era una rejilla de celdas, y con ella
+ * venía todo un mecanismo para decidir si el producto necesitaba celdas anchas —«120*200cm Sábana
+ * individual» no cabe donde cabe «XXL»—. En fila ese problema desaparece: el ancho es el de la ficha,
+ * y encima queda sitio para el precio, que es lo que no entraba en la celda.
  */
 @Component({
   selector: 'nx-tabla-tallas',
@@ -42,71 +36,69 @@ export interface CambioDeTalla {
             </span>
           </div>
 
-          <!-- Rejilla en unidades FINAS (el doble de columnas que celdas normales) para que una talla
-               pueda ocupar dos columnas y media cuando el texto lo pide. -->
-          <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 xl:grid-cols-10 gap-2 items-start">
+          <!-- Una talla por FILA, como la ficha del proveedor: talla, lo que cuesta, lo que
+               queda y cuántas se llevan. En rejilla, el precio no cabía sin romper la celda, y era
+               justo el dato que obligaba a ir tocando tallas una por una para saber cuál valía
+               cuánto. En fila entra todo y se compara de un vistazo, que es para lo que se mira. -->
+          <div class="flex flex-col divide-y divide-base-200">
             @for (valor of visibles(); track valor.id) {
               @let etiqueta = etiquetaDe(valor);
               @let existencias = existenciasDe(etiqueta);
               @let cantidad = cantidadDe(etiqueta);
+              @let importe = precio()(etiqueta);
               <div
-                class="border rounded-lg p-2 overflow-hidden transition-colors"
+                class="flex items-center gap-2 py-1.5 px-1 rounded-md transition-colors"
                 [class]="
-                  (anchas() ? 'col-span-4 sm:col-span-5 md:col-span-5 xl:col-span-5 ' : 'col-span-2 ') +
-                  (existencias <= 0
-                    ? 'border-base-300 opacity-60'
+                  existencias <= 0
+                    ? 'opacity-60'
                     : cantidad > 0
-                      ? 'border-primary bg-primary/5'
-                      : 'border-base-content/40 hover:border-base-content/60')
+                      ? 'bg-primary/5'
+                      : 'hover:bg-base-200/60'
                 "
               >
-                <!-- En las anchas, etiqueta y controles van EN LÍNEA: apilados, el ancho extra se
-                     desperdiciaría en blanco y la celda quedaría igual de alta que antes. -->
-                <div [class]="anchas() ? 'flex items-center gap-2' : ''">
-                  <div
-                    class="flex items-baseline justify-between gap-2"
-                    [class]="anchas() ? 'flex-1 min-w-0' : 'mb-1'"
+                <span class="font-semibold text-[13px] flex-1 min-w-0 truncate" [title]="etiqueta">
+                  {{ etiqueta }}
+                </span>
+
+                @if (importe) {
+                  <span class="text-[13px] font-mono shrink-0">{{ importe }}</span>
+                }
+
+                <span
+                  class="text-[11px] shrink-0 w-20 text-right"
+                  [class]="existencias <= 0 ? 'text-error' : 'opacity-60'"
+                >
+                  {{ existencias <= 0 ? t('product.out_of_stock') : tCon('pdp.size.left', { n: existencias }) }}
+                </span>
+
+                <div class="join shrink-0">
+                  <button
+                    type="button"
+                    class="btn btn-xs join-item w-7 px-0"
+                    [disabled]="existencias <= 0 || cantidad <= 0"
+                    (click)="cambia.emit({ talla: etiqueta, cantidad: cantidad - 1 })"
+                    [attr.aria-label]="t('common.prev')"
                   >
-                    <span class="font-semibold text-[13px]" [class.leading-snug]="anchas()">
-                      {{ etiqueta }}
-                    </span>
-                    <span
-                      class="text-[10px] shrink-0"
-                      [class]="existencias <= 0 ? 'text-error' : 'opacity-60'"
-                    >
-                      {{ existencias <= 0 ? t('product.out_of_stock') : existencias }}
-                    </span>
-                  </div>
-                  <div class="join max-w-full" [class]="anchas() ? 'w-auto shrink-0' : 'w-full'">
-                    <button
-                      type="button"
-                      class="btn btn-xs join-item w-7 shrink-0 px-0"
-                      [disabled]="existencias <= 0 || cantidad <= 0"
-                      (click)="cambia.emit({ talla: etiqueta, cantidad: cantidad - 1 })"
-                      [attr.aria-label]="t('common.prev')"
-                    >
-                      <fa-icon [icon]="iconos.menos" class="text-[10px]" />
-                    </button>
-                    <!-- Ni el mínimo, ni el tope de existencias, ni el bloqueo van ya en el marcado:
-                         los declara el esquema del formulario, que es quien los conoce por talla. -->
-                    <input
-                      type="number"
-                      [formField]="formulario[etiqueta]"
-                      (change)="publica(etiqueta)"
-                      class="input input-bordered input-xs join-item min-w-0 text-center font-mono px-1"
-                      [class]="anchas() ? 'w-12' : 'flex-1 w-full'"
-                      [attr.aria-label]="t('pdp.size') + ' ' + etiqueta"
-                    />
-                    <button
-                      type="button"
-                      class="btn btn-xs join-item w-7 shrink-0 px-0"
-                      [disabled]="existencias <= 0 || cantidad >= existencias"
-                      (click)="cambia.emit({ talla: etiqueta, cantidad: cantidad + 1 })"
-                      [attr.aria-label]="t('common.next')"
-                    >
-                      <fa-icon [icon]="iconos.mas" class="text-[10px]" />
-                    </button>
-                  </div>
+                    <fa-icon [icon]="iconos.menos" class="text-[10px]" />
+                  </button>
+                  <!-- Ni el mínimo, ni el tope de existencias, ni el bloqueo van en el marcado: los
+                       declara el esquema del formulario, que es quien los conoce por talla. -->
+                  <input
+                    type="number"
+                    [formField]="formulario[etiqueta]"
+                    (change)="publica(etiqueta)"
+                    class="input input-bordered input-xs join-item w-12 text-center font-mono px-1"
+                    [attr.aria-label]="t('pdp.size') + ' ' + etiqueta"
+                  />
+                  <button
+                    type="button"
+                    class="btn btn-xs join-item w-7 px-0"
+                    [disabled]="existencias <= 0 || cantidad >= existencias"
+                    (click)="cambia.emit({ talla: etiqueta, cantidad: cantidad + 1 })"
+                    [attr.aria-label]="t('common.next')"
+                  >
+                    <fa-icon [icon]="iconos.mas" class="text-[10px]" />
+                  </button>
                 </div>
               </div>
             }
@@ -135,11 +127,19 @@ export class TablaTallas {
   readonly unidades = input.required<Readonly<Record<string, number>>>();
   /** Cuántas quedan de esa talla en el color que se está mirando. El stock es por color Y talla. */
   readonly existencias = input.required<(talla: string) => number>();
+  /**
+   * Lo que cuesta esa talla en el color elegido. El precio cambia por variante —una 44 puede costar
+   * más que una 38—, y la ficha de origen lo enseña en cada fila: sin él hay que ir tocando tallas
+   * para descubrir cuál vale cuánto.
+   */
+  readonly precio = input<(talla: string) => string | undefined>(() => undefined);
 
   readonly cambia = output<CambioDeTalla>();
 
   private readonly preferencias = inject(PreferenciasService);
   protected readonly t = inject(TraduccionService).t;
+  /** Para el «quedan N»: los marcadores los coloca cada idioma donde le corresponde. */
+  protected readonly tCon = inject(TraduccionService).tCon;
   protected readonly iconos = { menos: faMinus, mas: faPlus };
   protected readonly tope = TOPE_ANTES_DE_COLAPSAR;
   protected readonly desplegada = signal(false);
@@ -182,14 +182,6 @@ export class TablaTallas {
     this.desplegada() || !this.colapsable()
       ? this.valores()
       : this.valores().slice(0, TOPE_ANTES_DE_COLAPSAR),
-  );
-
-  /**
-   * Se mira sobre TODAS las tallas, no solo las visibles: si no, pulsar «ver más» recolocaría la
-   * rejilla entera delante de quien está eligiendo.
-   */
-  protected readonly anchas = computed(() =>
-    this.valores().some((valor) => this.etiquetaDe(valor).length > LARGO_QUE_PIDE_ANCHO),
   );
 
   protected etiquetaDe(valor: EjeDeVariante['valores'][number]): string {

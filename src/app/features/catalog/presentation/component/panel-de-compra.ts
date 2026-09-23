@@ -14,7 +14,8 @@ import { FichaDeProducto, hayExistencias } from '../../domain/model/producto';
 import { SeleccionDeLaFicha } from '../seleccion-de-la-ficha';
 import { SesionActual } from '@core/auth/sesion-actual';
 import { FavoritosStore } from '../../application/state/favoritos.store';
-import { ColorElegido, SelectorColor } from './selector-color';
+import { ColorElegido, SelectorColor } from './selector-color'
+import { TramosDePrecio } from './tramos-de-precio';
 import { CambioDeTalla, TablaTallas } from './tabla-tallas';
 import { SelectorCantidad } from './selector-cantidad';
 import { BloquePrecio } from './bloque-precio';
@@ -41,6 +42,7 @@ import { DesgloseEditable } from './admin/desglose-editable';
   imports: [
     FaIconComponent,
     SelectorColor,
+    TramosDePrecio,
     TablaTallas,
     SelectorCantidad,
     BloquePrecio,
@@ -102,6 +104,7 @@ import { DesgloseEditable } from './admin/desglose-editable';
             [eje]="eje"
             [unidades]="seleccion.unidadesPorTalla()"
             [existencias]="seleccion.existenciasDeTalla"
+            [precio]="seleccion.precioDeTalla"
             (cambia)="cambiaTalla($event)"
           />
         } @else {
@@ -116,6 +119,12 @@ import { DesgloseEditable } from './admin/desglose-editable';
 
       <div class="order-2 lg:order-0">
         <nx-bloque-precio [destacado]="seleccion.precioDestacado()" [moq]="ficha().moq">
+          <!-- Los precios por cantidad, justo debajo del precio: es donde se buscan, y así se ve de
+               un golpe cuál se está pagando y cuánto falta para el siguiente escalón. -->
+          <nx-tramos-de-precio
+            [tramos]="ficha().tramosDePrecio"
+            [unidades]="seleccion.unidadesElegidas()"
+          />
           <!-- El desglose de conceptos es SOLO del administrador y se carga aparte. -->
           @if (sesion.esAdministrador() && ficha().desglose; as desglose) {
             @defer (on idle) {

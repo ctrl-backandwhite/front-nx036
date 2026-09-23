@@ -19,6 +19,12 @@ export interface FichaDeProductoPort {
   ): Promise<Result<void, AppError>>;
   /** Elimina un tramo de precio por su cantidad mínima, que es lo que lo identifica. */
   eliminaTramo(id: string, cantidadMinima: number): Promise<Result<void, AppError>>;
+  /** Fija el recargo de un tramo. Nulo = el tramo vuelve a heredar el del producto. */
+  cambiaRecargoDeTramo(
+    id: string,
+    cantidadMinima: number,
+    recargoCny: number | null,
+  ): Promise<Result<void, AppError>>;
 }
 
 export const FICHA_DE_PRODUCTO_PORT = new InjectionToken<FichaDeProductoPort>(

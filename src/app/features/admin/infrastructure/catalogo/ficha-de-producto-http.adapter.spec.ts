@@ -113,6 +113,34 @@ describe('adaptadores de la ficha de producto', () => {
     await pendiente;
   });
 
+  /**
+   * El recargo por tramo (23-sep-2026). Se manda el NULO explícito al vaciar la casilla: omitir la
+   * clave querría decir «no lo toques», y aquí vaciarla es la decisión de volver a heredar el del
+   * producto.
+   */
+  it('el recargo de un tramo viaja a su propia ruta, con el nulo explícito', async () => {
+    const pendiente = ficha.cambiaRecargoDeTramo('p1', 200, null);
+    const peticion = http.expectOne((r) =>
+      r.url.endsWith('/api/admin/catalog/products/p1/price-tiers/200/surcharge'),
+    );
+
+    expect(peticion.request.method).toBe('PUT');
+    expect(peticion.request.body).toEqual({ surchargeCny: null });
+    peticion.flush({});
+    await pendiente;
+  });
+
+  it('el recargo de un tramo se manda tal cual cuando lleva importe', async () => {
+    const pendiente = ficha.cambiaRecargoDeTramo('p1', 1, 2.75);
+    const peticion = http.expectOne((r) =>
+      r.url.endsWith('/api/admin/catalog/products/p1/price-tiers/1/surcharge'),
+    );
+
+    expect(peticion.request.body).toEqual({ surchargeCny: 2.75 });
+    peticion.flush({});
+    await pendiente;
+  });
+
   it('reordenar la galería manda los identificadores en el orden deseado', async () => {
     const pendiente = ficha.reordena('p1', ['i2', 'i1']);
     const peticion = http.expectOne((r) =>

@@ -35,6 +35,7 @@ import { AnadeImagenes } from './use-case/anade-imagenes.use-case';
 import { AplicaRecargo } from './use-case/aplica-recargo.use-case';
 import { AplicaSubvencion } from './use-case/aplica-subvencion.use-case';
 import { CambiaEstadoDeProductos } from './use-case/cambia-estado-de-productos.use-case';
+import { CambiaRecargoDeTramo } from './use-case/cambia-recargo-de-tramo.use-case';
 import { ComprimeImagenesHistoricas } from './use-case/comprime-imagenes-historicas.use-case';
 import { ConsultaArbolDeCategorias } from './use-case/consulta-arbol-de-categorias.use-case';
 import { ConsultaFicha } from './use-case/consulta-ficha.use-case';
@@ -94,6 +95,7 @@ export const CASOS_DE_USO_DE_CATALOGO: readonly Provider[] = [
   ReintentaAnunciosAlBus,
   ConsultaFicha,
   ActualizaFicha,
+  CambiaRecargoDeTramo,
   EliminaTramoDePrecio,
   AnadeImagenes,
   EliminaImagenes,

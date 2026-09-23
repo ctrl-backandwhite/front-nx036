@@ -22,6 +22,7 @@ import { EDICION_DE_FICHA_PORT } from '../../domain/port/edicion-de-ficha.port';
 import { FichaDeProducto } from '../../domain/model/producto';
 import { FichaPage } from './ficha.page';
 import { APLICACION_DEL_CATALOGO } from '../../catalog.providers';
+import { PRECIO_POR_CANTIDAD_PORT } from '../../domain/port/precio-por-cantidad.port';
 
 function ficha(cambios: Partial<FichaDeProducto> = {}): FichaDeProducto {
   return {
@@ -71,6 +72,7 @@ async function monta(
     inputs: { slug: 'gorro' },
     providers: [
       ...APLICACION_DEL_CATALOGO,
+      PRECIO_SIN_TRAMOS,
       provideRouter([{ path: '**', children: [] }]),
       { provide: RECUPERADOR_DE_SESION, useValue: { asegura: async () => undefined } },
       {
@@ -116,6 +118,18 @@ async function monta(
   vista.fixture.detectChanges();
   return { vista, anade, leeLaFicha };
 }
+
+/**
+ * El precio por cantidad es de OTRO viaje: lo resuelve el servidor y aquí no se mide.
+ *
+ * <p>Se responde sin importe, que es como se comporta cuando no hay escalón que aplicar: quien pinta
+ * cae al precio de la ficha. Sin este doble, montar el panel revienta con un NG0201 porque la
+ * selección pregunta el precio en cuanto alguien lo lee.
+ */
+const PRECIO_SIN_TRAMOS = {
+  provide: PRECIO_POR_CANTIDAD_PORT,
+  useValue: { cotiza: async () => exito({}) },
+};
 
 describe('FichaPage', () => {
   it('enseña el título y el precio del producto', async () => {
@@ -173,6 +187,7 @@ describe('FichaPage', () => {
       inputs: { slug: 'gorro' },
       providers: [
         ...APLICACION_DEL_CATALOGO,
+      PRECIO_SIN_TRAMOS,
         provideRouter([{ path: '**', children: [] }]),
         { provide: RECUPERADOR_DE_SESION, useValue: { asegura: async () => undefined } },
         {
@@ -273,6 +288,7 @@ describe('FichaPage', () => {
       inputs: { slug: 'gorro' },
       providers: [
         ...APLICACION_DEL_CATALOGO,
+      PRECIO_SIN_TRAMOS,
         provideRouter([{ path: '**', children: [] }]),
         { provide: RECUPERADOR_DE_SESION, useValue: { asegura: async () => undefined } },
         {
@@ -392,6 +408,7 @@ describe('FichaPage', () => {
       inputs: { slug: 'gorro' },
       providers: [
         ...APLICACION_DEL_CATALOGO,
+      PRECIO_SIN_TRAMOS,
         provideRouter([{ path: '**', children: [] }]),
         { provide: RECUPERADOR_DE_SESION, useValue: { asegura: async () => undefined } },
         {

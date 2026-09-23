@@ -133,7 +133,7 @@ describe('el resto de los adaptadores', () => {
           values: [{ id: 'v', valueZh: 'S', position: 0 }],
         },
       ],
-      priceTiers: [{ minQty: 10, unitPrice: 8, currency: 'EUR' }],
+      priceTiers: [{ minQty: 10, unitPrice: 8, currency: 'EUR', surchargeCny: 0.8 }],
     });
     const resultado = await promesa;
     expect(resultado.ok).toBe(true);
@@ -145,6 +145,10 @@ describe('el resto de los adaptadores', () => {
       expect(ficha.variantes[0].pesoGramos).toBe(250);
       expect(ficha.ejesDeVariante[0].nombre).toBe('Talla');
       expect(ficha.tramosDePrecio[0].cantidadMinima).toBe(10);
+      // El recargo propio del tramo (23-sep-2026). El backend lo envía sólo a quien administra,
+      // y aquí se descartaba en el mapeo: llegaba y se perdía, así que el panel no podía
+      // enseñarlo ni corregirlo por mucho que el endpoint existiera.
+      expect(ficha.tramosDePrecio[0].recargoCny).toBe(0.8);
       expect(ficha.especificaciones[0].clave).toBe('material');
     }
   });

@@ -69,6 +69,7 @@ export interface FichaDto extends ResumenDto {
   reviewCount?: number;
   baseFormatted?: string;
   ivaFormatted?: string;
+  ivaCny?: number | null;
   shippingFormatted?: string;
   surchargeCny?: number | null;
   surchargeFormatted?: string;
@@ -130,6 +131,8 @@ export interface FichaDto extends ResumenDto {
     unitPrice: number;
     currency: string;
     unitPriceFormatted?: string;
+    /** Recargo propio del tramo. Sólo viaja para quien administra; ausente = usa el del producto. */
+    surchargeCny?: number;
   }[];
 }
 
@@ -258,6 +261,9 @@ function aTramos(dto: FichaDto): readonly TramoDePrecio[] {
     precioUnitario: tramo.unitPrice,
     divisa: tramo.currency,
     precioUnitarioFormateado: tramo.unitPriceFormatted,
+    // Se nombra, como el resto: lo que no se nombra aquí llega del servidor y se pierde sin
+    // que nada falle. Era el caso de este campo.
+    recargoCny: tramo.surchargeCny,
   }));
 }
 
@@ -312,6 +318,7 @@ function aDesglose(dto: FichaDto): DesgloseDePrecio | undefined {
   return {
     baseFormateado: dto.baseFormatted,
     ivaFormateado: dto.ivaFormatted,
+    ivaCny: dto.ivaCny,
     envioFormateado: dto.shippingFormatted,
     recargoFormateado: dto.surchargeFormatted,
     recargoCny: dto.surchargeCny,

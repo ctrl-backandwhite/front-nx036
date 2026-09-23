@@ -26,6 +26,7 @@ import {
 } from '../../../application/catalogo/use-case/edita-valores-de-variacion.use-case';
 import { EliminaImagenes } from '../../../application/catalogo/use-case/elimina-imagenes.use-case';
 import { EliminaProductos } from '../../../application/catalogo/use-case/elimina-productos.use-case';
+import { CambiaRecargoDeTramo } from '../../../application/catalogo/use-case/cambia-recargo-de-tramo.use-case';
 import { EliminaTramoDePrecio } from '../../../application/catalogo/use-case/elimina-tramo-de-precio.use-case';
 import { MarcaProductoVerificado } from '../../../application/catalogo/use-case/marca-producto-verificado.use-case';
 import { ReordenaImagenes } from '../../../application/catalogo/use-case/reordena-imagenes.use-case';
@@ -102,6 +103,9 @@ async function monta(opciones: Opciones = {}) {
   const acciones = {
     guarda: vi.fn(async (_id: string, _c: unknown, _i: string) => exito(undefined)),
     eliminaTramo: vi.fn(async (_id: string, _q: number) => exito(undefined)),
+    cambiaRecargoDeTramo: vi.fn(async (_id: string, _q: number, _r: number | null) =>
+      exito(undefined),
+    ),
     anadeImagenes: vi.fn(async (_id: string, _u: readonly string[]) =>
       exito({ anadidas: 1, fallidas: [] }),
     ),
@@ -151,6 +155,7 @@ async function monta(opciones: Opciones = {}) {
       { provide: EliminaVariante, useValue: { ejecuta: async () => exito(undefined) } },
       { provide: ActualizaFicha, useValue: { ejecuta: acciones.guarda } },
       { provide: EliminaTramoDePrecio, useValue: { ejecuta: acciones.eliminaTramo } },
+      { provide: CambiaRecargoDeTramo, useValue: { ejecuta: acciones.cambiaRecargoDeTramo } },
       { provide: AnadeImagenes, useValue: { ejecuta: acciones.anadeImagenes } },
       { provide: EliminaImagenes, useValue: { ejecuta: acciones.eliminaImagenes } },
       { provide: ReordenaImagenes, useValue: { ejecuta: acciones.reordenaImagenes } },

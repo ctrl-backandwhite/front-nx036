@@ -63,9 +63,16 @@ const CLAVES_DE_EJE: Readonly<Record<string, string>> = {
         <div class="text-[12px] opacity-70 mb-3">
           {{ nombreDelEje() }}: <strong>{{ elegido() ?? '—' }}</strong>
         </div>
+        <!--
+          Miniatura Y NOMBRE, como en la ficha del proveedor. Solo con la foto había que pasar el
+          ratón por encima para saber qué color era cada una —y en un móvil no hay ratón—, así que el
+          nombre estaba solo en el título del navegador: invisible para quien compra con el dedo.
+        -->
         <div class="flex flex-wrap gap-2">
           @for (valor of valores(); track valor.id) {
-            <div class="relative group">
+            <!-- gap-2 y no gap-1: la muestra elegida crece un 10 % («scale-110»), y con cuatro
+                   píxeles de hueco el nombre quedaba tocando el borde de su propia foto. -->
+              <div class="relative group flex flex-col items-center gap-2 w-[3.9rem]">
               <!--
                 3,9rem = 62,4 px: los 48 de «w-12» más un 30%. Medida explícita y no «w-16», que son 64
                 y el encargo era el 30% exacto. La foto de la variante es lo que distingue un color de
@@ -120,6 +127,18 @@ const CLAVES_DE_EJE: Readonly<Record<string, string>> = {
                   <fa-icon [icon]="iconos.papelera" />
                 </button>
               }
+
+              <!-- El nombre debajo, recortado a dos líneas: los colores del proveedor llegan con
+                   referencias largas («P888白蓝», «YX11225 verde agua») y a tres líneas la fila se
+                   descuadra entera. -->
+              <!-- Sin «title» propio: el nombre completo ya lo lleva la miniatura de encima, y
+                   repetirlo aquí deja DOS elementos con el mismo título por cada color. -->
+              <span
+                class="text-[10px] leading-tight text-center line-clamp-2 w-full"
+                [class]="elegido() === etiqueta(valor) ? 'font-semibold' : 'opacity-70'"
+              >
+                {{ etiqueta(valor) }}
+              </span>
             </div>
           }
         </div>

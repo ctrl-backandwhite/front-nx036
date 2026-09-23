@@ -209,6 +209,7 @@ describe('DesgloseEditable', () => {
         desglose: {
           baseFormateado: '8,00 €',
           ivaFormateado: '2,00 €',
+          ivaCny: 3.9,
           recargoFormateado: '1,00 €',
           recargoCny: 7.5,
           subsidioDeEnvioFormateado: '1,00 €',
@@ -225,6 +226,15 @@ describe('DesgloseEditable', () => {
     return { vista, guarda, cambiado };
   }
 
+  /** La fila por su ROTULO: el orden de los importes cambia y buscar por posición se rompe solo. */
+  function filaDe(vista: { container: HTMLElement }, rotulo: string): HTMLElement {
+    const fila = [...vista.container.querySelectorAll<HTMLElement>('.cursor-pointer')].find((f) =>
+      f.textContent?.trim().startsWith(rotulo),
+    );
+    expect(fila, `no hay fila editable rotulada «${rotulo}»`).toBeTruthy();
+    return fila!;
+  }
+
   it('enseña los conceptos y el total', async () => {
     const { vista } = await monta();
     expect(vista.container.textContent).toContain('8,00 €');
@@ -233,9 +243,9 @@ describe('DesgloseEditable', () => {
 
   /** Se manda SOLO el campo que se toca: enviar los tres pisaría la otra bolsa de subsidio. */
   it('el doble clic edita un importe y guarda solo ese campo', async () => {
+    document.cookie = 'nx036-locale=es; Path=/';
     const { vista, guarda, cambiado } = await monta();
-    const filas = [...vista.container.querySelectorAll<HTMLElement>('.cursor-pointer')];
-    await userEvent.dblClick(filas[0]);
+    await userEvent.dblClick(filaDe(vista, 'Recargo'));
     vista.fixture.detectChanges();
     const campo = vista.container.querySelector<HTMLInputElement>('input[type=number]')!;
     await userEvent.clear(campo);
@@ -243,6 +253,29 @@ describe('DesgloseEditable', () => {
     await vista.fixture.whenStable();
     expect(guarda).toHaveBeenCalledWith('p1', 'surchargeCny', 9.5);
     expect(cambiado).toHaveBeenCalled();
+  });
+
+  /**
+   * El IVA, editable desde la ficha (23-sep-2026).
+   *
+   * <p>Salía como línea fija, de solo lectura, y era el único importe del desglose que no se podía
+   * corregir aquí: el 13 % que trae la carga es lo habitual en el proveedor, no una regla, y cuando no
+   * cuadraba la única salida era reenviar la ficha entera por el importador.
+   */
+  it('el IVA también se edita, y se guarda como ivaCny', async () => {
+    document.cookie = 'nx036-locale=es; Path=/';
+    const { vista, guarda } = await monta();
+    await userEvent.dblClick(filaDe(vista, 'IVA'));
+    vista.fixture.detectChanges();
+
+    const campo = vista.container.querySelector<HTMLInputElement>('input[type=number]')!;
+    // Arranca con el valor CRUDO en yuanes, no con el formateado: es lo que se va a guardar.
+    expect(campo.value).toBe('3.9');
+    await userEvent.clear(campo);
+    await userEvent.type(campo, '5.25{enter}');
+    await vista.fixture.whenStable();
+
+    expect(guarda).toHaveBeenCalledWith('p1', 'ivaCny', 5.25);
   });
 
   /**
@@ -259,11 +292,11 @@ describe('DesgloseEditable', () => {
     document.cookie = 'nx036-locale=es; Path=/';
     const { vista, guarda } = await monta();
 
-    const lapices = [
-      ...vista.container.querySelectorAll<HTMLElement>('button[aria-label^="Editar"]'),
-    ];
-    expect(lapices.length, 'no hay ningún botón de editar').toBeGreaterThan(0);
-    await userEvent.click(lapices[0]);
+    const lapiz = vista.container.querySelector<HTMLElement>(
+      'button[aria-label="Editar: Recargo"]',
+    );
+    expect(lapiz, 'no hay botón de editar en la fila del recargo').not.toBeNull();
+    await userEvent.click(lapiz!);
     vista.fixture.detectChanges();
 
     const campo = vista.container.querySelector<HTMLInputElement>('input[type=number]')!;

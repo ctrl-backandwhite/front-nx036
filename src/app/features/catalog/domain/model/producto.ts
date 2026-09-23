@@ -141,6 +141,17 @@ export interface TramoDePrecio {
   readonly precioUnitario: number;
   readonly divisa: string;
   readonly precioUnitarioFormateado?: string;
+  /**
+   * El recargo propio de ESTE tramo, en CNY (23-sep-2026).
+   *
+   * <p>El recargo cubre un coste que no escala con la cantidad —la gestión de la compra, el
+   * manipulado, la parte fija del despacho—, así que cobrar el del producto en todos los tramos
+   * encarecía el pedido grande justo donde esta tabla promete lo contrario.
+   *
+   * <p>Ausente NO es cero: significa que el tramo no tiene recargo propio y usa el del producto.
+   * Sólo llega a quien administra; para el resto el backend lo borra.
+   */
+  readonly recargoCny?: number;
 }
 
 export interface Especificacion {
@@ -183,6 +194,8 @@ export interface CumplimientoDeProducto {
 export interface DesgloseDePrecio {
   readonly baseFormateado?: string;
   readonly ivaFormateado?: string;
+  /** El IVA en yuanes, tal como lo teclea quien administra: el 13 % es lo habitual, no una ley. */
+  readonly ivaCny?: number | null;
   readonly envioFormateado?: string;
   readonly recargoFormateado?: string;
   readonly recargoCny?: number | null;

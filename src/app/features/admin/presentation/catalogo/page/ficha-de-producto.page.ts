@@ -122,6 +122,7 @@ import { AccionesDeFicha } from './ficha-acciones';
               [idioma]="idioma()"
               [ocupado]="acciones.ocupado()"
               (borraTramo)="eliminaTramo($event)"
+              (cambiaRecargoDeTramo)="cambiaRecargoDeTramo($event)"
               (cambiaPrecio)="cambiaPrecio($event)"
             >
               @if (producto.ejes.length > 0) {
@@ -299,6 +300,18 @@ export class FichaDeProductoPage {
     if (await this.acciones.eliminaTramo(this.id(), cantidadMinima)) {
       this.ficha.reload();
     }
+  }
+
+  /**
+   * Se recarga la ficha siempre, también al fallar: el precio del tramo se recalcula en el servidor y
+   * dejar la casilla con lo tecleado haría creer que se guardó algo que no se guardó.
+   */
+  protected async cambiaRecargoDeTramo(cambio: {
+    cantidadMinima: number;
+    recargoCny: number | null;
+  }): Promise<void> {
+    await this.acciones.cambiaRecargoDeTramo(this.id(), cambio.cantidadMinima, cambio.recargoCny);
+    this.ficha.reload();
   }
 
   protected async anadeImagenes(direcciones: readonly string[]): Promise<void> {

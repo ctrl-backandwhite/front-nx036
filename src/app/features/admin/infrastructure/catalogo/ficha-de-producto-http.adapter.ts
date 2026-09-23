@@ -44,6 +44,7 @@ function aTramo(dto: TramoDto) {
     cantidadMaxima: dto.maxQty,
     precioUnitario: Number(dto.unitPrice),
     divisa: dto.currency ?? 'CNY',
+    recargoCny: dto.surchargeCny ?? null,
   };
 }
 
@@ -200,6 +201,24 @@ export class FichaDeProductoHttpAdapter implements FichaDeProductoPort, Imagenes
   async eliminaTramo(id: string, cantidadMinima: number): Promise<Result<void, AppError>> {
     const respuesta = await this.api.delete<unknown>(
       `/admin/catalog/products/${encodeURIComponent(id)}/price-tiers/${cantidadMinima}`,
+    );
+    return mapea(respuesta, () => undefined);
+  }
+
+  /**
+   * El recargo de UN tramo. Nulo devuelve el tramo a heredar el del producto.
+   *
+   * <p>Se manda el nulo EXPLÍCITO, no se omite la clave: omitirla querría decir «no lo toques», y aquí
+   * vaciar la casilla es una decisión, no una ausencia.
+   */
+  async cambiaRecargoDeTramo(
+    id: string,
+    cantidadMinima: number,
+    recargoCny: number | null,
+  ): Promise<Result<void, AppError>> {
+    const respuesta = await this.api.put<unknown>(
+      `/admin/catalog/products/${encodeURIComponent(id)}/price-tiers/${cantidadMinima}/surcharge`,
+      { surchargeCny: recargoCny },
     );
     return mapea(respuesta, () => undefined);
   }
