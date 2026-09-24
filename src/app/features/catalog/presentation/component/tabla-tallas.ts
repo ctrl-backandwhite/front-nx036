@@ -61,7 +61,7 @@ export interface CambioDeTalla {
                 </span>
 
                 @if (importe) {
-                  <span class="text-[13px] font-mono shrink-0">{{ importe }}</span>
+                  <span class="text-[13px] shrink-0">{{ importe }}</span>
                 }
 
                 <span
@@ -87,7 +87,7 @@ export interface CambioDeTalla {
                     type="number"
                     [formField]="formulario[etiqueta]"
                     (change)="publica(etiqueta)"
-                    class="input input-bordered input-xs join-item w-12 text-center font-mono px-1"
+                    class="input input-bordered input-xs join-item w-12 text-center px-1"
                     [attr.aria-label]="t('pdp.size') + ' ' + etiqueta"
                   />
                   <button

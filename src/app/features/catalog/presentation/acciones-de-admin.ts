@@ -1,5 +1,6 @@
 import { Injectable, Injector, inject } from '@angular/core';
 import { TraduccionService } from '@core/i18n/traduccion.service';
+import { FichaDeProducto } from '../domain/model/producto';
 import { DialogoStore } from '@ds/component/dialogo/dialogo.store';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
 import { Result } from '@shared/result/result';
@@ -25,6 +26,32 @@ export class AccionesDeAdmin {
   private readonly avisos = inject(AvisosStore);
   private readonly traduccion = inject(TraduccionService);
   private readonly t = this.traduccion.t;
+
+  /**
+   * Fija el recargo de UN tramo de cantidad y devuelve la ficha ya recalculada.
+   *
+   * <p>NO pregunta, a diferencia de borrar: cambiar un número se deshace volviendo a escribirlo,
+   * mientras que un tramo borrado hay que reconstruirlo de memoria. Y se hace en cadena, escalón a
+   * escalón, mientras se ajusta el precio: una pregunta por cada uno sobraría.
+   */
+  async guardaRecargoDeTramo(
+    idDelProducto: string,
+    cambio: { cantidadMinima: number; recargoCny: number | null },
+    alTerminar: (ficha: FichaDeProducto | null) => void,
+  ): Promise<void> {
+    const editor = await this.editor();
+    const resultado = await editor.guardaRecargoDeTramo(
+      idDelProducto,
+      cambio.cantidadMinima,
+      cambio.recargoCny,
+    );
+    if (!resultado.ok) {
+      this.avisos.error(resultado.error.mensaje || this.t('admin.catalog.edit.error'));
+      return;
+    }
+    this.avisos.exito(this.t('admin.catalog.edit.ok'));
+    alTerminar(resultado.valor);
+  }
 
   async borraImagen(idDeLaImagen: string, alTerminar: () => void): Promise<void> {
     await this.conConfirmacion(
@@ -186,4 +213,9 @@ interface EditorDeFicha {
   borraValorDeVariante(idDelValor: string): Promise<Result<void, AppError>>;
   reordenaImagenes(idDelProducto: string, idsEnOrden: readonly string[]): Promise<Result<void, AppError>>;
   anadeImagen(idDelProducto: string, direccion: string): Promise<Result<void, AppError>>;
+  guardaRecargoDeTramo(
+    idDelProducto: string,
+    cantidadMinima: number,
+    recargoCny: number | null,
+  ): Promise<Result<FichaDeProducto, AppError>>;
 }

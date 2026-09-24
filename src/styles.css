@@ -979,6 +979,16 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
    * justo lo que la regla de arriba convertía en invisible. */
   .avatar .text-primary-content { color: var(--color-primary-content) !important; }
 
+  /* La regla por la CAUSA, no por el sitio. Las dos excepciones de arriba son el mismo fallo parcheado
+   * dos veces, y volvió a morder una tercera en la tarjeta «Vendido y enviado por»: un círculo
+   * `bg-primary text-primary-content` dentro de una `.card`, donde el icono salía del color exacto de
+   * su propio fondo —1,00:1, invisible en el tema oscuro—.
+   *
+   * Cuando `text-primary-content` convive con `bg-primary` en el MISMO elemento no es un precio: es
+   * texto encima del color de marca, y ahí su contraste ya está resuelto por definición. Teñirlo de
+   * `primary` no puede estar bien nunca. Acotarlo así cubre los que vengan sin una cuarta excepción. */
+  .card .bg-primary.text-primary-content { color: var(--color-primary-content) !important; }
+
   /* DROP-427: features del pricing legibles */
   .card .text-success, .card .text-warning, .card .text-info { filter: brightness(1.2); }
 

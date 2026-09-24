@@ -50,6 +50,20 @@ export class EditaLaFicha {
     return this.puerto.guardaImportesEnYuanes(idDelProducto, importes);
   }
 
+  /**
+   * El recargo propio de un tramo de cantidad. Nulo devuelve el tramo a heredar el del producto.
+   *
+   * <p>Vuelve la ficha ya recalculada: el precio de ese escalón cambia con su recargo, y devolverla
+   * evita tener que pedir la ficha entera para enterarse de un número.
+   */
+  guardaRecargoDeTramo(
+    idDelProducto: string,
+    cantidadMinima: number,
+    recargoCny: number | null,
+  ): Promise<Result<FichaDeProducto, AppError>> {
+    return this.puerto.guardaRecargoDeTramo(idDelProducto, cantidadMinima, recargoCny);
+  }
+
   borraImagen(idDeLaImagen: string): Promise<Result<void, AppError>> {
     return this.puerto.borraImagen(idDeLaImagen);
   }

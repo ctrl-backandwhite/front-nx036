@@ -124,6 +124,8 @@ import { DesgloseEditable } from './admin/desglose-editable';
           <nx-tramos-de-precio
             [tramos]="ficha().tramosDePrecio"
             [unidades]="seleccion.unidadesElegidas()"
+            [puedeEditar]="sesion.esAdministrador()"
+            (cambiaRecargo)="cambiaRecargoDeTramo.emit($event)"
           />
           <!-- El desglose de conceptos es SOLO del administrador y se carga aparte. -->
           @if (sesion.esAdministrador() && ficha().desglose; as desglose) {
@@ -228,6 +230,8 @@ export class PanelDeCompra {
    * así queda», que es lo que evita repintar la página entera para cambiar un importe.
    */
   readonly actualizada = output<FichaDeProducto>();
+  /** El recargo de un tramo cambió: quien monta la ficha lo guarda y recarga. */
+  readonly cambiaRecargoDeTramo = output<{ cantidadMinima: number; recargoCny: number | null }>();
   readonly borrada = output<void>();
 
   private readonly favoritos = inject(FavoritosStore);

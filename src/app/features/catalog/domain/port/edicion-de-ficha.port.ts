@@ -59,6 +59,22 @@ export interface EdicionDeFichaPort {
     idDelProducto: string,
     importes: Partial<Record<CampoEnYuanes, number>>,
   ): Promise<Result<FichaDeProducto, AppError>>;
+  /**
+   * El recargo propio de UN tramo de cantidad, en yuanes, y devuelve la ficha ya recalculada.
+   *
+   * <p>Va aquí y no solo en el panel porque el recargo se decide MIRANDO la tabla de cantidades, que
+   * es donde se ve lo que cobra cada escalón. Tenerlo únicamente en otra pantalla obligaba a salir de
+   * la ficha, buscar el producto y volver, y en ese viaje se pierde lo que se estaba comparando.
+   *
+   * <p>Nulo devuelve el tramo a heredar el recargo del producto; cero es un recargo de cero, que es
+   * otra cosa y tiene que poder escribirse.
+   */
+  guardaRecargoDeTramo(
+    idDelProducto: string,
+    cantidadMinima: number,
+    recargoCny: number | null,
+  ): Promise<Result<FichaDeProducto, AppError>>;
+
   borraImagen(idDeLaImagen: string): Promise<Result<void, AppError>>;
   anadeImagen(idDelProducto: string, direccion: string): Promise<Result<void, AppError>>;
   reordenaImagenes(idDelProducto: string, idsEnOrden: readonly string[]): Promise<Result<void, AppError>>;

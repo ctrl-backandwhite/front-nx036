@@ -105,7 +105,15 @@ const SALUDO_MS = 7000;
 
         <div [class]="avatar.guiaPendiente() ? 'order-1 flex items-center gap-1' : 'flex items-center gap-1'">
           @if (avatar.estado() === 'activo') {
-            <span class="flex items-center gap-1 rounded-full bg-base-100 px-1.5 py-1 shadow">
+            <!--
+              La píldora lleva BORDE, no solo sombra. Flota sobre lo que haya debajo, y su fondo
+              «base-100» es justo el de las tarjetas y el de los botones claros: encima de ellos
+              desaparecía y los tres iconos quedaban sueltos sobre el texto ajeno, como si
+              pertenecieran a lo de abajo. El borde la delimita sea cual sea el fondo.
+            -->
+            <span
+              class="flex items-center gap-1 rounded-full bg-base-100 px-1.5 py-1 shadow ring-1 ring-base-300"
+            >
               <!--
                 El botón de la voz solo existe donde el navegador sabe hablar. Y encenderla ES la
                 interacción que los navegadores exigen antes de dejar sonar a una página.

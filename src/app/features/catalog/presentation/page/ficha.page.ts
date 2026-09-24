@@ -155,6 +155,7 @@ const CONFIRMACION_MS = 2000;
           (filtraPorGrupo)="filtraPorGrupo()"
           (recarga)="recarga()"
           (actualizada)="aplica($event)"
+          (cambiaRecargoDeTramo)="admin.guardaRecargoDeTramo(producto.id, $event, aplica)"
           (borrada)="alCatalogo()"
         />
       </section>

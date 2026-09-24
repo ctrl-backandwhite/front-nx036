@@ -51,6 +51,21 @@ export class EdicionDeFichaHttpAdapter implements EdicionDeFichaPort {
    * <p>Se manda solo el que se toca. Enviar los tres pisaría las bolsas de subsidio que no se estaban
    * editando, y esas dos bolsas son estancas por diseño: una cubre el envío y la otra el arancel.
    */
+  /** El recargo de un tramo. Se manda el nulo EXPLÍCITO: vaciarlo es una decisión, no una ausencia. */
+  async guardaRecargoDeTramo(
+    idDelProducto: string,
+    cantidadMinima: number,
+    recargoCny: number | null,
+  ): Promise<Result<FichaDeProducto, AppError>> {
+    return mapea(
+      await this.api.put<FichaDto>(
+        `/admin/catalog/products/${encodeURIComponent(idDelProducto)}/price-tiers/${cantidadMinima}/surcharge`,
+        { surchargeCny: recargoCny },
+      ),
+      (dto) => aFicha(dto),
+    );
+  }
+
   guardaImporteEnYuanes(
     idDelProducto: string,
     campo: CampoEnYuanes,
