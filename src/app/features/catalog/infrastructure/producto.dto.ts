@@ -68,8 +68,8 @@ export interface FichaDto extends ResumenDto {
   moq?: number;
   reviewCount?: number;
   baseFormatted?: string;
-  ivaFormatted?: string;
-  ivaCny?: number | null;
+  margenInternoFormatted?: string;
+  margenInternoPct?: number | null;
   shippingFormatted?: string;
   surchargeCny?: number | null;
   surchargeFormatted?: string;
@@ -307,7 +307,7 @@ function aCumplimiento(dto: FichaDto): CumplimientoDeProducto | undefined {
 function aDesglose(dto: FichaDto): DesgloseDePrecio | undefined {
   const hayAlgo =
     dto.baseFormatted ||
-    dto.ivaFormatted ||
+    dto.margenInternoFormatted ||
     dto.shippingFormatted ||
     dto.surchargeFormatted ||
     dto.shippingUserFormatted ||
@@ -317,8 +317,8 @@ function aDesglose(dto: FichaDto): DesgloseDePrecio | undefined {
   }
   return {
     baseFormateado: dto.baseFormatted,
-    ivaFormateado: dto.ivaFormatted,
-    ivaCny: dto.ivaCny,
+    margenInternoFormateado: dto.margenInternoFormatted,
+    margenInternoPct: dto.margenInternoPct,
     envioFormateado: dto.shippingFormatted,
     recargoFormateado: dto.surchargeFormatted,
     recargoCny: dto.surchargeCny,

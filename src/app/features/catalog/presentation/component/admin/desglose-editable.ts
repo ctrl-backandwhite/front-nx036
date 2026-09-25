@@ -16,6 +16,14 @@ interface FilaEditable {
   readonly claveDeAyuda: string;
   readonly mostrado: string;
   readonly crudo: number | null;
+  /**
+   * Lo que se pinta detrás del número mientras se edita. `%` en el margen interno.
+   *
+   * <p>Las demás filas son importes en yuanes y no llevan nada: el símbolo ya va dentro de lo que
+   * formatea el backend. Aquí hace falta porque un `50` a secas, en una columna de euros, se lee
+   * como cincuenta euros.
+   */
+  readonly sufijo?: string;
 }
 
 /**
@@ -69,8 +77,14 @@ interface FilaEditable {
                 class="input input-xs w-24 text-right font-mono"
                 [attr.aria-label]="t(fila.clave)"
               />
+              @if (fila.sufijo) {
+                <span class="ml-1 font-mono opacity-60">{{ fila.sufijo }}</span>
+              }
             } @else {
               <span class="font-mono">{{ fila.mostrado }}</span>
+              @if (fila.sufijo && fila.crudo !== null) {
+                <span class="ml-1 font-mono opacity-60">· {{ fila.crudo }}{{ fila.sufijo }}</span>
+              }
               <!--
                 El lápiz es el equivalente TÁCTIL del doble clic, y de paso lo hace alcanzable con el
                 teclado. En una pantalla táctil el doble toque lo interpreta el navegador como
@@ -144,13 +158,15 @@ export class DesgloseEditable {
     const desglose = this.desglose();
     const posibles: FilaEditable[] = [
       {
-        // El IVA se editaba solo por el importador, reenviando la ficha entera. El 13 % es lo
-        // habitual en el proveedor, no una regla: cuando no cuadra hay que poder corregirlo aquí.
-        campo: 'ivaCny',
-        clave: 'product.price.iva',
-        claveDeAyuda: 'product.price.iva_dbl',
-        mostrado: desglose.ivaFormateado ?? '',
-        crudo: desglose.ivaCny ?? null,
+        // MARGEN INTERNO, en porcentaje (25-sep-2026). Antes esta fila decía «IVA» y guardaba un
+        // importe en yuanes; no era el IVA de China, era el 50 % exacto de la base. Al ser ahora un
+        // porcentaje, sigue al coste del proveedor sin que nadie lo recalcule a mano.
+        campo: 'margenInternoPct',
+        clave: 'product.price.internal_margin',
+        claveDeAyuda: 'product.price.internal_margin_dbl',
+        sufijo: '%',
+        mostrado: desglose.margenInternoFormateado ?? '',
+        crudo: desglose.margenInternoPct ?? null,
       },
       {
         campo: 'surchargeCny',

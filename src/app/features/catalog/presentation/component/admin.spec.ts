@@ -208,8 +208,8 @@ describe('DesgloseEditable', () => {
         total: '12,00 €',
         desglose: {
           baseFormateado: '8,00 €',
-          ivaFormateado: '2,00 €',
-          ivaCny: 3.9,
+          margenInternoFormateado: '2,00 €',
+          margenInternoPct: 39,
           recargoFormateado: '1,00 €',
           recargoCny: 7.5,
           subsidioDeEnvioFormateado: '1,00 €',
@@ -259,23 +259,26 @@ describe('DesgloseEditable', () => {
    * El IVA, editable desde la ficha (23-sep-2026).
    *
    * <p>Salía como línea fija, de solo lectura, y era el único importe del desglose que no se podía
-   * corregir aquí: el 13 % que trae la carga es lo habitual en el proveedor, no una regla, y cuando no
-   * cuadraba la única salida era reenviar la ficha entera por el importador.
+   * corregir aquí; hasta entonces la única salida era reenviar la ficha entera por el importador.
+   *
+   * <p>Desde el 25-sep-2026 esta fila es el MARGEN INTERNO y se guarda en porcentaje. Antes decía
+   * «IVA» y guardaba un importe en yuanes que nunca fue el IVA de China —ese es el 13 %—: valía el
+   * 50 % exacto de la base en todo el catálogo, o sea margen nuestro con otro nombre.
    */
-  it('el IVA también se edita, y se guarda como ivaCny', async () => {
+  it('el margen interno también se edita, y se guarda como porcentaje', async () => {
     document.cookie = 'nx036-locale=es; Path=/';
     const { vista, guarda } = await monta();
-    await userEvent.dblClick(filaDe(vista, 'IVA'));
+    await userEvent.dblClick(filaDe(vista, 'Margen interno'));
     vista.fixture.detectChanges();
 
     const campo = vista.container.querySelector<HTMLInputElement>('input[type=number]')!;
-    // Arranca con el valor CRUDO en yuanes, no con el formateado: es lo que se va a guardar.
-    expect(campo.value).toBe('3.9');
+    // Arranca con el valor CRUDO —el porcentaje—, no con el importe formateado: es lo que se guarda.
+    expect(campo.value).toBe('39');
     await userEvent.clear(campo);
     await userEvent.type(campo, '5.25{enter}');
     await vista.fixture.whenStable();
 
-    expect(guarda).toHaveBeenCalledWith('p1', 'ivaCny', 5.25);
+    expect(guarda).toHaveBeenCalledWith('p1', 'margenInternoPct', 5.25);
   });
 
   /**

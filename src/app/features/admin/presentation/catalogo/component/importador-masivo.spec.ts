@@ -93,11 +93,11 @@ describe('ImportadorMasivo', () => {
     const editor = screen.getByLabelText(t('admin.catalog.bulk.help'));
 
     await userEvent.clear(editor);
-    await userEvent.paste('[{"titleEs":"A","shippingCny":1,"ivaCny":0}]');
+    await userEvent.paste('[{"titleEs":"A","shippingCny":1,"margenInternoPct":0}]');
     await userEvent.click(screen.getByRole('button', { name: rx('admin.catalog.bulk.import') }));
 
     expect(importaFilas.ejecuta).toHaveBeenCalledWith(
-      [{ titleEs: 'A', shippingCny: 1, ivaCny: 0 }],
+      [{ titleEs: 'A', shippingCny: 1, margenInternoPct: 0 }],
       'products',
       expect.any(Function),
     );
@@ -113,7 +113,7 @@ describe('ImportadorMasivo', () => {
     const editor = screen.getByLabelText(t('admin.catalog.bulk.help'));
 
     await userEvent.clear(editor);
-    await userEvent.paste('[{"titleEs":"A","shippingCny":1,"ivaCny":0}]');
+    await userEvent.paste('[{"titleEs":"A","shippingCny":1,"margenInternoPct":0}]');
     await userEvent.click(screen.getByRole('button', { name: rx('admin.catalog.bulk.import') }));
 
     expect(await screen.findByText('[1-1] Falta el envío')).toBeInTheDocument();

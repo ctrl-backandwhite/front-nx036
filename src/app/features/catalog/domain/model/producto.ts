@@ -193,9 +193,16 @@ export interface CumplimientoDeProducto {
  */
 export interface DesgloseDePrecio {
   readonly baseFormateado?: string;
-  readonly ivaFormateado?: string;
+  /** Lo que aporta el margen interno, ya formateado por el backend. */
+  readonly margenInternoFormateado?: string;
   /** El IVA en yuanes, tal como lo teclea quien administra: el 13 % es lo habitual, no una ley. */
-  readonly ivaCny?: number | null;
+  /**
+   * El margen interno en PORCENTAJE sobre el coste. Solo llega a quien administra.
+   *
+   * <p>Hasta el 25-sep-2026 este hueco llevaba un importe en yuanes llamado «IVA», que nunca fue el
+   * IVA de China —ese es el 13 %— sino el 50 % exacto de la base: margen nuestro con otro nombre.
+   */
+  readonly margenInternoPct?: number | null;
   readonly envioFormateado?: string;
   readonly recargoFormateado?: string;
   readonly recargoCny?: number | null;

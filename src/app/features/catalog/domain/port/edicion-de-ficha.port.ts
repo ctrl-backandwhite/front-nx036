@@ -16,14 +16,18 @@ import { FichaDeProducto } from '../model/producto';
  * otra.
  */
 /**
- * Los importes en yuanes que el administrador retoca a mano desde la ficha.
+ * Lo que el administrador retoca a mano desde la ficha.
  *
- * <p>El IVA entró aquí el 23-sep-2026: venía calculado como el 13 % de la base, pero ese porcentaje
- * no siempre es el que aplica el proveedor, y hasta ahora la única forma de corregirlo era reenviar
- * la ficha entera por el importador. El backend ya lo aceptaba en su edición rápida; lo que faltaba
- * era ofrecerlo.
+ * <p>Casi todos son importes en YUANES. La excepción es `margenInternoPct`, que es un PORCENTAJE:
+ * ocupa el hueco donde hasta el 25-sep-2026 había un importe llamado «IVA» que nunca fue el IVA de
+ * China —ese es el 13 %— sino el 50 % exacto de la base, o sea margen nuestro con otro nombre.
+ * Guardado en porcentaje sigue al coste del proveedor sin que nadie lo recalcule.
  */
-export type CampoEnYuanes = 'surchargeCny' | 'shippingUserCny' | 'dutyUserCny' | 'ivaCny';
+export type CampoEnYuanes =
+  | 'surchargeCny'
+  | 'shippingUserCny'
+  | 'dutyUserCny'
+  | 'margenInternoPct';
 
 export interface EdicionDeFichaPort {
   /**

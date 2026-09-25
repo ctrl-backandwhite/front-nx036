@@ -125,7 +125,7 @@ describe('PanelDeCompra', () => {
   async function bloquesDeAdministracion(rol: RolDeSesion | undefined) {
     const conDesglose = ficha({
       urlDeOrigen: 'https://detail.1688.com/offer/1.html',
-      desglose: { baseFormateado: '11,43 €', ivaFormateado: '1,49 €', recargoCny: 8.98 },
+      desglose: { baseFormateado: '11,43 €', margenInternoFormateado: '1,49 €', recargoCny: 8.98 },
     });
     const { vista } = await monta(conDesglose, rol);
     return { cuantos: (await vista.fixture.getDeferBlocks()).length, vista };

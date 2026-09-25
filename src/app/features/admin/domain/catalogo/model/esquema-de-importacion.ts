@@ -37,7 +37,12 @@ const CAMPOS_DE_PRODUCTO: readonly CampoDeImportacion[] = [
   // OBLIGATORIOS en el backend (BulkProductRules.assertShippingAndVat). Faltaban en esta tabla, y quien
   // copiaba la plantilla recibía «Falta el envío (shippingCny)» sin saber que existía el campo.
   { clave: 'shippingCny', obligatorio: true, tipo: 'number', descripcion: 'admin.catalog.bulk.fd.shippingCny' },
-  { clave: 'ivaCny', obligatorio: true, tipo: 'number', descripcion: 'admin.catalog.bulk.fd.ivaCny' },
+  {
+    clave: 'margenInternoPct',
+    obligatorio: true,
+    tipo: 'number',
+    descripcion: 'admin.catalog.bulk.fd.margenInternoPct',
+  },
   { clave: 'surchargeCny', tipo: 'number', descripcion: 'admin.catalog.bulk.fd.surchargeCny' },
   { clave: 'shippingUserCny', tipo: 'number', descripcion: 'admin.catalog.bulk.fd.shippingUserCny' },
   { clave: 'dutyUserCny', tipo: 'number', descripcion: 'admin.catalog.bulk.fd.dutyUserCny' },

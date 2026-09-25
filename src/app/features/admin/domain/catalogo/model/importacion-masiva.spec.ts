@@ -22,7 +22,7 @@ describe('importacion-masiva', () => {
   });
 
   describe('validaFilas', () => {
-    const valida = { titleEs: 'Auricular', shippingCny: 8, ivaCny: 0 };
+    const valida = { titleEs: 'Auricular', shippingCny: 8, margenInternoPct: 0 };
 
     it('una lista vacía es un problema en sí', () => {
       expect(validaFilas([], 'products')).toEqual([
@@ -44,7 +44,7 @@ describe('importacion-masiva', () => {
     });
 
     it('avisa del título ausente con su número de fila', () => {
-      const problemas = validaFilas([valida, { shippingCny: 1, ivaCny: 0 }], 'products');
+      const problemas = validaFilas([valida, { shippingCny: 1, margenInternoPct: 0 }], 'products');
       expect(problemas).toContainEqual({ fila: 2, clave: 'admin.catalog.bulk.err_no_title' });
     });
 
@@ -132,7 +132,7 @@ describe('importacion-masiva', () => {
     });
 
     it('una lista correcta devuelve las filas listas para mandar', () => {
-      const analisis = analizaJson('[{"titleEs":"x","shippingCny":1,"ivaCny":0}]', 'products');
+      const analisis = analizaJson('[{"titleEs":"x","shippingCny":1,"margenInternoPct":0}]', 'products');
       expect(analisis.clase).toBe('valido');
       if (analisis.clase === 'valido') {
         expect(analisis.lista.length).toBe(1);
