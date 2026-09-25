@@ -24,6 +24,8 @@ interface AfiliadoDto {
   pendingCents?: number;
   approvedCents?: number;
   paidCents?: number;
+  /** Su porcentaje propio. Nulo = cobra el del programa. */
+  commissionPercentOverride?: number | string | null;
 }
 
 interface ComisionDto {
@@ -77,6 +79,11 @@ function aAfiliado(dto: AfiliadoDto): Afiliado {
     pagadoCentimos: cifra(dto.paidCents),
     ...(dto.name ? { nombre: dto.name } : {}),
     ...(dto.email ? { email: dto.email } : {}),
+    // Se comprueba contra null/undefined y NO con un `?:` a secas: un override del 0 % es legítimo y
+    // con la comprobación de veracidad se perdería, dejándolo como «sin porcentaje propio».
+    ...(dto.commissionPercentOverride !== null && dto.commissionPercentOverride !== undefined
+      ? { comisionPropia: Number(dto.commissionPercentOverride) }
+      : {}),
   };
 }
 
@@ -123,6 +130,12 @@ export class AfiliadosHttpAdapter implements AfiliadosPort {
 
   cambiaEstado(id: string, estado: string): Promise<Result<void, AppError>> {
     return sinCuerpo(this.api.post(`/admin/affiliates/${id}/status`, { status: estado }));
+  }
+
+  fijaComision(id: string, porcentaje: number | null): Promise<Result<void, AppError>> {
+    // `percent` nulo BORRA el porcentaje propio; el servidor distingue nulo de cero a propósito, así
+    // que aquí no se sustituye el nulo por 0 «para no mandar nulo».
+    return sinCuerpo(this.api.post(`/admin/affiliates/${id}/commission`, { percent: porcentaje }));
   }
 
   async reindexa(): Promise<Result<number, AppError>> {

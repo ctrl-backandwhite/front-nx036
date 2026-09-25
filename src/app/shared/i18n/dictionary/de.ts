@@ -2996,6 +2996,14 @@ const diccionario: Record<string, string> = {
   'seo.register.desc': 'Erstelle dein NX036-Konto und kaufe grenzüberschreitende Bestseller stückweise, zum Festpreis und mit Sendungsverfolgung für jede Bestellung.',
   'seo.status.title': 'Servicestatus',
   'seo.status.desc': 'Echtzeit-Verfügbarkeit der NX036-Plattform und ihrer Dienste.',
+
+  // Comisión POR AFILIADO (25-sep-2026). Distinta de la configuración general del programa: subirle el
+  // porcentaje a uno no se lo sube al resto, que es la regla del titular.
+  'admin.affiliates.col.commission': 'Provision',
+  'admin.affiliates.commission.label': 'Provisionssatz',
+  'admin.affiliates.commission.own': 'eigen',
+  'admin.affiliates.commission.edit': 'Provision ändern',
+  'admin.affiliates.commission.saved': 'Provision aktualisiert. Sie gilt für seine neuen Verkäufe.',
 };
 
 export default diccionario;

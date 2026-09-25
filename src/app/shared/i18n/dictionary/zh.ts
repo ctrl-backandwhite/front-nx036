@@ -2996,6 +2996,14 @@ const diccionario: Record<string, string> = {
   'seo.register.desc': '注册 NX036 账户,按件购买跨境爆款,价格透明,每笔订单均可跟踪。',
   'seo.status.title': '服务状态',
   'seo.status.desc': 'NX036 平台及其服务的实时可用性。',
+
+  // Comisión POR AFILIADO (25-sep-2026). Distinta de la configuración general del programa: subirle el
+  // porcentaje a uno no se lo sube al resto, que es la regla del titular.
+  'admin.affiliates.col.commission': '佣金',
+  'admin.affiliates.commission.label': '佣金比例',
+  'admin.affiliates.commission.own': '专属',
+  'admin.affiliates.commission.edit': '修改其佣金',
+  'admin.affiliates.commission.saved': '佣金已更新,适用于其新产生的订单。',
 };
 
 export default diccionario;

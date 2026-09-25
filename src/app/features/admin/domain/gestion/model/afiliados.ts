@@ -15,6 +15,14 @@ export interface Afiliado {
   readonly pendienteCentimos: number;
   readonly aprobadoCentimos: number;
   readonly pagadoCentimos: number;
+  /**
+   * Su porcentaje de comisión propio, si lo tiene. Indefinido = cobra el del programa.
+   *
+   * <p>Indefinido y cero son cosas distintas: cero es una comisión de cero que alguien ha decidido
+   * escribir —dejar de pagar a un afiliado sin expulsarlo— y tiene que poder distinguirse de «no tiene
+   * porcentaje propio».
+   */
+  readonly comisionPropia?: number;
 }
 
 export interface CodigoDeAfiliado {

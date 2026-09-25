@@ -40,6 +40,21 @@ export class CambiaElEstadoDelAfiliado {
   }
 }
 
+/**
+ * Sube o baja la comisión de UN afiliado, sin tocar la de los demás.
+ *
+ * <p>Regla del titular (25-sep-2026): aprobado el afiliado, cobra el 10 % base del programa, y el
+ * porcentaje se le puede subir solo a su cuenta y a su código.
+ */
+@Injectable()
+export class FijaLaComisionDelAfiliado {
+  private readonly afiliados = inject(AFILIADOS_PORT);
+
+  ejecuta(id: string, porcentaje: number | null): Promise<Result<void, AppError>> {
+    return this.afiliados.fijaComision(id, porcentaje);
+  }
+}
+
 @Injectable()
 export class ReindexaAfiliados {
   private readonly afiliados = inject(AFILIADOS_PORT);

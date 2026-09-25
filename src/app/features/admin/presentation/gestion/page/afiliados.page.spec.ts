@@ -16,7 +16,8 @@ import { Pagina } from '../../../domain/gestion/model/pagina';
 import {
   ApruebaComisionesVencidas, ApruebaElPago, BuscaAfiliados, CambiaElEstadoDelAfiliado,
   ConsultaElAfiliado, ConsultaLaConfiguracionDeAfiliados, ConsultaPagosPendientes,
-  GuardaLaConfiguracionDeAfiliados, PagaAlAfiliado, RechazaElPago, ReindexaAfiliados,
+  FijaLaComisionDelAfiliado, GuardaLaConfiguracionDeAfiliados, PagaAlAfiliado, RechazaElPago,
+  ReindexaAfiliados,
   ResuelveLaRevision,
 } from '../../../application/gestion/use-case/afiliados.use-case';
 import { ImportesStore } from '../../../application/gestion/state/importes.store';
@@ -157,6 +158,8 @@ describe('AfiliadosPage', () => {
         ConsultaLaConfiguracionDeAfiliados, GuardaLaConfiguracionDeAfiliados,
         ConsultaPagosPendientes, ApruebaElPago, RechazaElPago, PagaAlAfiliado,
         ApruebaComisionesVencidas, ResuelveLaRevision,
+        // La celda de comisión de cada fila lo inyecta; sin él la página entera no monta.
+        FijaLaComisionDelAfiliado,
       ],
     });
     await vista.fixture.whenStable();

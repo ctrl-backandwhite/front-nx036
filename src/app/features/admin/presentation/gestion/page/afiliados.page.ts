@@ -19,6 +19,7 @@ import { Paginacion } from '../component/paginacion';
 import { AfiliadosConfiguracion } from '../component/afiliados-configuracion';
 import { AfiliadosDetalle } from '../component/afiliados-detalle';
 import { AfiliadosPagos } from '../component/afiliados-pagos';
+import { AfiliadosComision } from '../component/afiliados-comision';
 
 /** Cuántos afiliados por página. El mismo número que pide el panel de React. */
 const TAMANO = 20;
@@ -48,7 +49,8 @@ const COLORES: Readonly<Record<string, string>> = {
  */
 @Component({
   selector: 'nx-afiliados-admin',
-  imports: [FaIconComponent, Paginacion, AfiliadosPagos, AfiliadosConfiguracion, AfiliadosDetalle],
+  imports: [FaIconComponent, Paginacion, AfiliadosPagos, AfiliadosConfiguracion, AfiliadosDetalle,
+    AfiliadosComision],
   template: `
     <div class="space-y-5">
       <header class="flex flex-wrap items-end justify-between gap-3">
@@ -131,13 +133,14 @@ const COLORES: Readonly<Record<string, string>> = {
                   {{ t('admin.affiliates.col.approved') }}
                 </th>
                 <th class="px-4 py-2 font-medium text-right">{{ t('admin.affiliates.col.paid') }}</th>
+                <th class="px-4 py-2 font-medium text-right">{{ t('admin.affiliates.col.commission') }}</th>
                 <th class="px-4 py-2 font-medium">{{ t('common.actions') }}</th>
               </tr>
             </thead>
             <tbody>
               @if (cargando()) {
                 @for (fila of esqueleto; track fila) {
-                  <tr><td colspan="10" class="px-4 py-3"><div class="skeleton h-4 w-full"></div></td></tr>
+                  <tr><td colspan="11" class="px-4 py-3"><div class="skeleton h-4 w-full"></div></td></tr>
                 }
               } @else {
                 @for (afiliado of afiliados(); track afiliado.id) {
@@ -170,6 +173,11 @@ const COLORES: Readonly<Record<string, string>> = {
                       {{ importe(afiliado.aprobadoCentimos) }}
                     </td>
                     <td class="px-4 py-2 text-right">{{ importe(afiliado.pagadoCentimos) }}</td>
+                    <td class="px-4 py-2" (click)="$event.stopPropagation()">
+                      <nx-afiliados-comision [idDeAfiliado]="afiliado.id" (cambia)="refresca()"
+                        [comisionPropia]="afiliado.comisionPropia"
+                        [porcentajeDelPrograma]="config()?.porcentajePorDefecto ?? 0" />
+                    </td>
                     <td class="px-4 py-2" (click)="$event.stopPropagation()">
                       <div class="flex gap-1 flex-wrap">
                         @if (afiliado.estado !== 'ACTIVE') {

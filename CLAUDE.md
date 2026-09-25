@@ -324,6 +324,17 @@ Norma del proyecto: **90 % de cobertura en el front**. Cada desarrollo llega con
 - Los componentes se prueban por lo que ve quien usa la aplicación (texto, papel accesible), no por sus
   detalles internos.
 
+### Dos trampas del montaje de pruebas
+
+- **El diccionario resuelve en INGLÉS**, no en español, salvo que la spec llame a `enEspanol()` —lo
+  hace, por ejemplo, `afiliados.page.spec.ts`—. Buscar un botón por su rótulo español falla entonces
+  con «no encuentro el botón» y ninguna pista más. Lo robusto es una expresión que acepte los dos
+  idiomas: atarse a uno rompe la prueba el día que cambie el montaje, sin que el componente cambie.
+- **Meter un componente nuevo dentro de una página rompe la spec de la página.** Las specs de página
+  montan el árbol entero, así que un `inject()` nuevo sin su proveedor las tumba todas de golpe con
+  `NG0201`. Al añadir un componente a una pantalla, hay que darle su proveedor a la spec de esa
+  pantalla.
+
 `npm test` en verde y `npm run lint` en verde antes de dar nada por terminado.
 
 ---

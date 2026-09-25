@@ -2996,6 +2996,14 @@ const diccionario: Record<string, string> = {
   'seo.register.desc': 'Crie a sua conta NX036 e compre bestsellers transfronteiriços à unidade, com preço fechado e rastreio em cada encomenda.',
   'seo.status.title': 'Estado do serviço',
   'seo.status.desc': 'Disponibilidade em tempo real da plataforma NX036 e dos seus serviços.',
+
+  // Comisión POR AFILIADO (25-sep-2026). Distinta de la configuración general del programa: subirle el
+  // porcentaje a uno no se lo sube al resto, que es la regla del titular.
+  'admin.affiliates.col.commission': 'Comissão',
+  'admin.affiliates.commission.label': 'Percentagem de comissão',
+  'admin.affiliates.commission.own': 'própria',
+  'admin.affiliates.commission.edit': 'Alterar a sua comissão',
+  'admin.affiliates.commission.saved': 'Comissão atualizada. Aplica-se às suas novas vendas.',
 };
 
 export default diccionario;

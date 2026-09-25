@@ -15,6 +15,13 @@ export interface AfiliadosPort {
   ): Promise<Result<Pagina<Afiliado>, AppError>>;
   detalle(id: string): Promise<Result<DetalleDeAfiliado, AppError>>;
   cambiaEstado(id: string, estado: string): Promise<Result<void, AppError>>;
+  /**
+   * Fija el porcentaje de comisión de UN afiliado. `null` lo devuelve al del programa.
+   *
+   * <p>No confundir con `guardaConfiguracion`, que cambia el porcentaje de TODOS: la regla del titular
+   * es que subírselo a uno no se lo suba al resto.
+   */
+  fijaComision(id: string, porcentaje: number | null): Promise<Result<void, AppError>>;
   reindexa(): Promise<Result<number, AppError>>;
   configuracion(): Promise<Result<ConfiguracionDeAfiliados, AppError>>;
   guardaConfiguracion(config: ConfiguracionDeAfiliados): Promise<Result<void, AppError>>;

@@ -3033,6 +3033,14 @@ const diccionario: Record<string, string> = {
   'seo.register.desc': 'Create your NX036 account and buy cross-border bestsellers by the unit, at a settled price and with tracking on every order.',
   'seo.status.title': 'Service status',
   'seo.status.desc': 'Real-time availability of the NX036 platform and its services.',
+
+  // Comisión POR AFILIADO (25-sep-2026). Distinta de la configuración general del programa: subirle el
+  // porcentaje a uno no se lo sube al resto, que es la regla del titular.
+  'admin.affiliates.col.commission': 'Commission',
+  'admin.affiliates.commission.label': 'Commission percentage',
+  'admin.affiliates.commission.own': 'own',
+  'admin.affiliates.commission.edit': 'Change their commission',
+  'admin.affiliates.commission.saved': 'Commission updated. It applies to their new sales.',
 };
 
 export default diccionario;

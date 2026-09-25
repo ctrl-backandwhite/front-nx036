@@ -142,6 +142,7 @@ export function proveeAdminGestion(): EnvironmentProviders {
     promociones.ConsultaCategoriasDePromocion,
 
     afiliados.BuscaAfiliados, afiliados.ConsultaElAfiliado, afiliados.CambiaElEstadoDelAfiliado,
+    afiliados.FijaLaComisionDelAfiliado,
     afiliados.ReindexaAfiliados, afiliados.ConsultaLaConfiguracionDeAfiliados,
     afiliados.GuardaLaConfiguracionDeAfiliados, afiliados.ConsultaPagosPendientes,
     afiliados.ApruebaElPago, afiliados.RechazaElPago, afiliados.PagaAlAfiliado,
