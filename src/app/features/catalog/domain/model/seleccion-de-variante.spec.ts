@@ -8,6 +8,7 @@ import {
   existenciasDe,
   impedimentoParaAnadir,
   minimoDelSelector,
+  partesDeLaTalla,
   precioDestacado,
   reajustaAlCambiarDeColor,
   tramoAplicable,
@@ -331,5 +332,30 @@ describe('etiquetaDeVariante', () => {
 
   it('sin opciones tampoco', () => {
     expect(etiquetaDeVariante(variante({ opciones: {} }))).toBeUndefined();
+  });
+});
+
+describe('partesDeLaTalla', () => {
+  /**
+   * 1688 junta la talla numérica china con la letra que entiende el comprador europeo, y pegadas se
+   * leen como un código: «28(S)» no parece una talla. Separadas, el número manda y la letra apunta.
+   */
+  it('separa el número de su equivalencia en letra', () => {
+    expect(partesDeLaTalla('28(S)')).toEqual({ principal: '28', equivalencia: 'S' });
+    expect(partesDeLaTalla('36(2XL)')).toEqual({ principal: '36', equivalencia: '2XL' });
+    expect(partesDeLaTalla('30 (M)')).toEqual({ principal: '30', equivalencia: 'M' });
+  });
+
+  /** EL control: donde no hay paréntesis no se inventa nada. */
+  it('deja intacta la talla que ya viene suelta', () => {
+    expect(partesDeLaTalla('40')).toEqual({ principal: '40' });
+    expect(partesDeLaTalla('XL')).toEqual({ principal: 'XL' });
+    expect(partesDeLaTalla('Único')).toEqual({ principal: 'Único' });
+  });
+
+  /** Un paréntesis vacío o sin nada delante no es una equivalencia: se deja el texto como está. */
+  it('no parte cuando el paréntesis no aporta', () => {
+    expect(partesDeLaTalla('28()')).toEqual({ principal: '28()' });
+    expect(partesDeLaTalla('(S)')).toEqual({ principal: '(S)' });
   });
 });

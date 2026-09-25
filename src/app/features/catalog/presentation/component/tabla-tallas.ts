@@ -5,7 +5,7 @@ import { faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { PreferenciasService } from '@core/preferences/preferencias';
 import { EjeDeVariante } from '../../domain/model/producto';
-import { etiquetaDeValor } from '../../domain/model/seleccion-de-variante';
+import { etiquetaDeValor, partesDeLaTalla } from '../../domain/model/seleccion-de-variante';
 
 /** A partir de aquí se colapsa la lista: treinta tallas convierten la ficha en una columna infinita. */
 const TOPE_ANTES_DE_COLAPSAR = 10;
@@ -56,8 +56,14 @@ export interface CambioDeTalla {
                       : 'hover:bg-base-200/60'
                 "
               >
-                <span class="font-semibold text-[13px] flex-1 min-w-0 truncate" [title]="etiqueta">
-                  {{ etiqueta }}
+                @let talla = partesDeLaTalla(etiqueta);
+                <span class="flex-1 min-w-0 truncate flex items-center gap-1.5" [title]="etiqueta">
+                  <span class="font-semibold text-[13px]">{{ talla.principal }}</span>
+                  <!-- La equivalencia en letra va aparte: pegada al número («28(S)») se lee como un
+                       código y no como una talla. -->
+                  @if (talla.equivalencia) {
+                    <span class="badge badge-sm">{{ talla.equivalencia }}</span>
+                  }
                 </span>
 
                 @if (importe) {
@@ -137,6 +143,9 @@ export class TablaTallas {
   readonly cambia = output<CambioDeTalla>();
 
   private readonly preferencias = inject(PreferenciasService);
+  /** Parte «28(S)» para pintar el número y la letra por separado. */
+  protected readonly partesDeLaTalla = partesDeLaTalla;
+
   protected readonly t = inject(TraduccionService).t;
   /** Para el «quedan N»: los marcadores los coloca cada idioma donde le corresponde. */
   protected readonly tCon = inject(TraduccionService).tCon;

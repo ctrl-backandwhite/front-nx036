@@ -124,6 +124,29 @@ export interface PrecioDestacado {
  * el pedido no cobra.
  */
 /**
+ * Parte una talla como «28(S)» en el número y su equivalencia entre paréntesis.
+ *
+ * <p>1688 junta las dos notaciones sin separarlas —la numérica del mercado chino y la letra que
+ * entiende el comprador europeo— y pegadas se leen mal: «28(S)» parece un código, no una talla. Al
+ * separarlas, el número manda y la letra queda como apunte.
+ *
+ * <p>Solo parte cuando hay un paréntesis al final y algo delante. «40», «Único» o «XL» se devuelven
+ * tal cual: inventar un sufijo donde no lo hay sería peor que dejarlo junto.
+ */
+export function partesDeLaTalla(etiqueta: string): { principal: string; equivalencia?: string } {
+  const partido = /^(.+?)\s*\(([^()]+)\)$/.exec(etiqueta.trim());
+  if (!partido) {
+    return { principal: etiqueta };
+  }
+  const principal = partido[1].trim();
+  const equivalencia = partido[2].trim();
+  if (!principal || !equivalencia) {
+    return { principal: etiqueta };
+  }
+  return { principal, equivalencia };
+}
+
+/**
  * Si este escalón de la tabla de cantidades es de mayoreo, es decir, cualquiera menos el primero.
  *
  * <p>El primero vale exactamente lo mismo que el precio de portada y es el precio por unidad de toda
