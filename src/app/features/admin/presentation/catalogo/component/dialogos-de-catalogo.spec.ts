@@ -72,11 +72,11 @@ describe('DialogoRecargo', () => {
     const peticiones: PeticionDeRecargo[] = [];
     await pinta(peticiones);
 
-    await userEvent.type(screen.getByLabelText(t('admin.catalog.fields.surchargeCny')), '3');
+    await userEvent.type(screen.getByLabelText(t('admin.catalog.fields.surchargePct')), '3');
     await userEvent.click(screen.getByRole('button', { name: t('actions.save') }));
 
     expect(peticiones[0]).toEqual({
-      recargoCny: 3,
+      recargoPct: 3,
       productoIds: ['p1', 'p2'],
       categoriaId: undefined,
     });
@@ -101,7 +101,7 @@ describe('DialogoRecargo', () => {
     const peticiones: PeticionDeRecargo[] = [];
     await pinta(peticiones);
 
-    await userEvent.type(screen.getByLabelText(t('admin.catalog.fields.surchargeCny')), '3');
+    await userEvent.type(screen.getByLabelText(t('admin.catalog.fields.surchargePct')), '3');
     await userEvent.click(screen.getByText(rx('admin.catalog.surcharge.scope_selected')));
     await userEvent.click(screen.getByRole('button', { name: t('actions.save') }));
 

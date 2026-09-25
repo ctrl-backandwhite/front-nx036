@@ -169,11 +169,14 @@ export class DesgloseEditable {
         crudo: desglose.margenInternoPct ?? null,
       },
       {
-        campo: 'surchargeCny',
+        // RECARGO, en porcentaje (25-sep-2026). Igual que el margen interno y por el mismo motivo:
+        // como importe fijo no seguía al coste del proveedor y había que rehacerlo a mano.
+        campo: 'surchargePct',
         clave: 'product.price.surcharge',
         claveDeAyuda: 'product.price.surcharge_dbl',
+        sufijo: '%',
         mostrado: desglose.recargoFormateado ?? '',
-        crudo: desglose.recargoCny ?? null,
+        crudo: desglose.recargoPct ?? null,
       },
       {
         campo: 'shippingUserCny',

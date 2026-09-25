@@ -25,7 +25,7 @@ interface FormularioDeRecargo {
     <nx-ventana-modal [titulo]="t('admin.catalog.surcharge.title')" (cierra)="cierra.emit()">
       <p class="text-[12px] text-ink-500 mb-2">{{ t('admin.catalog.surcharge.hint') }}</p>
       <label for="recargo-cny" class="text-xs text-ink-500">
-        {{ t('admin.catalog.fields.surchargeCny') }}
+        {{ t('admin.catalog.fields.surchargePct') }}
       </label>
       <input
         id="recargo-cny"
@@ -97,7 +97,7 @@ export class DialogoRecargo {
   protected aplica(): void {
     const ambito = this.modelo().ambito;
     this.confirma.emit({
-      recargoCny: this.modelo().importe ?? 0,
+      recargoPct: this.modelo().importe ?? 0,
       productoIds: ambito === 'seleccion' ? this.seleccion() : undefined,
       categoriaId: ambito === 'categoria' ? (this.categoriaId() ?? undefined) : undefined,
     });

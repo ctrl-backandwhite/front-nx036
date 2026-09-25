@@ -71,7 +71,7 @@ export interface FichaDto extends ResumenDto {
   margenInternoFormatted?: string;
   margenInternoPct?: number | null;
   shippingFormatted?: string;
-  surchargeCny?: number | null;
+  surchargePct?: number | null;
   surchargeFormatted?: string;
   shippingUserCny?: number | null;
   dutyUserCny?: number | null;
@@ -132,7 +132,7 @@ export interface FichaDto extends ResumenDto {
     currency: string;
     unitPriceFormatted?: string;
     /** Recargo propio del tramo. Sólo viaja para quien administra; ausente = usa el del producto. */
-    surchargeCny?: number;
+    surchargePct?: number;
   }[];
 }
 
@@ -263,7 +263,7 @@ function aTramos(dto: FichaDto): readonly TramoDePrecio[] {
     precioUnitarioFormateado: tramo.unitPriceFormatted,
     // Se nombra, como el resto: lo que no se nombra aquí llega del servidor y se pierde sin
     // que nada falle. Era el caso de este campo.
-    recargoCny: tramo.surchargeCny,
+    recargoPct: tramo.surchargePct,
   }));
 }
 
@@ -321,7 +321,7 @@ function aDesglose(dto: FichaDto): DesgloseDePrecio | undefined {
     margenInternoPct: dto.margenInternoPct,
     envioFormateado: dto.shippingFormatted,
     recargoFormateado: dto.surchargeFormatted,
-    recargoCny: dto.surchargeCny,
+    recargoPct: dto.surchargePct,
     subsidioDeEnvioFormateado: dto.shippingUserFormatted,
     subsidioDeEnvioCny: dto.shippingUserCny,
     subsidioDeArancelFormateado: dto.dutyUserFormatted,

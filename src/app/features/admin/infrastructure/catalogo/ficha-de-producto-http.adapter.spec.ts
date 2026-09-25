@@ -41,7 +41,7 @@ describe('adaptadores de la ficha de producto', () => {
       titleZh: '耳机',
       status: 'ACTIVE',
       basePrice: 18.5,
-      surchargeCny: 3,
+      surchargePct: 3,
       surchargeFormatted: '0,41 €',
       shippingUserCny: 1,
       dutyUserCny: 0,
@@ -79,7 +79,7 @@ describe('adaptadores de la ficha de producto', () => {
     const pendiente = ficha.actualiza('p1', { titulo: 'Nuevo', yuanes: { recargo: 0 } }, 'es');
     const peticion = http.expectOne((r) => r.url.includes('/api/admin/catalog/products/p1?lang=es'));
 
-    expect(peticion.request.body).toEqual({ title: 'Nuevo', surchargeCny: 0 });
+    expect(peticion.request.body).toEqual({ title: 'Nuevo', surchargePct: 0 });
     peticion.flush({});
     await pendiente;
   });
@@ -125,7 +125,7 @@ describe('adaptadores de la ficha de producto', () => {
     );
 
     expect(peticion.request.method).toBe('PUT');
-    expect(peticion.request.body).toEqual({ surchargeCny: null });
+    expect(peticion.request.body).toEqual({ surchargePct: null });
     peticion.flush({});
     await pendiente;
   });
@@ -136,7 +136,7 @@ describe('adaptadores de la ficha de producto', () => {
       r.url.endsWith('/api/admin/catalog/products/p1/price-tiers/1/surcharge'),
     );
 
-    expect(peticion.request.body).toEqual({ surchargeCny: 2.75 });
+    expect(peticion.request.body).toEqual({ surchargePct: 2.75 });
     peticion.flush({});
     await pendiente;
   });

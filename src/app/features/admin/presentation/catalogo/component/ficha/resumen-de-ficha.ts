@@ -31,7 +31,7 @@ import { FilaDeYuanes } from './fila-de-yuanes';
       <nx-fila-de-yuanes
         campo="recargo"
         [etiqueta]="t('admin.catalog.detail.surcharge')"
-        [etiquetaDelCampo]="t('admin.catalog.fields.surchargeCny')"
+        [etiquetaDelCampo]="t('admin.catalog.fields.surchargePct')"
         [ayuda]="t('admin.catalog.detail.surcharge_dbl')"
         [formateado]="ficha().yuanesFormateados.recargo"
         [crudo]="ficha().yuanes.recargo"

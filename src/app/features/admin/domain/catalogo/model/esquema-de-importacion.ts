@@ -43,7 +43,7 @@ const CAMPOS_DE_PRODUCTO: readonly CampoDeImportacion[] = [
     tipo: 'number',
     descripcion: 'admin.catalog.bulk.fd.margenInternoPct',
   },
-  { clave: 'surchargeCny', tipo: 'number', descripcion: 'admin.catalog.bulk.fd.surchargeCny' },
+  { clave: 'surchargePct', tipo: 'number', descripcion: 'admin.catalog.bulk.fd.surchargePct' },
   { clave: 'shippingUserCny', tipo: 'number', descripcion: 'admin.catalog.bulk.fd.shippingUserCny' },
   { clave: 'dutyUserCny', tipo: 'number', descripcion: 'admin.catalog.bulk.fd.dutyUserCny' },
   { clave: 'moq', tipo: 'int', descripcion: 'admin.catalog.bulk.fd.moq' },

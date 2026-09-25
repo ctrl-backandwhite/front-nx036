@@ -194,7 +194,7 @@ export class ProductosAdminHttpAdapter
 
   async fijaRecargo(peticion: PeticionDeRecargo): Promise<Result<number, AppError>> {
     const respuesta = await this.api.put<{ updated: number }>('/admin/catalog/products/surcharge', {
-      surchargeCny: peticion.recargoCny,
+      surchargePct: peticion.recargoPct,
       productIds: peticion.productoIds,
       categoryId: peticion.categoriaId,
     });

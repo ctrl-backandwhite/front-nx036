@@ -10,8 +10,8 @@ import { PreciosDeFicha } from './precios-de-ficha';
 /** El mismo texto que ve quien administra, con la cadena de respaldo del servicio de traducción. */
 const t = (clave: string): string => es[clave] ?? en[clave] ?? clave;
 
-function tramo(cantidadMinima: number, recargoCny?: number | null): TramoDePrecio {
-  return { cantidadMinima, cantidadMaxima: null, precioUnitario: 12.5, divisa: 'CNY', recargoCny };
+function tramo(cantidadMinima: number, recargoPct?: number | null): TramoDePrecio {
+  return { cantidadMinima, cantidadMaxima: null, precioUnitario: 12.5, divisa: 'CNY', recargoPct };
 }
 
 function ficha(tramos: readonly TramoDePrecio[]): FichaDeProducto {
@@ -94,7 +94,7 @@ describe('PreciosDeFicha · recargo por tramo', () => {
     await userEvent.type(casilla, '0.8');
     await userEvent.tab();
 
-    expect(cambiaRecargoDeTramo).toHaveBeenCalledWith({ cantidadMinima: 200, recargoCny: 0.8 });
+    expect(cambiaRecargoDeTramo).toHaveBeenCalledWith({ cantidadMinima: 200, recargoPct: 0.8 });
   });
 
   /** Vaciar la casilla es una decisión: devuelve el tramo a heredar el recargo del producto. */
@@ -105,7 +105,7 @@ describe('PreciosDeFicha · recargo por tramo', () => {
     await userEvent.clear(casilla);
     await userEvent.tab();
 
-    expect(cambiaRecargoDeTramo).toHaveBeenCalledWith({ cantidadMinima: 1, recargoCny: null });
+    expect(cambiaRecargoDeTramo).toHaveBeenCalledWith({ cantidadMinima: 1, recargoPct: null });
   });
 
   /**

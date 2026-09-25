@@ -23,7 +23,7 @@ export interface FichaDeProductoPort {
   cambiaRecargoDeTramo(
     id: string,
     cantidadMinima: number,
-    recargoCny: number | null,
+    recargoPct: number | null,
   ): Promise<Result<void, AppError>>;
 }
 

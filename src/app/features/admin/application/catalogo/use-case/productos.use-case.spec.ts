@@ -137,7 +137,7 @@ describe('casos de uso del catálogo', () => {
       masivos.fijaRecargo.mockResolvedValue(exito(12));
 
       const resultado = await TestBed.inject(AplicaRecargo).ejecuta({
-        recargoCny: 3,
+        recargoPct: 3,
         categoriaId: 'c1',
       });
 
@@ -146,7 +146,7 @@ describe('casos de uso del catálogo', () => {
 
     /** Un recargo negativo no significa nada y no puede llegar al servidor. */
     it('rechaza un importe negativo sin llamar al servidor', async () => {
-      const resultado = await TestBed.inject(AplicaRecargo).ejecuta({ recargoCny: -1 });
+      const resultado = await TestBed.inject(AplicaRecargo).ejecuta({ recargoPct: -1 });
 
       expect(resultado.ok).toBe(false);
       expect(masivos.fijaRecargo).not.toHaveBeenCalled();

@@ -85,9 +85,9 @@ export class AccionesDeFicha {
   async cambiaRecargoDeTramo(
     id: string,
     cantidadMinima: number,
-    recargoCny: number | null,
+    recargoPct: number | null,
   ): Promise<boolean> {
-    const resultado = await this.recargoDeTramo.ejecuta(id, cantidadMinima, recargoCny);
+    const resultado = await this.recargoDeTramo.ejecuta(id, cantidadMinima, recargoPct);
     if (!resultado.ok) {
       this.avisos.error(mensajeDeError(this.t, resultado.error, 'admin.catalog.edit.error'));
       return false;

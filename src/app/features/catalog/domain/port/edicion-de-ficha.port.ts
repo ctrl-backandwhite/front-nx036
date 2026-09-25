@@ -24,7 +24,7 @@ import { FichaDeProducto } from '../model/producto';
  * Guardado en porcentaje sigue al coste del proveedor sin que nadie lo recalcule.
  */
 export type CampoEnYuanes =
-  | 'surchargeCny'
+  | 'surchargePct'
   | 'shippingUserCny'
   | 'dutyUserCny'
   | 'margenInternoPct';
@@ -76,7 +76,7 @@ export interface EdicionDeFichaPort {
   guardaRecargoDeTramo(
     idDelProducto: string,
     cantidadMinima: number,
-    recargoCny: number | null,
+    recargoPct: number | null,
   ): Promise<Result<FichaDeProducto, AppError>>;
 
   borraImagen(idDeLaImagen: string): Promise<Result<void, AppError>>;

@@ -33,7 +33,7 @@ export interface AmbitoMasivo {
 
 /** El recargo fijo por producto, en yuanes. 0 lo quita. */
 export interface PeticionDeRecargo extends AmbitoMasivo {
-  readonly recargoCny: number;
+  readonly recargoPct: number;
 }
 
 /**

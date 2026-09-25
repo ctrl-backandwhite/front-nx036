@@ -308,9 +308,9 @@ export class FichaDeProductoPage {
    */
   protected async cambiaRecargoDeTramo(cambio: {
     cantidadMinima: number;
-    recargoCny: number | null;
+    recargoPct: number | null;
   }): Promise<void> {
-    await this.acciones.cambiaRecargoDeTramo(this.id(), cambio.cantidadMinima, cambio.recargoCny);
+    await this.acciones.cambiaRecargoDeTramo(this.id(), cambio.cantidadMinima, cambio.recargoPct);
     this.ficha.reload();
   }
 

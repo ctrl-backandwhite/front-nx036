@@ -16,7 +16,7 @@ import { aVariante } from './variantes-http.adapter';
 
 /** Los tres importes en yuanes, con su nombre de negocio a un lado y el del backend al otro. */
 const NOMBRE_EN_BACKEND: Readonly<Record<ImporteEnYuanes, string>> = {
-  recargo: 'surchargeCny',
+  recargo: 'surchargePct',
   subvencionDeEnvio: 'shippingUserCny',
   subvencionDeArancel: 'dutyUserCny',
 };
@@ -44,7 +44,7 @@ function aTramo(dto: TramoDto) {
     cantidadMaxima: dto.maxQty,
     precioUnitario: Number(dto.unitPrice),
     divisa: dto.currency ?? 'CNY',
-    recargoCny: dto.surchargeCny ?? null,
+    recargoPct: dto.surchargePct ?? null,
   };
 }
 
@@ -97,7 +97,7 @@ function textosDe(dto: FichaDto) {
 function yuanesDe(dto: FichaDto) {
   return {
     yuanes: {
-      recargo: dto.surchargeCny,
+      recargo: dto.surchargePct,
       subvencionDeEnvio: dto.shippingUserCny,
       subvencionDeArancel: dto.dutyUserCny,
     },
@@ -214,11 +214,11 @@ export class FichaDeProductoHttpAdapter implements FichaDeProductoPort, Imagenes
   async cambiaRecargoDeTramo(
     id: string,
     cantidadMinima: number,
-    recargoCny: number | null,
+    recargoPct: number | null,
   ): Promise<Result<void, AppError>> {
     const respuesta = await this.api.put<unknown>(
       `/admin/catalog/products/${encodeURIComponent(id)}/price-tiers/${cantidadMinima}/surcharge`,
-      { surchargeCny: recargoCny },
+      { surchargePct: recargoPct },
     );
     return mapea(respuesta, () => undefined);
   }

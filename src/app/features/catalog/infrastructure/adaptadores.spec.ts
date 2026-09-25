@@ -318,12 +318,12 @@ describe('EdicionDeFichaHttpAdapter', () => {
    */
   it('admite varios importes en una sola petición', async () => {
     void TestBed.inject(EdicionDeFichaHttpAdapter).guardaImportesEnYuanes('p1', {
-      surchargeCny: 8.98,
+      surchargePct: 8.98,
       shippingUserCny: 3.08,
     });
 
     const peticion = http.expectOne((r) => r.url.startsWith(`${BASE}/api/admin/catalog/products/p1`));
-    expect(peticion.request.body).toEqual({ surchargeCny: 8.98, shippingUserCny: 3.08 });
+    expect(peticion.request.body).toEqual({ surchargePct: 8.98, shippingUserCny: 3.08 });
     peticion.flush({ id: 'p1', slug: 'p1', title: 'Gorro' });
   });
 });

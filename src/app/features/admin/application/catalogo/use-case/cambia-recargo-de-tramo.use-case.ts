@@ -22,8 +22,8 @@ export class CambiaRecargoDeTramo {
   ejecuta(
     productoId: string,
     cantidadMinima: number,
-    recargoCny: number | null,
+    recargoPct: number | null,
   ): Promise<Result<void, AppError>> {
-    return this.ficha.cambiaRecargoDeTramo(productoId, cantidadMinima, recargoCny);
+    return this.ficha.cambiaRecargoDeTramo(productoId, cantidadMinima, recargoPct);
   }
 }

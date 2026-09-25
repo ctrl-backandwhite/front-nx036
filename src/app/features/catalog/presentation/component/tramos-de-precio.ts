@@ -13,7 +13,7 @@ interface Escalon {
   /** La cantidad mínima identifica al tramo: es lo que viaja al guardar su recargo. */
   readonly cantidadMinima: number;
   /** Recargo propio en yuanes, o nada si hereda el del producto. */
-  readonly recargoCny: number | null;
+  readonly recargoPct: number | null;
   readonly recargoMostrado: string;
 }
 
@@ -97,7 +97,7 @@ export class TramosDePrecio {
   readonly puedeEditar = input(false);
 
   /** Sale la cantidad mínima del tramo y su nuevo recargo; nulo = vuelve a heredar el del producto. */
-  readonly cambiaRecargo = output<{ cantidadMinima: number; recargoCny: number | null }>();
+  readonly cambiaRecargo = output<{ cantidadMinima: number; recargoPct: number | null }>();
 
   protected readonly t = inject(TraduccionService).t;
   protected readonly iconoDeLapiz = faPencil;
@@ -113,7 +113,7 @@ export class TramosDePrecio {
   });
 
   protected empiezaEdicion(escalon: Escalon): void {
-    this.borrador.set({ importe: escalon.recargoCny });
+    this.borrador.set({ importe: escalon.recargoPct });
     this.editando.set(escalon.cantidadMinima);
   }
 
@@ -127,11 +127,11 @@ export class TramosDePrecio {
     if (this.formulario().invalid()) {
       return;
     }
-    const recargoCny = escrito === null || !Number.isFinite(escrito) ? null : escrito;
-    if (recargoCny === escalon.recargoCny) {
+    const recargoPct = escrito === null || !Number.isFinite(escrito) ? null : escrito;
+    if (recargoPct === escalon.recargoPct) {
       return;
     }
-    this.cambiaRecargo.emit({ cantidadMinima: escalon.cantidadMinima, recargoCny });
+    this.cambiaRecargo.emit({ cantidadMinima: escalon.cantidadMinima, recargoPct });
   }
 
   protected readonly escalones = computed<Escalon[]>(() => {
@@ -147,11 +147,15 @@ export class TramosDePrecio {
       precio: tramo.precioUnitarioFormateado ?? '—',
       activo: tramo === aplicable,
       cantidadMinima: tramo.cantidadMinima,
-      recargoCny: tramo.recargoCny ?? null,
+      recargoPct: tramo.recargoPct ?? null,
       // Sin recargo propio se dice que HEREDA, no se pinta un cero: son cosas distintas y confundirlas
       // haría creer que ese tramo no lleva cargo cuando sí lleva el del producto.
+      // Y lleva el «%» pegado desde que el recargo es un porcentaje (25-sep-2026): un «5» suelto en
+      // una columna llena de importes se lee como cinco euros, que es diez veces lo que es.
       recargoMostrado:
-        tramo.recargoCny == null ? this.t('pdp.tiers.surcharge_inherits') : String(tramo.recargoCny),
+        tramo.recargoPct == null
+          ? this.t('pdp.tiers.surcharge_inherits')
+          : `${tramo.recargoPct} %`,
     }));
   });
 

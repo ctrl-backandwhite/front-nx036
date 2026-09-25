@@ -8,7 +8,7 @@ function tramo(
   min: number,
   max: number | undefined,
   formateado: string,
-  recargoCny?: number,
+  recargoPct?: number,
 ): TramoDePrecio {
   return {
     cantidadMinima: min,
@@ -16,7 +16,7 @@ function tramo(
     precioUnitario: 0,
     divisa: 'EUR',
     precioUnitarioFormateado: formateado,
-    recargoCny,
+    recargoPct,
   };
 }
 
@@ -148,7 +148,7 @@ describe('TramosDePrecio', () => {
     await userEvent.clear(campo);
     await userEvent.type(campo, '2.5{enter}');
 
-    expect(cambiaRecargo).toHaveBeenCalledWith({ cantidadMinima: 50, recargoCny: 2.5 });
+    expect(cambiaRecargo).toHaveBeenCalledWith({ cantidadMinima: 50, recargoPct: 2.5 });
   });
 
   /** Vaciar la casilla es una decisión: devuelve el tramo a heredar el recargo del producto. */
@@ -168,7 +168,7 @@ describe('TramosDePrecio', () => {
     await userEvent.clear(campo);
     await userEvent.type(campo, '{enter}');
 
-    expect(cambiaRecargo).toHaveBeenCalledWith({ cantidadMinima: 50, recargoCny: null });
+    expect(cambiaRecargo).toHaveBeenCalledWith({ cantidadMinima: 50, recargoPct: null });
   });
 
   /** Pasar por la casilla sin tocarla no guarda: cada guardado recalcula el precio y recarga la ficha. */

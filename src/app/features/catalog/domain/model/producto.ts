@@ -151,7 +151,7 @@ export interface TramoDePrecio {
    * <p>Ausente NO es cero: significa que el tramo no tiene recargo propio y usa el del producto.
    * Sólo llega a quien administra; para el resto el backend lo borra.
    */
-  readonly recargoCny?: number;
+  readonly recargoPct?: number;
 }
 
 export interface Especificacion {
@@ -205,7 +205,7 @@ export interface DesgloseDePrecio {
   readonly margenInternoPct?: number | null;
   readonly envioFormateado?: string;
   readonly recargoFormateado?: string;
-  readonly recargoCny?: number | null;
+  readonly recargoPct?: number | null;
   readonly subsidioDeEnvioFormateado?: string;
   readonly subsidioDeEnvioCny?: number | null;
   readonly subsidioDeArancelFormateado?: string;

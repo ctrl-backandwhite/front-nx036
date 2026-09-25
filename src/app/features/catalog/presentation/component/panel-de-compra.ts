@@ -231,7 +231,7 @@ export class PanelDeCompra {
    */
   readonly actualizada = output<FichaDeProducto>();
   /** El recargo de un tramo cambió: quien monta la ficha lo guarda y recarga. */
-  readonly cambiaRecargoDeTramo = output<{ cantidadMinima: number; recargoCny: number | null }>();
+  readonly cambiaRecargoDeTramo = output<{ cantidadMinima: number; recargoPct: number | null }>();
   readonly borrada = output<void>();
 
   private readonly favoritos = inject(FavoritosStore);

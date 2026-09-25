@@ -46,7 +46,7 @@ export interface TramoDto {
   maxQty?: number | null;
   unitPrice: number;
   currency?: string;
-  surchargeCny?: number | null;
+  surchargePct?: number | null;
 }
 
 export interface CumplimientoDto {
@@ -78,7 +78,7 @@ export interface FichaDto {
   metaTitle?: string;
   metaDescription?: string;
   videoUrl?: string;
-  surchargeCny?: number | null;
+  surchargePct?: number | null;
   shippingUserCny?: number | null;
   dutyUserCny?: number | null;
   surchargeFormatted?: string;

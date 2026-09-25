@@ -123,7 +123,7 @@ function camposDeLaFicha(ficha: FichaDeProducto): FormularioDeEdicionRapida {
             }
           </label>
           <label class="block">
-            <span class="text-xs text-ink-500">{{ t('admin.catalog.fields.surchargeCny') }}</span>
+            <span class="text-xs text-ink-500">{{ t('admin.catalog.fields.surchargePct') }}</span>
             <input type="number" step="0.01" class="input w-full" [formField]="formulario.recargo" />
             @if (fallo(formulario.recargo()); as texto) {
               <span class="text-[11px] text-error mt-0.5 block">{{ texto }}</span>

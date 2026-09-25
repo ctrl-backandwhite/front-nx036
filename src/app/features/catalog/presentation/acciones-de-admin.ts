@@ -36,14 +36,14 @@ export class AccionesDeAdmin {
    */
   async guardaRecargoDeTramo(
     idDelProducto: string,
-    cambio: { cantidadMinima: number; recargoCny: number | null },
+    cambio: { cantidadMinima: number; recargoPct: number | null },
     alTerminar: (ficha: FichaDeProducto | null) => void,
   ): Promise<void> {
     const editor = await this.editor();
     const resultado = await editor.guardaRecargoDeTramo(
       idDelProducto,
       cambio.cantidadMinima,
-      cambio.recargoCny,
+      cambio.recargoPct,
     );
     if (!resultado.ok) {
       this.avisos.error(resultado.error.mensaje || this.t('admin.catalog.edit.error'));
@@ -216,6 +216,6 @@ interface EditorDeFicha {
   guardaRecargoDeTramo(
     idDelProducto: string,
     cantidadMinima: number,
-    recargoCny: number | null,
+    recargoPct: number | null,
   ): Promise<Result<FichaDeProducto, AppError>>;
 }

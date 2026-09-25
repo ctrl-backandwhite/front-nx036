@@ -99,7 +99,7 @@ describe('el resto de los adaptadores', () => {
       moq: 6,
       reviewCount: 3,
       baseFormatted: '8,00 €',
-      surchargeCny: 7,
+      surchargePct: 7,
       surchargeFormatted: '1,00 €',
       compliance: {
         manufacturerName: 'Fábrica',
@@ -133,14 +133,14 @@ describe('el resto de los adaptadores', () => {
           values: [{ id: 'v', valueZh: 'S', position: 0 }],
         },
       ],
-      priceTiers: [{ minQty: 10, unitPrice: 8, currency: 'EUR', surchargeCny: 0.8 }],
+      priceTiers: [{ minQty: 10, unitPrice: 8, currency: 'EUR', surchargePct: 0.8 }],
     });
     const resultado = await promesa;
     expect(resultado.ok).toBe(true);
     if (resultado.ok) {
       const ficha = resultado.valor;
       expect(ficha.moq).toBe(6);
-      expect(ficha.desglose?.recargoCny).toBe(7);
+      expect(ficha.desglose?.recargoPct).toBe(7);
       expect(ficha.cumplimiento?.operadorEuropeo?.papel).toBe('Importador');
       expect(ficha.variantes[0].pesoGramos).toBe(250);
       expect(ficha.ejesDeVariante[0].nombre).toBe('Talla');
@@ -148,7 +148,7 @@ describe('el resto de los adaptadores', () => {
       // El recargo propio del tramo (23-sep-2026). El backend lo envía sólo a quien administra,
       // y aquí se descartaba en el mapeo: llegaba y se perdía, así que el panel no podía
       // enseñarlo ni corregirlo por mucho que el endpoint existiera.
-      expect(ficha.tramosDePrecio[0].recargoCny).toBe(0.8);
+      expect(ficha.tramosDePrecio[0].recargoPct).toBe(0.8);
       expect(ficha.especificaciones[0].clave).toBe('material');
     }
   });

@@ -211,7 +211,7 @@ describe('DesgloseEditable', () => {
           margenInternoFormateado: '2,00 €',
           margenInternoPct: 39,
           recargoFormateado: '1,00 €',
-          recargoCny: 7.5,
+          recargoPct: 7.5,
           subsidioDeEnvioFormateado: '1,00 €',
           subsidioDeEnvioCny: 7,
         },
@@ -251,7 +251,7 @@ describe('DesgloseEditable', () => {
     await userEvent.clear(campo);
     await userEvent.type(campo, '9.5{enter}');
     await vista.fixture.whenStable();
-    expect(guarda).toHaveBeenCalledWith('p1', 'surchargeCny', 9.5);
+    expect(guarda).toHaveBeenCalledWith('p1', 'surchargePct', 9.5);
     expect(cambiado).toHaveBeenCalled();
   });
 
@@ -307,7 +307,7 @@ describe('DesgloseEditable', () => {
     await userEvent.type(campo, '4{enter}');
     await vista.fixture.whenStable();
 
-    expect(guarda).toHaveBeenCalledWith('p1', 'surchargeCny', 4);
+    expect(guarda).toHaveBeenCalledWith('p1', 'surchargePct', 4);
   });
 
   /**

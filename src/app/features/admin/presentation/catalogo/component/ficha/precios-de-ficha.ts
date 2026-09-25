@@ -162,7 +162,7 @@ export class PreciosDeFicha {
 
   readonly borraTramo = output<number>();
   readonly cambiaPrecio = output<{ id: string; precio: number; anterior: number }>();
-  readonly cambiaRecargoDeTramo = output<{ cantidadMinima: number; recargoCny: number | null }>();
+  readonly cambiaRecargoDeTramo = output<{ cantidadMinima: number; recargoPct: number | null }>();
 
   protected readonly t = inject(TraduccionService).t;
   private readonly almacen = inject(CatalogoAdminStore);
@@ -211,7 +211,7 @@ export class PreciosDeFicha {
     source: () => this.ficha(),
     computation: (ficha) =>
       Object.fromEntries(
-        ficha.tramos.map((tramo) => [tramo.cantidadMinima, tramo.recargoCny ?? null]),
+        ficha.tramos.map((tramo) => [tramo.cantidadMinima, tramo.recargoPct ?? null]),
       ),
   });
 
@@ -265,14 +265,14 @@ export class PreciosDeFicha {
     const escrito = this.recargos()[tramo.cantidadMinima];
     // Una casilla vacía llega como null; un número inválido también. Las dos cosas son «sin recargo
     // propio», que es un valor legítimo y hay que poder guardar.
-    const recargoCny = escrito === null || !Number.isFinite(escrito) ? null : escrito;
+    const recargoPct = escrito === null || !Number.isFinite(escrito) ? null : escrito;
     if (this.formularioDeRecargos[tramo.cantidadMinima]().invalid()) {
       return;
     }
-    if (recargoCny === (tramo.recargoCny ?? null)) {
+    if (recargoPct === (tramo.recargoPct ?? null)) {
       return;
     }
-    this.cambiaRecargoDeTramo.emit({ cantidadMinima: tramo.cantidadMinima, recargoCny });
+    this.cambiaRecargoDeTramo.emit({ cantidadMinima: tramo.cantidadMinima, recargoPct });
   }
 
   protected confirma(variante: VarianteDeProducto): void {

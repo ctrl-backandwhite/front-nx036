@@ -21,7 +21,7 @@ export interface TramoDePrecio {
    * cero que alguien ha escrito, nulo es que el tramo no tiene uno propio. Vaciar la casilla devuelve
    * el tramo al recargo del producto.
    */
-  readonly recargoCny?: number | null;
+  readonly recargoPct?: number | null;
 }
 
 /** El fabricante, que el Reglamento (UE) 2023/988 obliga a publicar y que 1688 no entrega. */

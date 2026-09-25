@@ -59,9 +59,9 @@ export class EditaLaFicha {
   guardaRecargoDeTramo(
     idDelProducto: string,
     cantidadMinima: number,
-    recargoCny: number | null,
+    recargoPct: number | null,
   ): Promise<Result<FichaDeProducto, AppError>> {
-    return this.puerto.guardaRecargoDeTramo(idDelProducto, cantidadMinima, recargoCny);
+    return this.puerto.guardaRecargoDeTramo(idDelProducto, cantidadMinima, recargoPct);
   }
 
   borraImagen(idDeLaImagen: string): Promise<Result<void, AppError>> {

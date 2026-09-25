@@ -55,12 +55,12 @@ export class EdicionDeFichaHttpAdapter implements EdicionDeFichaPort {
   async guardaRecargoDeTramo(
     idDelProducto: string,
     cantidadMinima: number,
-    recargoCny: number | null,
+    recargoPct: number | null,
   ): Promise<Result<FichaDeProducto, AppError>> {
     return mapea(
       await this.api.put<FichaDto>(
         `/admin/catalog/products/${encodeURIComponent(idDelProducto)}/price-tiers/${cantidadMinima}/surcharge`,
-        { surchargeCny: recargoCny },
+        { surchargePct: recargoPct },
       ),
       (dto) => aFicha(dto),
     );
