@@ -233,6 +233,36 @@ describe('SeleccionDeLaFicha', () => {
     expect(seleccion.precioDestacado().formateado).toBe('10,00 €');
   });
 
+  /**
+   * Regla del titular (25-sep-2026): los descuentos son del precio unitario, y el mayoreo no se rebaja.
+   *
+   * <p>Qué se rompería sin esto: la cotización solo sustituye la CIFRA. Con la ficha en promoción, el
+   * precio de mayoreo se pintaría junto al tachado y al «-50%» del precio de una unidad, anunciando un
+   * descuento que el cobro ya no aplica. Es la misma familia de fallo que el tramo decorativo —enseñar
+   * una cosa y cobrar otra—, solo que al revés: aquí lo que se promete de más es la rebaja.
+   */
+  it('al cotizar un tramo de mayoreo desaparecen el tachado y el porcentaje', async () => {
+    seleccion.empieza(
+      ficha({
+        precio: {
+          formateado: '10,00 €',
+          importe: 10,
+          divisa: 'EUR',
+          anteriorFormateado: '20,00 €',
+          descuentoPorcentaje: 50,
+        },
+        tramosDePrecio: TRAMOS,
+      }),
+    );
+    seleccion.fijaCantidad(10);
+    void seleccion.precioDestacado();
+    await TestBed.inject(ApplicationRef).whenStable();
+
+    expect(seleccion.precioDestacado().formateado).toBe('7,60 €');
+    expect(seleccion.precioDestacado().anteriorFormateado).toBeUndefined();
+    expect(seleccion.precioDestacado().descuentoPorcentaje).toBeUndefined();
+  });
+
   /** Sin escalera no hay nada que cotizar por mucha cantidad que se pida. */
   it('sin tramos no pregunta nada aunque se pidan mil unidades', async () => {
     seleccion.empieza(ficha());

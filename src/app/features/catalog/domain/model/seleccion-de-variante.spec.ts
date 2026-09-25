@@ -184,6 +184,54 @@ describe('precioDestacado', () => {
     expect(precioDestacado(sinPrecio, undefined, null).importe).toBeNull();
   });
 
+  /**
+   * Regla del titular (25-sep-2026): los descuentos son del precio UNITARIO. Un escalón de mayoreo se
+   * cobra sin rebaja, así que arrastrar el tachado y el porcentaje de la ficha anunciaría una promoción
+   * que el pedido no aplica: el cliente vería «antes 30,00 € · -50%» sobre un precio que nadie ha
+   * rebajado, y al pagar no encontraría el descuento por ninguna parte.
+   */
+  it('un tramo de mayoreo pierde el tachado y el porcentaje', () => {
+    const conRebaja = ficha({
+      precio: { formateado: '10,00 €', importe: 10, divisa: 'EUR', anteriorFormateado: '30,00 €', descuentoPorcentaje: 50 },
+      tramosDePrecio: [
+        { cantidadMinima: 1, precioUnitario: 10, divisa: 'EUR', precioUnitarioFormateado: '10,00 €' },
+        { cantidadMinima: 100, precioUnitario: 8, divisa: 'EUR', precioUnitarioFormateado: '8,00 €' },
+      ],
+    });
+    const precio = precioDestacado(conRebaja, undefined, {
+      cantidadMinima: 100,
+      precioUnitario: 8,
+      divisa: 'EUR',
+      precioUnitarioFormateado: '8,00 €',
+    });
+    expect(precio.formateado).toBe('8,00 €');
+    expect(precio.anteriorFormateado).toBeUndefined();
+    expect(precio.descuentoPorcentaje).toBeUndefined();
+  });
+
+  /**
+   * EL control. Apagar la etiqueta en cuanto la ficha tenga tabla de cantidades sería la forma fácil de
+   * cumplir la regla, y como el PRIMER escalón lo tienen todos los productos, eso borraría las campañas
+   * del catálogo entero sin dar un solo error.
+   */
+  it('el primer tramo es precio unitario y conserva su rebaja', () => {
+    const conRebaja = ficha({
+      precio: { formateado: '10,00 €', importe: 10, divisa: 'EUR', anteriorFormateado: '20,00 €', descuentoPorcentaje: 50 },
+      tramosDePrecio: [
+        { cantidadMinima: 1, precioUnitario: 10, divisa: 'EUR', precioUnitarioFormateado: '10,00 €' },
+        { cantidadMinima: 100, precioUnitario: 8, divisa: 'EUR', precioUnitarioFormateado: '8,00 €' },
+      ],
+    });
+    const precio = precioDestacado(conRebaja, undefined, {
+      cantidadMinima: 1,
+      precioUnitario: 10,
+      divisa: 'EUR',
+      precioUnitarioFormateado: '10,00 €',
+    });
+    expect(precio.anteriorFormateado).toBe('20,00 €');
+    expect(precio.descuentoPorcentaje).toBe(50);
+  });
+
   /** El «antes» del producto junto al «ahora» de la variante llegó a dar un tachado MENOR. */
   it('la rebaja de la variante es la suya, no la del producto', () => {
     const conRebaja = ficha({ precio: { anteriorFormateado: '30,00 €', descuentoPorcentaje: 50 } });

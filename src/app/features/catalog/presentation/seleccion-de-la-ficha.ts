@@ -161,7 +161,14 @@ export class SeleccionDeLaFicha {
     }
     const base = precioDestacado(ficha, this.varianteElegida(), this.tramoAplicable());
     const cotizado = this.precioCotizado()?.unitarioFormateado;
-    return cotizado ? { ...base, formateado: cotizado } : base;
+    // Que haya cotización significa que la cantidad alcanza un escalón de MAYOREO —es la única razón
+    // por la que se pregunta al servidor—, y el mayoreo no se rebaja (regla del titular, 25-sep-2026).
+    // Con el importe hay que quitar también el tachado y el porcentaje: si solo se cambiara la cifra, la
+    // ficha enseñaría el precio de mayoreo con la etiqueta de una promoción que el pedido no aplica, que
+    // es exactamente la contradicción entre lo anunciado y lo cobrado que esta regla viene a cerrar.
+    return cotizado
+      ? { ...base, formateado: cotizado, anteriorFormateado: undefined, descuentoPorcentaje: undefined }
+      : base;
   });
 
   readonly unidadesQueFaltan = computed(() =>

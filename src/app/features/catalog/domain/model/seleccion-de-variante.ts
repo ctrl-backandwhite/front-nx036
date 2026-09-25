@@ -123,6 +123,19 @@ export interface PrecioDestacado {
  * la ficha en pantalla con los importes de la anterior, y reconvertirlos aquí enseñaría un número que
  * el pedido no cobra.
  */
+/**
+ * Si este escalón de la tabla de cantidades es de mayoreo, es decir, cualquiera menos el primero.
+ *
+ * <p>El primero vale exactamente lo mismo que el precio de portada y es el precio por unidad de toda
+ * la vida; los demás son venta al por mayor y no admiten rebaja.
+ */
+export function esTramoDeMayoreo(ficha: FichaDeProducto, tramo: TramoDePrecio): boolean {
+  const primero = [...(ficha.tramosDePrecio ?? [])].sort(
+    (a, b) => a.cantidadMinima - b.cantidadMinima,
+  )[0];
+  return !!primero && tramo.cantidadMinima !== primero.cantidadMinima;
+}
+
 export function precioDestacado(
   ficha: FichaDeProducto,
   variante: VarianteDeProducto | undefined,
@@ -139,12 +152,17 @@ export function precioDestacado(
     };
   }
   if (tramo) {
+    // REGLA DEL TITULAR (25-sep-2026): los descuentos son del precio UNITARIO. Un escalón de mayoreo
+    // —cualquiera que no sea el primero— se cobra sin rebaja, así que arrastrar aquí el tachado y el
+    // porcentaje de la ficha anunciaría una promoción que el pedido no aplica. El primer escalón sí es
+    // el precio de una unidad y conserva su etiqueta.
+    const deMayoreo = esTramoDeMayoreo(ficha, tramo);
     return {
       importe: tramo.precioUnitario,
       divisa: tramo.divisa,
       formateado: tramo.precioUnitarioFormateado,
-      anteriorFormateado: ficha.precio.anteriorFormateado,
-      descuentoPorcentaje: ficha.precio.descuentoPorcentaje,
+      anteriorFormateado: deMayoreo ? undefined : ficha.precio.anteriorFormateado,
+      descuentoPorcentaje: deMayoreo ? undefined : ficha.precio.descuentoPorcentaje,
     };
   }
   return {
