@@ -1,59 +1,69 @@
-# NexadropAngular
+# NX036 — Escaparate y panel (`front-nx036`)
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.1.7.
+El frontend vivo de NX036: la tienda que ve quien compra y el panel de quien administra.
 
-## Development server
+**Angular 22 · zoneless · Signals y Signal Forms · Tailwind 4 + daisyUI 5 · prerenderizado sin
+servidor Node**
 
-To start a local development server, run:
+> Las **normas para escribir aquí** están en [`CLAUDE.md`](CLAUDE.md) y mandan sobre cualquier
+> costumbre: arquitectura hexagonal, mobile first, CSS centralizado, qué API de Angular se usa y
+> cuál está prohibida. Léelo antes de tocar código.
 
-```bash
-ng serve
-```
+---
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## Arrancar
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Necesita el backend en marcha (`cd ../infra/docker && docker compose up -d`).
 
 ```bash
-ng generate --help
+npm start          # queda en localhost:3004
 ```
 
-## Building
+**Navega por `localhost`, nunca por `127.0.0.1`.** El backend solo admite `localhost:3003` y
+`localhost:3004` como orígenes: con la IP toda petición devuelve 403 y el acceso falla **sin ningún
+mensaje de error**, como si la contraseña fuera incorrecta.
 
-To build the project run:
+## Pruebas
 
 ```bash
-ng build
+npm test        # 3.900 pruebas en 404 ficheros a 25-sep-2026
+npm run lint    # el lint verifica las fronteras del hexágono, no solo el estilo
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Las dos en verde antes de dar nada por terminado. La norma del proyecto es **90 % de cobertura**, y
+cada desarrollo llega con sus pruebas.
 
-## Running unit tests
+Hace falta **Node 22**. Bajo carga, una o dos pruebas fallan por pasada y pasan en solitario: es
+conocido y no es tu cambio.
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+## Construir
 
 ```bash
-ng test
+npm run build:pre     # o :des, :pro
 ```
 
-## Running end-to-end tests
+Dos variables son obligatorias al construir, y **si faltan no falla nada**: sale una web que parece
+prerenderizada y no lo está.
 
-For end-to-end (e2e) testing, run:
+- `NEXADROP_API_INTERNA` — un backend accesible desde donde se compila. Sin ella las peticiones del
+  prerenderizado fallan en silencio y las páginas se escriben con sus marcadores de carga.
+- `NEXADROP_PRERENDER_TOKEN` — debe valer lo mismo que `RATELIMIT_BUILD_TOKEN` en ese backend. Sin
+  él solo caben unas quince fichas y el resto se generan con una página de error dentro.
 
-```bash
-ng e2e
-```
+## Desplegar
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+Lo hace el CI según la rama: `features` → desarrollo, `develop` → preproducción, `main` →
+producción. Publica la imagen **y escribe él mismo el tag** en `nexadrop-deploy`. No se copian tags
+a mano.
 
-## Additional Resources
+---
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## Documentación
+
+| Qué | Dónde |
+|---|---|
+| Normas de código y arquitectura | [`CLAUDE.md`](CLAUDE.md) |
+| Por qué el hexágono y sus fronteras | [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md) |
+| Costuras entre contextos por coser | [`docs/INTEGRACION-PENDIENTE.md`](docs/INTEGRACION-PENDIENTE.md) |
+| Defectos abiertos a la espera de decisión | [`docs/DEFECTOS-CERTIFICACION.md`](docs/DEFECTOS-CERTIFICACION.md) |
+| Colores y tipografía | [`../docs/design-tokens.md`](../docs/design-tokens.md) |

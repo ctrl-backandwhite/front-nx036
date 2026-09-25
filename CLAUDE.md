@@ -1,8 +1,12 @@
 # front-nx036 — normas del proyecto
 
-Réplica en Angular 22 del escaparate y el panel que hoy sirve el frontend React (`../frontend`).
-Mismo backend, mismo diseño, misma funcionalidad. Lo que cambia es la tecnología y, sobre todo, la
-**arquitectura**: aquí el negocio no vive en las pantallas.
+El escaparate y el panel de NX036, en Angular 22. **Es el frontend vivo**: sirve desarrollo,
+preproducción y producción.
+
+Nació como porte de un frontend anterior en React —de ahí que varias decisiones se expliquen como
+«se hereda el diseño tal cual»—, pero ese React **ya no existe**. Si encuentras una referencia a
+`../frontend`, es de un documento viejo y no hay nada ahí. Lo que cambió al portar no fue solo la
+tecnología, sino sobre todo la **arquitectura**: aquí el negocio no vive en las pantallas.
 
 Estas normas mandan sobre cualquier costumbre general. Si algo choca, gana lo escrito aquí.
 
@@ -86,11 +90,12 @@ estilo: es requisito del proyecto.
 - En CSS, las consultas de medio se escriben con `min-width`, nunca con `max-width`.
 - Se diseña para la pantalla estrecha: una columna, objetivos táctiles de 44 px como mínimo, nada que
   dependa de pasar el ratón por encima, y el contenido importante sin desplazamiento horizontal.
-- Al portar una pantalla del React, si el original estaba escrito al revés (`max-width`), **se invierte
+- Si encuentras una pantalla heredada escrita al revés (`max-width`), **se invierte
   al portarla**, cuidando que el resultado se vea igual en las dos anchuras.
 
-La única excepción son los bloques de `styles.css` heredados tal cual del React, que se conservan
-porque el encargo es que el diseño no cambie ni un pixel. Todo lo demás, mobile first.
+La única excepción son unos bloques de `styles.css` heredados del diseño anterior, que se conservan
+porque el encargo fue que no cambiara ni un pixel. Están marcados en el propio fichero; todo lo que
+escribas de nuevo va mobile first.
 
 ---
 
@@ -104,8 +109,9 @@ cuanto una pantalla escribe su propio CSS, esa regla deja de pasar por el tema: 
 oscuro, no aparece al buscar de dónde sale un color, y la siguiente pantalla la copia. Lo que se repite
 se convierte en una utilidad de `styles.css`, que es donde se corrige **una** vez.
 
-`styles.css` es copia fiel del `index.css` del React, con sus correcciones de contraste ganadas a base
-de incidencias. Al tocarlo, tocar también el del otro front: son el mismo diseño en dos tecnologías.
+`styles.css` nació como copia del diseño anterior y arrastra correcciones de contraste ganadas a base
+de incidencias reales: no las quites porque parezcan arbitrarias, cada una cerró un fallo. Ya no hay
+otro front con el que sincronizarlo: este es el único.
 
 Ojo con el escaneo: los ficheros de datos (`shared/i18n`, `shared/data`, `shared/content`) están
 excluidos con `@source not`. Son prosa en ocho idiomas y Tailwind confundía palabras sueltas con
@@ -164,7 +170,7 @@ hizo con Stripe y con las animaciones).
 
 ## 6. Renderizado: prerenderizado, sin servidor
 
-El React apagó el renderizado en servidor el 6-sep-2026 porque el escaparate iba lento: el HTML salía
+El front anterior apagó el renderizado en servidor el 6-sep-2026 porque el escaparate iba lento: el HTML salía
 con `no-store`, no se cacheaba en el borde y cada navegación viajaba hasta Alemania.
 
 Aquí **no hay servidor Node**. `outputMode: static`: el HTML de las páginas públicas se genera en el
@@ -251,7 +257,7 @@ sugerencias:
 - **Listas con `track`** por identificador estable en todo `@for`. Un `track` por índice reconstruye la
   lista entera al reordenar.
 
-Al abrir un cambio, la pregunta no es solo «¿hace lo mismo que el React?», sino **«¿lo hace en menos
+Al abrir un cambio, la pregunta no es solo «¿hace lo que tiene que hacer?», sino **«¿lo hace en menos
 tiempo o en menos bytes?»**. Si la respuesta es que va peor, hay que decirlo, no callarlo.
 
 Referencias medidas hasta ahora: el arranque bajó de 1,72 MB a 447 kB al partir el diccionario de los
@@ -261,17 +267,22 @@ ocho idiomas, y la hoja de estilos de 105 kB a 58 kB al dejar los ficheros de da
 
 ### Certificar rendimiento: con optimización, o no vale
 
-La configuración `local` trae `optimization: false` y mapas de origen, porque es la de trabajar. El
-front anterior corre en local con su build de **producción**. Medir bytes de uno contra otro no compara
-dos aplicaciones: compara dos configuraciones de compilación —26 MB contra 7,1 MB— y el resultado no
-significa nada. Para certificar rendimiento hay que construir así:
+La configuración `local` trae `optimization: false` y mapas de origen, porque es la de trabajar.
+**Medir el tamaño con esa configuración no significa nada**: se llegó a comparar 26 MB contra 7,1 MB
+creyendo que se comparaban dos aplicaciones, cuando lo único que se comparaba eran dos formas de
+compilar. Para certificar rendimiento hay que construir comprimido:
 
 ```
 NEXADROP_API_INTERNA=http://localhost:18082 ng build --configuration local \
   --optimization --source-map=false --output-hashing=all
 ```
 
-Mismo entorno y mismo backend que `local`, pero comprimido como saldría a producción.
+Mismo entorno y mismo backend que `local`, pero comprimido como saldría a producción. El atajo es
+`npm run verifica:build`, que además pone `NEXADROP_FICHAS_PRERENDERIZADAS=0` y saca el testigo del
+límite de peticiones de `../infra/docker/.env`.
+
+La referencia contra la que medir ya no es otro front —no hay— sino **la medición anterior de este
+mismo**: arranque de 447 kB y hoja de 58 kB. Si un cambio los empeora, hay que decirlo.
 
 ---
 
