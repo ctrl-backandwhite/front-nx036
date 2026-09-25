@@ -2980,6 +2980,22 @@ const diccionario: Record<string, string> = {
   'sourcing.delete_confirm': 'Excluir esta solicitacao? Esta acao nao pode ser desfeita.',
   'admin.profile.saved_ok': 'Perfil salvo.',
   'admin.profile.save_failed': 'Nao foi possivel salvar o perfil.',
+
+  // Título y descripción de cada página para buscadores y para el enlace que se comparte. Las declara
+  // la RUTA (`data.seo`) y las aplica EtiquetasDeRuta. Hasta el 25-sep-2026 estas pantallas se servían
+  // con el título de relleno del index, «.:: NX036 ::.», y sin descripción ninguna.
+  'seo.about.title': 'Sobre nós',
+  'seo.about.desc': 'A NX036 é uma plataforma de comércio transfronteiriço: compra à unidade, sem encomenda mínima, com impostos e envio internacional já incluídos no preço.',
+  'seo.contact.title': 'Contacto',
+  'seo.contact.desc': 'Envie-nos a sua questão sobre encomendas, envios ou produtos. Respondemos normalmente em 24–48 horas.',
+  'seo.pricing.title': 'Planos',
+  'seo.pricing.desc': 'Os planos da NX036, com 15 dias de teste gratuito. Suba ou cancele quando quiser.',
+  'seo.login.title': 'Iniciar sessão',
+  'seo.login.desc': 'Entre na sua conta NX036 para ver o catálogo completo, as suas encomendas e os seus envios.',
+  'seo.register.title': 'Criar conta',
+  'seo.register.desc': 'Crie a sua conta NX036 e compre bestsellers transfronteiriços à unidade, com preço fechado e rastreio em cada encomenda.',
+  'seo.status.title': 'Estado do serviço',
+  'seo.status.desc': 'Disponibilidade em tempo real da plataforma NX036 e dos seus serviços.',
 };
 
 export default diccionario;

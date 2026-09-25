@@ -2980,6 +2980,22 @@ const diccionario: Record<string, string> = {
   'sourcing.delete_confirm': '删除此采购请求？此操作无法撤销。',
   'admin.profile.saved_ok': '资料已保存。',
   'admin.profile.save_failed': '无法保存资料。',
+
+  // Título y descripción de cada página para buscadores y para el enlace que se comparte. Las declara
+  // la RUTA (`data.seo`) y las aplica EtiquetasDeRuta. Hasta el 25-sep-2026 estas pantallas se servían
+  // con el título de relleno del index, «.:: NX036 ::.», y sin descripción ninguna.
+  'seo.about.title': '关于我们',
+  'seo.about.desc': 'NX036 是一个跨境电商平台:按件购买,无起订量,价格已包含税费和国际运费。',
+  'seo.contact.title': '联系我们',
+  'seo.contact.desc': '就订单、物流或商品向我们提问,我们通常在 24–48 小时内回复。',
+  'seo.pricing.title': '套餐',
+  'seo.pricing.desc': 'NX036 套餐,提供 15 天免费试用,可随时升级或取消。',
+  'seo.login.title': '登录',
+  'seo.login.desc': '登录您的 NX036 账户,查看完整目录、您的订单和物流。',
+  'seo.register.title': '注册',
+  'seo.register.desc': '注册 NX036 账户,按件购买跨境爆款,价格透明,每笔订单均可跟踪。',
+  'seo.status.title': '服务状态',
+  'seo.status.desc': 'NX036 平台及其服务的实时可用性。',
 };
 
 export default diccionario;

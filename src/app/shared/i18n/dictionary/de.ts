@@ -2980,6 +2980,22 @@ const diccionario: Record<string, string> = {
   'sourcing.delete_confirm': 'Diese Anfrage loschen? Diese Aktion kann nicht ruckgangig gemacht werden.',
   'admin.profile.saved_ok': 'Profil gespeichert.',
   'admin.profile.save_failed': 'Profil konnte nicht gespeichert werden.',
+
+  // Título y descripción de cada página para buscadores y para el enlace que se comparte. Las declara
+  // la RUTA (`data.seo`) y las aplica EtiquetasDeRuta. Hasta el 25-sep-2026 estas pantallas se servían
+  // con el título de relleno del index, «.:: NX036 ::.», y sin descripción ninguna.
+  'seo.about.title': 'Über uns',
+  'seo.about.desc': 'NX036 ist eine Plattform für grenzüberschreitenden Handel: stückweise kaufen, ohne Mindestbestellmenge, Steuern und internationaler Versand bereits im Preis enthalten.',
+  'seo.contact.title': 'Kontakt',
+  'seo.contact.desc': 'Schick uns deine Frage zu Bestellungen, Versand oder Produkten. Wir antworten in der Regel innerhalb von 24–48 Stunden.',
+  'seo.pricing.title': 'Tarife',
+  'seo.pricing.desc': 'Die NX036-Tarife, mit 15 Tagen kostenloser Testphase. Jederzeit wechseln oder kündigen.',
+  'seo.login.title': 'Anmelden',
+  'seo.login.desc': 'Melde dich in deinem NX036-Konto an, um den vollständigen Katalog, deine Bestellungen und deine Sendungen zu sehen.',
+  'seo.register.title': 'Konto erstellen',
+  'seo.register.desc': 'Erstelle dein NX036-Konto und kaufe grenzüberschreitende Bestseller stückweise, zum Festpreis und mit Sendungsverfolgung für jede Bestellung.',
+  'seo.status.title': 'Servicestatus',
+  'seo.status.desc': 'Echtzeit-Verfügbarkeit der NX036-Plattform und ihrer Dienste.',
 };
 
 export default diccionario;

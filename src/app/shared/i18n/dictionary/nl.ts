@@ -2980,6 +2980,22 @@ const diccionario: Record<string, string> = {
   'sourcing.delete_confirm': 'Deze aanvraag verwijderen? Deze actie kan niet ongedaan worden gemaakt.',
   'admin.profile.saved_ok': 'Profiel opgeslagen.',
   'admin.profile.save_failed': 'Profiel kon niet worden opgeslagen.',
+
+  // Título y descripción de cada página para buscadores y para el enlace que se comparte. Las declara
+  // la RUTA (`data.seo`) y las aplica EtiquetasDeRuta. Hasta el 25-sep-2026 estas pantallas se servían
+  // con el título de relleno del index, «.:: NX036 ::.», y sin descripción ninguna.
+  'seo.about.title': 'Over ons',
+  'seo.about.desc': 'NX036 is een platform voor grensoverschrijdende handel: koop per stuk, zonder minimumbestelling, met belasting en internationale verzending al inbegrepen in de prijs.',
+  'seo.contact.title': 'Contact',
+  'seo.contact.desc': 'Stuur ons je vraag over bestellingen, verzending of producten. We reageren meestal binnen 24–48 uur.',
+  'seo.pricing.title': 'Abonnementen',
+  'seo.pricing.desc': 'De abonnementen van NX036, met 15 dagen gratis proberen. Upgrade of annuleer wanneer je wilt.',
+  'seo.login.title': 'Inloggen',
+  'seo.login.desc': 'Log in op je NX036-account om de volledige catalogus, je bestellingen en je zendingen te zien.',
+  'seo.register.title': 'Account aanmaken',
+  'seo.register.desc': 'Maak je NX036-account aan en koop grensoverschrijdende bestsellers per stuk, tegen een vaste prijs en met tracking op elke bestelling.',
+  'seo.status.title': 'Servicestatus',
+  'seo.status.desc': 'Realtime beschikbaarheid van het NX036-platform en zijn diensten.',
 };
 
 export default diccionario;

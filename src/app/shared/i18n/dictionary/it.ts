@@ -2980,6 +2980,22 @@ const diccionario: Record<string, string> = {
   'sourcing.delete_confirm': 'Eliminare questa richiesta? Questa azione non può essere annullata.',
   'admin.profile.saved_ok': 'Profilo salvato.',
   'admin.profile.save_failed': 'Impossibile salvare il profilo.',
+
+  // Título y descripción de cada página para buscadores y para el enlace que se comparte. Las declara
+  // la RUTA (`data.seo`) y las aplica EtiquetasDeRuta. Hasta el 25-sep-2026 estas pantallas se servían
+  // con el título de relleno del index, «.:: NX036 ::.», y sin descripción ninguna.
+  'seo.about.title': 'Chi siamo',
+  'seo.about.desc': 'NX036 è una piattaforma di commercio transfrontaliero: acquisti a pezzo, senza ordine minimo, con imposte e spedizione internazionale già incluse nel prezzo.',
+  'seo.contact.title': 'Contatti',
+  'seo.contact.desc': 'Inviaci la tua domanda su ordini, spedizioni o prodotti. Di solito rispondiamo entro 24–48 ore.',
+  'seo.pricing.title': 'Piani',
+  'seo.pricing.desc': 'I piani di NX036, con 15 giorni di prova gratuita. Cambia o annulla quando vuoi.',
+  'seo.login.title': 'Accedi',
+  'seo.login.desc': 'Accedi al tuo account NX036 per vedere il catalogo completo, i tuoi ordini e le tue spedizioni.',
+  'seo.register.title': 'Crea account',
+  'seo.register.desc': 'Crea il tuo account NX036 e acquista bestseller transfrontalieri a pezzo, a prezzo chiuso e con tracciamento su ogni ordine.',
+  'seo.status.title': 'Stato del servizio',
+  'seo.status.desc': 'Disponibilità in tempo reale della piattaforma NX036 e dei suoi servizi.',
 };
 
 export default diccionario;

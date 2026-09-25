@@ -14,11 +14,13 @@ export const rutas: Routes = [
   {
     path: 'login',
     canActivate: [soloSinSesion],
+    data: { seo: { titulo: 'seo.login.title', descripcion: 'seo.login.desc' } },
     loadComponent: () => import('./page/acceso.page').then((m) => m.AccesoPage),
   },
   {
     path: 'register',
     canActivate: [soloSinSesion],
+    data: { seo: { titulo: 'seo.register.title', descripcion: 'seo.register.desc' } },
     loadComponent: () => import('./page/alta.page').then((m) => m.AltaPage),
   },
   {

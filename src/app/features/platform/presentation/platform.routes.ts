@@ -33,6 +33,7 @@ export const rutas: Routes = [
     children: [
       {
         path: 'about',
+        data: { seo: { titulo: 'seo.about.title', descripcion: 'seo.about.desc' } },
         loadComponent: () =>
           import('./page/sobre-nosotros.page').then((m) => m.SobreNosotrosPage),
       },
@@ -49,6 +50,7 @@ export const rutas: Routes = [
       },
       {
         path: 'status',
+        data: { seo: { titulo: 'seo.status.title', descripcion: 'seo.status.desc' } },
         loadComponent: () =>
           import('./page/estado-del-servicio.page').then((m) => m.EstadoDelServicioPage),
       },

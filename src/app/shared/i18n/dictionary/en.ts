@@ -3017,6 +3017,22 @@ const diccionario: Record<string, string> = {
   'sourcing.delete_confirm': 'Delete this sourcing request? This cannot be undone.',
   'admin.profile.saved_ok': 'Profile saved.',
   'admin.profile.save_failed': 'Could not save the profile.',
+
+  // Título y descripción de cada página para buscadores y para el enlace que se comparte. Las declara
+  // la RUTA (`data.seo`) y las aplica EtiquetasDeRuta. Hasta el 25-sep-2026 estas pantallas se servían
+  // con el título de relleno del index, «.:: NX036 ::.», y sin descripción ninguna.
+  'seo.about.title': 'About us',
+  'seo.about.desc': 'NX036 is a cross-border commerce platform: buy by the unit, with no minimum order, and with taxes and international shipping already included in the price.',
+  'seo.contact.title': 'Contact',
+  'seo.contact.desc': 'Send us your question about orders, shipping or products. We usually reply within 24–48 hours.',
+  'seo.pricing.title': 'Plans',
+  'seo.pricing.desc': 'NX036 plans, with a 15-day free trial. Upgrade or cancel whenever you want.',
+  'seo.login.title': 'Sign in',
+  'seo.login.desc': 'Sign in to your NX036 account to see the full catalog, your orders and your shipments.',
+  'seo.register.title': 'Create account',
+  'seo.register.desc': 'Create your NX036 account and buy cross-border bestsellers by the unit, at a settled price and with tracking on every order.',
+  'seo.status.title': 'Service status',
+  'seo.status.desc': 'Real-time availability of the NX036 platform and its services.',
 };
 
 export default diccionario;

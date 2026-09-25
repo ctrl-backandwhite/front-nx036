@@ -33,6 +33,7 @@ export const rutas: Routes = [
   {
     path: 'contact',
     providers: [proveeSupport()],
+    data: { seo: { titulo: 'seo.contact.title', descripcion: 'seo.contact.desc' } },
     loadComponent: () => import('./page/contacto.page').then((m) => m.ContactoPage),
   },
 ];

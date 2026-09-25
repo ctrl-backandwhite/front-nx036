@@ -10,11 +10,19 @@ User-agent: Googlebot
 Allow: /
 Disallow: /admin
 Disallow: /api/
+# Integración con tiendas: no se ofrece hoy, así que no se indexa (25-sep-2026).
+Disallow: /developers
+Disallow: /connect
+Disallow: /conectar
 
 User-agent: Bingbot
 Allow: /
 Disallow: /admin
 Disallow: /api/
+# Integración con tiendas: no se ofrece hoy, así que no se indexa (25-sep-2026).
+Disallow: /developers
+Disallow: /connect
+Disallow: /conectar
 
 # --- Crawlers de IA / entrenamiento / scrapers: BLOQUEADOS por completo ---
 User-agent: GPTBot
@@ -74,6 +82,9 @@ Disallow: /
 User-agent: *
 Disallow: /admin
 Disallow: /api/
+Disallow: /developers
+Disallow: /connect
+Disallow: /conectar
 Disallow: /login
 Disallow: /activate
 Disallow: /password-reset

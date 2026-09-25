@@ -200,6 +200,33 @@ interpreta el fichero: es formato Compose y lleva valores con espacios sin comil
 pasa como argumento de construcción; está documentado en el `Dockerfile` y en el README de
 `nexadrop-deploy`.
 
+### Cada página pública declara su título y su descripción en la RUTA
+
+Una pantalla pública no está terminada sin `data: { seo: { titulo, descripcion } }` en su ruta. Son
+**claves de traducción**, no textos: la misma página se describe en los ocho idiomas.
+
+```ts
+{
+  path: 'about',
+  data: { seo: { titulo: 'seo.about.title', descripcion: 'seo.about.desc' } },
+  loadComponent: () => import('./page/sobre-nosotros.page').then((m) => m.SobreNosotrosPage),
+}
+```
+
+Lo aplica `EtiquetasDeRuta`, que el armazón arranca una vez. Es **opcional y no pisa a nadie**: las
+pantallas cuyo título depende de datos del servidor —la portada, la ficha de producto, los documentos
+legales— no lo declaran y siguen escribiéndolo ellas con `EtiquetasService`.
+
+Por qué es norma y no una buena práctica: hasta el 25-sep-2026 solo esas tres escribían etiquetas.
+Todas las demás se servían con el título de relleno del `index.html`, `.:: NX036 ::.`, y sin una línea
+de descripción. Eso era lo que enseñaban Google y WhatsApp de «Sobre nosotros», de «Contacto» y del
+resto del sitio, y **no había ningún error que lo delatara**: la página se pinta perfectamente.
+
+Y una regla de contenido que va con esto: **la web no anuncia lo que no se presta**. En esa misma
+fecha, «Sobre nosotros» describía NX036 como un servicio de integración con Shopify y WooCommerce —en
+los ocho idiomas— y el `sitemap.xml` pedía indexar `/developers` y `/connect` con prioridad 0.8, por
+encima de la propia «Sobre nosotros». Lo fija `site-pages.spec.ts`, porque un texto no falla solo.
+
 ### El CSS crítico en línea va APAGADO, y no es un descuido
 
 `optimization.styles.inlineCritical` está a `false` en las cuatro configuraciones que compilan de

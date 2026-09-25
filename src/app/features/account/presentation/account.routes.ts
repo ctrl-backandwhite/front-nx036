@@ -30,6 +30,7 @@ export const rutas: Routes = [
       },
       {
         path: 'pricing',
+        data: { seo: { titulo: 'seo.pricing.title', descripcion: 'seo.pricing.desc' } },
         loadComponent: () => import('./page/planes.page').then((m) => m.PlanesPage),
       },
       { path: 'precios', redirectTo: 'pricing', pathMatch: 'full' },

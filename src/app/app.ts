@@ -8,6 +8,7 @@ import { PantallaError } from '@core/error/pantalla-error';
 import { CajonDelCarrito } from '@features/cart/presentation/component/cajon-del-carrito';
 import { DOCUMENT } from '@angular/core';
 import { PreferenciasService } from '@core/preferences/preferencias';
+import { EtiquetasDeRuta } from '@core/seo/etiquetas-de-ruta';
 
 /**
  * El armazón de la aplicación. No pinta nada por sí mismo: coloca la pantalla que toque y mantiene el
@@ -75,7 +76,15 @@ export class App {
   private readonly preferencias = inject(PreferenciasService);
   private readonly documento = inject(DOCUMENT);
 
+  /**
+   * Pone título y descripción a cada página pública a partir de lo que declara su ruta. Sin esto, toda
+   * la web menos tres pantallas se sirve con el título de relleno del index, que es como estaba.
+   */
+  private readonly etiquetasDeRuta = inject(EtiquetasDeRuta);
+
   constructor() {
+    this.etiquetasDeRuta.vigila();
+
     effect(() => {
       const raiz = this.documento.documentElement;
       raiz.lang = this.preferencias.idioma();
