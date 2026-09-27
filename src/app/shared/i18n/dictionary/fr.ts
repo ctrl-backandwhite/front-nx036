@@ -2654,6 +2654,8 @@ const diccionario: Record<string, string> = {
   'product.price.duty_user': 'Subvention de douane',
   'product.price.duty_user_dbl': 'Subvention de douane — double-clic pour modifier',
   'product.price.profit': 'Bénéfice',
+  'product.price.base_price': 'Prix de base',
+  'product.price.profit_margin': 'Marge bénéficiaire',
   'product.price.total': 'Total',
   'profile.add': 'Ajouter',
   'profile.addresses.empty': 'Vous n\'avez encore enregistré aucune adresse.',

@@ -182,6 +182,34 @@ describe('PanelDeCompra', () => {
     expect(precio!.compareDocumentPosition(tablas[0]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
+  /**
+   * EL ORDEN DE MÓVIL, que es una secuencia repartida entre este componente y la galería de la
+   * página, y por eso se rompió sin que nadie lo viera: se cambiaron los números de aquí sin mirar
+   * el de la galería, y en el teléfono las muestras de color adelantaron a la foto del producto.
+   *
+   * <p>La galería vive en «ficha.page» con «order-3», así que aquí se fija que el precio va por
+   * delante de ella (2) y que el color y la talla van por detrás (4 y 5). Si alguien mueve un
+   * número, esta prueba dice cuál y contra qué choca.
+   */
+  it('en móvil el precio va antes de la galería y el color después', async () => {
+    const conTodo = ficha({
+      ejesDeVariante: [eje('Color', ['Rojo', 'Azul']), eje('Talla', ['S', 'M'])],
+    });
+    const { vista } = await monta(conTodo);
+
+    const orden = (bloque: string): number => {
+      const el = vista.container.querySelector(`div[data-bloque="${bloque}"]`);
+      const clase = [...(el?.classList ?? [])].find((c) => /^order-\d+$/.test(c));
+      return Number(clase?.replace('order-', ''));
+    };
+
+    // 3 es la galería, en ficha.page. El precio delante, las variantes detrás.
+    const GALERIA = 3;
+    expect(orden('precio')).toBeLessThan(GALERIA);
+    expect(orden('color')).toBeGreaterThan(GALERIA);
+    expect(orden('talla')).toBeGreaterThan(orden('color'));
+  });
+
   it('enseña el título, la valoración y el precio', async () => {
     await monta(ficha());
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Gorro de lana');

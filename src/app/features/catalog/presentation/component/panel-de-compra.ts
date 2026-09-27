@@ -33,9 +33,25 @@ import { DesgloseEditable } from './admin/desglose-editable';
  * siempre significa que había dos componentes.
  *
  * <p>MOBILE FIRST: en el móvil `contents` deshace la columna y deja que sus hijos se recoloquen con
- * `order` dentro del flujo de la pantalla —título, PRECIO, foto, variantes—; el precio queda pegado al
- * título porque, más abajo, había que desplazarse para verlo. A partir de `lg` vuelve a ser una columna
- * normal, donde el precio ya se ve junto a la galería.
+ * `order` dentro del flujo de la pantalla; el precio queda pegado al título porque, más abajo, había
+ * que desplazarse para verlo. A partir de `lg` vuelve a ser una columna normal —dos columnas de
+ * rejilla, galería a la izquierda y esto a la derecha— y ahí manda el ORDEN DEL DOCUMENTO, porque
+ * todos los bloques se reponen a `lg:order-0`.
+ *
+ * <p>El orden de móvil, que se reparte entre este componente y la galería de la página:
+ *
+ * <pre>
+ *   1 título    2 precio    3 galería (ficha.page)    4 color
+ *   5 talla     6 origen    7 envío    8 botones    9 nota
+ * </pre>
+ *
+ * <p>Las muestras de color van DEBAJO de la galería (27-sep-2026, corrección del titular). Estuvieron
+ * un rato encima: al subir el precio por encima de las tallas se les dio el hueco 2 y adelantaron a
+ * la galería, que está en el 3. En un teléfono eso deja las miniaturas de las variantes antes que la
+ * foto del producto, y se leen como si fueran la galería.
+ *
+ * <p>Los números de esta lista y los de `ficha.page` son UNA SOLA secuencia: cambiar uno sin mirar
+ * el otro reordena la pantalla del móvil sin tocar el escritorio, que es como se coló este fallo.
  */
 @Component({
   selector: 'nx-panel-de-compra',
@@ -82,7 +98,7 @@ import { DesgloseEditable } from './admin/desglose-editable';
              de orden —su posición visual en móvil— y reordenar el panel las rompía sin que cambiara
              nada de lo que comprueban; pasó el 27-sep-2026. El contenido se difiere y en pruebas no
              se resuelve, así que no se puede seleccionar por el componente. -->
-        <div class="order-5 lg:order-0" data-bloque="origen">
+        <div class="order-6 lg:order-0" data-bloque="origen">
           @defer (on idle) {
             <nx-panel-de-origen
               [ficha]="ficha()"
@@ -93,7 +109,7 @@ import { DesgloseEditable } from './admin/desglose-editable';
         </div>
       }
 
-      <div class="order-2 lg:order-0 flex flex-col gap-4">
+      <div class="order-4 lg:order-0 flex flex-col gap-4" data-bloque="color">
         @if (seleccion.ejeDeColor(); as eje) {
           <nx-selector-color
             [eje]="eje"
@@ -105,7 +121,7 @@ import { DesgloseEditable } from './admin/desglose-editable';
         }
       </div>
 
-      <div class="order-3 lg:order-0">
+      <div class="order-2 lg:order-0" data-bloque="precio">
         <nx-bloque-precio [destacado]="seleccion.precioDestacado()" [moq]="ficha().moq">
           <!-- Los precios por cantidad, justo debajo del precio: es donde se buscan, y así se ve de
                un golpe cuál se está pagando y cuánto falta para el siguiente escalón. -->
@@ -153,7 +169,7 @@ import { DesgloseEditable } from './admin/desglose-editable';
         Y hay UNA sola tabla. El primer intento dejó la vieja dentro del bloque de color y añadió esta
         debajo del precio: la ficha salió con el selector de tallas dos veces.
       -->
-      <div class="order-4 lg:order-0 flex flex-col gap-4">
+      <div class="order-5 lg:order-0 flex flex-col gap-4" data-bloque="talla">
         @if (seleccion.ejeDeTalla(); as eje) {
           <nx-tabla-tallas
             [eje]="eje"
@@ -172,9 +188,9 @@ import { DesgloseEditable } from './admin/desglose-editable';
         }
       </div>
 
-      <div class="order-6 lg:order-0"><nx-bloque-envio /></div>
+      <div class="order-7 lg:order-0"><nx-bloque-envio /></div>
 
-      <div class="order-7 lg:order-0 flex flex-col gap-2">
+      <div class="order-8 lg:order-0 flex flex-col gap-2">
         <!--
           Sin existencias los dos botones salen apagados, y un botón apagado sin decir por qué es un
           callejón: quien mira no sabe si le falta elegir algo, si la web está rota o si el producto no
@@ -221,7 +237,7 @@ import { DesgloseEditable } from './admin/desglose-editable';
         }
       </div>
 
-      <p class="order-8 lg:order-0 text-[11px] opacity-60 leading-relaxed">
+      <p class="order-9 lg:order-0 text-[11px] opacity-60 leading-relaxed">
         {{ t('product.price_disclosure') }}
       </p>
     </aside>

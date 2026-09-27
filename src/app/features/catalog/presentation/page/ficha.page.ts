@@ -108,7 +108,9 @@ const CONFIRMACION_MS = 2000;
       <section
         class="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-10 lg:items-start animate-fade-up"
       >
-        <div class="order-4 lg:order-0">
+        <!-- La galería va en el hueco 3 del móvil: detrás del título y del precio, y DELANTE de las
+             muestras de color. Estos números y los de panel-de-compra son UNA sola secuencia. -->
+        <div class="order-3 lg:order-0">
           <!-- Zona donde el administrador suelta una foto de variante para copiarla a la galería. Son
                cuatro atributos: lo que hace falta para procesarla se trae a demanda al soltarla. -->
           <div

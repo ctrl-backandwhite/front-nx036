@@ -210,6 +210,15 @@ export interface DesgloseDePrecio {
    * proveedor y su porte. Ya lleva la rebaja descontada. SOLO ADMIN.
    */
   readonly gananciaFormateada?: string;
+  /**
+   * El margen de ganancia, ya como línea propia del desglose, y el PRECIO BASE que suman las cuatro
+   * líneas de encima.
+   *
+   * <p>El precio base es el suelo de cualquier rebaja, así que verlo junto al margen dice de un
+   * vistazo cuánto recorrido tiene una campaña en esta ficha. Los dos los compone el backend.
+   */
+  readonly margenDeGananciaFormateado?: string;
+  readonly precioBaseFormateado?: string;
   readonly recargoPct?: number | null;
   readonly subsidioDeEnvioFormateado?: string;
   readonly subsidioDeEnvioCny?: number | null;

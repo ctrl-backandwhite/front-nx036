@@ -557,6 +557,8 @@ const diccionario: Record<string, string> = {
   'product.price.duty_user': 'Subsidio de arancel',
   'product.price.duty_user_dbl': 'Subsidio de arancel — doble clic para editar',
   'product.price.profit': 'Ganancia',
+  'product.price.base_price': 'Precio base',
+  'product.price.profit_margin': 'Margen de ganancia',
   'product.price.total': 'Total',
   'product.qty': 'Cant.',
   'product.unit_price': 'Precio unitario',

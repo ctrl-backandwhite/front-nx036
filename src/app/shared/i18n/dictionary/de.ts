@@ -2647,6 +2647,8 @@ const diccionario: Record<string, string> = {
   'product.price.internal_margin_dbl': 'Interne Marge in % der Kosten — Doppelklick zum Bearbeiten',
   'product.price.shipping': 'Versand',
   'product.price.profit': 'Gewinn',
+  'product.price.base_price': 'Grundpreis',
+  'product.price.profit_margin': 'Gewinnmarge',
   'product.price.total': 'Gesamt',
   'product.price.surcharge': 'Aufschlag',
   'product.price.surcharge_dbl': 'Aufschlag — zum Bearbeiten doppelklicken',

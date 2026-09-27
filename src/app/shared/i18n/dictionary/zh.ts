@@ -1072,6 +1072,8 @@ const diccionario: Record<string, string> = {
   'product.price.internal_margin_dbl': '按成本计算的内部利润率（%）— 双击编辑',
   'product.price.shipping': '运费',
   'product.price.profit': '利润',
+  'product.price.base_price': '基础价',
+  'product.price.profit_margin': '利润率',
   'product.price.total': '合计',
   'product.price.surcharge': '附加费',
   'product.price.surcharge_dbl': '附加费 — 双击编辑',

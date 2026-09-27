@@ -562,6 +562,8 @@ const diccionario: Record<string, string> = {
   'product.price.duty_user': 'Duty subsidy',
   'product.price.duty_user_dbl': 'Duty subsidy — double click to edit',
   'product.price.profit': 'Profit',
+  'product.price.base_price': 'Base price',
+  'product.price.profit_margin': 'Profit margin',
   'product.price.total': 'Total',
   'product.qty': 'Qty',
   'product.unit_price': 'Unit price',

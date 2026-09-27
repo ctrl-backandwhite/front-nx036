@@ -73,6 +73,8 @@ export interface FichaDto extends ResumenDto {
   shippingFormatted?: string;
   surchargePct?: number | null;
   gananciaFormatted?: string | null;
+  margenGananciaFormatted?: string | null;
+  precioBaseFormatted?: string | null;
   surchargeFormatted?: string;
   shippingUserCny?: number | null;
   dutyUserCny?: number | null;
@@ -323,6 +325,8 @@ function aDesglose(dto: FichaDto): DesgloseDePrecio | undefined {
     envioFormateado: dto.shippingFormatted,
     recargoFormateado: dto.surchargeFormatted,
     gananciaFormateada: dto.gananciaFormatted ?? undefined,
+    margenDeGananciaFormateado: dto.margenGananciaFormatted ?? undefined,
+    precioBaseFormateado: dto.precioBaseFormatted ?? undefined,
     recargoPct: dto.surchargePct,
     subsidioDeEnvioFormateado: dto.shippingUserFormatted,
     subsidioDeEnvioCny: dto.shippingUserCny,

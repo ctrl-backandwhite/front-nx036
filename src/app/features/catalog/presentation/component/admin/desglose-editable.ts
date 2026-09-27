@@ -109,6 +109,27 @@ interface FilaEditable {
           <span class="font-mono">{{ total() }}</span>
         </div>
         <!--
+          EL PRECIO BASE y EL MARGEN DE GANANCIA, entre las líneas y el total.
+
+          El precio base es la suma de las cuatro de arriba y es el SUELO de cualquier rebaja: una
+          campaña puede comerse el margen de ganancia entero, pero de aquí no baja. Verlos juntos
+          dice de un vistazo cuánto recorrido tiene una campaña en esta ficha.
+        -->
+        @if (precioBase(); as pb) {
+          <div class="flex items-baseline border-t border-base-300 mt-1 pt-1">
+            <span class="opacity-70">{{ t('product.price.base_price') }}</span>
+            <nx-guia-puntos />
+            <span class="font-mono opacity-70">{{ pb }}</span>
+          </div>
+        }
+        @if (margenDeGanancia(); as mg) {
+          <div class="flex items-baseline">
+            <span>{{ t('product.price.profit_margin') }}</span>
+            <nx-guia-puntos />
+            <span class="font-mono">{{ mg }}</span>
+          </div>
+        }
+        <!--
           LA GANANCIA, separada del desglose por una línea propia: no es un componente del precio,
           es lo que queda después de pagarlo todo. Va en verde cuando es positiva y en rojo cuando
           no, porque una venta a pérdida tiene que verse de un vistazo y no leyendo el signo.
@@ -163,6 +184,16 @@ export class DesgloseEditable {
 
   /** Lo que queda para la casa. Lo compone el backend: aquí solo se pinta. */
   protected readonly ganancia = computed(() => this.desglose().gananciaFormateada);
+
+  /**
+   * El margen de ganancia y el precio base, los dos compuestos en el backend.
+   *
+   * <p>El precio base NO se suma aquí a partir de las cuatro líneas de arriba, aunque salga la misma
+   * cifra: sumar importes ya redondeados en el cliente es como se acaba enseñando un total que no es
+   * el que se cobra, y ese fallo ya costó un 1,45 % de más en el carrito.
+   */
+  protected readonly margenDeGanancia = computed(() => this.desglose().margenDeGananciaFormateado);
+  protected readonly precioBase = computed(() => this.desglose().precioBaseFormateado);
 
   /**
    * Si la venta va a pérdida.

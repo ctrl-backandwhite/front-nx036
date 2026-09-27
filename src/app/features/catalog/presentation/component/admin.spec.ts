@@ -214,6 +214,9 @@ describe('DesgloseEditable', () => {
           recargoPct: 7.5,
           subsidioDeEnvioFormateado: '1,00 €',
           subsidioDeEnvioCny: 7,
+          precioBaseFormateado: '12,00 €',
+          margenDeGananciaFormateado: '3,60 €',
+          gananciaFormateada: '6,60 €',
         },
       },
       on: { cambiado },
@@ -239,6 +242,24 @@ describe('DesgloseEditable', () => {
     const { vista } = await monta();
     expect(vista.container.textContent).toContain('8,00 €');
     expect(vista.container.textContent).toContain('12,00 €');
+  });
+
+  /**
+   * EL PRECIO BASE Y EL MARGEN DE GANANCIA, que son las dos cifras con las que se decide una campaña.
+   *
+   * <p>El precio base es el suelo: una campaña puede comerse el margen entero y de ahí no baja. Sin
+   * las dos a la vista, quien configura una promoción no sabe cuánto recorrido tiene en esta ficha —y
+   * hasta el 27-sep-2026 el margen ni siquiera se veía: venía sumado dentro de la línea «Base»—.
+   *
+   * <p>Los dos los compone el BACKEND. Aquí se comprueba que se pintan, no que se sumen: sumar
+   * importes ya redondeados en el cliente es como se acaba enseñando un total que no es el cobrado.
+   */
+  it('enseña el precio base y el margen de ganancia', async () => {
+    const { vista } = await monta();
+
+    expect(vista.container.textContent).toContain('12,00 €');
+    expect(vista.container.textContent).toContain('3,60 €');
+    expect(vista.container.textContent).toContain('6,60 €');
   });
 
   /** Se manda SOLO el campo que se toca: enviar los tres pisaría la otra bolsa de subsidio. */

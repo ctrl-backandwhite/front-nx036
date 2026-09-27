@@ -1078,6 +1078,8 @@ const diccionario: Record<string, string> = {
   'product.price.duty_user': 'Subsídio alfandegário',
   'product.price.duty_user_dbl': 'Subsídio alfandegário — duplo clique para editar',
   'product.price.profit': 'Lucro',
+  'product.price.base_price': 'Preço base',
+  'product.price.profit_margin': 'Margem de lucro',
   'product.price.total': 'Total',
   'product.qty': 'Qtd.',
   'product.unit_price': 'Preço unit.',
