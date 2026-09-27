@@ -52,6 +52,42 @@ describe('SelectorColor', () => {
     expect(elige).toHaveBeenCalledWith({ etiqueta: 'Rojo', foto: 'rojo.jpg' });
   });
 
+  /**
+   * EL ARO DEL ELEGIDO LLEVA SU COLOR, y se comprueba sobre la sombra en línea a propósito.
+   *
+   * <p>El primer intento lo resolvió con las utilidades de aro de Tailwind y una variable CSS escrita
+   * desde la plantilla. Se desplegó y el aro siguió saliendo negro en todos los colores: en Tailwind 4
+   * ese color entra por una propiedad personalizada declarada con @property, y lo que se escribe en el
+   * atributo style del elemento no siempre la alcanza. La sombra no tiene esa indirección.
+   *
+   * <p>Si alguien vuelve a las utilidades de aro, esta prueba se pone roja.
+   */
+  it('el recuadro elegido lleva el aro de SU color, no uno negro', async () => {
+    await render(SelectorColor, { inputs: { eje: colores, elegido: 'Rojo' } });
+
+    const elegido = screen.getByTitle('Rojo');
+    const otro = screen.getByTitle('Azul');
+
+    // El rojo de la paleta. Se compara con el valor EXACTO y no con «contiene un color»: lo que
+    // falló era precisamente que salía un color, pero siempre el mismo —negro— para toda variante.
+    expect(elegido.style.boxShadow).toContain('#dc2626');
+    // El no elegido no lleva aro ninguno: null borra la propiedad en vez de escribir 'none'.
+    expect(otro.style.boxShadow).toBe('');
+  });
+
+  /**
+   * Un color que no está en el diccionario cae a un gris, y NO se queda sin aro: sin él, quien compra
+   * no distingue cuál ha elegido, que es de donde salían los pedidos del color equivocado.
+   */
+  it('un color desconocido cae a gris y conserva el aro', async () => {
+    const raros = eje('Color', [{ valor: 'P888blanco-azul' }]);
+    const vista = await render(SelectorColor, { inputs: { eje: raros, elegido: 'P888blanco-azul' } });
+
+    const muestra = vista.container.querySelector<HTMLElement>('button[aria-pressed="true"]');
+    expect(muestra).not.toBeNull();
+    expect(muestra!.style.boxShadow).toContain('#e5e7eb');
+  });
+
   it('el aspa de borrar solo aparece para el administrador', async () => {
     const borra = vi.fn();
     const vista = await render(SelectorColor, {

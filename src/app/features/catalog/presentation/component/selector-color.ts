@@ -70,27 +70,40 @@ const CLAVES_DE_EJE: Readonly<Record<string, string>> = {
         -->
         <div class="flex flex-wrap gap-2">
           @for (valor of valores(); track valor.id) {
-            <!-- gap-2 y no gap-1: la muestra elegida crece un 10 % («scale-110»), y con cuatro
-                   píxeles de hueco el nombre quedaba tocando el borde de su propia foto. -->
-              <div class="relative group flex flex-col items-center gap-2 w-[3.9rem]">
+            <!-- gap-3 y no gap-2: la muestra elegida crece un 10 % («scale-110») y le sale un aro de
+                   cuatro píxeles, y ninguna de las dos cosas ocupa sitio en el diseño —una es
+                   una transformación y la otra una sombra—, así que se comen el hueco por debajo y el
+                   nombre acaba tocando la foto. Doce píxeles es lo que queda libre tras las dos. -->
+              <div class="relative group flex flex-col items-center gap-3 w-[3.9rem]">
               <!--
                 3,9rem = 62,4 px: los 48 de «w-12» más un 30%. Medida explícita y no «w-16», que son 64
                 y el encargo era el 30% exacto. La foto de la variante es lo que distingue un color de
                 otro, y a 48 px había que acercarse a la pantalla para verlo.
               -->
-              <!-- El aro del elegido toma SU color (27-sep-2026): con el negro por defecto de Tailwind,
-                   elegir «Beige» dibujaba un cerco negro que parecía ser el color escogido. -->
+              <!--
+                El aro del elegido toma SU color (27-sep-2026): con el negro por defecto, elegir
+                «Beige» dibujaba un cerco negro que parecía ser el color escogido.
+
+                Y se dibuja con una SOMBRA EN LÍNEA, no con las utilidades de aro de Tailwind: ese
+                segundo intento se desplegó y siguió saliendo negro. En Tailwind 4 el color del aro
+                entra por una propiedad personalizada declarada con la regla @property, y lo que se escriba
+                en el atributo style del elemento no siempre la alcanza. La sombra no tiene esa
+                indirección —el color va literal— así que no depende de nada.
+
+                Los dos anillos de la sombra reproducen lo que hacían el aro y su separación: dos
+                píxeles del fondo de la página para separar, y dos del color encima.
+              -->
               <button
                 type="button"
                 (click)="elige.emit({ etiqueta: etiqueta(valor), foto: valor.imagen })"
                 [title]="etiqueta(valor)"
                 [attr.aria-pressed]="elegido() === etiqueta(valor)"
                 [style.border-color]="borde(valor)"
-                [style.--tw-ring-color]="borde(valor)"
+                [style.box-shadow]="anillo(valor)"
                 class="w-[3.9rem] h-[3.9rem] rounded-lg border-2 overflow-hidden relative transition-all block"
                 [class]="
                   elegido() === etiqueta(valor)
-                    ? 'ring-2 ring-offset-2 scale-110 shadow-lg'
+                    ? 'scale-110'
                     : 'opacity-80 hover:opacity-100 hover:scale-105'
                 "
               >
@@ -137,7 +150,7 @@ const CLAVES_DE_EJE: Readonly<Record<string, string>> = {
               <!-- Sin «title» propio: el nombre completo ya lo lleva la miniatura de encima, y
                    repetirlo aquí deja DOS elementos con el mismo título por cada color. -->
               <span
-                class="mt-2 text-[10px] leading-tight text-center line-clamp-2 w-full"
+                class="text-[10px] leading-tight text-center line-clamp-2 w-full"
                 [class]="elegido() === etiqueta(valor) ? 'font-semibold' : 'opacity-70'"
               >
                 {{ etiqueta(valor) }}
@@ -179,6 +192,22 @@ export class SelectorColor {
 
   protected borde(valor: EjeDeVariante['valores'][number]): string {
     return colorToCss(this.etiqueta(valor)) ?? '#d1d5db';
+  }
+
+  /**
+   * El aro del recuadro elegido, ya con su color dentro.
+   *
+   * <p>Devuelve null para los no elegidos en vez de 'none': con null Angular quita la propiedad del
+   * atributo `style` y la sombra de la hoja de estilos —si alguna vez vuelve— sigue valiendo.
+   *
+   * <p>`--color-base-100` es el fondo de la página y cambia con el tema, así que el hueco entre la
+   * foto y el color se ve igual de limpio en claro y en oscuro.
+   */
+  protected anillo(valor: EjeDeVariante['valores'][number]): string | null {
+    if (this.elegido() !== this.etiqueta(valor)) {
+      return null;
+    }
+    return `0 0 0 2px var(--color-base-100), 0 0 0 4px ${this.borde(valor)}, 0 10px 15px -3px rgb(0 0 0 / 0.1)`;
   }
 
   constructor() {

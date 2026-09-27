@@ -122,10 +122,10 @@ describe('PanelDeCompra', () => {
    * diferidos: cuando el `@if` de fuera es falso, el bloque ni llega a crearse. Con ficha completa,
    * el administrador tiene los dos, el revisor solo el de origen y quien compra ninguno.
    *
-   * <p>OJO con `div.order-N`: identifica el bloque de origen por su ORDEN VISUAL en móvil, así que
-   * reordenar el panel rompe estas tres pruebas sin que nada de lo que comprueban haya cambiado. Pasó
-   * el 27-sep-2026 al subir el precio por encima de las tallas (era `order-3`, pasó a `order-4`). Si
-   * vuelve a moverse, se corrige el número aquí: el `@defer` impide seleccionar por el componente.
+   * <p>El bloque de origen se identifica por `data-bloque="origen"` y no por su clase `order-N`. Con
+   * la clase, estas tres pruebas se rompían cada vez que se reordenaba el panel —pasó el 27-sep-2026
+   * al subir el precio por encima de las tallas— sin que cambiara nada de lo que comprueban. El
+   * `@defer` impide seleccionar por el componente, así que hace falta un asidero propio.
    */
   async function bloquesDeAdministracion(rol: RolDeSesion | undefined) {
     const conDesglose = ficha({
@@ -139,22 +139,47 @@ describe('PanelDeCompra', () => {
   it('el revisor ve el bloque de origen y NO el desglose de precio', async () => {
     const { cuantos, vista } = await bloquesDeAdministracion('REVIEWER');
 
-    expect(vista.container.querySelector('div.order-4')).not.toBeNull();
+    expect(vista.container.querySelector('div[data-bloque="origen"]')).not.toBeNull();
     expect(cuantos).toBe(1);
   });
 
   it('el administrador ve los dos', async () => {
     const { cuantos, vista } = await bloquesDeAdministracion('ADMIN');
 
-    expect(vista.container.querySelector('div.order-4')).not.toBeNull();
+    expect(vista.container.querySelector('div[data-bloque="origen"]')).not.toBeNull();
     expect(cuantos).toBe(2);
   });
 
   it('quien compra no ve ninguno', async () => {
     const { cuantos, vista } = await bloquesDeAdministracion('USER');
 
-    expect(vista.container.querySelector('div.order-4')).toBeNull();
+    expect(vista.container.querySelector('div[data-bloque="origen"]')).toBeNull();
     expect(cuantos).toBe(0);
+  });
+
+  /**
+   * UNA sola tabla de tallas, y el precio ENCIMA de ella.
+   *
+   * <p>Las dos cosas fallaron el 27-sep-2026 al mover el precio por encima de las tallas: el primer
+   * intento dejó la tabla vieja dentro del bloque de color y añadió otra debajo del precio, así que
+   * la ficha salió con el selector de tallas DOS VECES; y el orden se cambió solo en las clases
+   * `order-N`, que en pantalla ancha no valen porque todos los bloques llevan `lg:order-0` y ahí
+   * manda el orden del documento.
+   *
+   * <p>Por eso se comprueba el ORDEN DEL DOCUMENTO —`compareDocumentPosition`— y no la clase: es lo
+   * que decide lo que se ve en escritorio, que es donde se reportó.
+   */
+  it('hay una sola tabla de tallas y va por debajo del precio', async () => {
+    const conTallas = ficha({ ejesDeVariante: [eje('Talla', ['S', 'M', 'L'])] });
+    const { vista } = await monta(conTallas);
+
+    const tablas = vista.container.querySelectorAll('nx-tabla-tallas');
+    expect(tablas).toHaveLength(1);
+
+    const precio = vista.container.querySelector('nx-bloque-precio');
+    expect(precio).not.toBeNull();
+    // DOCUMENT_POSITION_FOLLOWING: la tabla viene DESPUÉS del precio en el documento.
+    expect(precio!.compareDocumentPosition(tablas[0]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('enseña el título, la valoración y el precio', async () => {

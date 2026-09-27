@@ -14,7 +14,7 @@ import { FichaDeProducto, hayExistencias } from '../../domain/model/producto';
 import { SeleccionDeLaFicha } from '../seleccion-de-la-ficha';
 import { SesionActual } from '@core/auth/sesion-actual';
 import { FavoritosStore } from '../../application/state/favoritos.store';
-import { ColorElegido, SelectorColor } from './selector-color'
+import { ColorElegido, SelectorColor } from './selector-color';
 import { TramosDePrecio } from './tramos-de-precio';
 import { CambioDeTalla, TablaTallas } from './tabla-tallas';
 import { SelectorCantidad } from './selector-cantidad';
@@ -78,7 +78,11 @@ import { DesgloseEditable } from './admin/desglose-editable';
       </header>
 
       @if (sesion.puedeRevisarFichas()) {
-        <div class="order-4 lg:order-0">
+        <!-- El atributo data-bloque es el asidero de las pruebas. Antes se identificaba por su clase
+             de orden —su posición visual en móvil— y reordenar el panel las rompía sin que cambiara
+             nada de lo que comprueban; pasó el 27-sep-2026. El contenido se difiere y en pruebas no
+             se resuelve, así que no se puede seleccionar por el componente. -->
+        <div class="order-5 lg:order-0" data-bloque="origen">
           @defer (on idle) {
             <nx-panel-de-origen
               [ficha]="ficha()"
@@ -89,7 +93,7 @@ import { DesgloseEditable } from './admin/desglose-editable';
         </div>
       }
 
-      <div class="order-5 lg:order-0 flex flex-col gap-4">
+      <div class="order-2 lg:order-0 flex flex-col gap-4">
         @if (seleccion.ejeDeColor(); as eje) {
           <nx-selector-color
             [eje]="eje"
@@ -99,25 +103,9 @@ import { DesgloseEditable } from './admin/desglose-editable';
             (borra)="borraVariante.emit($event)"
           />
         }
-        @if (seleccion.ejeDeTalla(); as eje) {
-          <nx-tabla-tallas
-            [eje]="eje"
-            [unidades]="seleccion.unidadesPorTalla()"
-            [existencias]="seleccion.existenciasDeTalla"
-            [precio]="seleccion.precioDeTalla"
-            (cambia)="cambiaTalla($event)"
-          />
-        } @else {
-          <nx-selector-cantidad
-            [cantidad]="seleccion.cantidad()"
-            (cantidadChange)="seleccion.fijaCantidad($event)"
-            [minimo]="seleccion.minimoDelSelector()"
-            [existencias]="seleccion.varianteElegida()?.existencias"
-          />
-        }
       </div>
 
-      <div class="order-2 lg:order-0">
+      <div class="order-3 lg:order-0">
         <nx-bloque-precio [destacado]="seleccion.precioDestacado()" [moq]="ficha().moq">
           <!-- Los precios por cantidad, justo debajo del precio: es donde se buscan, y así se ve de
                un golpe cuál se está pagando y cuánto falta para el siguiente escalón. -->
@@ -152,10 +140,20 @@ import { DesgloseEditable } from './admin/desglose-editable';
         />
       </div>
 
-      <!-- LA TALLA, DEBAJO DEL PRECIO (27-sep-2026, petición del titular): quien abre una ficha mira
-           primero cuánto cuesta y después elige el número. Con la tabla delante, en un calzado con
-           doce filas el precio se iba fuera de la pantalla. -->
-      <div class="order-3 lg:order-0 flex flex-col gap-4">
+      <!--
+        LA TALLA, DEBAJO DEL PRECIO (27-sep-2026, petición del titular): quien abre una ficha mira
+        primero cuánto cuesta y después elige el número. Con la tabla delante, en un calzado con doce
+        filas el precio se iba fuera de la pantalla.
+
+        Va en el ORDEN DEL DOCUMENTO y no solo en las clases de orden, y esto es lo que se hizo mal a
+        la primera: en pantalla ancha todos los bloques se reponen a orden cero, que anula el orden de
+        móvil y deja mandar al documento. Mover solo el número cambiaba el móvil y no tocaba el
+        escritorio, que es donde el titular lo estaba mirando.
+
+        Y hay UNA sola tabla. El primer intento dejó la vieja dentro del bloque de color y añadió esta
+        debajo del precio: la ficha salió con el selector de tallas dos veces.
+      -->
+      <div class="order-4 lg:order-0 flex flex-col gap-4">
         @if (seleccion.ejeDeTalla(); as eje) {
           <nx-tabla-tallas
             [eje]="eje"

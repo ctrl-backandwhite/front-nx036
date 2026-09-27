@@ -569,8 +569,21 @@ code, pre, .font-mono { font-family: var(--font-mono); }
 .badge-ghost { background-color: var(--color-base-200); color: var(--color-base-content); border-color: var(--color-base-300); }
 .badge-trustpass { background-color: color-mix(in oklch, var(--color-success) 18%, var(--color-base-100)); color: var(--color-success-content); border-color: color-mix(in oklch, var(--color-success) 35%, transparent); }
 
-/* DROP-371: iconos destructivos con tinte rojo pastel sin saturación. */
-.btn-ghost.text-error, .btn-ghost.text-red-600, .text-destructive { color: var(--color-error-content); }
+/* DROP-371: iconos destructivos con tinte rojo.
+ *
+ * EL MISMO FALLO que el bloque de `.alert-*` de aquí arriba, sin generalizar en su día (27-sep-2026).
+ * `--color-error-content` es el color para escribir ENCIMA del rojo sólido —crema en tema claro, casi
+ * negro en oscuro—, y estos selectores lo aplican a botones SIN relleno: quedaba crema sobre el fondo
+ * blanco de la página, 1,03:1, y casi negro sobre el marino del tema oscuro, 1,2:1. Ilegible en los
+ * dos. Lo destapó el botón «Eliminar» de la bandeja de avisos, pero rompía cuatro sitios.
+ *
+ * Misma receta que los avisos: se mezcla con `base-content` —el color del texto normal— y se le añade
+ * el rojo suficiente para que siga leyéndose como destructivo. Así el contraste sale del mismo sitio
+ * que el del resto del texto y no depende de acertar un token a mano en cada tema: 8,3:1 en claro y
+ * 6,6:1 en oscuro, los dos por encima del 4,5:1 de la norma. */
+.btn-ghost.text-error, .btn-ghost.text-red-600, .text-destructive {
+  color: color-mix(in oklch, var(--color-error) 65%, var(--color-base-content));
+}
 .btn-ghost.text-error:hover { background-color: color-mix(in oklch, var(--color-error) 18%, transparent); }
 
 /* DROP-374: outline coherente (borde primary suave, hover fill 8%). */

@@ -79,19 +79,29 @@ import {
                 <span class="hidden lg:inline">{{ t('notif.action.unarchive') }}</span>
               </button>
             }
+            <!--
+              Los dos botones de borrar van con RELLENO sólido, no con «btn-ghost text-error» como el
+              resto de la barra: styles.css pinta «.btn-ghost.text-error» con «--color-error-content»,
+              que es el color pensado para escribir ENCIMA del rojo sólido —crema en el tema claro,
+              casi negro en el oscuro—. Sin relleno detrás quedaba crema sobre el blanco del panel
+              (1,03:1) y, en tema oscuro, casi negro sobre el marino (1,2:1): el botón no se leía en
+              NINGUNO de los dos temas. Con «btn-error» el par rojo/«-content» vuelve a ser el que esos
+              dos tokens describen y sale 4,8:1 en claro y 4,6:1 en oscuro, que es además como pinta el
+              proyecto lo destructivo (la zona de peligro de la cuenta, el doble factor).
+            -->
             @if (carpeta() === 'trash') {
               <button type="button" class="btn btn-ghost btn-sm" [title]="t('notif.action.restore')"
                       (click)="mueve.emit('restaura')">
                 <fa-icon [icon]="iconos.restaurar" />
                 <span class="hidden lg:inline">{{ t('notif.action.restore') }}</span>
               </button>
-              <button type="button" class="btn btn-ghost btn-sm text-error"
+              <button type="button" class="btn btn-error btn-sm"
                       [title]="t('notif.action.delete_forever')" (click)="mueve.emit('borraParaSiempre')">
                 <fa-icon [icon]="iconos.papelera" />
                 <span class="hidden lg:inline">{{ t('notif.action.delete_forever') }}</span>
               </button>
             } @else {
-              <button type="button" class="btn btn-ghost btn-sm text-error"
+              <button type="button" class="btn btn-error btn-sm"
                       [title]="t('notif.action.trash')" (click)="mueve.emit('aLaPapelera')">
                 <fa-icon [icon]="iconos.papelera" />
                 <span class="hidden lg:inline">{{ t('notif.action.trash') }}</span>
