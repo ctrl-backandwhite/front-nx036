@@ -108,6 +108,20 @@ interface FilaEditable {
           <nx-guia-puntos />
           <span class="font-mono">{{ total() }}</span>
         </div>
+        <!--
+          LA GANANCIA, separada del desglose por una línea propia: no es un componente del precio,
+          es lo que queda después de pagarlo todo. Va en verde cuando es positiva y en rojo cuando
+          no, porque una venta a pérdida tiene que verse de un vistazo y no leyendo el signo.
+        -->
+        @if (ganancia(); as g) {
+          <div class="flex items-baseline border-t border-base-300 mt-1 pt-1 font-semibold">
+            <span>{{ t('product.price.profit') }}</span>
+            <nx-guia-puntos />
+            <span class="font-mono" [class.text-success]="!enPerdida()" [class.text-error]="enPerdida()">
+              {{ g }}
+            </span>
+          </div>
+        }
       </div>
     </div>
   `,
@@ -146,6 +160,18 @@ export class DesgloseEditable {
     required(ruta.importe, { message: () => this.t('dialog.field.required') });
     min(ruta.importe, 0, { message: () => this.t('dialog.field.min') });
   });
+
+  /** Lo que queda para la casa. Lo compone el backend: aquí solo se pinta. */
+  protected readonly ganancia = computed(() => this.desglose().gananciaFormateada);
+
+  /**
+   * Si la venta va a pérdida.
+   *
+   * <p>Se mira el importe FORMATEADO porque es lo único que llega —el precio se compone y se formatea
+   * entero en el backend, por convención—. Basta el signo: cualquier formato de los ocho idiomas lo
+   * antepone.
+   */
+  protected readonly enPerdida = computed(() => (this.ganancia() ?? '').trim().startsWith('-'));
 
   protected readonly filasFijas = computed(() =>
     [

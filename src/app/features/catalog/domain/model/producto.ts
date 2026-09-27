@@ -205,6 +205,11 @@ export interface DesgloseDePrecio {
   readonly margenInternoPct?: number | null;
   readonly envioFormateado?: string;
   readonly recargoFormateado?: string;
+  /**
+   * Lo que queda para la casa en esta venta: lo cobrado menos las bolsas de subvención, el coste del
+   * proveedor y su porte. Ya lleva la rebaja descontada. SOLO ADMIN.
+   */
+  readonly gananciaFormateada?: string;
   readonly recargoPct?: number | null;
   readonly subsidioDeEnvioFormateado?: string;
   readonly subsidioDeEnvioCny?: number | null;

@@ -2653,6 +2653,7 @@ const diccionario: Record<string, string> = {
   'product.price.shipping_user_dbl': 'Subvention de port — double-clic pour modifier',
   'product.price.duty_user': 'Subvention de douane',
   'product.price.duty_user_dbl': 'Subvention de douane — double-clic pour modifier',
+  'product.price.profit': 'Bénéfice',
   'product.price.total': 'Total',
   'profile.add': 'Ajouter',
   'profile.addresses.empty': 'Vous n\'avez encore enregistré aucune adresse.',

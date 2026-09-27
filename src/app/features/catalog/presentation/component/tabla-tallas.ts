@@ -7,8 +7,14 @@ import { PreferenciasService } from '@core/preferences/preferencias';
 import { EjeDeVariante } from '../../domain/model/producto';
 import { etiquetaDeValor, partesDeLaTalla } from '../../domain/model/seleccion-de-variante';
 
-/** A partir de aquí se colapsa la lista: treinta tallas convierten la ficha en una columna infinita. */
-const TOPE_ANTES_DE_COLAPSAR = 10;
+/**
+ * A partir de aquí se colapsa la lista: treinta tallas convierten la ficha en una columna infinita.
+ *
+ * <p>Seis y no diez desde el 27-sep-2026. Con diez, la tabla empujaba el precio y los botones fuera
+ * de la pantalla en un calzado corriente —y el precio acababa de subir por encima de las tallas justo
+ * para que se viera sin bajar—. Seis es lo que cabe con el bloque de precio entero a la vista.
+ */
+const TOPE_ANTES_DE_COLAPSAR = 6;
 export interface CambioDeTalla {
   readonly talla: string;
   readonly cantidad: number;

@@ -78,12 +78,15 @@ const CLAVES_DE_EJE: Readonly<Record<string, string>> = {
                 y el encargo era el 30% exacto. La foto de la variante es lo que distingue un color de
                 otro, y a 48 px había que acercarse a la pantalla para verlo.
               -->
+              <!-- El aro del elegido toma SU color (27-sep-2026): con el negro por defecto de Tailwind,
+                   elegir «Beige» dibujaba un cerco negro que parecía ser el color escogido. -->
               <button
                 type="button"
                 (click)="elige.emit({ etiqueta: etiqueta(valor), foto: valor.imagen })"
                 [title]="etiqueta(valor)"
                 [attr.aria-pressed]="elegido() === etiqueta(valor)"
                 [style.border-color]="borde(valor)"
+                [style.--tw-ring-color]="borde(valor)"
                 class="w-[3.9rem] h-[3.9rem] rounded-lg border-2 overflow-hidden relative transition-all block"
                 [class]="
                   elegido() === etiqueta(valor)
@@ -134,7 +137,7 @@ const CLAVES_DE_EJE: Readonly<Record<string, string>> = {
               <!-- Sin «title» propio: el nombre completo ya lo lleva la miniatura de encima, y
                    repetirlo aquí deja DOS elementos con el mismo título por cada color. -->
               <span
-                class="text-[10px] leading-tight text-center line-clamp-2 w-full"
+                class="mt-2 text-[10px] leading-tight text-center line-clamp-2 w-full"
                 [class]="elegido() === etiqueta(valor) ? 'font-semibold' : 'opacity-70'"
               >
                 {{ etiqueta(valor) }}

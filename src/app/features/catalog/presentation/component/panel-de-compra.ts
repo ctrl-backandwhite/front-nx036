@@ -78,7 +78,7 @@ import { DesgloseEditable } from './admin/desglose-editable';
       </header>
 
       @if (sesion.puedeRevisarFichas()) {
-        <div class="order-3 lg:order-0">
+        <div class="order-4 lg:order-0">
           @defer (on idle) {
             <nx-panel-de-origen
               [ficha]="ficha()"
@@ -150,6 +150,28 @@ import { DesgloseEditable } from './admin/desglose-editable';
           [envioCubierto]="!!ficha().envioCubierto"
           [arancelCubierto]="ficha().arancel.cubierto"
         />
+      </div>
+
+      <!-- LA TALLA, DEBAJO DEL PRECIO (27-sep-2026, petición del titular): quien abre una ficha mira
+           primero cuánto cuesta y después elige el número. Con la tabla delante, en un calzado con
+           doce filas el precio se iba fuera de la pantalla. -->
+      <div class="order-3 lg:order-0 flex flex-col gap-4">
+        @if (seleccion.ejeDeTalla(); as eje) {
+          <nx-tabla-tallas
+            [eje]="eje"
+            [unidades]="seleccion.unidadesPorTalla()"
+            [existencias]="seleccion.existenciasDeTalla"
+            [precio]="seleccion.precioDeTalla"
+            (cambia)="cambiaTalla($event)"
+          />
+        } @else {
+          <nx-selector-cantidad
+            [cantidad]="seleccion.cantidad()"
+            (cantidadChange)="seleccion.fijaCantidad($event)"
+            [minimo]="seleccion.minimoDelSelector()"
+            [existencias]="seleccion.varianteElegida()?.existencias"
+          />
+        }
       </div>
 
       <div class="order-6 lg:order-0"><nx-bloque-envio /></div>

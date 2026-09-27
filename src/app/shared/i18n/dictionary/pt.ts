@@ -1077,6 +1077,7 @@ const diccionario: Record<string, string> = {
   'product.price.shipping_user_dbl': 'Subsídio de envio — duplo clique para editar',
   'product.price.duty_user': 'Subsídio alfandegário',
   'product.price.duty_user_dbl': 'Subsídio alfandegário — duplo clique para editar',
+  'product.price.profit': 'Lucro',
   'product.price.total': 'Total',
   'product.qty': 'Qtd.',
   'product.unit_price': 'Preço unit.',
