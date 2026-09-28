@@ -3029,7 +3029,7 @@ const diccionario: Record<string, string> = {
   'seo.contact.title': 'Contact',
   'seo.contact.desc': 'Send us your question about orders, shipping or products. We usually reply within 24–48 hours.',
   'seo.pricing.title': 'Plans',
-  'seo.pricing.desc': 'NX036 plans, with a 15-day free trial. Upgrade or cancel whenever you want.',
+  'seo.pricing.desc': 'The NX036 plans and what each one includes. The 15-day free trial is started from your account, once per account.',
   'seo.login.title': 'Sign in',
   'seo.login.desc': 'Sign in to your NX036 account to see the full catalog, your orders and your shipments.',
   'seo.register.title': 'Create account',

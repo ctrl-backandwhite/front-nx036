@@ -20,6 +20,7 @@ export const rutas: Routes = [
   {
     path: 'notifications',
     canActivate: [exigeSesion],
+    data: { privada: true },
     providers: [proveeNotifications()],
     loadComponent: () => import('./page/buzon.page').then((m) => m.BuzonPage),
   },
@@ -30,7 +31,7 @@ export const rutas: Routes = [
     // este contexto no tiene que preguntarle nada al de acceso.
     canActivate: [exigeRol('ADMIN', 'OPERATOR')],
     providers: [proveeNotifications()],
-    data: { esDeLaCasa: true },
+    data: { esDeLaCasa: true, privada: true },
     loadComponent: () => import('./page/buzon.page').then((m) => m.BuzonPage),
   },
 ];

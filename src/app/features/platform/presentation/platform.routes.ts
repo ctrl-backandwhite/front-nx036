@@ -39,12 +39,14 @@ export const rutas: Routes = [
       },
       {
         path: 'connect',
+        data: { privada: true },
         loadComponent: () =>
           import('./page/conecta-tu-tienda.page').then((m) => m.ConectaTuTiendaPage),
       },
       { path: 'conectar', redirectTo: 'connect', pathMatch: 'full' },
       {
         path: 'developers',
+        data: { privada: true },
         loadComponent: () =>
           import('./page/desarrolladores.page').then((m) => m.DesarrolladoresPage),
       },
@@ -75,53 +77,63 @@ export const rutas: Routes = [
       {
         path: 'shops',
         canActivate: [exigeSesion],
+        data: { privada: true },
         loadComponent: () => import('./page/tiendas.page').then((m) => m.TiendasPage),
       },
       {
         path: 'admin/shops',
         canActivate: [exigeRol('ADMIN', 'OPERATOR')],
+        data: { privada: true },
         loadComponent: () => import('./page/tiendas.page').then((m) => m.TiendasPage),
       },
       {
         path: 'sourcing',
         canActivate: [exigeSesion],
+        data: { privada: true },
         loadComponent: () =>
           import('./page/aprovisionamiento.page').then((m) => m.AprovisionamientoPage),
       },
       {
         path: 'admin/sourcing',
         canActivate: [exigeRol('ADMIN', 'OPERATOR')],
+        data: { privada: true },
         loadComponent: () =>
           import('./page/aprovisionamiento.page').then((m) => m.AprovisionamientoPage),
       },
       {
         path: 'intelligence',
         canActivate: [exigeSesion],
+        data: { privada: true },
         loadComponent: () => import('./page/inteligencia.page').then((m) => m.InteligenciaPage),
       },
       {
         path: 'admin/intelligence',
         canActivate: [exigeRol('ADMIN', 'OPERATOR')],
+        data: { privada: true },
         loadComponent: () => import('./page/inteligencia.page').then((m) => m.InteligenciaPage),
       },
       {
         path: 'odm',
         canActivate: [exigeSesion],
+        data: { privada: true },
         loadComponent: () => import('./page/odm.page').then((m) => m.OdmPage),
       },
       {
         path: 'admin/odm',
         canActivate: [exigeRol('ADMIN', 'OPERATOR')],
+        data: { privada: true },
         loadComponent: () => import('./page/odm.page').then((m) => m.OdmPage),
       },
       {
         path: 'pod',
         canActivate: [exigeSesion],
+        data: { privada: true },
         loadComponent: () => import('./page/pod.page').then((m) => m.PodPage),
       },
       {
         path: 'admin/pod',
         canActivate: [exigeRol('ADMIN', 'OPERATOR')],
+        data: { privada: true },
         loadComponent: () => import('./page/pod.page').then((m) => m.PodPage),
       },
 
@@ -132,6 +144,7 @@ export const rutas: Routes = [
        */
       {
         path: '**',
+        data: { privada: true },
         loadComponent: () => import('./page/no-encontrada.page').then((m) => m.NoEncontradaPage),
       },
     ],

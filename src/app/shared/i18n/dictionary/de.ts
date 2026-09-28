@@ -2992,7 +2992,7 @@ const diccionario: Record<string, string> = {
   'seo.contact.title': 'Kontakt',
   'seo.contact.desc': 'Schick uns deine Frage zu Bestellungen, Versand oder Produkten. Wir antworten in der Regel innerhalb von 24–48 Stunden.',
   'seo.pricing.title': 'Tarife',
-  'seo.pricing.desc': 'Die NX036-Tarife, mit 15 Tagen kostenloser Testphase. Jederzeit wechseln oder kündigen.',
+  'seo.pricing.desc': 'Die NX036-Tarife und was jeder enthält. Die kostenlose Testphase von 15 Tagen wird im Konto gestartet, einmal pro Konto.',
   'seo.login.title': 'Anmelden',
   'seo.login.desc': 'Melde dich in deinem NX036-Konto an, um den vollständigen Katalog, deine Bestellungen und deine Sendungen zu sehen.',
   'seo.register.title': 'Konto erstellen',

@@ -21,11 +21,13 @@ export const rutas: Routes = [
       {
         path: 'profile',
         canActivate: [exigeSesion],
+        data: { privada: true },
         loadComponent: () => import('./page/perfil.page').then((m) => m.PerfilPage),
       },
       {
         path: 'addresses',
         canActivate: [exigeSesion],
+        data: { privada: true },
         loadComponent: () => import('./page/direcciones.page').then((m) => m.DireccionesPage),
       },
       {

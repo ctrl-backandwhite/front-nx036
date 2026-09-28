@@ -14,6 +14,7 @@ export const rutas: Routes = [
   {
     path: 'wallet',
     canActivate: [exigeSesion],
+    data: { privada: true },
     providers: [proveeCartera()],
     children: [
       {

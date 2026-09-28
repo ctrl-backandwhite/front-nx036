@@ -15,6 +15,14 @@ export interface SeoDeRuta {
   readonly descripcion: string;
 }
 
+/** Lo que una ruta declara sobre sí misma, junto con la dirección por la que se ha llegado. */
+interface EstadoDeRuta {
+  readonly seo?: SeoDeRuta;
+  /** Cierto si la pantalla no debe salir en los buscadores: lo declara la ruta con `privada: true`. */
+  readonly privada: boolean;
+  readonly ruta: string;
+}
+
 /**
  * Pone título y descripción a las páginas que no se los ponen ellas mismas.
  *
@@ -31,6 +39,16 @@ export interface SeoDeRuta {
  * <p><b>Es opcional y no pisa a nadie.</b> Solo actúa si la ruta activa trae `data.seo`; las tres
  * pantallas que ya calculan sus etiquetas con datos del servidor —el título de la ficha es el del
  * producto— no lo declaran y siguen mandando ellas.
+ *
+ * <p><b>Y decide qué se indexa.</b> Una ruta con `data.privada: true` sale con `noindex, follow`,
+ * traiga o no texto propio. Se añadió el 28-sep-2026 al cotejar lo que anuncia el sitio con lo que
+ * de verdad está abierto: las pantallas que exigen sesión responden 200 a cualquiera y, como su HTML
+ * lo monta el navegador, lo que un buscador lee en todas ellas es el `index.html` de relleno — una
+ * veintena de direcciones distintas compitiendo entre sí con el título y la descripción de la
+ * portada, y ninguna abrible sin cuenta. Lo mismo vale para las que describen un servicio que hoy no
+ * se presta. El bloqueo de verdad lo ponen `robots.txt` y la cabecera `X-Robots-Tag` de nginx, que
+ * llegan también a quien no ejecuta JavaScript; esta etiqueta es la capa que sí se ve en el
+ * documento.
  */
 @Service()
 export class EtiquetasDeRuta {
@@ -40,8 +58,8 @@ export class EtiquetasDeRuta {
   private readonly traduccion = inject(TraduccionService);
   private readonly injector = inject(Injector);
 
-  /** Lo declarado por la ruta activa. Nulo mientras no haya ninguna que lo declare. */
-  private readonly actual = signal<{ seo: SeoDeRuta; ruta: string } | null>(null);
+  /** Lo declarado por la ruta activa. Nulo mientras no haya ninguna que declare nada. */
+  private readonly actual = signal<EstadoDeRuta | null>(null);
 
   /**
    * Empieza a vigilar la navegación. Lo llama el armazón una sola vez, al arrancar.
@@ -52,8 +70,9 @@ export class EtiquetasDeRuta {
    */
   vigila(): void {
     this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe((e) => {
-      const seo = this.declaradoPorLaRutaActiva();
-      this.actual.set(seo ? { seo, ruta: (e as NavigationEnd).urlAfterRedirects } : null);
+      const { seo, privada } = this.declaradoPorLaRutaActiva();
+      const ruta = (e as NavigationEnd).urlAfterRedirects;
+      this.actual.set(seo || privada ? { seo, privada, ruta } : null);
     });
 
     // En un EFECTO y no al navegar: el texto depende del idioma, y quien cambia de idioma sin cambiar
@@ -68,11 +87,19 @@ export class EtiquetasDeRuta {
         return;
       }
       const t = this.traduccion.t;
+      // Una pantalla privada que no declara texto propio solo necesita quedar fuera de los
+      // buscadores: no hay título que ponerle —el suyo lo pone ella al montarse— y sobrescribirlo
+      // aquí con uno genérico sería peor que dejarlo.
+      if (!actual.seo) {
+        this.etiquetas.indexable(!actual.privada);
+        return;
+      }
       this.etiquetas.aplica({
         titulo: t(actual.seo.titulo),
         descripcion: t(actual.seo.descripcion),
         ruta: actual.ruta,
         tipo: 'website',
+        indexable: !actual.privada,
       });
     }, { injector: this.injector });
   }
@@ -84,16 +111,23 @@ export class EtiquetasDeRuta {
    * en la hoja, y quedarse en la raíz devolvería siempre nada. Si una hoja no lo declara, se hereda lo
    * del padre más cercano que sí lo haga, que es lo que permite describir de una vez un grupo entero.
    */
-  private declaradoPorLaRutaActiva(): SeoDeRuta | undefined {
+  private declaradoPorLaRutaActiva(): { seo?: SeoDeRuta; privada: boolean } {
     let nodo: ActivatedRoute | null = this.raiz;
     let encontrado: SeoDeRuta | undefined;
+    let privada = false;
     while (nodo) {
       const seo = nodo.snapshot.data['seo'] as SeoDeRuta | undefined;
       if (seo) {
         encontrado = seo;
       }
+      // `privada` se HEREDA hacia abajo y no se puede desmarcar: si un grupo entero está cerrado,
+      // ninguna de sus hijas está abierta. Declararlo una vez en el padre es lo que evita que una
+      // pantalla nueva dentro de una zona cerrada nazca indexable por descuido.
+      if (nodo.snapshot.data['privada'] === true) {
+        privada = true;
+      }
       nodo = nodo.firstChild;
     }
-    return encontrado;
+    return { seo: encontrado, privada };
   }
 }

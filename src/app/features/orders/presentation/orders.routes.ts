@@ -14,6 +14,7 @@ export const rutas: Routes = [
   {
     path: 'orders',
     canActivate: [exigeSesion],
+    data: { privada: true },
     providers: [proveePedidos()],
     children: [
       {

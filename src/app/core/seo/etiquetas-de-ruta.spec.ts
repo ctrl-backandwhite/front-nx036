@@ -34,6 +34,9 @@ describe('EtiquetasDeRuta', () => {
 
   beforeEach(() => {
     document.title = '.:: NX036 ::.';
+    // El documento es el MISMO para todas las pruebas del fichero: un `noindex` dejado por la
+    // anterior haría pasar a la siguiente sin que el código lo pusiera.
+    document.querySelector('meta[name="robots"]')?.remove();
   });
 
   it('pone el título y la descripción que declara la ruta', async () => {
@@ -84,6 +87,86 @@ describe('EtiquetasDeRuta', () => {
     expect(TestBed.inject(Title).getTitle()).not.toBe('.:: NX036 ::.');
     expect(enEspanol).not.toBe('');
   });
+
+  /**
+   * Lo que se descubrió el 28-sep-2026 al cotejar lo que anuncia el sitio con lo que de verdad está
+   * abierto: una veintena de direcciones que exigen sesión —el listado, los favoritos, el perfil, la
+   * cesta, el panel entero— respondían 200 a cualquiera y, como su HTML lo monta el navegador, lo
+   * que un buscador leía en TODAS era el `index.html` de relleno. Es decir: veinte páginas distintas
+   * compitiendo entre sí con el título y la descripción de la portada, y ninguna abrible sin cuenta.
+   */
+  it('deja fuera de los buscadores lo que declara ser privado', async () => {
+    montaCon([{ path: 'cart', component: Pagina, data: { privada: true } }]);
+
+    await TestBed.inject(Router).navigate(['/cart']);
+    await TestBed.inject(ApplicationRef).whenStable();
+
+    expect(robots()).toBe('noindex, follow');
+  });
+
+  /** `follow` y no `nofollow`: la página no se lista, pero lo que cuelga de ella sigue descubierto. */
+  it('marca privada también la que sí trae texto propio', async () => {
+    montaCon([
+      {
+        path: 'login',
+        component: Pagina,
+        data: { seo: { titulo: 'seo.login.title', descripcion: 'seo.login.desc' }, privada: true },
+      },
+    ]);
+
+    await TestBed.inject(Router).navigate(['/login']);
+    await TestBed.inject(ApplicationRef).whenStable();
+
+    expect(robots()).toBe('noindex, follow');
+    expect(descripcion()).not.toBe('');
+  });
+
+  /**
+   * Se declara UNA vez en el padre —`/admin`, y con él los trece atajos de la raíz que redirigen
+   * allí— y vale para todo lo que cuelgue. Es lo que evita que una sección nueva del panel nazca
+   * indexable porque a alguien se le olvidara repetir la marca.
+   */
+  it('hereda la marca de privado hacia las hijas', async () => {
+    montaCon([
+      {
+        path: 'admin',
+        data: { privada: true },
+        children: [{ path: 'usuarios', component: Pagina }],
+      },
+    ]);
+
+    await TestBed.inject(Router).navigate(['/admin/usuarios']);
+    await TestBed.inject(ApplicationRef).whenStable();
+
+    expect(robots()).toBe('noindex, follow');
+  });
+
+  /**
+   * Y al revés: quien navega de una pantalla cerrada a una pública con la aplicación ya cargada se
+   * llevaba el `noindex` puesto. La etiqueta se QUITA, no se reescribe a `index`.
+   */
+  it('quita la marca al volver a una página pública', async () => {
+    montaCon([
+      { path: 'cart', component: Pagina, data: { privada: true } },
+      {
+        path: 'about',
+        component: Pagina,
+        data: { seo: { titulo: 'seo.about.title', descripcion: 'seo.about.desc' } },
+      },
+    ]);
+    await TestBed.inject(Router).navigate(['/cart']);
+    await TestBed.inject(ApplicationRef).whenStable();
+    expect(robots()).toBe('noindex, follow');
+
+    await TestBed.inject(Router).navigate(['/about']);
+    await TestBed.inject(ApplicationRef).whenStable();
+
+    expect(robots()).toBeNull();
+  });
+
+  function robots(): string | null {
+    return document.querySelector('meta[name="robots"]')?.getAttribute('content') ?? null;
+  }
 
   function descripcion(): string {
     return document.querySelector('meta[name="description"]')?.getAttribute('content') ?? '';

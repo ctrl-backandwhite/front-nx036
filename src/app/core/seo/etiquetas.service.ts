@@ -21,6 +21,17 @@ export interface EtiquetasDePagina {
   /** Ruta de la propia página, sin dominio. Con ella se arma la canónica. */
   readonly ruta?: string;
   readonly tipo?: 'website' | 'product' | 'article';
+  /**
+   * Si esta pantalla debe aparecer en los buscadores. Por omisión SÍ.
+   *
+   * <p>Se puso en falso el 28-sep-2026 al comparar lo que anuncia el sitio con lo que de verdad
+   * está abierto: media docena de pantallas que exigen sesión —el listado, los favoritos, el
+   * perfil, los tickets— responden 200 a cualquiera que las pida y, como su HTML lo monta el
+   * navegador, lo que ve un buscador es el `index.html` de relleno. Resultado: varias direcciones
+   * distintas indexadas con el MISMO título y la MISMA descripción que la portada, y ninguna de
+   * ellas se puede abrir sin cuenta. A eso se suman las que describen servicios que no se prestan.
+   */
+  readonly indexable?: boolean;
 }
 
 @Service()
@@ -39,6 +50,7 @@ export class EtiquetasService {
 
     this.titulo.setTitle(titulo);
     this.canonica(url);
+    this.indexable(etiquetas.indexable !== false);
 
     // `updateTag` reemplaza si ya existe, en lugar de acumular. Importa al navegar entre fichas: sin
     // eso, la página acabaría con una etiqueta por producto visitado y quien la lee se queda con la
@@ -62,6 +74,27 @@ export class EtiquetasService {
       this.meta.removeTag('property="og:image"');
       this.meta.removeTag('name="twitter:image"');
     }
+  }
+
+  /**
+   * Declara si la pantalla actual se puede indexar.
+   *
+   * <p>`follow` a propósito aunque no se indexe: la página no se lista, pero sus enlaces se siguen,
+   * que es lo que mantiene descubierto lo que cuelga de ella.
+   *
+   * <p>Es público porque lo llaman DOS sitios: `aplica`, para las pantallas que se describen a sí
+   * mismas, y `EtiquetasDeRuta`, para las que solo declaran que son privadas y no traen texto
+   * propio que poner.
+   *
+   * <p>Al volver a `true` se QUITA la etiqueta en vez de escribir `index`: quien navega de una
+   * pantalla privada a una pública con la aplicación ya cargada se llevaba el `noindex` puesto.
+   */
+  indexable(valor: boolean): void {
+    if (valor) {
+      this.meta.removeTag('name="robots"');
+      return;
+    }
+    this.meta.updateTag({ name: 'robots', content: 'noindex, follow' });
   }
 
   /**

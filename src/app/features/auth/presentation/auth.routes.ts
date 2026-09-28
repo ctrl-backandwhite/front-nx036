@@ -14,7 +14,7 @@ export const rutas: Routes = [
   {
     path: 'login',
     canActivate: [soloSinSesion],
-    data: { seo: { titulo: 'seo.login.title', descripcion: 'seo.login.desc' } },
+    data: { seo: { titulo: 'seo.login.title', descripcion: 'seo.login.desc' }, privada: true },
     loadComponent: () => import('./page/acceso.page').then((m) => m.AccesoPage),
   },
   {
@@ -25,10 +25,12 @@ export const rutas: Routes = [
   },
   {
     path: 'activate',
+    data: { privada: true },
     loadComponent: () => import('./page/activacion.page').then((m) => m.ActivacionPage),
   },
   {
     path: 'password-reset',
+    data: { privada: true },
     loadComponent: () =>
       import('./page/restablece-contrasena.page').then((m) => m.RestableceContrasenaPage),
   },

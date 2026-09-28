@@ -21,6 +21,7 @@ export const rutas: Routes = [
   {
     path: 'affiliate',
     canActivate: [exigeSesion],
+    data: { privada: true },
     providers: [proveeAfiliado()],
     loadComponent: () => import('./page/afiliado.page').then((m) => m.AfiliadoPage),
   },

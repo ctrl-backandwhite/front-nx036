@@ -2992,7 +2992,7 @@ const diccionario: Record<string, string> = {
   'seo.contact.title': '联系我们',
   'seo.contact.desc': '就订单、物流或商品向我们提问,我们通常在 24–48 小时内回复。',
   'seo.pricing.title': '套餐',
-  'seo.pricing.desc': 'NX036 套餐,提供 15 天免费试用,可随时升级或取消。',
+  'seo.pricing.desc': 'NX036 的各项套餐及其包含的内容。15 天免费试用可在账户中开通，每个账户仅限一次。',
   'seo.login.title': '登录',
   'seo.login.desc': '登录您的 NX036 账户,查看完整目录、您的订单和物流。',
   'seo.register.title': '注册',

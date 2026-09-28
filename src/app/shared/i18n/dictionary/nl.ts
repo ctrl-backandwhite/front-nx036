@@ -2992,7 +2992,7 @@ const diccionario: Record<string, string> = {
   'seo.contact.title': 'Contact',
   'seo.contact.desc': 'Stuur ons je vraag over bestellingen, verzending of producten. We reageren meestal binnen 24–48 uur.',
   'seo.pricing.title': 'Abonnementen',
-  'seo.pricing.desc': 'De abonnementen van NX036, met 15 dagen gratis proberen. Upgrade of annuleer wanneer je wilt.',
+  'seo.pricing.desc': 'De abonnementen van NX036 en wat elk ervan bevat. De gratis proefperiode van 15 dagen start je vanuit je account, eenmalig.',
   'seo.login.title': 'Inloggen',
   'seo.login.desc': 'Log in op je NX036-account om de volledige catalogus, je bestellingen en je zendingen te zien.',
   'seo.register.title': 'Account aanmaken',

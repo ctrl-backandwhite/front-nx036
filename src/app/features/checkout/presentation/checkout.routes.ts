@@ -18,6 +18,7 @@ export const rutas: Routes = [
   {
     path: 'checkout',
     canActivate: [exigeSesion],
+    data: { privada: true },
     providers: [proveeCheckout()],
     children: [
       {

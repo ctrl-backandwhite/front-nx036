@@ -2993,7 +2993,7 @@ const diccionario: Record<string, string> = {
   'seo.contact.title': 'Contact',
   'seo.contact.desc': 'Envoyez-nous votre question sur les commandes, la livraison ou les produits. Nous répondons en général sous 24–48 heures.',
   'seo.pricing.title': 'Tarifs',
-  'seo.pricing.desc': 'Les formules NX036, avec 15 jours d’essai gratuit. Changez ou annulez quand vous voulez.',
+  'seo.pricing.desc': 'Les formules NX036 et ce que chacune comprend. L’essai gratuit de 15 jours s’active depuis votre compte, une seule fois.',
   'seo.login.title': 'Connexion',
   'seo.login.desc': 'Connectez-vous à votre compte NX036 pour voir le catalogue complet, vos commandes et vos expéditions.',
   'seo.register.title': 'Créer un compte',

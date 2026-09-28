@@ -3002,7 +3002,7 @@ const diccionario: Record<string, string> = {
   'seo.contact.title': 'Contacto',
   'seo.contact.desc': 'Escríbenos tu consulta sobre pedidos, envíos o productos. Solemos responder en 24–48 horas.',
   'seo.pricing.title': 'Planes',
-  'seo.pricing.desc': 'Los planes de NX036, con 15 días de prueba gratis. Sube o cancela cuando quieras.',
+  'seo.pricing.desc': 'Los planes de NX036 y lo que incluye cada uno. La prueba gratis de 15 días se activa desde tu cuenta, una sola vez.',
   'seo.login.title': 'Iniciar sesión',
   'seo.login.desc': 'Entra en tu cuenta de NX036 para ver el catálogo completo, tus pedidos y tus envíos.',
   'seo.register.title': 'Crear cuenta',

@@ -46,6 +46,7 @@ export const routes: Routes = [
   // marco de la tienda» del front anterior. Ver el porqué en `notifications.routes.ts`.
   {
     path: 'newsletter/unsubscribe',
+    data: { privada: true },
     loadChildren: () =>
       import('@features/notifications/presentation/notifications.routes').then(
         (m) => m.rutasSinMarco,
@@ -89,6 +90,11 @@ export const routes: Routes = [
      * la API con credencial, pero sí el mapa de la casa. Lo destapó la certificación comparando qué
      * pasa al abrir `/admin` sin sesión en cada front. */
     canActivate: [exigeRol('ADMIN', 'OPERATOR')],
+    // El panel entero fuera de los buscadores, y con él los atajos de la raíz —`/academy`,
+    // `/productos`, `/usuarios`…— que redirigen aquí: se prerenderizan como páginas «Redirecting»
+    // vacías, así que lo que quedaba indexable era el MAPA del back-office. La marca se hereda
+    // hacia las hijas, de modo que una sección nueva del panel nace ya cerrada.
+    data: { privada: true },
     children: [
       /*
        * Tres pantallas del ESCAPARATE dentro del marco del panel, como en el front anterior. No son
@@ -174,6 +180,7 @@ export const routes: Routes = [
       {
         path: 'affiliate',
         canActivate: [exigeSesion],
+        data: { privada: true },
         providers: [proveeAfiliado()],
         loadComponent: () =>
           import('./composition/afiliado-ensamblado').then((m) => m.AfiliadoEnsamblado),

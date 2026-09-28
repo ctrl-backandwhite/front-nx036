@@ -33,7 +33,7 @@ export const rutas: Routes = [
         path: 'catalog',
         // El listado COMPLETO es interno: la portada solo enseña el adelanto.
         canActivate: [exigeSesion],
-        data: { precarga: true },
+        data: { precarga: true, privada: true },
         loadComponent: () => import('./page/listado.page').then((m) => m.ListadoPage),
       },
       {
@@ -43,17 +43,22 @@ export const rutas: Routes = [
         // el proveedor solo se enseñan a quien tiene cuenta. Sin esto se llegaba al detalle completo
         // con la dirección directa, saltándose el listado que sí estaba cerrado.
         canActivate: [exigeSesion],
+        // La ficha NO se marca privada, a diferencia del listado: su HTML lo prerenderiza el build y
+        // nginx le inyecta el `<head>` fresco (`seo-ficha.js`) justamente para que el enlace se pueda
+        // compartir. Cerrarla aquí tiraría por tierra ese montaje entero.
         data: { precarga: true },
         loadComponent: () => import('./page/ficha.page').then((m) => m.FichaPage),
       },
       {
         path: 'favorites',
         canActivate: [exigeSesion],
+        data: { privada: true },
         loadComponent: () => import('./page/favoritos.page').then((m) => m.FavoritosPage),
       },
       {
         path: 'history',
         canActivate: [exigeSesion],
+        data: { privada: true },
         loadComponent: () => import('./page/historial.page').then((m) => m.HistorialPage),
       },
     ],

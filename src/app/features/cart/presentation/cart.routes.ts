@@ -19,6 +19,7 @@ export const rutas: Routes = [
   {
     path: 'cart',
     canActivate: [exigeSesion],
+    data: { privada: true },
     loadComponent: () => import('./page/carrito.page').then((m) => m.CarritoPage),
   },
 ];

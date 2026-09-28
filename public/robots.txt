@@ -10,19 +10,107 @@ User-agent: Googlebot
 Allow: /
 Disallow: /admin
 Disallow: /api/
+# Atajos de la raíz que redirigen al panel. Se prerenderizan como páginas «Redirecting» vacías, así
+# que lo único indexable en ellas era el mapa del back-office (28-sep-2026).
+Disallow: /academy
+Disallow: /dashboard
+Disallow: /productos
+Disallow: /products
+Disallow: /categorias
+Disallow: /proveedores
+Disallow: /ordenes
+Disallow: /facturacion
+Disallow: /usuarios
+Disallow: /perfil
+Disallow: /mentors
+Disallow: /warehouses
+Disallow: /platform
+# Pantallas que EXIGEN sesión. Responden 200 a cualquiera y su HTML lo monta el navegador, así que
+# lo que un buscador lee en todas ellas es el index.html de relleno: una veintena de direcciones
+# distintas con el mismo título y la misma descripción que la portada (28-sep-2026).
+Disallow: /catalog
+# …pero la FICHA sí: su HTML se prerenderiza con título, foto y precio propios para poder
+# compartirla. La regla más larga gana, así que `/catalog/<slug>` queda permitida.
+Allow: /catalog/
+Disallow: /favorites
+Disallow: /history
+Disallow: /profile
+Disallow: /addresses
+Disallow: /support
+Disallow: /cart
+Disallow: /checkout
+Disallow: /orders
+Disallow: /wallet
+Disallow: /affiliate
+Disallow: /billing
+Disallow: /notifications
+Disallow: /shops
+Disallow: /sourcing
+Disallow: /intelligence
+Disallow: /odm
+Disallow: /pod
 # Integración con tiendas: no se ofrece hoy, así que no se indexa (25-sep-2026).
 Disallow: /developers
 Disallow: /connect
 Disallow: /conectar
+# Pantallas de acceso y las que se abren desde un correo con testigo en la dirección.
+Disallow: /login
+Disallow: /activate
+Disallow: /password-reset
+Disallow: /newsletter/unsubscribe
 
 User-agent: Bingbot
 Allow: /
 Disallow: /admin
 Disallow: /api/
+# Atajos de la raíz que redirigen al panel. Se prerenderizan como páginas «Redirecting» vacías, así
+# que lo único indexable en ellas era el mapa del back-office (28-sep-2026).
+Disallow: /academy
+Disallow: /dashboard
+Disallow: /productos
+Disallow: /products
+Disallow: /categorias
+Disallow: /proveedores
+Disallow: /ordenes
+Disallow: /facturacion
+Disallow: /usuarios
+Disallow: /perfil
+Disallow: /mentors
+Disallow: /warehouses
+Disallow: /platform
+# Pantallas que EXIGEN sesión. Responden 200 a cualquiera y su HTML lo monta el navegador, así que
+# lo que un buscador lee en todas ellas es el index.html de relleno: una veintena de direcciones
+# distintas con el mismo título y la misma descripción que la portada (28-sep-2026).
+Disallow: /catalog
+# …pero la FICHA sí: su HTML se prerenderiza con título, foto y precio propios para poder
+# compartirla. La regla más larga gana, así que `/catalog/<slug>` queda permitida.
+Allow: /catalog/
+Disallow: /favorites
+Disallow: /history
+Disallow: /profile
+Disallow: /addresses
+Disallow: /support
+Disallow: /cart
+Disallow: /checkout
+Disallow: /orders
+Disallow: /wallet
+Disallow: /affiliate
+Disallow: /billing
+Disallow: /notifications
+Disallow: /shops
+Disallow: /sourcing
+Disallow: /intelligence
+Disallow: /odm
+Disallow: /pod
 # Integración con tiendas: no se ofrece hoy, así que no se indexa (25-sep-2026).
 Disallow: /developers
 Disallow: /connect
 Disallow: /conectar
+# Pantallas de acceso y las que se abren desde un correo con testigo en la dirección.
+Disallow: /login
+Disallow: /activate
+Disallow: /password-reset
+Disallow: /newsletter/unsubscribe
 
 # --- Crawlers de IA / entrenamiento / scrapers: BLOQUEADOS por completo ---
 User-agent: GPTBot
@@ -79,13 +167,58 @@ User-agent: AI2Bot
 Disallow: /
 
 # --- Resto de bots: pueden ver la tienda pública, pero nunca el panel ni la API ---
+# La lista es la MISMA que la de Google y Bing a propósito. Estaba partida en dos y divergió: el
+# bloque de los buscadores dejaba abiertos /login, /activate y /password-reset, y ninguno de los dos
+# cubría las pantallas con sesión. Si algo no se indexa, no se indexa para nadie.
 User-agent: *
 Disallow: /admin
 Disallow: /api/
+# Atajos de la raíz que redirigen al panel. Se prerenderizan como páginas «Redirecting» vacías, así
+# que lo único indexable en ellas era el mapa del back-office (28-sep-2026).
+Disallow: /academy
+Disallow: /dashboard
+Disallow: /productos
+Disallow: /products
+Disallow: /categorias
+Disallow: /proveedores
+Disallow: /ordenes
+Disallow: /facturacion
+Disallow: /usuarios
+Disallow: /perfil
+Disallow: /mentors
+Disallow: /warehouses
+Disallow: /platform
+# Pantallas que EXIGEN sesión. Responden 200 a cualquiera y su HTML lo monta el navegador, así que
+# lo que un buscador lee en todas ellas es el index.html de relleno: una veintena de direcciones
+# distintas con el mismo título y la misma descripción que la portada (28-sep-2026).
+Disallow: /catalog
+# …pero la FICHA sí: su HTML se prerenderiza con título, foto y precio propios para poder
+# compartirla. La regla más larga gana, así que `/catalog/<slug>` queda permitida.
+Allow: /catalog/
+Disallow: /favorites
+Disallow: /history
+Disallow: /profile
+Disallow: /addresses
+Disallow: /support
+Disallow: /cart
+Disallow: /checkout
+Disallow: /orders
+Disallow: /wallet
+Disallow: /affiliate
+Disallow: /billing
+Disallow: /notifications
+Disallow: /shops
+Disallow: /sourcing
+Disallow: /intelligence
+Disallow: /odm
+Disallow: /pod
+# Integración con tiendas: no se ofrece hoy, así que no se indexa (25-sep-2026).
 Disallow: /developers
 Disallow: /connect
 Disallow: /conectar
+# Pantallas de acceso y las que se abren desde un correo con testigo en la dirección.
 Disallow: /login
 Disallow: /activate
 Disallow: /password-reset
+Disallow: /newsletter/unsubscribe
 Crawl-delay: 10

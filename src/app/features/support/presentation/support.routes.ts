@@ -20,12 +20,14 @@ export const rutas: Routes = [
   {
     path: 'support',
     canActivate: [exigeSesion],
+    data: { privada: true },
     providers: [proveeSupport()],
     loadComponent: () => import('./page/mis-tickets.page').then((m) => m.MisTicketsPage),
   },
   {
     path: 'admin/support',
     canActivate: [exigeRol('ADMIN', 'OPERATOR')],
+    data: { privada: true },
     providers: [proveeSupport()],
     loadComponent: () =>
       import('./page/tickets-de-soporte.page').then((m) => m.TicketsDeSoportePage),

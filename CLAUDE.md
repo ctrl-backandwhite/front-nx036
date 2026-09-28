@@ -222,8 +222,41 @@ Todas las demás se servían con el título de relleno del `index.html`, `.:: NX
 de descripción. Eso era lo que enseñaban Google y WhatsApp de «Sobre nosotros», de «Contacto» y del
 resto del sitio, y **no había ningún error que lo delatara**: la página se pinta perfectamente.
 
-Y una regla de contenido que va con esto: **la web no anuncia lo que no se presta**. En esa misma
-fecha, «Sobre nosotros» describía NX036 como un servicio de integración con Shopify y WooCommerce —en
+### Y lo que está cerrado se declara `privada: true`
+
+Una ruta con guardián —`exigeSesion` o `exigeRol`— añade `data: { privada: true }`. Con eso sale con
+`<meta name="robots" content="noindex, follow">`, y la marca **se hereda hacia las hijas**, así que
+en un grupo entero basta declararla en el padre (es lo que hace `/admin` en `app.routes.ts`, y con
+él los trece atajos de la raíz que redirigen allí).
+
+```ts
+{ path: 'cart', canActivate: [exigeSesion], data: { privada: true }, loadComponent: … }
+```
+
+Por qué es norma: hasta el 28-sep-2026 esas pantallas respondían 200 a cualquiera y, como su HTML lo
+monta el navegador, lo que un buscador leía en **todas** era el `index.html` de relleno — una
+veintena de direcciones distintas compitiendo entre sí con el título y la descripción de la portada,
+y ninguna abrible sin cuenta. Los atajos del panel eran peor: se prerenderizan como páginas
+«Redirecting» vacías, así que lo único indexable en ellas era el **mapa del back-office**.
+
+Son **tres capas y tienen que decir lo mismo**: `public/robots.txt` impide el rastreo, el `map
+$request_uri $etiqueta_robots` de `nginx.conf` manda la cabecera `X-Robots-Tag` —la única que llega
+a quien no ejecuta JavaScript— y la etiqueta la pone Angular. Lo verifica
+`core/seo/lo-cerrado-no-se-indexa.spec.ts`, que además comprueba que la lista es la MISMA para
+Google, para Bing y para el resto: estaba partida en dos bloques y ya había divergido.
+
+Dos excepciones, las dos a propósito: la **ficha de producto**, cuyo `<head>` se prerenderiza y lo
+completa `seo-ficha.js` justamente para que el enlace se pueda compartir, y el **alta**, que es
+adonde se quiere llegar desde un buscador.
+
+Y ojo con la trampa de nginx que costó la primera versión de esto: un `location` propio **no vale**,
+porque casi ninguna de esas direcciones tiene fichero y `try_files` acaba en `/index.csr.html`, que
+es una redirección interna — vuelve a buscar `location`, cae en `location /` y se queda con SUS
+cabeceras. De quince rutas probadas solo salía marcada `/academy`, la única con carpeta en el disco.
+Por eso va en un `map`, y sobre `$request_uri`: en esa redirección `$uri` ya vale `/index.csr.html`.
+
+Y una regla de contenido que va con esto: **la web no anuncia lo que no se presta**. El 25-sep-2026,
+«Sobre nosotros» describía NX036 como un servicio de integración con Shopify y WooCommerce —en
 los ocho idiomas— y el `sitemap.xml` pedía indexar `/developers` y `/connect` con prioridad 0.8, por
 encima de la propia «Sobre nosotros». Lo fija `site-pages.spec.ts`, porque un texto no falla solo.
 

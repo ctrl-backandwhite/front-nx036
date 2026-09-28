@@ -2992,7 +2992,7 @@ const diccionario: Record<string, string> = {
   'seo.contact.title': 'Contacto',
   'seo.contact.desc': 'Envie-nos a sua questão sobre encomendas, envios ou produtos. Respondemos normalmente em 24–48 horas.',
   'seo.pricing.title': 'Planos',
-  'seo.pricing.desc': 'Os planos da NX036, com 15 dias de teste gratuito. Suba ou cancele quando quiser.',
+  'seo.pricing.desc': 'Os planos da NX036 e o que cada um inclui. O teste gratuito de 15 dias ativa-se a partir da tua conta, uma única vez.',
   'seo.login.title': 'Iniciar sessão',
   'seo.login.desc': 'Entre na sua conta NX036 para ver o catálogo completo, as suas encomendas e os seus envios.',
   'seo.register.title': 'Criar conta',
