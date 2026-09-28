@@ -13,6 +13,9 @@ import { PasosDeSeguimiento } from './pasos-de-seguimiento';
  * haría imposible saber qué le pasa a cada uno.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-bulto-de-envio',
   imports: [FaIconComponent, PasosDeSeguimiento],
   template: `

@@ -24,6 +24,9 @@ const REFRESCO_MS = 5000;
  * <p>«Mío» aquí es lo que escribió SOPORTE: es el lado desde el que se mira.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-hilo-de-soporte',
   imports: [FaIconComponent, FormField],
   template: `

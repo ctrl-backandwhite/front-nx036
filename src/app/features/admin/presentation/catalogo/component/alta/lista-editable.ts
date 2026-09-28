@@ -15,6 +15,9 @@ import { ListaDelAlta } from './filas-del-alta';
  * Las de muchos campos van cada una en su bloque con borde; las de tres, en una fila.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-lista-editable',
   imports: [FaIconComponent, CamposEscalares],
   template: `

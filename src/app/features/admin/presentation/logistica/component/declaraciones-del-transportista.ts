@@ -19,6 +19,9 @@ import {
  * <p>Los envíos anteriores a que esto se archivara no traen declaración: no se pinta nada y ya está.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-declaraciones-del-transportista',
   imports: [FaIconComponent],
   template: `

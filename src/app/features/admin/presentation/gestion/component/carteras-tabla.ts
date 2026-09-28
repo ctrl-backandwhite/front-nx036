@@ -34,6 +34,9 @@ export interface PeticionSobreCartera {
  * <p>MOBILE FIRST: la tabla se desplaza dentro de su caja; la página no se descuadra a lo ancho.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-carteras-tabla',
   imports: [RouterLink, FaIconComponent],
   template: `

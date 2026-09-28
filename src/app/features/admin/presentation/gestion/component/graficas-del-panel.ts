@@ -18,6 +18,9 @@ const DIAS = 30;
  * <p>MOBILE FIRST: una gráfica debajo de otra en el móvil, y dos columnas a partir de `md`.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-graficas-del-panel',
   imports: [GraficaBarras],
   template: `

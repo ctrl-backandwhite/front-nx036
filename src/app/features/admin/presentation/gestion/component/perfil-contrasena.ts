@@ -24,6 +24,9 @@ let contador = 0;
  * es lo que evita que la pantalla y la regla acaben diciendo cosas distintas.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-perfil-contrasena',
   imports: [FaIconComponent, FormField],
   template: `

@@ -15,6 +15,9 @@ import { PlataformaDeTienda, inicialDePlataforma } from '../../domain/model/tien
  * tres columnas a partir de `sm`.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-tiendas-vacias',
   imports: [FaIconComponent],
   template: `

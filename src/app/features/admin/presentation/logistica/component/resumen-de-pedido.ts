@@ -14,6 +14,9 @@ import { FichaDePedido } from '../../../domain/logistica/model/pedido';
  * envío gratis, que es una promesa distinta.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-resumen-de-pedido',
   template: `
     <!-- Móvil primero: una columna, y a partir de la anchura media el desglose ocupa dos tercios. -->

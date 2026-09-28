@@ -18,6 +18,9 @@ import { InfoDeAranceles } from './info-de-aranceles';
  * pedido de prueba pasó de 6,20 € a 14,06 € al elegir España.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-desglose-del-pedido',
   imports: [GuiaPuntos, InfoDeAranceles],
   template: `

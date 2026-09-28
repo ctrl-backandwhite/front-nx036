@@ -4,6 +4,9 @@ import { IconDefinition } from '@fortawesome/free-solid-svg-icons';
 
 /** Una cifra grande con su rótulo: clics, conversiones o dinero. */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-tarjeta-indicador',
   imports: [FaIconComponent],
   template: `

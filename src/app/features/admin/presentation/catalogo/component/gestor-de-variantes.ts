@@ -60,6 +60,9 @@ function borradoresDe(
  * corregirlas de una en una son cuarenta ventanas. Solo se guardan las que de verdad cambiaron.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-gestor-de-variantes',
   imports: [NgOptimizedImage, FaIconComponent, FilasDeVariante],
   template: `

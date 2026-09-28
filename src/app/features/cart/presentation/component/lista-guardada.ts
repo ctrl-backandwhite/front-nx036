@@ -15,6 +15,9 @@ import { AccionesDeLinea } from '../acciones-de-linea';
  * lo sepa da por perdida la lista al cambiar de equipo — o peor, cuenta con ella y no está.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-lista-guardada',
   imports: [RouterLink, FaIconComponent, ImagenSegura],
   template: `

@@ -19,6 +19,9 @@ import {
  * desplaza dentro de su propio contenedor para que la página no se desplace en horizontal.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-tendencias-de-anuncios',
   imports: [RouterLink],
   template: `

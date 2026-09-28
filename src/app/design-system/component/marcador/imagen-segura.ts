@@ -23,6 +23,9 @@ const SERVICIOS_DE_RELLENO =
  * aquí: es lo que impide que un enlace roto se vea distinto en cada pantalla.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-imagen-segura',
   imports: [FaIconComponent],
   template: `

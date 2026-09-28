@@ -22,6 +22,9 @@ import { TasaDeCambio, formateaImporte } from '../../domain/model/tasa-de-cambio
  * que casi nadie mira. Quien las trae es la pantalla; aquí solo se avisa de que hacen falta.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-tarjeta-de-solicitud',
   imports: [FaIconComponent],
   template: `

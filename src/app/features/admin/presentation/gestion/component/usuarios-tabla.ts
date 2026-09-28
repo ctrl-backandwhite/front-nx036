@@ -47,6 +47,9 @@ export interface CambioDeRol {
  * pantalla estrecha se lee arrastrando y la página no se descuadra a lo ancho.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-usuarios-tabla',
   imports: [FaIconComponent],
   template: `

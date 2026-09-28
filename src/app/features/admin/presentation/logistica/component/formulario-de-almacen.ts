@@ -131,7 +131,7 @@ interface BorradorDeAlmacen {
       </div>
     </div>
   `,
-  host: { '(document:keydown.escape)': 'cancela.emit()' },
+  host: { class: 'block', '(document:keydown.escape)': 'cancela.emit()' },
 })
 export class FormularioDeAlmacen {
   readonly datos = input.required<DatosDeAlmacen>();

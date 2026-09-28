@@ -18,6 +18,9 @@ import { Recarga, esSimulada } from '../../domain/model/recarga';
  * que está apagado pero con toda su maquinaria en pie.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-resultado-de-recarga',
   imports: [RouterLink, FaIconComponent],
   template: `

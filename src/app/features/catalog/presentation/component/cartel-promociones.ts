@@ -22,6 +22,20 @@ const ENTRADA_MS = 250;
  * −17 % sería engañoso.
  */
 @Component({
+  /**
+   * SIN ESTA LÍNEA EL COMPONENTE NACE `inline`, y un elemento inline IGNORA los márgenes
+   * verticales.
+   *
+   * <p>El cartel va como hijo directo de un contenedor con `space-y`, que en Tailwind 4
+ * reparte el hueco con MARGEN INFERIOR en cada hijo salvo el último.
+   * Sin `display: block` ese margen no se aplica y el bloque siguiente se le echa encima: en
+   * la portada, el cartel de rebajas solapaba el título de «Tendencia ahora».
+   *
+   * <p>Es la SEXTA vez que pasa en este proyecto con componentes distintos. Desde el
+   * 28-sep-2026 lo vigila `host-en-bloque.spec.ts`, que recorre las plantillas y falla si un
+   * componente propio cuelga de un contenedor con `space-y` sin declararlo.
+   */
+  host: { class: 'block' },
   selector: 'nx-cartel-promociones',
   imports: [RouterLink, ImagenSegura],
   template: `

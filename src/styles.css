@@ -650,6 +650,29 @@ code, pre, .font-mono { font-family: var(--font-mono); }
   color: color-mix(in oklch, var(--color-info) 65%, var(--color-base-content));
 }
 
+/* Los PUNTOS de la galería del móvil: se ven de 6 px y se pulsan como 24 (28-sep-2026).
+ *
+ * Medido a 390 px contra preproducción: los puntos eran zonas sensibles de 6x6 px, cuatro veces por
+ * debajo del mínimo de 24x24, en el componente que más se toca de la ficha. La galería se puede
+ * pasar arrastrando, así que no bloqueaba la compra; simplemente había que intentarlo varias veces.
+ *
+ * El área se extiende con un pseudoelemento y no con relleno, porque el relleno movería los puntos:
+ * así el punto se sigue viendo igual de pequeño y discreto, y el dedo acierta.
+ *
+ * Los nueve píxeles de cada lado y la separación de 18 px del contenedor van juntos y no se pueden
+ * tocar por separado: 6 de punto + 18 de hueco son 24 de centro a centro, que es lo que pide la
+ * norma, y 9 + 9 de extensión llenan ese hueco EXACTAMENTE sin que dos puntos contiguos se pisen.
+ * Con más extensión, el dedo caería en dos a la vez y saltaría a la foto equivocada. */
+.punto-galeria {
+  position: relative;
+}
+.punto-galeria::after {
+  content: '';
+  position: absolute;
+  inset-block: -9px;
+  inset-inline: -9px;
+}
+
 /* DROP-380: sidebar menu — activo en pastel lavanda. */
 .menu :where(li > *:not(ul, .menu-title, details, .btn).menu-active),
 .menu :where(li > *:not(ul, .menu-title, details, .btn):is(.active)),

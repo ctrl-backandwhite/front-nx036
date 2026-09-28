@@ -11,6 +11,9 @@ import { nombreDeUbicacion } from './ubicacion';
  * dominio, no esta plantilla.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-pasos-de-seguimiento',
   imports: [FaIconComponent],
   template: `

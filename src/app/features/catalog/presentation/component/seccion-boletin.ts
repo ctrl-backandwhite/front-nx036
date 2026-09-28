@@ -14,6 +14,19 @@ import { ALTA_EN_EL_BOLETIN_PORT } from '../../domain/port/alta-en-el-boletin.po
  * una tarjeta con icono y titular, en lugar de una columna estrecha.
  */
 @Component({
+  /**
+   * SIN ESTA LÍNEA EL COMPONENTE NACE `inline`, y un elemento inline IGNORA los márgenes
+   * verticales.
+   *
+   * <p>Va en el mismo contenedor con `space-y` que el resto de las secciones de la portada.
+   * Sin `display: block` ese margen no se aplica y el bloque siguiente se le echa encima: en
+   * la portada, el cartel de rebajas solapaba el título de «Tendencia ahora».
+   *
+   * <p>Es la SEXTA vez que pasa en este proyecto con componentes distintos. Desde el
+   * 28-sep-2026 lo vigila `host-en-bloque.spec.ts`, que recorre las plantillas y falla si un
+   * componente propio cuelga de un contenedor con `space-y` sin declararlo.
+   */
+  host: { class: 'block' },
   selector: 'nx-seccion-boletin',
   imports: [FaIconComponent, AltaBoletin],
   template: `

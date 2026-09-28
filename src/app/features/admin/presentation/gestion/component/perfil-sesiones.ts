@@ -19,6 +19,9 @@ import {
  * quedan vivas es el servidor, y borrar por nuestra cuenta enseñaría una lista que puede no ser la suya.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-perfil-sesiones',
   imports: [FaIconComponent],
   template: `

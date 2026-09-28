@@ -24,6 +24,9 @@ import { BajaDeMetodo } from './baja-de-metodo';
  * para que alguien pregunte por qué no funciona.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-metodos-de-pago',
   imports: [FaIconComponent, AltaDeTarjeta, AltaDePaypal, BajaDeMetodo],
   template: `

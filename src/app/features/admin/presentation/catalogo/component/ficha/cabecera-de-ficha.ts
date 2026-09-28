@@ -35,6 +35,9 @@ export type AccionDeFicha = 'publicar' | 'pausar' | 'archivar' | 'duplicar' | 'e
  * en el escritorio caben todas a la vista.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-cabecera-de-ficha',
   imports: [RouterLink, FormField, FaIconComponent],
   template: `

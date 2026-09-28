@@ -45,6 +45,9 @@ const LADO_DE_LA_MINIATURA = 400;
  * su identificador `O1CN`: la misma foto llega con direcciones distintas según el tamaño y el CDN.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-galeria-de-ficha',
   imports: [FaIconComponent, FormField, NgOptimizedImage],
   template: `

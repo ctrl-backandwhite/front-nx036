@@ -17,6 +17,9 @@ import { Component, signal, viewChild, ElementRef } from '@angular/core';
  * una caja recortada, no un carrusel— y `snap-x` encaja las tarjetas en lugar de dejarlas a medias.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-hilera-deslizable',
   template: `
     <div

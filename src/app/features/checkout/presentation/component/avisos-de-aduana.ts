@@ -12,6 +12,9 @@ import { CotizacionDeEnvio } from '../../domain/model/cotizacion-de-envio';
  * habrá cargos extra al recibir. El aviso existe para explicar por qué el envío es más caro.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-avisos-de-aduana',
   template: `
     @if (hayPais() && cotizacion() && !cotizacion()!.cubierto) {

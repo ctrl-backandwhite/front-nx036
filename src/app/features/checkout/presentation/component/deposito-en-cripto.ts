@@ -12,6 +12,9 @@ import { CobroIniciado } from '../../domain/model/pago';
  * permite cerrar una compra de prueba de punta a punta en los entornos previos.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-deposito-en-cripto',
   imports: [FaIconComponent],
   template: `

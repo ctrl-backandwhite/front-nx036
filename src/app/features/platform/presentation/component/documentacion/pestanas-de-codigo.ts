@@ -16,6 +16,9 @@ import { CopiaAlPortapapeles } from './copia-al-portapapeles';
  * tiene por qué enseñar tres pestañas vacías.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-pestanas-de-codigo',
   imports: [FaIconComponent],
   providers: [CopiaAlPortapapeles],

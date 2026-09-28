@@ -9,6 +9,9 @@ import { iconoDeDocumentacion } from './iconos-de-documentacion';
  * fija: sin él, al llegar desde el índice se veía el segundo párrafo y no el encabezado.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-seccion-de-documentacion',
   imports: [FaIconComponent],
   template: `

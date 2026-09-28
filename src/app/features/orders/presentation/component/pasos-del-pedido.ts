@@ -31,6 +31,9 @@ const ADORNOS: Readonly<Record<string, IconDefinition>> = {
  * <p>Un pedido cancelado o reembolsado no tiene camino que enseñar: se dice lo que pasó y cuándo.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-pasos-del-pedido',
   imports: [FaIconComponent],
   template: `

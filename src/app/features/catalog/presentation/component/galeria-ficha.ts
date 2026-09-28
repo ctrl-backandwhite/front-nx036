@@ -28,6 +28,9 @@ import { VisorGaleria } from './visor-galeria';
  * galería tenga que conocerlo.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-galeria-ficha',
   imports: [FaIconComponent, NgOptimizedImage, VisorGaleria],
   template: `
@@ -327,15 +330,22 @@ import { VisorGaleria } from './visor-galeria';
         }
       </div>
 
-      <!-- Puntos SOLO en el móvil: tocar salta a esa foto, como en cualquier aplicación. -->
+      <!--
+        Puntos SOLO en el móvil: tocar salta a esa foto, como en cualquier aplicación.
+
+        El hueco de 18 px y la clase punto-galeria van JUNTOS: el punto se ve de 6 px pero se pulsa
+        como 24, que es el mínimo. Antes la zona sensible medía 6x6 y el dedo fallaba casi siempre.
+        La separación no es cosmética: 6 de punto más 18 de hueco son los 24 de centro a centro que
+        pide la norma, y es lo que permite extender el área sin que dos puntos contiguos se pisen.
+      -->
       @if (cuantas() > 1 && !enVideo()) {
-        <div class="sm:hidden order-3 flex flex-wrap justify-center gap-1.5 pt-0.5">
+        <div class="sm:hidden order-3 flex flex-wrap justify-center gap-[18px] pt-0.5">
           @for (foto of fotos(); track foto.id; let i = $index) {
             <button
               type="button"
               (click)="elige(i)"
               [attr.aria-label]="t('product.image_n') + ' ' + (i + 1)"
-              class="h-1.5 rounded-full transition-all"
+              class="punto-galeria h-1.5 rounded-full transition-all"
               [class]="i === activa() ? 'w-5 bg-primary' : 'w-1.5 bg-base-300'"
             ></button>
           }

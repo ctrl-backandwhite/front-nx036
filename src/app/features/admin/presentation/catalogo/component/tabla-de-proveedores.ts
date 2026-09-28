@@ -24,6 +24,9 @@ import { EsqueletoDeFila } from '@ds/component/marcador/esqueleto-de-fila';
  * ciudad, y concatenar a ciegas dejaba filas que empezaban por coma («, China»).
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-tabla-de-proveedores',
   imports: [FaIconComponent, EsqueletoDeFila],
   template: `

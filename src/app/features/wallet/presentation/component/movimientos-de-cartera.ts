@@ -31,6 +31,9 @@ const NEUTRO = { icono: faGears, color: 'text-ink-500' };
  * la fecha a partir de `md`. Las columnas se AÑADEN hacia arriba, nunca se esconden hacia abajo.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-movimientos-de-cartera',
   imports: [FaIconComponent],
   template: `

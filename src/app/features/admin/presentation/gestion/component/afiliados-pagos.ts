@@ -17,6 +17,9 @@ import { ApruebaElPago, RechazaElPago } from '../../../application/gestion/use-c
  * al lado del IBAN es la forma más rápida de aprobar una cantidad que no era.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-afiliados-pagos',
   template: `
     @if (pagos().length) {

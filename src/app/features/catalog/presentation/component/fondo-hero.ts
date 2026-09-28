@@ -25,6 +25,9 @@ const MINIMO_DE_FOTOS = 6;
  * CSS (`hero-belt`, en la hoja central), así que se pausa sola con «reducir movimiento».
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-fondo-hero',
   template: `
     @if (cintas().length > 0) {

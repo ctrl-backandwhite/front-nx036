@@ -57,6 +57,9 @@ const REDES = [
  * tienen que ser alcanzables desde cualquier página.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-pie-sitio',
   imports: [RouterLink, FaIconComponent, AltaBoletin],
   template: `

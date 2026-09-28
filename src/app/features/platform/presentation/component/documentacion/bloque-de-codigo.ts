@@ -12,6 +12,9 @@ import { CopiaAlPortapapeles } from './copia-al-portapapeles';
  * documentación completa.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-bloque-de-codigo',
   imports: [FaIconComponent],
   providers: [CopiaAlPortapapeles],

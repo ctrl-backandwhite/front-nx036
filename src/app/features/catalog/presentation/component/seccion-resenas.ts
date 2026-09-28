@@ -43,6 +43,9 @@ const BORRADOR_VACIO: BorradorDeResena = { nota: '5', autor: '', titulo: '', cue
  * producto mal valorado, no como uno sin valorar.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-seccion-resenas',
   imports: [FormField],
   template: `

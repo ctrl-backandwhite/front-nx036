@@ -44,6 +44,9 @@ export interface AccionSobreProducto {
  * así el cuerpo de la página nunca se desplaza de lado en el móvil.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-tabla-de-productos',
   imports: [RouterLink, FaIconComponent, EsqueletoDeFila, ImagenSegura],
   template: `

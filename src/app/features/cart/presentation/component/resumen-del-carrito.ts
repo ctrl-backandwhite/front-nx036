@@ -12,6 +12,9 @@ import { PreferenciasService } from '@core/preferences/preferencias';
  * la nota de abajo lo dice con todas las letras.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-resumen-del-carrito',
   imports: [RouterLink],
   template: `

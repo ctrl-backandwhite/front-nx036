@@ -165,7 +165,7 @@ const TECLAS_DE_NAVEGACION = ['ArrowDown', 'ArrowUp', 'Home', 'End'];
       }
     </div>
   `,
-  host: {
+  host: { class: 'block',
     '(document:keydown.escape)': 'cierra()',
     // Pulsar fuera cierra el panel. Va en el documento y no en el propio panel porque el clic que hay
     // que detectar ocurre justo donde el panel NO está.

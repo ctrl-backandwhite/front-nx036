@@ -10,6 +10,9 @@ import { TraduccionService } from '@core/i18n/traduccion.service';
  * alguien por el hecho de abrir la pantalla convertiría un contrato en un descuido.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-alta-de-afiliado',
   imports: [FaIconComponent],
   template: `

@@ -10,6 +10,9 @@ import { AgenteResumido } from '../../domain/model/aprovisionamiento';
  * <p>MOBILE FIRST: una columna en el móvil, dos a partir de `sm` y tres en pantalla grande.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-agentes-de-aprovisionamiento',
   imports: [FaIconComponent],
   template: `

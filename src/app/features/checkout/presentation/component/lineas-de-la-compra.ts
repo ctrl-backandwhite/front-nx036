@@ -21,6 +21,9 @@ import { VistaDeValoracion } from '../../application/use-case/valora-la-compra.u
  * una cuenta que no cuadra.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-lineas-de-la-compra',
   imports: [FaIconComponent, FormField, ImagenSegura],
   template: `

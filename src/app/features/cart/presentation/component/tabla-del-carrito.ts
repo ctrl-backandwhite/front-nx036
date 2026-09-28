@@ -20,6 +20,9 @@ import { AccionesDeLinea } from '../acciones-de-linea';
  * al final—, y escribirlo como producto invitaba a hacer una cuenta que no cuadra.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-tabla-del-carrito',
   imports: [RouterLink, FaIconComponent, ImagenSegura],
   template: `

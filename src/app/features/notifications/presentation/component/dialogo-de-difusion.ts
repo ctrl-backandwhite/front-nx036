@@ -14,6 +14,9 @@ import { Difusion } from '../../domain/port/avisos.port';
  * tarjeta centrada de ancho fijo.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-dialogo-de-difusion',
   imports: [FaIconComponent],
   template: `

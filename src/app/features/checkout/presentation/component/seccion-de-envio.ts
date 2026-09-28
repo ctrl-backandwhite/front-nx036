@@ -18,6 +18,9 @@ export const OPCION_NUEVA = 'NUEVA';
  * solo en el círculo es exigir puntería en el paso donde más molesta.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-seccion-de-envio',
   imports: [RouterLink, FaIconComponent, CamposDeDireccion],
   template: `

@@ -21,6 +21,9 @@ import { FilaDeYuanes } from './fila-de-yuanes';
  * formateado, que las incluye. Se editan con doble clic aquí mismo, o en lote desde el listado.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-resumen-de-ficha',
   imports: [FilaDeDato, FilaDeYuanes],
   template: `

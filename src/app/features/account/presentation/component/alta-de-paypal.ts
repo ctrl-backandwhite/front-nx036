@@ -17,6 +17,9 @@ import { AnadePaypal } from '../../application/use-case/cobros.use-case';
  * <p>Mobile first: campo y botón apilados, y en una fila a partir de `sm`.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-alta-de-paypal',
   imports: [FaIconComponent, FormField],
   template: `

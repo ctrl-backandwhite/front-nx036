@@ -20,6 +20,9 @@ const MARGEN_Y = 14;
  * que escale solo, que es justo lo que hace falta en el móvil.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-historico-de-precios',
   template: `
     @if (datos.isLoading()) {

@@ -20,6 +20,9 @@ import { TarjetaDeDireccion } from './tarjeta-de-direccion';
  * en una ventana emergente para no perder de vista el resto del perfil.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-direcciones-del-perfil',
   imports: [RouterLink, FaIconComponent, TarjetaDeDireccion, FormularioDeDireccion],
   template: `

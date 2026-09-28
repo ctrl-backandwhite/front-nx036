@@ -19,6 +19,9 @@ const TOPE_ANTES_DE_COLAPSAR = 10;
  * ficha estuviera en español.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-bascula-variantes',
   template: `
     <div class="card card-border bg-base-100">

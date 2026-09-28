@@ -27,6 +27,9 @@ const VISIBLES_POR_DEFECTO = 3;
  * ni se redondea nada.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-opciones-de-envio',
   template: `
     <section class="space-y-2" role="radiogroup" [attr.aria-label]="t('checkout.shipping_option.title')">

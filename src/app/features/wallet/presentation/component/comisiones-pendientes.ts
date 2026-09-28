@@ -20,6 +20,9 @@ import {
  * recargar y sin que este componente monte su propio reloj.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-comisiones-pendientes',
   imports: [FaIconComponent],
   template: `

@@ -12,6 +12,9 @@ import { TraduccionService } from '@core/i18n/traduccion.service';
  * que es como la cuenta quien mira. La conversión vive aquí y en ningún otro sitio.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-paginacion',
   template: `
     <div class="flex items-center justify-end gap-3 text-[12px]">

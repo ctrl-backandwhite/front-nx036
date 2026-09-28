@@ -21,6 +21,9 @@ import { VisorGaleria } from './visor-galeria';
  * con las flechas, el contador y las teclas de siempre sin duplicar nada.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-galeria-de-detalle',
   imports: [FaIconComponent, VisorGaleria],
   template: `

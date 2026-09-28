@@ -17,6 +17,9 @@ import { TraduccionService } from '@core/i18n/traduccion.service';
  * misma comprobación en el botón y en el atajo del teclado.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-campo-de-cupon',
   imports: [FormField],
   template: `

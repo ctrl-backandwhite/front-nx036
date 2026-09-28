@@ -20,6 +20,9 @@ import { EsqueletoDeFila } from '@ds/component/marcador/esqueleto-de-fila';
  * tienda y hay que poder verlo de un vistazo entre dos mil filas.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-tabla-de-categorias',
   imports: [RouterLink, FaIconComponent, EsqueletoDeFila],
   template: `

@@ -32,7 +32,7 @@ import { TraduccionService } from '@core/i18n/traduccion.service';
       <img [src]="src()" [alt]="alt()" class="relative max-w-full max-h-full rounded shadow-2xl" />
     </div>
   `,
-  host: { '(document:keydown.escape)': 'cierra.emit()' },
+  host: { class: 'block', '(document:keydown.escape)': 'cierra.emit()' },
 })
 export class VisorDeImagen {
   readonly src = input.required<string>();

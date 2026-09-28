@@ -35,6 +35,9 @@ export interface PeticionSobrePedido {
  * entera se iba de lado y la cabecera del panel quedaba fuera.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-tabla-de-pedidos',
   imports: [RouterLink, FaIconComponent, InsigniaEstado],
   template: `

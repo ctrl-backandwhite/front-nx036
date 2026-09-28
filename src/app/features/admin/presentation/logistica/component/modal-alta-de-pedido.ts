@@ -248,7 +248,7 @@ function pedidoEnBlanco(): BorradorDePedido {
       </div>
     </div>
   `,
-  host: { '(document:keydown.escape)': 'cierra.emit()' },
+  host: { class: 'block', '(document:keydown.escape)': 'cierra.emit()' },
 })
 export class ModalAltaDePedido {
   readonly cierra = output<void>();

@@ -123,7 +123,7 @@ import { EnfocaAlAparecer } from '../../directive/enfoca-al-aparecer.directive';
       }
     </div>
   `,
-  host: { '(document:mousedown)': 'cierraSiEsFuera($event)' },
+  host: { class: 'block', '(document:mousedown)': 'cierraSiEsFuera($event)' },
 })
 export class SelectorPaisMoneda {
   /** Hacia dónde abre el panel. Arriba para el cajón del móvil, donde el botón está abajo del todo. */

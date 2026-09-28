@@ -5,6 +5,9 @@ import { DireccionDePedido } from '../../domain/model/pedido';
 
 /** Adónde va el paquete, tal como se transmitió al transportista. */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-direccion-del-pedido',
   template: `
     <div class="card p-5">

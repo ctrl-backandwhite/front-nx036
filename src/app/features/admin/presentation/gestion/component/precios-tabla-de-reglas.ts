@@ -25,6 +25,9 @@ import {
  * permite leerla en una pantalla estrecha sin encoger la letra ni romper la página.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-precios-tabla-de-reglas',
   imports: [FaIconComponent],
   template: `

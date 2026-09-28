@@ -19,6 +19,9 @@ import { ejePrincipal, etiquetaDeValor } from '../../../domain/model/seleccion-d
  * <p>Se carga EN DIFERIDO y solo para el administrador.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-fotos-de-variante',
   template: `
     @if (fotos().length > 0) {

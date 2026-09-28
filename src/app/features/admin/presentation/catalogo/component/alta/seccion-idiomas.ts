@@ -15,6 +15,9 @@ import { IdiomaDeTienda } from '../../../../domain/catalogo/port/catalogo-comun.
  * idioma activo: cambiar de pestaña cambia a qué campo apuntan, no qué valor se copia a dónde.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-seccion-idiomas',
   imports: [FormField],
   template: `

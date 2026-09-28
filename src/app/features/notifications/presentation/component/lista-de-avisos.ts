@@ -31,6 +31,9 @@ import { COLOR_DE_CATEGORIA, COLOR_DE_ESTADO, claveDeEstado } from './colores-de
  * caben las dos cosas—; a partir de `sm` convive con el panel de lectura en una columna fija.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-lista-de-avisos',
   imports: [FaIconComponent],
   template: `

@@ -17,6 +17,9 @@ const FALLOS_QUE_SE_ENUMERAN = 5;
  * intento.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-aviso-anuncios-bus',
   imports: [RouterLink, FaIconComponent],
   template: `

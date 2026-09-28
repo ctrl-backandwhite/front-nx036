@@ -12,6 +12,9 @@ import { Direccion } from '../../domain/model/direccion';
  * tarjeta se puede probar sola y reutilizar donde haga falta.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-tarjeta-de-direccion',
   imports: [FaIconComponent],
   template: `

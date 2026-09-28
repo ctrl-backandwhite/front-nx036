@@ -10,6 +10,9 @@ import { Pedido } from '../../domain/model/pedido';
  * y en el servidor, así que rehacer la cuenta en el navegador da otro número que el cobrado.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-resumen-de-pago',
   template: `
     <div class="card p-5">

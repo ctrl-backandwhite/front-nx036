@@ -19,6 +19,9 @@ const TOPE_DE_DESCRIPCION = 400;
  * idioma llega otra— y no arrastra lo tecleado en el anterior.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-seo-de-ficha',
   imports: [FaIconComponent, FormField, FilaDeDato],
   template: `

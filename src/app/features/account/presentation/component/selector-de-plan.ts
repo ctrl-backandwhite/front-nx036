@@ -27,6 +27,9 @@ import { AltaDeTarjetaModal } from './alta-de-tarjeta-modal';
  * <p>Mobile first: una tarjeta por fila, dos desde `sm` y cuatro desde `lg`.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-selector-de-plan',
   imports: [FaIconComponent, AltaDeTarjetaModal],
   template: `

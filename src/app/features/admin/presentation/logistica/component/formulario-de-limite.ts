@@ -221,7 +221,7 @@ const MEDIDA_MAXIMA_RAZONABLE_MM = 2_000;
       </div>
     </div>
   `,
-  host: { '(document:keydown.escape)': 'cancela.emit()' },
+  host: { class: 'block', '(document:keydown.escape)': 'cancela.emit()' },
 })
 export class FormularioDeLimite {
   readonly limite = input.required<LimiteDeTransportista>();

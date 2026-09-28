@@ -25,6 +25,9 @@ const ACCIONES: readonly AccionSobrePedido[] = ['forward', 'ship', 'deliver', 'r
  * el parte dice cuántos se saltaron, que es la información que de verdad hace falta.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-acciones-en-lote',
   imports: [FaIconComponent],
   template: `

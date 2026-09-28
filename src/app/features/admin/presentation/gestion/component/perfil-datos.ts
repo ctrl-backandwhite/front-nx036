@@ -30,6 +30,9 @@ const PAIS_ISO = /^[A-Za-z]{2}$/;
  * <p>MOBILE FIRST: los datos van en una columna y pasan a dos desde `sm`.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-perfil-datos',
   imports: [FaIconComponent, PerfilCampo, PerfilCampoEditable, FormField],
   template: `

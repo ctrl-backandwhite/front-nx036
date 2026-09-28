@@ -18,6 +18,9 @@ import { TasaDeCambio, convierte, formateaImporte } from '../../domain/model/tas
  * ilegible— y hasta seis en pantalla ancha.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-rejilla-de-productos',
   imports: [RouterLink, FaIconComponent, ImagenSegura],
   template: `

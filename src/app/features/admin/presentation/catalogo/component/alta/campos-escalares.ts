@@ -20,6 +20,9 @@ let siguienteGrupo = 0;
  * incómodo— y a partir de `sm` se reparten en dos o tres columnas según lo que pida cada uno.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-campos-escalares',
   imports: [FormField],
   template: `

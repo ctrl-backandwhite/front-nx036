@@ -15,6 +15,9 @@ import { ContadorAnimado } from '@ds/component/movimiento/contador-animado';
  * instante hace pensar que el catálogo está vacío.
  */
 @Component({
+  // Nace en BLOQUE: un elemento personalizado es `inline` por defecto y un inline ignora
+  // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
+  host: { class: 'block' },
   selector: 'nx-bloque-kpi',
   imports: [FaIconComponent, ContadorAnimado],
   template: `
