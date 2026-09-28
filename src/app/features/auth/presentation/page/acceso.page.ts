@@ -79,7 +79,7 @@ import { PanelDeMarca } from '../component/panel-de-marca';
               </button>
             </div>
 
-            <div class="divider text-[11px] uppercase tracking-wider opacity-60 my-5">{{ t('login.or_email') }}</div>
+            <div class="divider text-[11px] uppercase tracking-wider opacity-70 my-5">{{ t('login.or_email') }}</div>
 
             <form (submit)="envia($event)" class="mt-2 space-y-4">
               <div>
@@ -98,7 +98,7 @@ import { PanelDeMarca } from '../component/panel-de-marca';
                 <div class="relative">
                   <input id="acceso-clave" [type]="claveVisible() ? 'text' : 'password'" autocomplete="current-password"
                          class="input input-bordered w-full pr-10" [formField]="formulario.contrasena" />
-                  <button type="button" class="absolute inset-y-0 right-2 px-2 opacity-60 hover:opacity-100"
+                  <button type="button" class="absolute inset-y-0 right-2 px-2 opacity-70 hover:opacity-100"
                           [attr.aria-label]="t(claveVisible() ? 'login.hide_password' : 'login.show_password')"
                           (click)="claveVisible.set(!claveVisible())">
                     <fa-icon [icon]="claveVisible() ? iconos.ocultar : iconos.ver" />
@@ -116,7 +116,7 @@ import { PanelDeMarca } from '../component/panel-de-marca';
                   <input id="acceso-codigo" type="text" inputmode="numeric" autocomplete="one-time-code"
                          class="input input-bordered w-full tracking-[0.3em] text-center"
                          [formField]="formulario.codigo" [placeholder]="t('login.otp.placeholder')" />
-                  <p class="text-[11px] opacity-60 mt-1">{{ t('login.otp.hint') }}</p>
+                  <p class="text-[11px] opacity-70 mt-1">{{ t('login.otp.hint') }}</p>
                 </div>
               }
 

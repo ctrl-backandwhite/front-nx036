@@ -84,7 +84,7 @@ import { DesgloseEditable } from './admin/desglose-editable';
             -->
             <span class="inline-flex items-center gap-1 text-[13px]">
               <fa-icon [icon]="iconos.estrella" class="text-warning" /> {{ valoracion() }}
-              <span class="opacity-60 text-[12px]">({{ ficha().numeroDeResenas }})</span>
+              <span class="opacity-70 text-[12px]">({{ ficha().numeroDeResenas }})</span>
             </span>
           }
           <!-- El código externo y la plataforma de ORIGEN no se enseñan a quien compra: van en el
@@ -237,7 +237,7 @@ import { DesgloseEditable } from './admin/desglose-editable';
         }
       </div>
 
-      <p class="order-9 lg:order-0 text-[11px] opacity-60 leading-relaxed">
+      <p class="order-9 lg:order-0 text-[11px] opacity-70 leading-relaxed">
         {{ t('product.price_disclosure') }}
       </p>
     </aside>

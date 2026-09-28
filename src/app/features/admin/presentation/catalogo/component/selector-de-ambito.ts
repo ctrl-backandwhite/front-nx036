@@ -34,7 +34,7 @@ export type AmbitoElegido = 'seleccion' | 'categoria' | 'todo';
           {{ etiquetaDeSeleccion() }}
         </label>
       } @else {
-        <label class="flex items-center gap-2 text-[13px] cursor-pointer opacity-50">
+        <label class="flex items-center gap-2 text-[13px] cursor-pointer opacity-70">
           <input type="radio" class="radio radio-xs" disabled />
           {{ etiquetaDeSeleccion() }}
         </label>

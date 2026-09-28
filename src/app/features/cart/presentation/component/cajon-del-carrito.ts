@@ -63,7 +63,7 @@ const CIERRE_MS = 500;
               <fa-icon [icon]="iconoCesta" class="text-primary" />
               {{ t('cart.title') }}
               @if (estado.lineas().length > 0) {
-                <span class="text-[12px] opacity-60 font-normal">({{ estado.unidades() }})</span>
+                <span class="text-[12px] opacity-70 font-normal">({{ estado.unidades() }})</span>
               }
             </h2>
             <!-- «desde» cuando alguna línea no tiene peso real: sin esa palabra quien compra tomaría
@@ -124,7 +124,7 @@ const CIERRE_MS = 500;
                         >{{ linea.titulo }}</a
                       >
                       @if (linea.etiquetaDeVariante || linea.sku) {
-                        <div class="text-[11px] opacity-60 mt-0.5 truncate">
+                        <div class="text-[11px] opacity-70 mt-0.5 truncate">
                           {{ linea.etiquetaDeVariante }}
                           @if (linea.etiquetaDeVariante && linea.sku) {
                             <span> · </span>
@@ -134,7 +134,7 @@ const CIERRE_MS = 500;
                           }
                         </div>
                       }
-                      <div class="text-[11px] opacity-60 mt-0.5">
+                      <div class="text-[11px] opacity-70 mt-0.5">
                         {{ cotizacion.pesoDeLinea(linea) ?? t('cart.weight_pending') }}
                       </div>
                       <div class="flex items-center justify-between mt-1.5">
@@ -191,7 +191,7 @@ const CIERRE_MS = 500;
                 <div class="text-[12px] font-medium flex items-center gap-2 mb-2">
                   <fa-icon [icon]="iconoGuardar" class="text-primary" />
                   {{ t('cart.saved_title') }}
-                  <span class="opacity-60 font-normal">({{ estado.guardadas().length }})</span>
+                  <span class="opacity-70 font-normal">({{ estado.guardadas().length }})</span>
                 </div>
                 <ul class="space-y-2">
                   @for (linea of estado.guardadas(); track clave(linea)) {
@@ -206,7 +206,7 @@ const CIERRE_MS = 500;
                       </a>
                       <div class="flex-1 min-w-0">
                         <div class="text-[12px] line-clamp-1">{{ linea.titulo }}</div>
-                        <div class="text-[10px] opacity-60">
+                        <div class="text-[10px] opacity-70">
                           {{ cotizacionGuardadas.totalDeLinea(linea) }}
                         </div>
                       </div>

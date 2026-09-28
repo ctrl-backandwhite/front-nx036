@@ -45,7 +45,7 @@ const PASO_PX = 360;
         </header>
         <div #carril class="mt-3 flex gap-3 overflow-x-auto scrollbar-thin scroll-smooth">
           @if (productos().length === 0) {
-            <div class="opacity-60 text-sm">{{ t('pdp.recommend.empty') }}</div>
+            <div class="opacity-70 text-sm">{{ t('pdp.recommend.empty') }}</div>
           } @else {
             @for (producto of productos(); track producto.id) {
               <a

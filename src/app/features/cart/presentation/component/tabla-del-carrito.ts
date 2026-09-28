@@ -53,11 +53,11 @@ import { AccionesDeLinea } from '../acciones-de-linea';
                     @if (linea.etiquetaDeVariante) {
                       <div class="text-[11px] opacity-70">{{ linea.etiquetaDeVariante }}</div>
                     }
-                    <div class="text-[11px] opacity-60">
+                    <div class="text-[11px] opacity-70">
                       SKU: <code class="font-mono">{{ sku(linea) }}</code>
                     </div>
                     <!-- Peso NETO de la variante; si la ficha no lo declara se dice, no se rellena. -->
-                    <div class="text-[11px] opacity-60">
+                    <div class="text-[11px] opacity-70">
                       {{ cotizacion().pesoDeLinea(linea) ?? t('cart.weight_pending') }}
                     </div>
                     <button

@@ -87,7 +87,7 @@ const COLORES: Readonly<Record<string, string>> = {
                   <td class="px-2 text-ink-500">{{ fecha(comision) }}</td>
                   <td class="px-2 text-right font-medium">
                     {{ importe(comision.importeCentimos) }}
-                    <span class="opacity-50">({{ comision.porcentaje }}%)</span>
+                    <span class="opacity-70">({{ comision.porcentaje }}%)</span>
                   </td>
                   <td class="px-2">
                     <span class="badge badge-sm" [class]="color(comision.estado)">

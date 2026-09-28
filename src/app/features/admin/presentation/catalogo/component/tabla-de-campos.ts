@@ -14,7 +14,7 @@ import { CampoDeImportacion } from '../../../domain/catalogo/model/esquema-de-im
   template: `
     <div class="rounded-box bg-base-200/60 border border-base-200 text-[12px] max-h-56 overflow-auto">
       <table class="w-full">
-        <thead class="text-[11px] uppercase tracking-wide opacity-60 sticky top-0 bg-base-200">
+        <thead class="text-[11px] uppercase tracking-wide opacity-70 sticky top-0 bg-base-200">
           <tr>
             <th class="text-left font-medium px-3 py-1.5">{{ t('admin.catalog.bulk.col_field') }}</th>
             <th class="text-left font-medium px-2 py-1.5">{{ t('admin.catalog.bulk.col_req') }}</th>
@@ -37,7 +37,7 @@ import { CampoDeImportacion } from '../../../domain/catalogo/model/esquema-de-im
                   </span>
                 }
               </td>
-              <td class="px-2 py-1.5 font-mono opacity-60 whitespace-nowrap">{{ campo.tipo }}</td>
+              <td class="px-2 py-1.5 font-mono opacity-70 whitespace-nowrap">{{ campo.tipo }}</td>
               <td class="px-3 py-1.5 opacity-80">{{ t(campo.descripcion) }}</td>
             </tr>
           }

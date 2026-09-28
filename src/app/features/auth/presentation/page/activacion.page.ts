@@ -63,7 +63,7 @@ const ESPERA_ENTRE_REENVIOS_S = 30;
             <!-- Reenvío del correo. Es la única salida cuando no llegó o caducó. -->
             <div class="mt-6 pt-5 border-t border-base-200">
               <p class="text-sm font-medium">{{ t('activate.resend_q') }}</p>
-              <p class="text-[12px] opacity-60 mb-2">{{ t('activate.resend_hint') }}</p>
+              <p class="text-[12px] opacity-70 mb-2">{{ t('activate.resend_hint') }}</p>
               <form (submit)="reenvia($event)" class="flex flex-col sm:flex-row gap-2">
                 <label class="sr-only" for="activacion-email">{{ t('activate.email_placeholder') }}</label>
                 <input id="activacion-email" type="email" required autocomplete="email"

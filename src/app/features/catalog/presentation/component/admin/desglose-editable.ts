@@ -42,7 +42,7 @@ interface FilaEditable {
   imports: [FormField, GuiaPuntos, EnfocaAlAparecer, FaIconComponent],
   template: `
     <div class="mt-2 rounded-lg border border-dashed border-base-300 bg-base-200/40 px-3 py-2 text-[12px]">
-      <div class="opacity-60 mb-1">{{ t('product.price.breakdown_admin') }}</div>
+      <div class="opacity-70 mb-1">{{ t('product.price.breakdown_admin') }}</div>
       <div class="flex flex-col gap-0.5">
         @for (fila of filasFijas(); track fila.clave) {
           <div class="flex items-baseline">
@@ -78,12 +78,12 @@ interface FilaEditable {
                 [attr.aria-label]="t(fila.clave)"
               />
               @if (fila.sufijo) {
-                <span class="ml-1 font-mono opacity-60">{{ fila.sufijo }}</span>
+                <span class="ml-1 font-mono opacity-70">{{ fila.sufijo }}</span>
               }
             } @else {
               <span class="font-mono">{{ fila.mostrado }}</span>
               @if (fila.sufijo && fila.crudo !== null) {
-                <span class="ml-1 font-mono opacity-60">· {{ fila.crudo }}{{ fila.sufijo }}</span>
+                <span class="ml-1 font-mono opacity-70">· {{ fila.crudo }}{{ fila.sufijo }}</span>
               }
               <!--
                 El lápiz es el equivalente TÁCTIL del doble clic, y de paso lo hace alcanzable con el
@@ -93,7 +93,7 @@ interface FilaEditable {
               -->
               <button
                 type="button"
-                class="ml-1.5 opacity-50 hover:opacity-100"
+                class="ml-1.5 opacity-70 hover:opacity-100"
                 [title]="t(fila.claveDeAyuda)"
                 [attr.aria-label]="t('actions.edit') + ': ' + t(fila.clave)"
                 (click)="empiezaEdicion(fila)"

@@ -60,7 +60,7 @@ import { AltaDeTarjetaModal } from './alta-de-tarjeta-modal';
               <div class="font-semibold text-sm">{{ nombre(plan) }}</div>
               <div class="text-xl font-bold mt-1">
                 {{ precio(plan) }}
-                <span class="text-[11px] opacity-60 ml-1">{{ sufijo(plan) }}</span>
+                <span class="text-[11px] opacity-70 ml-1">{{ sufijo(plan) }}</span>
               </div>
               @if (esGratis(plan)) {
                 <div class="text-[11px] text-brand-600 font-medium mt-1">{{ t('plans.free_trial_note') }}</div>

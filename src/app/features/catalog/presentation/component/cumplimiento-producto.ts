@@ -105,7 +105,7 @@ export class AdvertenciasSeguridad {
             }
           </div>
 
-          <p class="text-[11px] opacity-60 leading-relaxed border-t border-base-200 pt-3">
+          <p class="text-[11px] opacity-70 leading-relaxed border-t border-base-200 pt-3">
             {{ t('compliance.legal_note') }}
           </p>
         </div>

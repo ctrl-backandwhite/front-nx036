@@ -15,7 +15,7 @@ import { TraduccionService } from '@core/i18n/traduccion.service';
   imports: [FaIconComponent],
   template: `
     <label [class]="'input input-bordered input-sm flex items-center gap-2 ' + clase()">
-      <fa-icon [icon]="iconoBuscar" class="opacity-60 text-[12px]" />
+      <fa-icon [icon]="iconoBuscar" class="opacity-70 text-[12px]" />
       <input
         type="search"
         [value]="local()"
@@ -27,7 +27,7 @@ import { TraduccionService } from '@core/i18n/traduccion.service';
         <button
           type="button"
           (click)="limpia()"
-          class="opacity-60 hover:opacity-100"
+          class="opacity-70 hover:opacity-100"
           [attr.aria-label]="t('common.cancel')"
         >
           <fa-icon [icon]="iconoAspa" class="text-[11px]" />

@@ -37,7 +37,7 @@ export interface CambioDeTalla {
         <div class="card-body p-3">
           <div class="flex items-baseline justify-between mb-2 px-1">
             <h3 class="text-[13px] font-medium">{{ t('pdp.size') }}</h3>
-            <span class="text-[11px] opacity-60">
+            <span class="text-[11px] opacity-70">
               {{ valores().length }} · {{ t('pdp.size.stock') }}
             </span>
           </div>

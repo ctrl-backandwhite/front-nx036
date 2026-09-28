@@ -52,7 +52,7 @@ const VALORES_CONOCIDOS: Record<string, string> = {
             <tbody>
               @if (filas().length === 0) {
                 <tr>
-                  <td colspan="2" class="text-center opacity-60 py-6">{{ t('pdp.attr.empty') }}</td>
+                  <td colspan="2" class="text-center opacity-70 py-6">{{ t('pdp.attr.empty') }}</td>
                 </tr>
               } @else {
                 @for (fila of filas(); track fila.rotulo) {

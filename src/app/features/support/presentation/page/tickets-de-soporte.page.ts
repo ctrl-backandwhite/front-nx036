@@ -50,7 +50,7 @@ const ESTADOS = ['OPEN', 'RESOLVED', 'CLOSED'] as const;
           }
         </div>
       } @else if (tickets().length === 0) {
-        <div class="card p-10 text-center opacity-60 border border-base-200">
+        <div class="card p-10 text-center opacity-70 border border-base-200">
           <fa-icon [icon]="iconos.ticket" class="text-3xl opacity-40 mb-2" />
           <p>{{ t('admin.support.empty') }}</p>
         </div>
@@ -66,7 +66,7 @@ const ESTADOS = ['OPEN', 'RESOLVED', 'CLOSED'] as const;
                   <span class="badge" [class]="colorEstado(ticket)">{{ ticket.estado }}</span>
                   <span class="badge" [class]="colorPrioridad(ticket)">{{ ticket.prioridad }}</span>
                 </div>
-                <span class="text-[11px] opacity-50 whitespace-nowrap">{{ cuando(ticket.creadoEl) }}</span>
+                <span class="text-[11px] opacity-70 whitespace-nowrap">{{ cuando(ticket.creadoEl) }}</span>
               </div>
               <div class="text-[14px] font-medium mt-2">{{ ticket.asunto }}</div>
               @if (ticket.cuerpo) {

@@ -54,7 +54,7 @@ import {
             @if (!suscripcion.cancelaEl && suscripcion.estado === 'ACTIVE') {
               <button
                 type="button"
-                class="shrink-0 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-md border border-error/40 text-error text-[13px] hover:bg-error/10 disabled:opacity-50"
+                class="shrink-0 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-md border border-error/40 text-error text-[13px] hover:bg-error/10 disabled:opacity-70"
                 [disabled]="cancelando()"
                 (click)="cancela()"
               >

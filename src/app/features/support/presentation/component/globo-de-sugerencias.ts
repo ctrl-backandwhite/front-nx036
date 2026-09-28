@@ -28,7 +28,7 @@ import { esPorEnvio } from '../../domain/model/asistente';
                 rounded-xl border border-base-300 sm:max-h-[70vh] sm:w-80 bg-base-100 p-3 shadow-xl">
       <div class="flex items-start justify-between gap-2">
         <p class="text-[13px] font-semibold">{{ t(claveTitulo()) }}</p>
-        <button type="button" class="opacity-60 hover:opacity-100"
+        <button type="button" class="opacity-70 hover:opacity-100"
                 [attr.aria-label]="t('avatar.close_tip')" (click)="cierra.emit()">
           <fa-icon [icon]="iconos.cerrar" class="text-[12px]" />
         </button>

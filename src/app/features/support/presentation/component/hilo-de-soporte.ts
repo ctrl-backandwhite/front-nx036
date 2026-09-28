@@ -27,7 +27,7 @@ const CADA_MS = 5000;
     <div class="flex flex-col h-[420px]">
       <div class="flex-1 overflow-y-auto space-y-2 p-3 bg-base-200/40 rounded-box">
         @if (mensajes().length === 0) {
-          <p class="text-[12px] opacity-50 text-center mt-6">{{ t('support.thread.empty') }}</p>
+          <p class="text-[12px] opacity-70 text-center mt-6">{{ t('support.thread.empty') }}</p>
         }
         @for (mensaje of mensajes(); track mensaje.id) {
           <div class="flex" [class.justify-end]="mio(mensaje)" [class.justify-start]="!mio(mensaje)">

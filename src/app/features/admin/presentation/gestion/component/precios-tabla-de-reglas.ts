@@ -93,7 +93,7 @@ import {
                   @if (conTramo(regla)) {
                     {{ tramo(regla) }}
                   } @else {
-                    <span class="opacity-50">{{ t('admin.pricing.any_range') }}</span>
+                    <span class="opacity-70">{{ t('admin.pricing.any_range') }}</span>
                   }
                 </td>
                 <td class="px-4 py-2">

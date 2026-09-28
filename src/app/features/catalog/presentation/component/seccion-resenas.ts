@@ -203,7 +203,7 @@ const BORRADOR_VACIO: BorradorDeResena = { nota: '5', autor: '', titulo: '', cue
         }
 
         @if (visibles().length === 0) {
-          <div class="mt-6 text-center text-[13px] opacity-60 py-6">{{ t('reviews.empty') }}</div>
+          <div class="mt-6 text-center text-[13px] opacity-70 py-6">{{ t('reviews.empty') }}</div>
         } @else {
           <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
             @for (resena of visibles(); track resena.id) {

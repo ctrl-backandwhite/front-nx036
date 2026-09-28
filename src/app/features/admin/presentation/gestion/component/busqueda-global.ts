@@ -38,7 +38,7 @@ const ICONOS: Readonly<Record<string, IconDefinition>> = {
     <button type="button" class="btn btn-ghost btn-sm gap-2 hidden md:inline-flex"
             [title]="t('admin.search.placeholder')" (click)="abre()">
       <fa-icon [icon]="iconoBuscar" class="text-[12px] opacity-70" />
-      <span class="opacity-60 text-[12px]">{{ t('admin.search.placeholder') }}</span>
+      <span class="opacity-70 text-[12px]">{{ t('admin.search.placeholder') }}</span>
       <kbd class="kbd kbd-xs">⌘K</kbd>
     </button>
 
@@ -51,7 +51,7 @@ const ICONOS: Readonly<Record<string, IconDefinition>> = {
         <div class="modal-box relative max-w-2xl p-0 overflow-hidden mt-[10vh] max-h-[75vh] flex flex-col"
              role="dialog" aria-modal="true" [attr.aria-label]="t('admin.search.placeholder')">
           <div class="border-b border-base-300 p-3 flex items-center gap-2 shrink-0">
-            <fa-icon [icon]="iconoBuscar" class="opacity-60" />
+            <fa-icon [icon]="iconoBuscar" class="opacity-70" />
             <input #campo type="search" [formField]="formulario.consulta"
                    [placeholder]="t('admin.search.placeholder')"
                    [attr.aria-label]="t('admin.search.placeholder')"
@@ -61,21 +61,21 @@ const ICONOS: Readonly<Record<string, IconDefinition>> = {
           <div class="flex-1 overflow-y-auto scrollbar-thin">
             @for (grupo of grupos(); track grupo.seccion) {
               <div class="py-2">
-                <div class="px-3 text-[10px] uppercase tracking-wider opacity-60">
+                <div class="px-3 text-[10px] uppercase tracking-wider opacity-70">
                   {{ t(grupo.seccion) }}
                 </div>
                 @for (entrada of grupo.entradas; track entrada.destino) {
                   <a [routerLink]="entrada.destino" (click)="cierra()"
                      class="flex items-center gap-2 px-3 py-2 text-[13px] hover:bg-primary/10">
-                    <fa-icon [icon]="icono(entrada.icono)" class="w-4 text-center opacity-60" />
+                    <fa-icon [icon]="icono(entrada.icono)" class="w-4 text-center opacity-70" />
                     <span>{{ t(entrada.etiqueta) }}</span>
-                    <code class="ml-auto text-[10px] opacity-50">{{ entrada.destino }}</code>
+                    <code class="ml-auto text-[10px] opacity-70">{{ entrada.destino }}</code>
                   </a>
                 }
               </div>
             }
             @if (resultados().length === 0) {
-              <div class="text-center opacity-60 text-sm p-6">{{ t('filters.no_results') }}</div>
+              <div class="text-center opacity-70 text-sm p-6">{{ t('filters.no_results') }}</div>
             }
           </div>
         </div>

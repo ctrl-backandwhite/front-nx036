@@ -102,7 +102,7 @@ const TOPE_DEL_MENSAJE = 2000;
           @if (falloDe(formulario.mensaje); as fallo) {
             <span role="alert" class="text-xs text-error mt-1 block">{{ fallo }}</span>
           }
-          <div class="mt-1 text-right text-xs opacity-50">{{ mensaje().length }} / {{ tope }}</div>
+          <div class="mt-1 text-right text-xs opacity-70">{{ mensaje().length }} / {{ tope }}</div>
         </div>
 
         <div class="flex items-center gap-3 flex-wrap">
@@ -110,7 +110,7 @@ const TOPE_DEL_MENSAJE = 2000;
             <fa-icon [icon]="iconos.enviar" class="mr-1" />
             {{ t(estado() === 'enviando' ? 'contact.sending' : 'contact.send') }}
           </button>
-          <span class="text-[12px] opacity-50 flex items-center gap-1">
+          <span class="text-[12px] opacity-70 flex items-center gap-1">
             <fa-icon [icon]="iconos.sobre" /> {{ t('contact.info') }}
           </span>
         </div>

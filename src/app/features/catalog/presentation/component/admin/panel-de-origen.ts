@@ -69,9 +69,9 @@ import { Result } from '@shared/result/result';
       </div>
 
       @if (ficha().urlDeOrigen; as enlace) {
-        <p class="text-[11px] opacity-60 font-mono break-all">{{ enlace }}</p>
+        <p class="text-[11px] opacity-70 font-mono break-all">{{ enlace }}</p>
       }
-      <p class="text-[11px] opacity-60 leading-snug">{{ t('admin.product.origin_hint') }}</p>
+      <p class="text-[11px] opacity-70 leading-snug">{{ t('admin.product.origin_hint') }}</p>
 
       <!-- Esta casilla NO es un formulario y por eso no pasa por Signal Forms: no guarda ningún estado
            propio que validar o enviar. Lo que enseña es la ficha que llega, y marcarla es un GESTO que
@@ -89,7 +89,7 @@ import { Result } from '@shared/result/result';
             (change)="marcaVerificado($any($event.target).checked)"
           />
           <span class="font-medium">{{ t('admin.catalog.col.verified') }}</span>
-          <span class="opacity-60">
+          <span class="opacity-70">
             {{
               ficha().verificado ? t('admin.catalog.verified.yes') : t('admin.catalog.verified.no')
             }}

@@ -83,7 +83,7 @@ const CARPETAS: readonly { carpeta: Carpeta; icono: typeof faInbox }[] = [
           }
         </div>
         <div class="flex items-center gap-2 pb-1.5">
-          <fa-icon [icon]="iconos.filtro" class="text-[11px] opacity-50" />
+          <fa-icon [icon]="iconos.filtro" class="text-[11px] opacity-70" />
           <label class="sr-only" for="buzon-filtro">{{ t('notif.filter.all') }}</label>
           <select id="buzon-filtro" class="select select-bordered select-sm text-[12px] min-w-[150px]"
                   [value]="buzon.filtro()" (change)="filtra($event)">

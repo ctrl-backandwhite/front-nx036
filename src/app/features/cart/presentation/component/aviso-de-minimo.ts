@@ -26,7 +26,7 @@ import { AvisoDeMinimo } from '../acciones-de-linea';
       }
       <button
         type="button"
-        class="shrink-0 opacity-60 hover:opacity-100"
+        class="shrink-0 opacity-70 hover:opacity-100"
         [attr.aria-label]="t('common.close')"
         (click)="descarta.emit()"
       >

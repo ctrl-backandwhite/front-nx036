@@ -120,7 +120,7 @@ import { HistoricoDePrecios } from './historico-de-precios';
             así que se lee donde están, no doscientos píxeles más abajo tras las reseñas y las
             recomendaciones, donde ya nadie lo relaciona con nada.
           -->
-          <p class="text-[11px] opacity-60 leading-relaxed border-t border-base-200 pt-3 mt-2">
+          <p class="text-[11px] opacity-70 leading-relaxed border-t border-base-200 pt-3 mt-2">
             <fa-icon [icon]="iconoAviso" class="text-warning mr-1" />
             {{ t('product.content_disclaimer') }}
           </p>

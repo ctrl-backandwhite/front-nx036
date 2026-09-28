@@ -40,7 +40,7 @@ import { COLOR_DE_CATEGORIA, COLOR_DE_ESTADO, claveDeEstado } from './colores-de
       [class.sm:block]="true"
     >
       @if (avisos().length === 0) {
-        <div class="p-10 text-center opacity-60">
+        <div class="p-10 text-center opacity-70">
           <fa-icon [icon]="iconos.bandeja" class="text-3xl opacity-40 mb-2" />
           <p class="text-sm">{{ t('notif.empty') }}</p>
         </div>
@@ -78,7 +78,7 @@ import { COLOR_DE_CATEGORIA, COLOR_DE_ESTADO, claveDeEstado } from './colores-de
             <span class="min-w-0 flex-1">
               <span class="flex items-baseline justify-between gap-2">
                 <span class="truncate text-[13px]" [class.font-semibold]="noLeido(aviso)">{{ aviso.titulo }}</span>
-                <span class="text-[11px] opacity-50 whitespace-nowrap shrink-0 group-hover:opacity-0 transition-opacity">
+                <span class="text-[11px] opacity-70 whitespace-nowrap shrink-0 group-hover:opacity-0 transition-opacity">
                   {{ cuandoCorto(aviso.creadoEl) }}
                 </span>
               </span>

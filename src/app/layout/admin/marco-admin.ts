@@ -75,7 +75,7 @@ export interface UsuarioDelPanel {
             <fa-icon [icon]="iconoMarca" class="text-primary text-lg" />
             <div>
               <div class="font-medium text-[15px] leading-tight">NX036</div>
-              <div class="text-[11px] opacity-60 -mt-0.5">{{ t('admin.subtitle') }}</div>
+              <div class="text-[11px] opacity-70 -mt-0.5">{{ t('admin.subtitle') }}</div>
             </div>
           </a>
           <button
@@ -91,7 +91,7 @@ export interface UsuarioDelPanel {
         <!-- Una sola columna: los títulos de sección son «menu-title» planos y las opciones, hermanas. -->
         <ul class="menu menu-sm w-full flex-1 flex-nowrap overflow-y-auto scrollbar-thin px-2 py-3 gap-0.5">
           @for (seccion of secciones(); track seccion.clave; let primera = $first) {
-            <li class="menu-title text-[10px] uppercase tracking-wider opacity-60" [class.mt-3]="!primera">
+            <li class="menu-title text-[10px] uppercase tracking-wider opacity-70" [class.mt-3]="!primera">
               {{ t(seccion.clave) }}
             </li>
             @for (opcion of seccion.opciones; track opcion.destino) {
@@ -140,7 +140,7 @@ export interface UsuarioDelPanel {
                     <div class="text-[13px] font-medium truncate">
                       {{ quien.nombre || quien.correo }}
                     </div>
-                    <div class="text-[11px] opacity-60 truncate">{{ quien.correo }}</div>
+                    <div class="text-[11px] opacity-70 truncate">{{ quien.correo }}</div>
                   </div>
                 </div>
                 <span class="badge badge-primary badge-sm mt-1">{{ quien.papel }}</span>

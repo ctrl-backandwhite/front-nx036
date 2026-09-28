@@ -25,7 +25,7 @@ const TOPE_ANTES_DE_COLAPSAR = 10;
       <div class="card-body">
         <h2 class="card-title">{{ t('pdp.scale.title') }}</h2>
         @if (!hayDatos()) {
-          <p class="text-[13px] opacity-60 mt-1">{{ t('pdp.scale.empty') }}</p>
+          <p class="text-[13px] opacity-70 mt-1">{{ t('pdp.scale.empty') }}</p>
         } @else {
           <div class="overflow-x-auto mt-1">
             <table class="table table-zebra table-sm">

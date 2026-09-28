@@ -92,7 +92,7 @@ const ESPERA_ANTES_DE_ACTIVAR_MS = 2500;
                   <span>{{ t('register.social_locked') }}</span>
                 </div>
               }
-              <div class="divider text-[11px] uppercase tracking-wider opacity-60 my-4">{{ t('login.or_email') }}</div>
+              <div class="divider text-[11px] uppercase tracking-wider opacity-70 my-4">{{ t('login.or_email') }}</div>
             </div>
 
             @if (error(); as mensaje) {

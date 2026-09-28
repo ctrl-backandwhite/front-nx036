@@ -35,7 +35,7 @@ interface Escalon {
   template: `
     @if (escalones().length > 1) {
       <div class="mt-3 pt-3 border-t border-base-300">
-        <div class="text-[11px] opacity-60 mb-1.5">{{ t('pdp.tiers.title') }}</div>
+        <div class="text-[11px] opacity-70 mb-1.5">{{ t('pdp.tiers.title') }}</div>
         <div class="flex flex-wrap gap-2">
           @for (escalon of escalones(); track escalon.rango) {
             <div
@@ -46,7 +46,7 @@ interface Escalon {
                   : 'border-base-300'
               "
             >
-              <div class="text-[10px] opacity-60">{{ escalon.rango }}</div>
+              <div class="text-[10px] opacity-70">{{ escalon.rango }}</div>
               <div class="text-[13px] font-semibold">{{ escalon.precio }}</div>
 
               <!--
@@ -68,11 +68,11 @@ interface Escalon {
                       [attr.aria-label]="t('pdp.tiers.surcharge') + ' ' + escalon.rango"
                     />
                   } @else {
-                    <span class="opacity-60">{{ t('pdp.tiers.surcharge') }}</span>
+                    <span class="opacity-70">{{ t('pdp.tiers.surcharge') }}</span>
                     <span class="font-medium">{{ escalon.recargoMostrado }}</span>
                     <button
                       type="button"
-                      class="opacity-50 hover:opacity-100"
+                      class="opacity-70 hover:opacity-100"
                       [title]="t('pdp.tiers.surcharge_hint')"
                       [attr.aria-label]="t('actions.edit') + ': ' + t('pdp.tiers.surcharge')"
                       (click)="empiezaEdicion(escalon)"

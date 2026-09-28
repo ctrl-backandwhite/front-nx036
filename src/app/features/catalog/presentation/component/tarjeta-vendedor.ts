@@ -24,7 +24,7 @@ import { TraduccionService } from '@core/i18n/traduccion.service';
           <fa-icon [icon]="iconos.tienda" class="text-2xl" aria-hidden="true" />
         </div>
         <div class="flex-1 min-w-0">
-          <div class="text-[12px] opacity-60">{{ t('pdp.seller.label') }}</div>
+          <div class="text-[12px] opacity-70">{{ t('pdp.seller.label') }}</div>
           <div class="font-medium">NX036</div>
           <div class="text-[12px] opacity-70 mt-1 flex flex-wrap gap-x-3 gap-y-1">
             <span>

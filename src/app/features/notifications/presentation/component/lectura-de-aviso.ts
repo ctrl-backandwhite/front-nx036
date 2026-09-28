@@ -115,7 +115,7 @@ import {
           <div class="px-5 py-3 border-b border-base-200 bg-base-200/20 flex items-center flex-wrap gap-2">
             <label class="text-[12px] opacity-70" for="aviso-estado">{{ t('notif.status.label') }}:</label>
             <span class="badge badge-sm" [class]="colorDeEstado(abierto)">{{ t(claveEstado(abierto)) }}</span>
-            <span class="text-[12px] opacity-50 ml-1">→</span>
+            <span class="text-[12px] opacity-70 ml-1">→</span>
             <select id="aviso-estado" class="select select-bordered select-sm text-[12px]"
                     [value]="abierto.estado || 'NEW'"
                     (change)="cambiaEstado.emit(estadoElegido($event))">
@@ -131,7 +131,7 @@ import {
           @if (abierto.cuerpo) {
             <p class="text-[14px] whitespace-pre-wrap leading-relaxed max-w-3xl">{{ abierto.cuerpo }}</p>
           } @else {
-            <p class="text-sm opacity-50 italic">{{ t('notif.no_body') }}</p>
+            <p class="text-sm opacity-70 italic">{{ t('notif.no_body') }}</p>
           }
         </div>
 
@@ -160,7 +160,7 @@ import {
           </div>
         }
       } @else {
-        <div class="m-auto text-center opacity-50 p-10">
+        <div class="m-auto text-center opacity-70 p-10">
           <fa-icon [icon]="iconos.bandeja" class="text-4xl opacity-40 mb-3" />
           <p class="text-sm">{{ t('notif.select_prompt') }}</p>
         </div>

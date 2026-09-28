@@ -117,7 +117,7 @@ function conClave(seccion: SeccionLegal): SeccionEditable {
       </div>
 
       @if (cargando()) {
-        <div class="p-6 text-center opacity-60">{{ t('common.loading') }}</div>
+        <div class="p-6 text-center opacity-70">{{ t('common.loading') }}</div>
       } @else if (!documento()) {
         <div class="card p-6 text-center text-[13px] opacity-70">{{ t('admin.legal.not_found') }}</div>
       } @else {

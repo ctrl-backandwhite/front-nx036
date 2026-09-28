@@ -66,7 +66,7 @@ const BOTON: Record<VarianteDialogo, string> = {
             type="button"
             (click)="cancela()"
             [attr.aria-label]="t('dialog.close')"
-            class="absolute top-2 right-2 btn btn-ghost btn-xs btn-square opacity-60 hover:opacity-100"
+            class="absolute top-2 right-2 btn btn-ghost btn-xs btn-square opacity-70 hover:opacity-100"
           >
             <fa-icon [icon]="iconoAspa" />
           </button>
@@ -126,7 +126,7 @@ const BOTON: Record<VarianteDialogo, string> = {
                             {{ t(clave) }}
                           </p>
                         } @else if (campo.ayuda) {
-                          <p class="text-xs opacity-60 mt-1">{{ campo.ayuda }}</p>
+                          <p class="text-xs opacity-70 mt-1">{{ campo.ayuda }}</p>
                         }
                       </div>
                     }

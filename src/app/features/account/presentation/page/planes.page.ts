@@ -66,7 +66,7 @@ import { CargaPlanes } from '../../application/use-case/planes.use-case';
               </p>
               <div class="mt-2 text-3xl font-bold">
                 {{ precio(plan) }}
-                <span class="text-sm opacity-60 ml-1">{{ sufijo(plan) }}</span>
+                <span class="text-sm opacity-70 ml-1">{{ sufijo(plan) }}</span>
               </div>
               @if (esGratis(plan)) {
                 <p class="text-[12px] text-primary/80 font-medium mt-1">{{ t('plans.free_trial_note') }}</p>

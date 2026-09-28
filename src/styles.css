@@ -599,6 +599,57 @@ code, pre, .font-mono { font-family: var(--font-mono); }
   color: var(--color-primary);
 }
 
+/* Botones de CONTORNO con color de estado (27-sep-2026).
+ *
+ * El mismo fallo que ya se corrigió en los avisos y en los iconos destructivos, por tercera vez y en
+ * otro sitio: un botón sin relleno que toma el color del estado queda ilegible sobre el fondo de la
+ * página. Medido en preproducción, «Comprar en origen (1688)» —`btn-outline btn-warning`— daba un
+ * contraste de 2,32:1 sobre el tema claro; hace falta 4,5.
+ *
+ * Y había un segundo desajuste encima: la regla genérica de `.btn-outline` de aquí arriba fuerza el
+ * borde a `primary` y, al pasar el ratón, el texto también. Así que un botón de error se dibujaba con
+ * borde azul y su letra se volvía azul al señalarlo.
+ *
+ * Misma receta que los avisos: el texto se mezcla con `base-content` —el color del texto normal— y se
+ * le añade el color del estado para que siga reconociéndose. El borde sí sale del estado. Con esto
+ * quedan por encima de 4,5:1 en los dos temas, y vale para el siguiente que alguien escriba. */
+.btn-outline.btn-error {
+  border-color: color-mix(in oklch, var(--color-error) 45%, var(--color-base-300));
+  color: color-mix(in oklch, var(--color-error) 65%, var(--color-base-content));
+}
+.btn-outline.btn-warning {
+  border-color: color-mix(in oklch, var(--color-warning) 45%, var(--color-base-300));
+  color: color-mix(in oklch, var(--color-warning) 65%, var(--color-base-content));
+}
+.btn-outline.btn-success {
+  border-color: color-mix(in oklch, var(--color-success) 45%, var(--color-base-300));
+  color: color-mix(in oklch, var(--color-success) 65%, var(--color-base-content));
+}
+.btn-outline.btn-info {
+  border-color: color-mix(in oklch, var(--color-info) 45%, var(--color-base-300));
+  color: color-mix(in oklch, var(--color-info) 65%, var(--color-base-content));
+}
+.btn-outline.btn-error:hover {
+  background-color: color-mix(in oklch, var(--color-error) 10%, transparent);
+  border-color: var(--color-error);
+  color: color-mix(in oklch, var(--color-error) 65%, var(--color-base-content));
+}
+.btn-outline.btn-warning:hover {
+  background-color: color-mix(in oklch, var(--color-warning) 10%, transparent);
+  border-color: var(--color-warning);
+  color: color-mix(in oklch, var(--color-warning) 65%, var(--color-base-content));
+}
+.btn-outline.btn-success:hover {
+  background-color: color-mix(in oklch, var(--color-success) 10%, transparent);
+  border-color: var(--color-success);
+  color: color-mix(in oklch, var(--color-success) 65%, var(--color-base-content));
+}
+.btn-outline.btn-info:hover {
+  background-color: color-mix(in oklch, var(--color-info) 10%, transparent);
+  border-color: var(--color-info);
+  color: color-mix(in oklch, var(--color-info) 65%, var(--color-base-content));
+}
+
 /* DROP-380: sidebar menu — activo en pastel lavanda. */
 .menu :where(li > *:not(ul, .menu-title, details, .btn).menu-active),
 .menu :where(li > *:not(ul, .menu-title, details, .btn):is(.active)),

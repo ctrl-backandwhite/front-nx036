@@ -36,7 +36,7 @@ import { VistaDeValoracion } from '../../application/use-case/valora-la-compra.u
               <span>{{ aviso() }}</span>
               <button
                 type="button"
-                class="shrink-0 opacity-60 hover:opacity-100"
+                class="shrink-0 opacity-70 hover:opacity-100"
                 [attr.aria-label]="t('common.close')"
                 (click)="descartaAviso.emit()"
               >

@@ -24,7 +24,7 @@ import { ejePrincipal, etiquetaDeValor } from '../../../domain/model/seleccion-d
     @if (fotos().length > 0) {
       <div class="mt-3 pt-3 border-t border-base-200">
         <h4 class="text-[12px] font-medium mb-0.5">{{ t('admin.catalog.images.from_variants') }}</h4>
-        <p class="text-[11px] opacity-60 mb-2">{{ t('admin.catalog.images.from_variants_hint') }}</p>
+        <p class="text-[11px] opacity-70 mb-2">{{ t('admin.catalog.images.from_variants_hint') }}</p>
         <div class="grid grid-cols-5 sm:grid-cols-6 lg:grid-cols-8 gap-2">
           @for (foto of fotos(); track foto.id) {
             <div

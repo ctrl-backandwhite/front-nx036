@@ -73,7 +73,7 @@ const PUBLICADO_SANO = 80;
             <div class="text-3xl font-medium">{{ facturacion() }}</div>
             <!-- El importe canónico en dólares se enseña siempre: es el dato del backend, y sin él no
                  hay forma de saber si la diferencia con el de arriba es el cambio o un error. -->
-            <div class="text-[11px] opacity-50">
+            <div class="text-[11px] opacity-70">
               {{ t('admin.dashboard.gmv.canonical') }}: {{ metricas()?.gmvUsd ?? 0 }} USD
             </div>
           </div>
@@ -84,7 +84,7 @@ const PUBLICADO_SANO = 80;
               <fa-icon [icon]="iconos.recurrente" /> {{ t('admin.dashboard.mrr') }}
             </div>
             <div class="text-3xl font-medium">{{ recurrente() }}</div>
-            <div class="text-[11px] opacity-50">
+            <div class="text-[11px] opacity-70">
               {{ metricas()?.suscripciones ?? 0 }} {{ t('admin.dashboard.mrr.subs') }}
             </div>
           </div>

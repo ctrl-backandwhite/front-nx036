@@ -40,7 +40,7 @@ export interface MetodoElegido {
 
       @if (guardados().length > 0) {
         <div class="space-y-1.5 text-xs">
-          <div class="opacity-60">{{ t('checkout.saved_methods') }}</div>
+          <div class="opacity-70">{{ t('checkout.saved_methods') }}</div>
           @for (metodo of guardados(); track metodo.id) {
             <button
               type="button"
@@ -128,7 +128,7 @@ export interface MetodoElegido {
             </div>
           }
         } @else {
-          <div class="opacity-60">{{ t('checkout.loading_balance') }}</div>
+          <div class="opacity-70">{{ t('checkout.loading_balance') }}</div>
         }
       </div>
     }

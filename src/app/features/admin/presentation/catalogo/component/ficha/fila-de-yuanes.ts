@@ -51,7 +51,7 @@ import { ImporteEnYuanes } from '../../../../domain/catalogo/model/ficha-de-prod
         -->
         <button
           type="button"
-          class="ml-1.5 opacity-50 hover:opacity-100"
+          class="ml-1.5 opacity-70 hover:opacity-100"
           [title]="ayuda()"
           [attr.aria-label]="t('actions.edit') + ': ' + etiquetaDelCampo()"
           (click)="empieza()"

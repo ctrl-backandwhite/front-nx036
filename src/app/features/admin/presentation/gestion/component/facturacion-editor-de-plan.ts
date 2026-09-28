@@ -61,7 +61,7 @@ interface BorradorDePlan {
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
             <label for="plan-mensual" class="text-xs text-ink-500">
-              {{ t('admin.billing.col.monthly') }} <span class="opacity-60">(USD cents)</span>
+              {{ t('admin.billing.col.monthly') }} <span class="opacity-70">(USD cents)</span>
             </label>
             <input
               id="plan-mensual"
@@ -77,7 +77,7 @@ interface BorradorDePlan {
           </div>
           <div>
             <label for="plan-anual" class="text-xs text-ink-500">
-              {{ t('admin.billing.col.yearly') }} <span class="opacity-60">(USD cents)</span>
+              {{ t('admin.billing.col.yearly') }} <span class="opacity-70">(USD cents)</span>
             </label>
             <input
               id="plan-anual"

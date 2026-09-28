@@ -39,7 +39,7 @@ import { Difusion } from '../../domain/port/avisos.port';
             <label for="difusion-destino" class="text-sm opacity-70 mb-1 block">{{ t('notif.send.target') }}</label>
             <input id="difusion-destino" class="input input-bordered w-full" placeholder="all"
                    [value]="destino()" (input)="destino.set(valorDe($event))" />
-            <p class="text-xs opacity-60 mt-1">{{ t('notif.send.target_help') }}</p>
+            <p class="text-xs opacity-70 mt-1">{{ t('notif.send.target_help') }}</p>
           </div>
           <div>
             <label for="difusion-titulo" class="text-sm opacity-70 mb-1 block">{{ t('notif.send.title_ph') }}</label>

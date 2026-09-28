@@ -78,7 +78,7 @@ const CADA_MS = 60_000;
                       @if (aviso.cuerpo) {
                         <div class="text-[11px] opacity-70 line-clamp-2">{{ aviso.cuerpo }}</div>
                       }
-                      <div class="text-[10px] opacity-50 mt-0.5">{{ cuando(aviso.creadoEl) }}</div>
+                      <div class="text-[10px] opacity-70 mt-0.5">{{ cuando(aviso.creadoEl) }}</div>
                     </div>
                     @if (estaSinLeer(aviso)) {
                       <span class="w-1.5 h-1.5 rounded-full bg-primary mt-1.5"
@@ -88,7 +88,7 @@ const CADA_MS = 60_000;
                 </div>
               </a>
             } @empty {
-              <div class="text-center opacity-60 text-[12px] py-6 px-3">
+              <div class="text-center opacity-70 text-[12px] py-6 px-3">
                 {{ t('admin.notifications.empty') }}
               </div>
             }

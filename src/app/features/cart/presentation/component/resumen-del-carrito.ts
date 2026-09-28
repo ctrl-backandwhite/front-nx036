@@ -24,18 +24,18 @@ import { PreferenciasService } from '@core/preferences/preferencias';
           </div>
           <div class="flex items-center justify-between">
             <dt class="opacity-70">{{ t('cart.shipping_estimated') }}</dt>
-            <dd class="opacity-60 italic">{{ t('cart.to_be_calculated') }}</dd>
+            <dd class="opacity-70 italic">{{ t('cart.to_be_calculated') }}</dd>
           </div>
           <div class="flex items-center justify-between">
             <dt class="opacity-70">{{ t('cart.taxes_estimated') }}</dt>
-            <dd class="opacity-60 italic">{{ t('cart.to_be_calculated') }}</dd>
+            <dd class="opacity-70 italic">{{ t('cart.to_be_calculated') }}</dd>
           </div>
           <div class="divider my-1"></div>
           <div class="flex items-baseline justify-between">
             <dt class="font-medium">{{ t('cart.estimated_total') }} ({{ moneda() }})</dt>
             <dd class="text-2xl font-medium">{{ subtotal() }}</dd>
           </div>
-          <p class="text-[11px] opacity-60 pt-1">{{ t('cart.taxes_note') }}</p>
+          <p class="text-[11px] opacity-70 pt-1">{{ t('cart.taxes_note') }}</p>
         </dl>
         <div class="card-actions justify-end">
           <a routerLink="/catalog" class="btn btn-outline">{{ t('cart.keep_shopping') }}</a>

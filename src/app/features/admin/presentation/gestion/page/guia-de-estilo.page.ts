@@ -91,7 +91,7 @@ const SERIE_DE_MUESTRA: readonly number[] = [5, 7, 6, 8, 9, 7, 11, 13, 12, 14];
                 <div class="card-body p-3 gap-2">
                   <div class="h-10 rounded-md border border-base-300" [class]="color.clase"></div>
                   <div class="text-[13px] font-medium">{{ color.nombre }}</div>
-                  <code class="text-[10px] opacity-60">{{ color.token }}</code>
+                  <code class="text-[10px] opacity-70">{{ color.token }}</code>
                   <p class="text-[11px] opacity-70 leading-snug">{{ color.descripcion }}</p>
                 </div>
               </div>
@@ -109,7 +109,7 @@ const SERIE_DE_MUESTRA: readonly number[] = [5, 7, 6, 8, 9, 7, 11, 13, 12, 14];
             <h3>Heading 3 — 0.95rem / 500</h3>
             <p class="text-sm">Body — texto principal en <code>base-content</code>.</p>
             <p class="text-sm opacity-70">Body 70% — textos secundarios.</p>
-            <p class="text-[12px] opacity-60">Caption 12px / 60% — metadatos, fechas.</p>
+            <p class="text-[12px] opacity-70">Caption 12px / 60% — metadatos, fechas.</p>
             <code class="font-mono text-[12px] block">code · monospace</code>
           </div>
         </div>
@@ -278,7 +278,7 @@ const SERIE_DE_MUESTRA: readonly number[] = [5, 7, 6, 8, 9, 7, 11, 13, 12, 14];
         <section class="card min-h-[230px]"></section>
       }
 
-      <p class="text-[11px] opacity-60">
+      <p class="text-[11px] opacity-70">
         El sistema se aplica automáticamente vía <code>data-theme</code>. Para alternar entre modo claro
         y oscuro, usa el botón en la barra superior.
       </p>

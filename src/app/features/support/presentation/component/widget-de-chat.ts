@@ -51,11 +51,11 @@ const TOPE_DEL_MENSAJE = 1000;
           <span class="text-sm font-semibold">{{ t('chat.title') }}</span>
           <span class="flex items-center gap-3">
             <button type="button" [attr.aria-label]="t('chat.size')" [title]="t('chat.size')"
-                    class="opacity-60 hover:opacity-100" (click)="conversacion.cambiaDeTamano()">
+                    class="opacity-70 hover:opacity-100" (click)="conversacion.cambiaDeTamano()">
               <fa-icon [icon]="iconos.tamano" class="text-[12px]" />
             </button>
             <button type="button" [attr.aria-label]="t('chat.close')"
-                    class="opacity-60 hover:opacity-100" (click)="abierto.set(false)">
+                    class="opacity-70 hover:opacity-100" (click)="abierto.set(false)">
               <fa-icon [icon]="iconos.cerrar" />
             </button>
           </span>
@@ -63,7 +63,7 @@ const TOPE_DEL_MENSAJE = 1000;
 
         <div class="flex-1 space-y-3 overflow-y-auto px-4 py-3">
           @if (conversacion.turnos().length === 0) {
-            <p class="text-[13px] opacity-60">{{ t('chat.hint') }}</p>
+            <p class="text-[13px] opacity-70">{{ t('chat.hint') }}</p>
           }
           @for (turno of conversacion.turnos(); track turno.id) {
             <div [class.text-right]="turno.de === 'yo'" [class.text-left]="turno.de !== 'yo'">
@@ -114,7 +114,7 @@ const TOPE_DEL_MENSAJE = 1000;
             </div>
           }
           @if (conversacion.enviando()) {
-            <p role="status" class="text-[13px] opacity-60">{{ t('chat.thinking') }}</p>
+            <p role="status" class="text-[13px] opacity-70">{{ t('chat.thinking') }}</p>
           }
           <div #final></div>
         </div>
@@ -130,7 +130,7 @@ const TOPE_DEL_MENSAJE = 1000;
           </button>
         </form>
 
-        <p class="px-3 pb-2 text-[11px] leading-tight opacity-60">{{ t('chat.disclaimer') }}</p>
+        <p class="px-3 pb-2 text-[11px] leading-tight opacity-70">{{ t('chat.disclaimer') }}</p>
       </div>
     }
   `,
