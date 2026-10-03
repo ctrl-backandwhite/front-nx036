@@ -4,6 +4,7 @@ import { PreferenciasService } from '@core/preferences/preferencias';
 import { FichaDeProducto, VarianteDeProducto } from '../../domain/model/producto';
 import { enCentimetros, hayBascula, volumenCm3 } from '../../domain/model/catalogo-auxiliar';
 import { etiquetaDeValor } from '../../domain/model/seleccion-de-variante';
+import { claveDeEje } from '@shared/i18n/ejes-de-variante';
 
 /** Con más de diez variantes la tabla se colapsa, igual que las tallas. */
 const TOPE_ANTES_DE_COLAPSAR = 10;
@@ -125,9 +126,17 @@ export class BasculaVariantes {
     return mapa;
   });
 
+  /**
+   * El rótulo de la columna, en el idioma de quien mira.
+   *
+   * <p>Antes componía la clave con `attr.` + el nombre en minúsculas. Eso acierta con «Color»
+   * —existe `attr.color`— y FALLA con «Talla», cuya clave se llama `attr.size`: la columna de
+   * tallas salía en español fijo en los ocho idiomas. Ahora usa el mismo mapa que el selector de
+   * color, que es el que sabe que «talla» y «tamaño» comparten clave.
+   */
   protected nombreDeEje(clave: string): string {
-    const traducido = this.t(`attr.${clave.toLowerCase()}`);
-    return traducido === `attr.${clave.toLowerCase()}` ? clave : traducido;
+    const traduccion = claveDeEje(clave);
+    return traduccion ? this.t(traduccion) : clave;
   }
 
   protected valorDelEje(variante: VarianteDeProducto, eje: string): string {

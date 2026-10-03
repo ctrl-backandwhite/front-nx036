@@ -3,6 +3,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCircleCheck, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { colorToCss } from '@shared/i18n/color-terms';
 import { TraduccionService } from '@core/i18n/traduccion.service';
+import { claveDeEje } from '@shared/i18n/ejes-de-variante';
 import { PreferenciasService } from '@core/preferences/preferencias';
 import { EjeDeVariante } from '../../domain/model/producto';
 import { etiquetaDeValor } from '../../domain/model/seleccion-de-variante';
@@ -20,35 +21,6 @@ export interface ColorElegido {
  * y un visto en la esquina— porque con una diferencia sutil no se distinguía cuál estaba elegido, y de
  * ahí salían pedidos del color equivocado. Si el color no se reconoce, se cae al color primario.
  */
-/**
- * Cómo se llama cada eje en el idioma de quien mira.
- *
- * <p>El nombre del eje se guarda en la base EN ESPAÑOL y no tiene tabla de traducción —«Color»,
- * «Talla», «Altura recomendada»—, así que se pintaba igual en los ocho idiomas: quien compraba en
- * alemán leía «Farbe» en la etiqueta de arriba y «Talla» en la de abajo. Aquí se traduce por clave,
- * y lo que no esté en el mapa se enseña tal cual vino, que es mejor que no enseñar nada.
- *
- * <p>Es un MAPA y no una clave calculada a propósito: hay nombres con paréntesis y símbolos
- * —«Medidas (largo x ancho en cm)»— donde cualquier normalización automática produce claves que
- * nadie encuentra al buscarlas en el diccionario.
- */
-const CLAVES_DE_EJE: Readonly<Record<string, string>> = {
-  color: 'attr.color',
-  talla: 'attr.size',
-  tamaño: 'attr.size',
-  'altura recomendada': 'attr.recommended_height',
-  medidas: 'attr.measurements',
-  'medidas (largo x ancho en cm)': 'attr.measurements_lw_cm',
-  estampado: 'attr.print',
-  'longitud (cm)': 'attr.length_cm',
-  modelo: 'attr.model',
-  'talla de calcetín infantil': 'attr.kids_sock_size',
-  'color de la montura': 'attr.frame_color',
-  pureza: 'attr.purity',
-  capacidad: 'attr.capacity',
-  'formato del producto': 'attr.product_format',
-  cristal: 'attr.lens',
-};
 
 @Component({
   selector: 'nx-selector-color',
@@ -182,7 +154,7 @@ export class SelectorColor {
     if (!crudo) {
       return this.t('pdp.color');
     }
-    const clave = CLAVES_DE_EJE[crudo.toLowerCase()];
+    const clave = claveDeEje(crudo);
     return clave ? this.t(clave) : crudo;
   });
 
