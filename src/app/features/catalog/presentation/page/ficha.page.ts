@@ -131,7 +131,7 @@ const CONFIRMACION_MS = 2000;
               (activaChange)="eligeFoto($event)"
               (interactua)="pase.cancela()"
               (borraImagen)="admin.borraImagen($event, () => quitaFotos([$event]))"
-              (borraSeleccion)="admin.borraSeleccion($event.imagenes, $event.video ? producto.id : null, quitaFotos, quitaVideo)"
+              (borraSeleccion)="admin.borraSeleccion(producto.id, $event.imagenes, $event.video, quitaFotos, quitaVideo)"
               (borraVideo)="admin.borraVideo(producto.id, quitaVideo)"
               (reordena)="admin.reordena(producto.id, $event, () => reordenaFotos($event))"
             />
@@ -186,8 +186,8 @@ const CONFIRMACION_MS = 2000;
         [fotosDeDetalle]="detalle()"
         [puedeEditar]="sesion.puedeRevisarFichas()"
         (borraImagen)="admin.borraImagen($event, () => quitaFotos([$event]))"
-        (borraSeleccion)="admin.borraSeleccion($event, null, quitaFotos, quitaVideo)"
-        (borraTodasLasFotos)="admin.borraTodasLasImagenes($event, quitaFotos)"
+        (borraSeleccion)="admin.borraSeleccion(producto.id, $event, false, quitaFotos, quitaVideo)"
+        (borraTodasLasFotos)="admin.borraTodasLasImagenes(producto.id, $event, quitaFotos)"
         (reordenaDetalle)="admin.reordena(producto.id, $event, () => reordenaDetalle($event))"
       />
     } @else {
@@ -558,13 +558,39 @@ export class FichaPage {
     return unidades;
   }
 
+  /**
+   * El producto que ya se estrenó. Un retoque en el sitio NO es un producto nuevo.
+   *
+   * <p>La ficha que se pinta es un `linkedSignal` que los gestos de administración REEMPLAZAN para
+   * repintar solo lo que cambió, sin volver a pedirla. Pero reemplazarla dispara el mismo efecto que
+   * abrir un producto, y el estreno se repetía en cada gesto: salía otra vez el aviso de pedido
+   * mínimo, la galería volvía a la primera foto, el pase arrancaba de nuevo y —lo peor— se borraba la
+   * selección de quien estaba comprando (color, tallas y cantidad), porque `empieza()` la resetea.
+   * Justo lo contrario de lo que `refrescaEnSilencio` dice conseguir: «la vista se queda donde
+   * estaba».
+   */
+  private abierto: string | null = null;
+
   /** Todo lo que hay que rehacer cuando llega otra ficha (o la misma, recargada). */
   private estrena(ficha: FichaDeProducto | null): void {
-    this.seleccion.empieza(ficha);
-    this.fotoActiva.set(0);
     if (!ficha) {
+      this.abierto = null;
+      this.seleccion.empieza(null);
+      this.fotoActiva.set(0);
       return;
     }
+    if (this.abierto === ficha.id) {
+      // Mismo producto, datos nuevos: se refrescan los datos y nada más. La foto que se estaba
+      // mirando puede haber sido la que se acaba de borrar, así que se recorta al final de la
+      // galería en vez de dejar un índice que ya no apunta a ninguna.
+      this.seleccion.actualizaLaFicha(ficha);
+      this.fotoActiva.update((i) => Math.min(i, Math.max(0, this.galeria().length - 1)));
+      this.escribeLasEtiquetas(ficha);
+      return;
+    }
+    this.abierto = ficha.id;
+    this.seleccion.empieza(ficha);
+    this.fotoActiva.set(0);
     this.escribeLasEtiquetas(ficha);
     // Cada ficha estrena su pase: enseña las primeras fotos sin que nadie tenga que pulsar nada.
     this.pase.arranca(this.galeria().length, (indice) => this.fotoActiva.set(indice));
@@ -617,6 +643,9 @@ export class FichaPage {
   /**
    * El pedido mínimo se avisa AL ABRIR, una sola vez por producto: descubrirlo al intentar comprar,
    * con las tallas ya elegidas, obliga a rehacer la selección entera.
+   *
+   * <p>«Una vez por producto» lo garantiza {@link #abierto}, no esta función: solo se llama desde el
+   * estreno, y el estreno ya no se repite cuando la ficha se reemplaza en el sitio.
    */
   private avisaDelPedidoMinimo(ficha: FichaDeProducto): void {
     if (ficha.moq > 1) {

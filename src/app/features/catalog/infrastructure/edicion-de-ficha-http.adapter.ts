@@ -106,6 +106,18 @@ export class EdicionDeFichaHttpAdapter implements EdicionDeFichaPort {
     );
   }
 
+  async borraImagenes(
+    idDelProducto: string,
+    idsDeLasImagenes: readonly string[],
+  ): Promise<Result<readonly string[], AppError>> {
+    return mapea(
+      await this.api.post<string[]>(`/admin/catalog/products/${idDelProducto}/images/delete`, {
+        imageIds: [...idsDeLasImagenes],
+      }),
+      (borradas) => borradas ?? [],
+    );
+  }
+
   /** Copia la foto de una variante a la galería REFERENCIANDO la misma dirección: no se resube nada. */
   async anadeImagen(idDelProducto: string, direccion: string): Promise<Result<void, AppError>> {
     return mapea(

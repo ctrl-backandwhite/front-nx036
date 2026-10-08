@@ -530,6 +530,40 @@ describe('FichaPage', () => {
         ],
       });
 
+    /**
+     * El aviso de pedido mínimo salía EN CADA GESTO.
+     *
+     * <p>La ficha que se pinta es un `linkedSignal` que estos gestos reemplazan para repintar solo lo
+     * que cambió. Reemplazarla disparaba el mismo efecto que abrir el producto, y con él todo el
+     * estreno: otra vez el aviso, la galería a la primera foto, el pase de nuevo y la selección de
+     * quien compraba —color, tallas y cantidad— borrada. Lo contrario de lo que el refresco en
+     * silencio dice conseguir.
+     */
+    it('el aviso de pedido mínimo sale UNA vez, aunque se borren fotos después', async () => {
+      const borraImagen = vi.fn().mockResolvedValue(exito(undefined));
+      const { vista } = await monta({
+        esAdministrador: true,
+        laFicha: ficha({ moq: 6, imagenes: conVideo().imagenes }),
+        edicion: { borraImagen },
+      });
+      const { DialogoStore } = await import('@ds/component/dialogo/dialogo.store');
+      const dialogos = vista.fixture.debugElement.injector.get(DialogoStore);
+      expect(dialogos.actual()).not.toBeNull();
+
+      dialogos.cierra(true);
+      await vista.fixture.whenStable();
+      expect(dialogos.actual()).toBeNull();
+
+      const galeria = vista.fixture.debugElement.query(By.directive(GaleriaFicha))
+        .componentInstance as GaleriaFicha;
+      galeria.borraImagen.emit('i2');
+      await confirma(vista);
+      await waitFor(() => expect(borraImagen).toHaveBeenCalledWith('i2'));
+      await waitFor(() => expect(galeria.fotos().length).toBe(2));
+
+      expect(dialogos.actual()).toBeNull();
+    });
+
     it('borrar el vídeo lo quita de la ficha sin volver a pedirla', async () => {
       const borraVideo = vi.fn().mockResolvedValue(exito(undefined));
       const { vista, leeLaFicha } = await monta({

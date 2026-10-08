@@ -68,6 +68,17 @@ export class EditaLaFicha {
     return this.puerto.borraImagen(idDeLaImagen);
   }
 
+  /**
+   * Varias de una pasada. No es azúcar sobre {@link #borraImagen}: el borrado de una reindexa el
+   * producto ENTERO, así que vaciar una tira de doce fotos eran doce peticiones y doce reindexados.
+   */
+  borraImagenes(
+    idDelProducto: string,
+    idsDeLasImagenes: readonly string[],
+  ): Promise<Result<readonly string[], AppError>> {
+    return this.puerto.borraImagenes(idDelProducto, idsDeLasImagenes);
+  }
+
   /** Copia una foto de variante a la galería: la MISMA dirección, sin volver a subir el fichero. */
   anadeImagen(idDelProducto: string, direccion: string): Promise<Result<void, AppError>> {
     return this.puerto.anadeImagen(idDelProducto, direccion);

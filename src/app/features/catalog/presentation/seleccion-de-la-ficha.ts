@@ -218,6 +218,17 @@ export class SeleccionDeLaFicha {
     varianteQueCasa(this.variantes(), this._color(), talla)?.precioFormateado;
 
   /** Empieza de cero con la ficha recién cargada. */
+  /**
+   * Cambia los DATOS de la ficha sin tocar lo que haya elegido quien mira.
+   *
+   * <p>Para los retoques en el sitio: borrar una foto o cambiar un importe reemplaza el objeto de la
+   * ficha, y pasar eso por {@link #empieza} borraba el color, las tallas y la cantidad. Quien estaba
+   * comprando perdía la selección entera porque un administrador quitó una miniatura.
+   */
+  actualizaLaFicha(ficha: FichaDeProducto): void {
+    this._ficha.set(ficha);
+  }
+
   empieza(ficha: FichaDeProducto | null): void {
     this._ficha.set(ficha);
     this._color.set(null);

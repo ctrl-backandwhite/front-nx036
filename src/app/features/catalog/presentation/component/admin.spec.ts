@@ -527,7 +527,7 @@ describe('AccionesDeAdmin', () => {
    * las fotos.
    */
   it('quita las fotos y el vídeo con una sola pregunta', async () => {
-    const borraImagen = vi.fn().mockResolvedValue(exito(undefined));
+    const borraImagenes = vi.fn().mockResolvedValue(exito(['i1', 'i2']));
     const borraVideo = vi.fn().mockResolvedValue(exito(undefined));
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
@@ -535,19 +535,22 @@ describe('AccionesDeAdmin', () => {
         ...APLICACION_DEL_CATALOGO,
         CESTA_DE_OTRO_CONTEXTO,
         AccionesDeAdmin,
-        { provide: EDICION_DE_FICHA_PORT, useValue: { borraImagen, borraVideo } },
+        { provide: EDICION_DE_FICHA_PORT, useValue: { borraImagenes, borraVideo } },
       ],
     });
     const acciones = TestBed.inject(AccionesDeAdmin);
     const fotosFuera = vi.fn();
     const videoFuera = vi.fn();
 
-    const gesto = acciones.borraSeleccion(['i1', 'i2'], 'p1', fotosFuera, videoFuera);
+    const gesto = acciones.borraSeleccion('p1', ['i1', 'i2'], true, fotosFuera, videoFuera);
     await new Promise((sigue) => setTimeout(sigue, 0));
     TestBed.inject(DialogoStore).cierra(true);
     await gesto;
 
-    expect(borraImagen).toHaveBeenCalledTimes(2);
+    // UNA petición con las dos, no una por foto: cada borrado individual reindexa el producto
+    // entero, y por eso vaciar una tira de doce imágenes tardaba.
+    expect(borraImagenes).toHaveBeenCalledTimes(1);
+    expect(borraImagenes).toHaveBeenCalledWith('p1', ['i1', 'i2']);
     expect(borraVideo).toHaveBeenCalledWith('p1');
     expect(fotosFuera).toHaveBeenCalledWith(['i1', 'i2']);
     expect(videoFuera).toHaveBeenCalled();
@@ -555,7 +558,7 @@ describe('AccionesDeAdmin', () => {
 
   /** Sin vídeo marcado no se toca el vídeo: es el camino de siempre. */
   it('sin el vídeo marcado no lo borra', async () => {
-    const borraImagen = vi.fn().mockResolvedValue(exito(undefined));
+    const borraImagenes = vi.fn().mockResolvedValue(exito(['i1']));
     const borraVideo = vi.fn();
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
@@ -563,12 +566,12 @@ describe('AccionesDeAdmin', () => {
         ...APLICACION_DEL_CATALOGO,
         CESTA_DE_OTRO_CONTEXTO,
         AccionesDeAdmin,
-        { provide: EDICION_DE_FICHA_PORT, useValue: { borraImagen, borraVideo } },
+        { provide: EDICION_DE_FICHA_PORT, useValue: { borraImagenes, borraVideo } },
       ],
     });
     const acciones = TestBed.inject(AccionesDeAdmin);
 
-    const gesto = acciones.borraSeleccion(['i1'], null, vi.fn(), vi.fn());
+    const gesto = acciones.borraSeleccion('p1', ['i1'], false, vi.fn(), vi.fn());
     await new Promise((sigue) => setTimeout(sigue, 0));
     TestBed.inject(DialogoStore).cierra(true);
     await gesto;

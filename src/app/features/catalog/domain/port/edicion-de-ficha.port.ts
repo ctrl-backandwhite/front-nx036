@@ -80,6 +80,18 @@ export interface EdicionDeFichaPort {
   ): Promise<Result<FichaDeProducto, AppError>>;
 
   borraImagen(idDeLaImagen: string): Promise<Result<void, AppError>>;
+
+  /**
+   * Quita VARIAS imágenes de una pasada y devuelve las que se borraron de verdad.
+   *
+   * <p>No es azúcar sobre {@link #borraImagen}: el borrado de una reindexa el producto ENTERO, así
+   * que vaciar una tira de doce fotos eran doce peticiones HTTP en serie y doce reindexados del
+   * mismo producto. Por eso «eliminar todas» tardaba.
+   */
+  borraImagenes(
+    idDelProducto: string,
+    idsDeLasImagenes: readonly string[],
+  ): Promise<Result<readonly string[], AppError>>;
   anadeImagen(idDelProducto: string, direccion: string): Promise<Result<void, AppError>>;
   reordenaImagenes(idDelProducto: string, idsEnOrden: readonly string[]): Promise<Result<void, AppError>>;
   borraValorDeVariante(idDelValor: string): Promise<Result<void, AppError>>;

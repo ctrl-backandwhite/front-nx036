@@ -63,36 +63,36 @@ export class AccionesDeAdmin {
   }
 
   /**
-   * Quita VARIAS fotos con una sola pregunta.
+   * Quita lo marcado en la galería —fotos y, si se marcó, el vídeo— con UNA sola pregunta y UNA sola
+   * petición.
    *
-   * <p>Una sola pregunta y no una por foto: quien limpia una galería de ocho imágenes del proveedor no
-   * puede tener que confirmar ocho veces. El recuento va en el mensaje a propósito —no es lo mismo
-   * perder una foto que ocho, y quien selecciona en lote no siempre sabe cuántas lleva marcadas—.
+   * <p>Una sola pregunta y no una por foto: quien limpia una galería de ocho imágenes del proveedor
+   * no puede tener que confirmar ocho veces. El recuento va en el mensaje a propósito —no es lo
+   * mismo perder una foto que ocho, y quien selecciona en lote no siempre sabe cuántas lleva
+   * marcadas—.
    *
-   * <p>Un fallo en una NO detiene a las demás, y al final se dice cuántas cayeron: un borrado a medias
-   * que se anuncia como éxito deja a quien administra creyendo que la galería quedó limpia.
-   */
-  async borraImagenes(ids: readonly string[], alTerminar: (borradas: readonly string[]) => void): Promise<void> {
-    return this.borraSeleccion(ids, null, alTerminar, () => undefined);
-  }
-
-  /**
-   * Quita lo marcado en la galería —fotos y, si se marcó, el vídeo— con UNA sola pregunta.
+   * <p><b>Y una sola petición, desde el 8-oct-2026.</b> Antes recorría la lista llamando a
+   * `borraImagen` una vez por foto, en serie. Cada una de esas llamadas REINDEXA el producto entero,
+   * así que vaciar una tira de doce imágenes eran doce viajes al servidor y doce reindexados del
+   * mismo producto: por eso «eliminar todas» tardaba tanto. Ahora va la lista entera y el servidor
+   * vacía la colección de una vez y reindexa al final.
    *
-   * <p>El vídeo entra aquí y no por su propio gesto porque quien marca cuatro cosas y pulsa «eliminar
-   * seleccionadas» espera que le pregunten una vez, no dos: una por las fotos y otra por el vídeo. Va
-   * al final del borrado a propósito, para que un fallo suyo no impida quitar las fotos.
+   * <p>El vídeo entra aquí y no por su propio gesto porque quien marca cuatro cosas y pulsa
+   * «eliminar seleccionadas» espera que le pregunten una vez, no dos. Va al final del borrado a
+   * propósito, para que un fallo suyo no impida quitar las fotos.
    *
-   * @param idDelProductoConVideo el producto cuyo vídeo hay que quitar, o {@code null} si no se marcó
+   * <p>El servidor contesta con las que se borraron DE VERDAD, no con las que se pidieron: si alguna
+   * falla, esa se queda donde está y la pantalla sigue diciendo la verdad.
    */
   async borraSeleccion(
+    idDelProducto: string,
     ids: readonly string[],
-    idDelProductoConVideo: string | null,
+    tambienElVideo: boolean,
     alTerminar: (borradas: readonly string[]) => void,
     alQuitarElVideo: () => void,
     claveDeLaPregunta = 'admin.catalog.images.delete_selected_confirm',
   ): Promise<void> {
-    const cuantas = ids.length + (idDelProductoConVideo ? 1 : 0);
+    const cuantas = ids.length + (tambienElVideo ? 1 : 0);
     if (cuantas === 0) {
       return;
     }
@@ -103,24 +103,18 @@ export class AccionesDeAdmin {
       return;
     }
     const editor = await this.editor();
-    const borradas: string[] = [];
-    for (const id of ids) {
-      const resultado = await editor.borraImagen(id);
-      if (resultado.ok) {
-        borradas.push(id);
-      }
-    }
+    const resultado = ids.length > 0 ? await editor.borraImagenes(idDelProducto, ids) : null;
+    const borradas = resultado?.ok ? resultado.valor : [];
     let videoFuera = false;
-    if (idDelProductoConVideo) {
-      videoFuera = (await editor.borraVideo(idDelProductoConVideo)).ok;
+    if (tambienElVideo) {
+      videoFuera = (await editor.borraVideo(idDelProducto)).ok;
     }
-    const pedidas = ids.length + (idDelProductoConVideo ? 1 : 0);
     const hechas = borradas.length + (videoFuera ? 1 : 0);
-    if (hechas < pedidas) {
+    if (hechas < cuantas) {
       this.avisos.error(
         this.traduccion.tCon('admin.catalog.images.partial', {
           ok: hechas,
-          fail: pedidas - hechas,
+          fail: cuantas - hechas,
         }),
       );
     } else {
@@ -145,12 +139,14 @@ export class AccionesDeAdmin {
    * salva ninguna, y quitarlas de una en una son doce confirmaciones.
    */
   async borraTodasLasImagenes(
+    idDelProducto: string,
     ids: readonly string[],
     alTerminar: (borradas: readonly string[]) => void,
   ): Promise<void> {
     return this.borraSeleccion(
+      idDelProducto,
       ids,
-      null,
+      false,
       alTerminar,
       () => undefined,
       'admin.catalog.images.delete_all_confirm',
@@ -235,6 +231,10 @@ export class AccionesDeAdmin {
 /** La parte del editor que usan estos gestos. Se declara para no importar el caso de uso al cargar. */
 interface EditorDeFicha {
   borraImagen(idDeLaImagen: string): Promise<Result<void, AppError>>;
+  borraImagenes(
+    idDelProducto: string,
+    idsDeLasImagenes: readonly string[],
+  ): Promise<Result<readonly string[], AppError>>;
   borraVideo(idDelProducto: string): Promise<Result<void, AppError>>;
   borraValorDeVariante(idDelValor: string): Promise<Result<void, AppError>>;
   reordenaImagenes(idDelProducto: string, idsEnOrden: readonly string[]): Promise<Result<void, AppError>>;
