@@ -115,6 +115,12 @@ export interface VarianteDeProducto {
    */
   readonly anteriorFormateado?: string;
   readonly descuentoPorcentaje?: number;
+  /**
+   * El desglose de ESTA variante. Solo llega a quien administra, y por la misma razón que la rebaja
+   * de aquí arriba: el del producto lo calcula el backend sobre la variante representativa —la MÁS
+   * BARATA—, así que en una ficha con variantes a precios distintos no suma el precio que se enseña.
+   */
+  readonly desglose?: DesgloseDePrecio;
 }
 
 export interface ValorDeEje {

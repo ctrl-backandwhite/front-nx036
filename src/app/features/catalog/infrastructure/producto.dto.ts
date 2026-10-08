@@ -57,6 +57,28 @@ export interface PaginaDto<T> {
   totalPages: number;
 }
 
+/**
+ * El desglose que llega POR VARIANTE. Son las mismas líneas que las sueltas de la ficha, agrupadas:
+ * el backend las manda así desde que se descubrió que el del producto era el de la variante más
+ * barata, y que por tanto no sumaba el precio de arriba.
+ *
+ * <p>No trae los importes CRUDOS en yuanes (las dos bolsas de subvención): esos se editan y son del
+ * PRODUCTO, no de la variante. Se heredan de la ficha al componer.
+ */
+interface DesgloseDeVarianteDto {
+  baseFormatted?: string;
+  margenInternoFormatted?: string;
+  margenInternoPct?: number | null;
+  shippingFormatted?: string;
+  surchargeFormatted?: string;
+  surchargePct?: number | null;
+  shippingUserFormatted?: string;
+  dutyUserFormatted?: string;
+  precioBaseFormatted?: string | null;
+  margenGananciaFormatted?: string | null;
+  gananciaFormatted?: string | null;
+}
+
 export interface FichaDto extends ResumenDto {
   source: string;
   externalId: string;
@@ -113,6 +135,7 @@ export interface FichaDto extends ResumenDto {
     heightMm?: number;
     originalFormatted?: string;
     discountPercent?: number;
+    desglose?: DesgloseDeVarianteDto;
   }[];
   variantOptions?: {
     id: string;
@@ -237,7 +260,39 @@ function aVariantes(dto: FichaDto): readonly VarianteDeProducto[] {
     altoMm: variante.heightMm,
     anteriorFormateado: variante.originalFormatted,
     descuentoPorcentaje: variante.discountPercent,
+    desglose: aDesgloseDeVariante(variante.desglose, dto),
   }));
+}
+
+/**
+ * El desglose de UNA variante, con los importes crudos en yuanes heredados de la ficha.
+ *
+ * <p>Las dos bolsas de subvención se teclean en yuanes y son del PRODUCTO: la variante solo trae su
+ * versión ya convertida. Sin heredarlas, abrir el desglose de una variante dejaba esos dos campos
+ * vacíos y el doble clic para editarlos escribía sobre la nada.
+ */
+function aDesgloseDeVariante(
+  desglose: DesgloseDeVarianteDto | undefined,
+  dto: FichaDto,
+): DesgloseDePrecio | undefined {
+  if (!desglose) {
+    return undefined;
+  }
+  return {
+    baseFormateado: desglose.baseFormatted,
+    margenInternoFormateado: desglose.margenInternoFormatted,
+    margenInternoPct: desglose.margenInternoPct,
+    envioFormateado: desglose.shippingFormatted,
+    recargoFormateado: desglose.surchargeFormatted,
+    recargoPct: desglose.surchargePct,
+    gananciaFormateada: desglose.gananciaFormatted ?? undefined,
+    margenDeGananciaFormateado: desglose.margenGananciaFormatted ?? undefined,
+    precioBaseFormateado: desglose.precioBaseFormatted ?? undefined,
+    subsidioDeEnvioFormateado: desglose.shippingUserFormatted,
+    subsidioDeEnvioCny: dto.shippingUserCny,
+    subsidioDeArancelFormateado: desglose.dutyUserFormatted,
+    subsidioDeArancelCny: dto.dutyUserCny,
+  };
 }
 
 function aEjes(dto: FichaDto): readonly EjeDeVariante[] {

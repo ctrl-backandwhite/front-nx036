@@ -134,8 +134,16 @@ import { DesgloseEditable } from './admin/desglose-editable';
             [puedeEditar]="sesion.esAdministrador()"
             (cambiaRecargo)="cambiaRecargoDeTramo.emit($event)"
           />
-          <!-- El desglose de conceptos es SOLO del administrador y se carga aparte. -->
-          @if (sesion.esAdministrador() && ficha().desglose; as desglose) {
+          <!--
+            El desglose de conceptos es SOLO del administrador y se carga aparte.
+
+            Y es el de la VARIANTE ELEGIDA, no el de la ficha: el del producto lo calcula el backend
+            sobre la variante representativa —la más barata—, mientras que el total de arriba es el de
+            la elegida. En la ficha 888558090941, con la barata a 5 CNY y la elegida a 16, la caja
+            sumaba 2,08 € bajo un total de 4,96 €. Se cae al del producto mientras no hay variante
+            elegida, que es como nace la ficha.
+          -->
+          @if (sesion.esAdministrador() && desgloseVisible(); as desglose) {
             @defer (on idle) {
               <nx-desglose-editable
                 [idDelProducto]="ficha().id"
@@ -277,6 +285,11 @@ export class PanelDeCompra {
   protected readonly seleccion = inject(SeleccionDeLaFicha);
   protected readonly sesion = inject(SesionActual);
   protected readonly t = inject(TraduccionService).t;
+
+  /** El desglose que se pinta: el de la variante elegida, y el de la ficha mientras no hay ninguna. */
+  protected readonly desgloseVisible = computed(
+    () => this.seleccion.varianteElegida()?.desglose ?? this.ficha().desglose,
+  );
 
   protected readonly iconos = {
     estrella: faStar,

@@ -145,6 +145,63 @@ describe('CatalogoHttpAdapter', () => {
     expect(resultado.ok && resultado.valor.desglose).toBeUndefined();
   });
 
+  /**
+   * El desglose POR VARIANTE, y las bolsas en yuanes heredadas de la ficha.
+   *
+   * <p>El del producto lo calcula el backend sobre la variante representativa —la MÁS BARATA—,
+   * mientras que el precio que se enseña es el de la elegida: en 888558090941, con la barata a 5 CNY
+   * y la elegida a 16, la caja sumaba 2,08 € bajo un total de 4,96 €. Las dos bolsas se teclean en
+   * yuanes y son del PRODUCTO, así que la variante solo trae su importe convertido: sin heredar los
+   * crudos, el doble clic para editarlos escribía sobre la nada.
+   */
+  it('cada variante trae su desglose, con las bolsas en yuanes de la ficha', async () => {
+    const promesa = TestBed.inject(CatalogoHttpAdapter).ficha('cubrecama');
+    http.expectOne((r) => r.url === `${BASE}/api/catalog/products/cubrecama`).flush({
+      id: 'p1',
+      slug: 'cubrecama',
+      title: 'Cubrecama',
+      source: '1688',
+      externalId: '1',
+      shippingUserCny: 12,
+      dutyUserCny: 3,
+      variants: [
+        {
+          id: 'v1',
+          stock: 5,
+          desglose: {
+            baseFormatted: '12,00 €',
+            shippingFormatted: '1,80 €',
+            shippingUserFormatted: '1,50 €',
+            gananciaFormatted: '2,40 €',
+          },
+        },
+      ],
+    });
+    const resultado = await promesa;
+    const variante = resultado.ok ? resultado.valor.variantes[0] : undefined;
+
+    expect(variante?.desglose?.baseFormateado).toBe('12,00 €');
+    expect(variante?.desglose?.envioFormateado).toBe('1,80 €');
+    expect(variante?.desglose?.gananciaFormateada).toBe('2,40 €');
+    expect(variante?.desglose?.subsidioDeEnvioCny).toBe(12);
+    expect(variante?.desglose?.subsidioDeArancelCny).toBe(3);
+  });
+
+  /** Para quien compra el backend no lo manda, y entonces no debe nacer una caja vacía. */
+  it('una variante sin desglose no lo inventa', async () => {
+    const promesa = TestBed.inject(CatalogoHttpAdapter).ficha('cubrecama');
+    http.expectOne((r) => r.url === `${BASE}/api/catalog/products/cubrecama`).flush({
+      id: 'p1',
+      slug: 'cubrecama',
+      title: 'Cubrecama',
+      source: '1688',
+      externalId: '1',
+      variants: [{ id: 'v1', stock: 5 }],
+    });
+    const resultado = await promesa;
+    expect(resultado.ok && resultado.valor.variantes[0].desglose).toBeUndefined();
+  });
+
   /** Hay idiomas sin poblar: sin respaldo, la ficha técnica salía vacía en ellos. */
   it('las especificaciones vacías se reintentan en español', async () => {
     const promesa = TestBed.inject(CatalogoHttpAdapter).especificaciones('p1', 'nl');
