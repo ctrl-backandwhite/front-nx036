@@ -87,11 +87,7 @@ export class AnadeALaCesta {
       id: ficha.id,
       slug: ficha.slug,
       titulo: ficha.titulo,
-      // De la galería, NO de `imagenPrincipal`: el detalle del catálogo no devuelve `mainImage` —solo
-      // lo hace el listado—, así que en la ficha ese campo viene siempre vacío y la línea se guardaba
-      // sin imagen. En la cesta y en el pago salía un hueco gris con el nombre al lado. Se usa la
-      // misma función que elige la foto al compartir: la marcada como principal, y si no, la primera.
-      imagen: ficha.imagenPrincipal ?? fotoParaCompartir(ficha.imagenes),
+      imagen: fotoDeLaLinea(ficha, variante),
       precioMostrado: Number(importe),
       divisaMostrada: ficha.precio.divisa ?? 'USD',
       eleccion: {
@@ -111,6 +107,26 @@ export class AnadeALaCesta {
     const resultado = await this.carrito.anade(producto);
     return resultado.estado === 'anadido' ? exito(undefined) : fallo('sin-existencias');
   }
+}
+
+/**
+ * La foto con la que la línea aparece en la cesta y en el pago.
+ *
+ * <p><b>La de la VARIANTE, primero.</b> La línea llevaba siempre la del producto, así que tres
+ * cubrecamas de colores distintos —mostaza, azul marino y café— salían en la cesta con la misma foto
+ * rosa y no había manera de saber cuál era cuál sin leer el renglón pequeño. La variante trae la
+ * suya: en «867161777488» son 15 fotos distintas, una por estampado.
+ *
+ * <p>El respaldo sigue haciendo falta: una variante puede no tener foto propia. Y se toma de la
+ * GALERÍA y no solo de `imagenPrincipal`, porque el detalle del catálogo no devuelve `mainImage`
+ * —solo lo hace el listado—: en la ficha ese campo viene vacío y la línea se guardaba sin imagen,
+ * con un hueco gris en la cesta y en el pago.
+ */
+function fotoDeLaLinea(
+  ficha: FichaDeProducto,
+  variante: VarianteDeProducto | undefined,
+): string | undefined {
+  return variante?.imagen ?? ficha.imagenPrincipal ?? fotoParaCompartir(ficha.imagenes);
 }
 
 /** Distingue el fallo de red del rechazo por reglas, para que la pantalla enseñe el texto correcto. */

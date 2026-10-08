@@ -255,6 +255,49 @@ describe('AnadeALaCesta', () => {
     );
   });
 
+  /**
+   * La línea llevaba SIEMPRE la foto del producto. Tres cubrecamas de colores distintos —mostaza,
+   * azul marino y café— salían en la cesta con la misma foto rosa, y no había forma de distinguirlos
+   * sin leer el renglón pequeño. La variante trae la suya: en «867161777488» hay 15 fotos, una por
+   * estampado.
+   */
+  it('la línea se lleva la foto de la VARIANTE elegida, no la del producto', async () => {
+    const conFotos = ficha({
+      imagenes: [{ id: 'i1', direccion: 'https://cdn/producto.jpg', posicion: 0, papel: 'MAIN' }],
+      variantes: [
+        {
+          id: 'v1',
+          existencias: 4,
+          opciones: { Estampado: 'Café' },
+          activa: true,
+          imagen: 'https://cdn/cafe.jpg',
+        },
+      ],
+    });
+    const { caso, anade } = monta();
+
+    await caso.conVariante(conFotos, conFotos.variantes[0], 1);
+
+    expect(anade).toHaveBeenCalledWith(
+      expect.objectContaining({ imagen: 'https://cdn/cafe.jpg' }),
+    );
+  });
+
+  /** Una variante sin foto propia sigue valiéndose de la del producto: el hueco gris no vuelve. */
+  it('sin foto de variante se queda con la del producto', async () => {
+    const sinFoto = ficha({
+      imagenes: [{ id: 'i1', direccion: 'https://cdn/producto.jpg', posicion: 0, papel: 'MAIN' }],
+      variantes: [{ id: 'v1', existencias: 4, opciones: { Estampado: 'Café' }, activa: true }],
+    });
+    const { caso, anade } = monta();
+
+    await caso.conVariante(sinFoto, sinFoto.variantes[0], 1);
+
+    expect(anade).toHaveBeenCalledWith(
+      expect.objectContaining({ imagen: 'https://cdn/producto.jpg' }),
+    );
+  });
+
   /** Añadir a ciegas acaba en pedidos con la talla equivocada. */
   it('no añade nada si la ficha dice que no queda ninguna variante', async () => {
     const { caso, anade } = monta();
