@@ -2074,6 +2074,8 @@ const diccionario: Record<string, string> = {
   'admin.catalog.images.delete_selected': 'Delete selected',
   'admin.catalog.images.delete_selected_confirm': 'Delete the {n} selected images? This cannot be undone.',
   'admin.catalog.images.clear_sel': 'Clear',
+  'admin.catalog.images.delete_all': 'Delete all ({n})',
+  'admin.catalog.images.delete_all_confirm': 'All {n} detail images will be deleted. This cannot be undone. Continue?',
   'admin.catalog.images.partial': 'Added {ok}; {fail} failed.',
   'admin.catalog.images.upload': 'Upload',
   // DROP-648 admin affiliate panel

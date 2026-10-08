@@ -187,6 +187,7 @@ const CONFIRMACION_MS = 2000;
         [puedeEditar]="sesion.puedeRevisarFichas()"
         (borraImagen)="admin.borraImagen($event, () => quitaFotos([$event]))"
         (borraSeleccion)="admin.borraSeleccion($event, null, quitaFotos, quitaVideo)"
+        (borraTodasLasFotos)="admin.borraTodasLasImagenes($event, quitaFotos)"
         (reordenaDetalle)="admin.reordena(producto.id, $event, () => reordenaDetalle($event))"
       />
     } @else {

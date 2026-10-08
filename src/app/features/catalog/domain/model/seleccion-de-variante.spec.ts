@@ -87,6 +87,28 @@ describe('reconocimiento de ejes', () => {
     expect(ejePrincipal([eje('Color', [])])).toBeUndefined();
     expect(ejePrincipal([eje('Color', []), eje('Modelo', ['A'])])?.nombre).toBe('Modelo');
   });
+  // El barrido de idiomas del 3-oct-2026 escribió el nombre canónico en español en `name`, y la
+  // detección —que miraba `/size|talla|尺码|尺寸/`— dejó de reconocer «Medidas», «Tamaño», «Longitud
+  // (cm)» y «Altura recomendada»: 336 productos de PRE y 110 de PRO se quedaron SIN selector de
+  // talla y, como la ficha solo pinta dos, quien cambiaba de medida se llevaba siempre la misma
+  // variante al carrito. Caso medido: «867161777488», ejes «Estampado» y «Medidas», 165
+  // combinaciones y un único selector.
+  it.each(['Talla', 'Tamaño', 'Medidas', 'Longitud (cm)', 'Altura recomendada'])(
+    'reconoce «%s» como eje de talla, que es como lo deja el barrido de idiomas',
+    (nombre) => {
+      expect(ejeDeTalla([eje('Estampado', ['Flores']), eje(nombre, ['90'])])?.nombre).toBe(nombre);
+    },
+  );
+
+  it('ofrece el segundo eje aunque no sea una talla: sin selector no se puede elegir', () => {
+    const ejes = [eje('Color', ['Negro']), eje('Capacidad', ['500 ml', '1 l'])];
+    expect(ejePrincipal(ejes)?.nombre).toBe('Color');
+    expect(ejeDeTalla(ejes)?.nombre).toBe('Capacidad');
+  });
+
+  it('con un solo eje no inventa un segundo selector', () => {
+    expect(ejeDeTalla([eje('Color', ['Negro'])])).toBeUndefined();
+  });
 });
 
 describe('etiquetaDeValor', () => {

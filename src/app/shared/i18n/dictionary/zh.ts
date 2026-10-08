@@ -269,6 +269,8 @@ const diccionario: Record<string, string> = {
   'admin.catalog.fields.video_url': '视频 URL',
   'admin.catalog.images.add_url': '添加',
   'admin.catalog.images.clear_sel': '清除选择',
+  'admin.catalog.images.delete_all': '删除全部（{n}）',
+  'admin.catalog.images.delete_all_confirm': '将删除详情中的 {n} 张图片，且无法恢复。是否继续？',
   'admin.catalog.images.delete': '移除图片',
   'admin.catalog.images.delete_confirm': '移除此图片？',
   'admin.catalog.images.delete_selected': '删除所选',

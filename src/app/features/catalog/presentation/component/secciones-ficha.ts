@@ -74,6 +74,7 @@ import { HistoricoDePrecios } from './historico-de-precios';
               [puedeEditar]="puedeEditar()"
               (borra)="borraImagen.emit($event)"
               (borraSeleccion)="borraSeleccion.emit($event)"
+              (borraTodas)="borraTodasLasFotos.emit($event)"
               (reordena)="reordenaDetalle.emit($event)"
             />
           }
@@ -198,6 +199,8 @@ export class SeccionesFicha {
   readonly puedeEditar = input(false);
   readonly borraImagen = output<string>();
   readonly borraSeleccion = output<readonly string[]>();
+  /** Vaciar la tira del detalle entera, sin marcar nada. */
+  readonly borraTodasLasFotos = output<readonly string[]>();
   /** El nuevo orden de las fotos de la descripción; la página es quien tiene el caso de uso. */
   readonly reordenaDetalle = output<readonly string[]>();
 

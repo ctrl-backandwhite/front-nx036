@@ -43,3 +43,45 @@ export function claveDeEje(nombre: string | null | undefined): string | undefine
   const limpio = (nombre ?? '').trim().toLowerCase();
   return limpio ? CLAVES_DE_EJE[limpio] : undefined;
 }
+
+/**
+ * Cuáles de esos ejes son la FAMILIA TALLA: los que se eligen por medida y van en la tabla con una
+ * fila por valor, no en la tira de botones del eje principal.
+ *
+ * <p>Existe porque la detección se hacía con una expresión regular sobre el nombre —`/size|talla|尺码|
+ * 尺寸/`— y el 3-oct-2026 el barrido de idiomas escribió el nombre canónico en español en `name`: un
+ * eje que llegaba como `尺寸规格` pasó a llamarse «Medidas», que esa expresión NO reconoce. Resultado
+ * medido: 336 productos de PRE y 110 de PRO se quedaron sin selector de talla, y como solo había un
+ * selector, quien cambiaba de medida se llevaba al carrito SIEMPRE la misma variante
+ * («1-2-1-5-1-8-2-0-867161777488», 165 combinaciones y un único selector).
+ *
+ * <p>La lección es la que obliga a que esto viva aquí: el nombre del eje es DATO TRADUCIDO, así que
+ * reconocerlo por su texto en un idioma concreto se rompe en cuanto el dato se normaliza. El mapa de
+ * arriba ya es la lista cerrada de nombres canónicos; la familia se declara sobre ella y no aparte.
+ */
+export const EJES_DE_TALLA: ReadonlySet<string> = new Set([
+  'talla',
+  'tamaño',
+  'medidas',
+  'medidas (largo x ancho en cm)',
+  'longitud (cm)',
+  'altura recomendada',
+  'talla de calcetín infantil',
+]);
+
+/**
+ * Cómo se reconoce la talla en lo que AÚN no está normalizado: el chino de origen y el inglés.
+ *
+ * <p>No se quita al añadir la lista canónica. Los ejes entran por el importador y el barrido pasa
+ * después, así que entre una carga y la siguiente hay ejes con el nombre todavía en chino; y PRE
+ * recibe altas a diario.
+ */
+const TALLA_SIN_NORMALIZAR = /size|talla|尺码|尺寸|鞋码|码数|适合身高|长度/i;
+
+/** Si ese eje es de la familia talla, por su nombre canónico o por el de origen. */
+export function esEjeDeTalla(...nombres: readonly (string | null | undefined)[]): boolean {
+  return nombres.some((nombre) => {
+    const limpio = (nombre ?? '').trim().toLowerCase();
+    return limpio !== '' && (EJES_DE_TALLA.has(limpio) || TALLA_SIN_NORMALIZAR.test(limpio));
+  });
+}

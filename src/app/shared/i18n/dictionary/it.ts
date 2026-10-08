@@ -277,6 +277,8 @@ const diccionario: Record<string, string> = {
   'admin.catalog.fields.video_url': 'URL del video',
   'admin.catalog.images.add_url': 'Aggiungi',
   'admin.catalog.images.clear_sel': 'Rimuovi selezione',
+  'admin.catalog.images.delete_all': 'Elimina tutte ({n})',
+  'admin.catalog.images.delete_all_confirm': "Verranno eliminate le {n} immagini del dettaglio. L'operazione è irreversibile. Continuare?",
   'admin.catalog.images.delete': 'Rimuovi immagine',
   'admin.catalog.images.delete_confirm': 'Rimuovere questa immagine?',
   'admin.catalog.images.delete_selected': 'Elimina selezionate',

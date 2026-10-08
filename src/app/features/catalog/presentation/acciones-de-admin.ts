@@ -90,13 +90,14 @@ export class AccionesDeAdmin {
     idDelProductoConVideo: string | null,
     alTerminar: (borradas: readonly string[]) => void,
     alQuitarElVideo: () => void,
+    claveDeLaPregunta = 'admin.catalog.images.delete_selected_confirm',
   ): Promise<void> {
     const cuantas = ids.length + (idDelProductoConVideo ? 1 : 0);
     if (cuantas === 0) {
       return;
     }
     const confirmado = await this.dialogo.confirma(
-      this.traduccion.tCon('admin.catalog.images.delete_selected_confirm', { n: cuantas }),
+      this.traduccion.tCon(claveDeLaPregunta, { n: cuantas }),
     );
     if (!confirmado) {
       return;
@@ -129,6 +130,31 @@ export class AccionesDeAdmin {
     if (videoFuera) {
       alQuitarElVideo();
     }
+  }
+
+  /**
+   * Quita TODAS las fotos del detalle de una vez.
+   *
+   * <p>Es el mismo borrado en lote, con otra pregunta. Se separó porque no son el mismo gesto: quien
+   * marca cuatro miniaturas sabe cuáles se lleva, y quien pulsa «eliminar todas» no está mirando
+   * ninguna en concreto. La pregunta tiene que decir que se vacía la tira entera, no cuántas van
+   * marcadas.
+   *
+   * <p>Nace de la galería de descripción que llega del proveedor con fotos de OTROS productos
+   * mezcladas —medido en «1060450393509», chanclas con tres miniaturas de zapatillas—: ahí no se
+   * salva ninguna, y quitarlas de una en una son doce confirmaciones.
+   */
+  async borraTodasLasImagenes(
+    ids: readonly string[],
+    alTerminar: (borradas: readonly string[]) => void,
+  ): Promise<void> {
+    return this.borraSeleccion(
+      ids,
+      null,
+      alTerminar,
+      () => undefined,
+      'admin.catalog.images.delete_all_confirm',
+    );
   }
 
   async borraVideo(idDelProducto: string, alTerminar: () => void): Promise<void> {

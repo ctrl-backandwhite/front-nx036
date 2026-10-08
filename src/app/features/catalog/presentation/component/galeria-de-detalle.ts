@@ -106,16 +106,31 @@ import { VisorGaleria } from './visor-galeria';
         vertical, y copiarla aquí tal cual la dejaba con el ancho de una miniatura: los tres rótulos se
         montaban unos sobre otros y no se entendía nada.
       -->
-      @if (puedeEditar() && cuantasMarcadas() > 0) {
+      <!--
+        «Eliminar todas» se ve SIEMPRE que se pueda editar, sin marcar nada: es justo el caso en el que
+        no hay nada que marcar porque no se salva ninguna. La barra solo se enmarca en color cuando hay
+        selección, para que un botón destructivo permanente no grite desde una tarjeta de consulta.
+      -->
+      @if (puedeEditar() && fotos().length > 0) {
         <div
-          class="mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 p-2"
+          class="mt-2 flex flex-wrap items-center gap-2 rounded-lg p-2"
+          [class]="marcoDeLaBarra()"
         >
-          <span class="text-xs font-medium">{{ textoDeMarcadas() }}</span>
-          <button type="button" class="btn btn-error btn-xs" (click)="borraLasMarcadas()">
-            <fa-icon [icon]="iconos.papelera" /> {{ t('admin.catalog.images.delete_selected') }}
-          </button>
-          <button type="button" class="btn btn-ghost btn-xs" (click)="limpiaSeleccion()">
-            {{ t('admin.catalog.images.clear_sel') }}
+          @if (cuantasMarcadas() > 0) {
+            <span class="text-xs font-medium">{{ textoDeMarcadas() }}</span>
+            <button type="button" class="btn btn-error btn-xs" (click)="borraLasMarcadas()">
+              <fa-icon [icon]="iconos.papelera" /> {{ t('admin.catalog.images.delete_selected') }}
+            </button>
+            <button type="button" class="btn btn-ghost btn-xs" (click)="limpiaSeleccion()">
+              {{ t('admin.catalog.images.clear_sel') }}
+            </button>
+          }
+          <button
+            type="button"
+            class="btn btn-outline btn-error btn-xs ms-auto"
+            (click)="borraLasQueHaya()"
+          >
+            <fa-icon [icon]="iconos.papelera" /> {{ textoDeBorrarTodas() }}
           </button>
         </div>
       }
@@ -145,6 +160,15 @@ export class GaleriaDeDetalle {
   readonly reordena = output<readonly string[]>();
   /** Las marcadas, para quitarlas de una con UNA sola pregunta en vez de una por foto. */
   readonly borraSeleccion = output<readonly string[]>();
+  /**
+   * La tira ENTERA, sin marcar nada.
+   *
+   * <p>Sale aparte de {@link borraSeleccion} porque la pregunta que merece es otra: no es «borrar las
+   * 3 marcadas», es «vaciar el detalle». La galería de descripción del proveedor llega a veces con
+   * fotos de otros productos mezcladas y no se salva ninguna; marcarlas una por una para luego
+   * borrarlas en lote es el mismo trabajo que se quería evitar.
+   */
+  readonly borraTodas = output<readonly string[]>();
 
   /** Índice de la foto abierta en grande, o `null` si no hay ninguna. */
   protected readonly ampliada = signal<number | null>(null);
@@ -166,6 +190,26 @@ export class GaleriaDeDetalle {
   protected readonly textoDeMarcadas = computed(() =>
     this.traduccion.tCon('admin.catalog.images.selected', { n: this.cuantasMarcadas() }),
   );
+
+  /**
+   * El marco de la barra, solo cuando hay selección.
+   *
+   * <p>Va como clase CALCULADA y no como `[class.border-primary/30]`: el nombre de esa utilidad lleva
+   * una barra, y en la sintaxis `[class.x]` el analizador de plantillas la toma como parte del nombre
+   * de la propiedad. Compila, pero la clase que acaba en el elemento no es la que se quería.
+   */
+  protected readonly marcoDeLaBarra = computed(() =>
+    this.cuantasMarcadas() > 0 ? 'border border-primary/30 bg-primary/10' : '',
+  );
+
+  protected readonly textoDeBorrarTodas = computed(() =>
+    this.traduccion.tCon('admin.catalog.images.delete_all', { n: this.fotos().length }),
+  );
+
+  protected borraLasQueHaya(): void {
+    this.borraTodas.emit(this.fotos().map((foto) => foto.id));
+    this.limpiaSeleccion();
+  }
 
   protected estaMarcada(id: string): boolean {
     return this.marcadas().has(id);

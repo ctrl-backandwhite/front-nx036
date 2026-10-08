@@ -1,4 +1,5 @@
 import { translateVariantCN } from '@shared/i18n/color-terms';
+import { esEjeDeTalla } from '@shared/i18n/ejes-de-variante';
 import {
   EjeDeVariante,
   FichaDeProducto,
@@ -15,17 +16,42 @@ import {
  * NEGOCIO —cada una costó una incidencia— y se prueban aquí, sin montar un componente.
  */
 
-/** Cómo se reconoce el eje de talla, en los idiomas en los que llega del proveedor. */
-const ES_TALLA = /size|talla|尺码|尺寸/i;
 /** Cómo se reconoce el eje de color. */
 const ES_COLOR = /color|colour|颜色/i;
 
+/**
+ * Los DOS ejes que la ficha sabe ofrecer: el principal (tira de botones) y el secundario (tabla con
+ * una fila por valor). Se deciden JUNTOS y de una sola vez.
+ *
+ * <p>Antes eran dos funciones independientes y `ejePrincipal` llamaba a `ejeDeTalla` para descartarlo.
+ * Mientras el secundario se reconocía solo por el nombre eso bastaba; en cuanto el secundario pasó a
+ * ser «el eje que no es el principal» —ver abajo— las dos se llamaban en círculo.
+ *
+ * <p>Un eje SIN valores no es un eje: es un encabezado vacío que llegó del proveedor. Contarlo dejaba
+ * la ficha pidiendo «selecciona al menos una talla» sin ninguna talla que seleccionar, un callejón
+ * del que no se puede salir por mucho que se pulse. Medido en «t-887600913911», que declara un eje
+ * de talla con cero valores.
+ */
+function clasificaLosEjes(ejes: readonly EjeDeVariante[]): {
+  readonly principal: EjeDeVariante | undefined;
+  readonly secundario: EjeDeVariante | undefined;
+} {
+  const conValores = ejes.filter((eje) => eje.valores.length > 0);
+  const talla = conValores.find((eje) => esEjeDeTalla(eje.nombre, eje.nombreZh));
+  const principal =
+    conValores.find((eje) => ES_COLOR.test(eje.nombre ?? eje.nombreZh ?? '')) ??
+    conValores.find((eje) => eje !== talla);
+  // El secundario es la talla si hay una; si no, CUALQUIER segundo eje. Lo segundo es lo que faltaba:
+  // la ficha solo pinta dos selectores, así que un segundo eje no reconocido no se podía elegir y la
+  // variante quedaba fijada en la primera combinación —quien cambiaba de capacidad o de pureza
+  // añadía al carrito siempre la misma—. Si no se sabe qué es, se ofrece igual: con su nombre, que
+  // ya viene traducido, se entiende; sin selector, no hay compra posible.
+  return { principal, secundario: talla ?? conValores.find((eje) => eje !== principal) };
+}
+
+/** El eje secundario: la talla, u otro eje que también haya que elegir. */
 export function ejeDeTalla(ejes: readonly EjeDeVariante[]): EjeDeVariante | undefined {
-  // Un eje SIN valores no es un eje: es un encabezado vacío que llegó del proveedor. Contarlo dejaba
-  // la ficha pidiendo «selecciona al menos una talla» sin ninguna talla que seleccionar, un callejón
-  // del que no se puede salir por mucho que se pulse. Medido en «t-887600913911», que declara un eje
-  // de talla con cero valores.
-  return ejes.find((eje) => ES_TALLA.test(eje.nombre ?? eje.nombreZh ?? '') && eje.valores.length > 0);
+  return clasificaLosEjes(ejes).secundario;
 }
 
 /**
@@ -36,13 +62,7 @@ export function ejeDeTalla(ejes: readonly EjeDeVariante[]): EjeDeVariante | unde
  * elegido. Sin esto, esos productos se quedaban sin ningún selector.
  */
 export function ejePrincipal(ejes: readonly EjeDeVariante[]): EjeDeVariante | undefined {
-  const talla = ejeDeTalla(ejes);
-  // Mismo criterio que en la talla: un eje sin valores no ofrece nada que elegir.
-  const conValores = ejes.filter((eje) => eje.valores.length > 0);
-  return (
-    conValores.find((eje) => ES_COLOR.test(eje.nombre ?? eje.nombreZh ?? '')) ??
-    conValores.find((eje) => eje !== talla)
-  );
+  return clasificaLosEjes(ejes).principal;
 }
 
 /**

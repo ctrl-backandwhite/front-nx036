@@ -5,6 +5,7 @@ import { faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { PreferenciasService } from '@core/preferences/preferencias';
 import { EjeDeVariante } from '../../domain/model/producto';
+import { claveDeEje } from '@shared/i18n/ejes-de-variante';
 import { etiquetaDeValor, partesDeLaTalla } from '../../domain/model/seleccion-de-variante';
 
 /**
@@ -36,7 +37,7 @@ export interface CambioDeTalla {
       <div class="card card-border bg-base-100">
         <div class="card-body p-3">
           <div class="flex items-baseline justify-between mb-2 px-1">
-            <h3 class="text-[13px] font-medium">{{ t('pdp.size') }}</h3>
+            <h3 class="text-[13px] font-medium">{{ rotulo() }}</h3>
             <span class="text-[11px] opacity-70">
               {{ valores().length }} · {{ t('pdp.size.stock') }}
             </span>
@@ -160,6 +161,26 @@ export class TablaTallas {
   protected readonly desplegada = signal(false);
 
   protected readonly valores = computed(() => this.eje().valores);
+
+  /**
+   * El título de la tabla: el nombre DEL EJE, no «Talla» fijo.
+   *
+   * <p>Estaba escrito a `pdp.size` porque esta tabla solo salía para tallas. Desde que también pinta
+   * el segundo eje cuando no es una talla, ese rótulo mentía: un producto con eje «Capacidad» —500 ml,
+   * 1 l— anunciaba sus litros bajo el encabezado «Talla».
+   *
+   * <p>Se traduce por el mapa de ejes, que es el mismo que usa la báscula; si el eje no está en él se
+   * enseña su nombre tal cual —se lee peor en otro idioma, pero se lee— y solo sin nombre se recurre
+   * a «Talla».
+   */
+  protected readonly rotulo = computed(() => {
+    const eje = this.eje();
+    const clave = claveDeEje(eje.nombre) ?? claveDeEje(eje.nombreZh);
+    if (clave) {
+      return this.t(clave);
+    }
+    return eje.nombre?.trim() || this.t('pdp.size');
+  });
 
   /**
    * Cuántas unidades lleva puestas cada talla, con TODAS las tallas presentes aunque vayan a cero.

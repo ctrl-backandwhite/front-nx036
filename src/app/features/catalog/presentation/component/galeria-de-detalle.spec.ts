@@ -29,7 +29,13 @@ function visorAbierto(): HTMLElement | null {
  * las pruebas `t()` devuelve la clave, no la palabra. Es la misma convención que galeria-ficha.spec.
  */
 function botonDeBorrarLote(raiz: HTMLElement): HTMLElement | null {
-  return raiz.querySelector<HTMLElement>('button.btn-error:not(.btn-circle)');
+  // `:not(.btn-outline)` separa este botón del de «eliminar todas», que también es rojo y tampoco es
+  // redondo: sin ese filtro el selector cogía el de al lado y el test pasaba mirando otro botón.
+  return raiz.querySelector<HTMLElement>('button.btn-error:not(.btn-circle):not(.btn-outline)');
+}
+
+function botonDeBorrarTodas(raiz: HTMLElement): HTMLElement | null {
+  return raiz.querySelector<HTMLElement>('button.btn-outline.btn-error');
 }
 
 /**
@@ -144,6 +150,31 @@ describe('GaleriaDeDetalle', () => {
     await userEvent.click(botonDeBorrarLote(container)!);
 
     expect(borraSeleccion).toHaveBeenCalledWith(['a', 'c']);
+  });
+
+  /**
+   * El caso que lo pidió: la galería de descripción llega del proveedor con fotos de OTROS productos
+   * mezcladas —medido en «1060450393509», unas chanclas con tres miniaturas de zapatillas— y no se
+   * salva ninguna. Marcar doce casillas para luego borrarlas en lote es el mismo trabajo que la
+   * selección múltiple vino a evitar.
+   */
+  it('ofrece eliminar todas sin marcar nada, y manda la tira entera', async () => {
+    const borraTodas = vi.fn();
+    const { container } = await render(GaleriaDeDetalle, {
+      inputs: { fotos: FOTOS, titulo: 'Vestido', puedeEditar: true },
+      on: { borraTodas },
+    });
+
+    await userEvent.click(botonDeBorrarTodas(container)!);
+
+    expect(borraTodas).toHaveBeenCalledWith(FOTOS.map((foto) => foto.id));
+  });
+
+  it('quien no puede editar no ve el botón de eliminar todas', async () => {
+    const { container } = await render(GaleriaDeDetalle, {
+      inputs: { fotos: FOTOS, titulo: 'Vestido', puedeEditar: false },
+    });
+    expect(botonDeBorrarTodas(container)).toBeNull();
   });
 
   it('la barra de lote solo aparece cuando hay algo marcado', async () => {

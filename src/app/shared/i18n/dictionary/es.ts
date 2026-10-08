@@ -2051,6 +2051,8 @@ const diccionario: Record<string, string> = {
   'admin.catalog.images.delete_selected': 'Eliminar seleccionadas',
   'admin.catalog.images.delete_selected_confirm': '¿Eliminar las {n} imágenes seleccionadas? Esta acción no se puede deshacer.',
   'admin.catalog.images.clear_sel': 'Quitar selección',
+  'admin.catalog.images.delete_all': 'Eliminar todas ({n})',
+  'admin.catalog.images.delete_all_confirm': 'Se van a borrar las {n} imágenes del detalle. No se puede deshacer. ¿Seguir?',
   'admin.catalog.images.partial': 'Añadidas {ok}; {fail} fallaron.',
   'admin.catalog.images.upload': 'Subir',
   // DROP-648 panel admin de afiliados
