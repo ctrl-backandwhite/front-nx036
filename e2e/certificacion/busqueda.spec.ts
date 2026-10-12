@@ -56,12 +56,15 @@ const CASOS: Caso[] = [
  * Un sinónimo por idioma, con su equivalente. MEDIDOS contra el catálogo de preproducción: el término
  * que se teclea no aparece (o casi) en ningún título, y el equivalente sí.
  *
- * <p>Esa medición no es un adorno. «trainers» en inglés está LITERAL en 891 títulos y «ganga» en
- * portugués en 307: al ser abundantes coparían la primera página y la prueba fallaría sin que el
- * diccionario tuviera nada que ver. Los elegidos tienen entre 0 y 4 apariciones literales.
+ * <p>Esa medición no es un adorno, y hay que hacerla en LOS DOS entornos. «trainers» en inglés está
+ * literal en 891 títulos de preproducción y «ganga» en portugués en 307: al ser abundantes coparían la
+ * primera página y la prueba fallaría sin que el diccionario tuviera nada que ver. Y el par inglés
+ * elegido primero —«spectacles» por «glasses»— pasaba en preproducción y era IMPOSIBLE en producción,
+ * porque allí no hay una sola ficha de gafas: el catálogo de PRO es seis veces menor y no contiene las
+ * mismas familias. Los de ahora tienen 0 apariciones literales y equivalentes de sobra en ambos.
  */
 const SINONIMOS_POR_IDIOMA: { idioma: string; tecleado: string; equivalente: string }[] = [
-  { idioma: 'en', tecleado: 'spectacles', equivalente: 'glasses' },
+  { idioma: 'en', tecleado: 'booties', equivalente: 'boots' },
   { idioma: 'pt', tecleado: 'carteira', equivalente: 'bolsa' },
   { idioma: 'fr', tecleado: 'chandail', equivalente: 'pull' },
   { idioma: 'it', tecleado: 'soprabito', equivalente: 'cappotto' },
