@@ -80,6 +80,27 @@ async function entra(page: Page) {
 }
 
 /**
+ * Da por decidido el aviso de cookies ANTES de que arranque la aplicación.
+ *
+ * <p>No basta con pulsar el botón: su rótulo cambia con el idioma, y esta certificación recorre ocho.
+ * El selector solo conocía «accept all» y «aceptar todo», así que en alemán, italiano, neerlandés y
+ * chino el aviso se quedaba puesto tapando la página — y ya se comió una vez el clic de acceso. Se
+ * siembra la decisión guardada (sin analítica ni publicidad, que es una respuesta legítima) y el aviso
+ * no llega a aparecer. `aceptaCookies` queda como red por si el formato de la decisión cambia.
+ */
+async function consienteCookies(page: Page) {
+  await page.addInitScript(() => {
+    try {
+      window.localStorage.setItem('nx-cookie-consent', JSON.stringify({
+        v: 1, ts: new Date().toISOString(), consent: { analytics: false, marketing: false },
+      }))
+    } catch {
+      // Sin almacenamiento el aviso saldrá y lo retirará `aceptaCookies`.
+    }
+  })
+}
+
+/**
  * Fija el idioma COMO LO GUARDA LA APLICACIÓN: en la cookie `nx036-locale`.
  *
  * <p>Antes esto se intentaba con `?lang=xx` en la dirección, y ese parámetro NO existe: el idioma sale
@@ -123,7 +144,10 @@ async function busca(page: Page, termino: string, idioma: string) {
 }
 
 test.describe('Búsqueda en el escaparate', () => {
-  test.beforeEach(async ({ page }) => { await entra(page) })
+  test.beforeEach(async ({ page }) => {
+    await consienteCookies(page)
+    await entra(page)
+  })
 
   for (const c of CASOS) {
     test(`${c.idioma} — a medias, entera y frase`, async ({ page }) => {
