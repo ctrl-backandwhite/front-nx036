@@ -114,11 +114,12 @@ async function busca(page: Page, termino: string, idioma: string) {
   // rótulo de una insignia en cuanto el producto llevaba alguna — y la prueba habría culpado al
   // buscador de no ordenar bien cuando lo que fallaba era de dónde se leía el nombre.
   const primero = n > 0 ? (await tarjetas.first().locator('p.line-clamp-2').first().innerText()).trim() : ''
+  const titulos = (await tarjetas.locator('p.line-clamp-2').allInnerTexts()).map(t => t.trim().toLowerCase())
   const vacio = await page.getByText(/ningún producto|no products|nenhum produto|aucun produit/i).count()
   // El idioma que la página dice estar pintando. Sin comprobarlo, una prueba «en francés» que en
   // realidad corre en inglés devuelve cero y se interpreta como un fallo del buscador.
   const pintado = await page.evaluate(() => document.documentElement.lang)
-  return { n, primero, vacio, pintado }
+  return { n, primero, titulos, vacio, pintado }
 }
 
 test.describe('Búsqueda en el escaparate', () => {
@@ -140,11 +141,19 @@ test.describe('Búsqueda en el escaparate', () => {
     })
   }
 
+  /**
+   * Se mira si ALGÚN resultado trae el término equivalente, no si lo trae el PRIMERO.
+   *
+   * <p>Porque el primero puede ser legítimamente otro: «jeans» aparece literal en 3 títulos de
+   * preproducción y «playera» en otros 3. Al ser rarísimos su IDF es altísimo, así que esos tres se
+   * colocan por delante de los 353 vaqueros y los 965 de camisetas que trae el diccionario. Exigirlo
+   * en el primer puesto hacía fallar la certificación con los sinónimos funcionando perfectamente.
+   */
   test('es — sinónimos que no están en ningún título', async ({ page }) => {
     for (const [termino, raiz] of SINONIMOS) {
       const r = await busca(page, termino, 'es')
       expect(r.n, `«${termino}» debe devolver productos`).toBeGreaterThan(0)
-      expect(r.primero.toLowerCase(), `«${termino}» debe traer ${raiz}`).toContain(raiz)
+      expect(r.titulos.some(t => t.includes(raiz)), `«${termino}» debe traer algún ${raiz}`).toBe(true)
     }
   })
 
