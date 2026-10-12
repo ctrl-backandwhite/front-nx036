@@ -98,9 +98,16 @@ async function busca(page: Page, termino: string, idioma: string) {
   await campo.fill('')
   await campo.type(termino, { delay: 45 })
   await page.waitForTimeout(2500)
-  const tarjetas = page.locator('article, [data-producto], a[href*="/catalog/"]:has(img)')
+  // El elemento del propio componente, no un selector genérico: `a[href*="/catalog/"]:has(img)`
+  // contaría cualquier enlace con imagen que apunte al catálogo, y si el marcado cambia es mejor que
+  // la certificación falle a que cuente otra cosa.
+  const tarjetas = page.locator('nx-tarjeta-producto')
   const n = await tarjetas.count()
-  const primero = n > 0 ? ((await tarjetas.first().innerText()).split('\n')[0] ?? '') : ''
+  // El TÍTULO, no la primera línea del texto de la tarjeta: en el DOM las cuatro insignias
+  // («Verificado», «Nuevo»…) van ANTES del título, así que `innerText.split('\n')[0]` devolvía el
+  // rótulo de una insignia en cuanto el producto llevaba alguna — y la prueba habría culpado al
+  // buscador de no ordenar bien cuando lo que fallaba era de dónde se leía el nombre.
+  const primero = n > 0 ? (await tarjetas.first().locator('p.line-clamp-2').first().innerText()).trim() : ''
   const vacio = await page.getByText(/ningún producto|no products|nenhum produto|aucun produit/i).count()
   // El idioma que la página dice estar pintando. Sin comprobarlo, una prueba «en francés» que en
   // realidad corre en inglés devuelve cero y se interpreta como un fallo del buscador.
