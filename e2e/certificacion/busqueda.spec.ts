@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Page, type Response } from '@playwright/test'
 
 /**
  * Certificación de la BÚSQUEDA en el navegador, contra un entorno real.
@@ -68,15 +68,43 @@ async function aceptaCookies(page: Page) {
   }
 }
 
+/**
+ * Accede, reintentando el formulario ENTERO hasta que la navegación ocurra.
+ *
+ * <p>QUÉ SE ROMPÍA, y es lo que costó dos vueltas de diagnóstico. El escaparate se sirve renderizado
+ * en el servidor y Angular lo hidrata después; la hidratación REINICIA los controles del formulario.
+ * Rellenar el HTML servido y enviar deja el formulario en blanco, y la pantalla no dice nada: ni
+ * alerta ni navegación, solo el tiempo agotándose. Y de forma intermitente, que es lo peor — de diez
+ * casos, dos entraron y ocho no.
+ *
+ * <p>No basta con escribir y comprobar que el valor quedó: la hidratación puede llegar DESPUÉS de esa
+ * comprobación y borrarlo antes del envío, que es exactamente lo que pasó al intentarlo así. Y no se
+ * intenta detectar «cuándo ha hidratado» porque no hay una señal fiable en una compilación de
+ * producción. Se reintenta el ciclo completo —escribir, escribir, enviar, ver si navega—: mientras la
+ * página siga sin hidratar el intento no hace nada, y en cuanto hidrata entra a la primera.
+ */
 async function entra(page: Page) {
-  await page.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' })
+  // `load` y no `domcontentloaded`: con el segundo la página aún no ha traído el JavaScript que la
+  // hidrata. Y después, red en calma, que es cuando la hidratación ya ha tenido su oportunidad.
+  await page.goto(`${BASE}/login`, { waitUntil: 'load' })
+  await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => undefined)
   await aceptaCookies(page)
   // Los mismos selectores que usa `e2e/util/sesion.ts`: por rol y texto fallaba, porque el rótulo
   // del botón cambia con el idioma y el campo de correo no lleva etiqueta asociada.
-  await page.locator('input[type="email"]').first().fill(CORREO)
-  await page.locator('input[type="password"]').first().fill(CLAVE)
-  await page.locator('button[type="submit"]').first().click()
-  await page.waitForURL(u => !u.pathname.includes('/login'), { timeout: 45_000 })
+  const correo = page.locator('input[type="email"]').first()
+  const clave = page.locator('input[type="password"]').first()
+  await expect(async () => {
+    await correo.fill(CORREO)
+    await clave.fill(CLAVE)
+    await page.locator('button[type="submit"]').first().click()
+    // Si las credenciales fueran malas la pantalla lo dice, y conviene leerlo: esperar solo la
+    // navegación convierte un rechazo en «tiempo agotado» y manda a buscar donde no es.
+    const rechazo = page.getByRole('alert').first()
+    if (await rechazo.isVisible().catch(() => false)) {
+      throw new Error(`el acceso fue rechazado: ${await rechazo.innerText()}`)
+    }
+    await expect(page).not.toHaveURL(/\/login/, { timeout: 8_000 })
+  }).toPass({ timeout: 150_000 })
 }
 
 /**
@@ -113,6 +141,35 @@ async function ponElIdioma(page: Page, idioma: string) {
 }
 
 /**
+ * La respuesta del catálogo que corresponde a ESTE término, ni a una pulsación intermedia.
+ *
+ * <p>Se compara el parámetro `q` ya decodificado y no la dirección en bruto, porque el término puede
+ * llegar codificado de dos maneras —un espacio como `%20` o como `+`, y el chino entero en
+ * porcentajes— y comparar cadenas crudas fallaría sin que nada lo explicara.
+ */
+function esLaDe(termino: string) {
+  return (r: Response) => {
+    if (!r.url().includes('/api/catalog/products')) {
+      return false
+    }
+    try {
+      return new URL(r.url()).searchParams.get('q') === termino
+    } catch {
+      return false
+    }
+  }
+}
+
+/** Cuántos productos dijo la API que hay. `items`, no `content`: ese nombre ya costó un diagnóstico. */
+async function cuantosTrajo(r: Response): Promise<number> {
+  if (!r.ok()) {
+    throw new Error(`el catálogo respondió ${r.status()} a la búsqueda`)
+  }
+  const cuerpo = await r.json() as { totalElements?: number; items?: unknown[] }
+  return cuerpo.totalElements ?? cuerpo.items?.length ?? 0
+}
+
+/**
  * Busca TECLEANDO, no navegando a la dirección: así se ejerce el camino real —el campo, su retardo y
  * la escritura del criterio en la URL—, que es donde ya se perdió una búsqueda en silencio.
  */
@@ -123,8 +180,15 @@ async function busca(page: Page, termino: string, idioma: string) {
   const campo = page.locator('input[type="search"]').first()
   await campo.waitFor({ state: 'visible', timeout: 30_000 })
   await campo.fill('')
+  // La espera se arma ANTES de teclear: si se montara después, una respuesta rápida ya habría pasado.
+  const respuesta = page.waitForResponse(esLaDe(termino), { timeout: 90_000 })
   await campo.type(termino, { delay: 45 })
-  await page.waitForTimeout(2500)
+  const cuanto = await cuantosTrajo(await respuesta)
+  // Y DESPUÉS se espera a que la cuadrícula lo pinte. Lo que se certifica es que el comprador los ve,
+  // no solo que la API los devuelve — para eso ya está la certificación por API.
+  if (cuanto > 0) {
+    await page.locator('nx-tarjeta-producto').first().waitFor({ state: 'visible', timeout: 30_000 })
+  }
   // El elemento del propio componente, no un selector genérico: `a[href*="/catalog/"]:has(img)`
   // contaría cualquier enlace con imagen que apunte al catálogo, y si el marcado cambia es mejor que
   // la certificación falle a que cuente otra cosa.
@@ -150,6 +214,10 @@ test.describe('Búsqueda en el escaparate', () => {
   // ninguna en la raíz del repo—, y dejarlo al azar de qué config se encuentre es pedir un fallo
   // falso el día que alguien añada una.
   test.use({ viewport: { width: 1440, height: 900 } })
+  // Cada caso accede y hace TRES búsquedas contra un entorno real. Con los 30 s de serie, los ocho
+  // idiomas se cortaron en el acceso el 12-oct-2026 mientras el backend repoblaba el índice: el
+  // fallo decía «tiempo agotado» y no tenía nada que ver con el buscador.
+  test.describe.configure({ timeout: 240_000 })
 
   test.beforeEach(async ({ page }) => {
     await consienteCookies(page)
