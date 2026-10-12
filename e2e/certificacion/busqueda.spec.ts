@@ -52,6 +52,23 @@ const CASOS: Caso[] = [
   { idioma: 'zh', medias: '运动', entera: '运动鞋', frase: '长袖连衣裙', raiz: '运动鞋' },
 ]
 
+/**
+ * Un sinónimo por idioma, con su equivalente. MEDIDOS contra el catálogo de preproducción: el término
+ * que se teclea no aparece (o casi) en ningún título, y el equivalente sí.
+ *
+ * <p>Esa medición no es un adorno. «trainers» en inglés está LITERAL en 891 títulos y «ganga» en
+ * portugués en 307: al ser abundantes coparían la primera página y la prueba fallaría sin que el
+ * diccionario tuviera nada que ver. Los elegidos tienen entre 0 y 4 apariciones literales.
+ */
+const SINONIMOS_POR_IDIOMA: { idioma: string; tecleado: string; equivalente: string }[] = [
+  { idioma: 'en', tecleado: 'spectacles', equivalente: 'glasses' },
+  { idioma: 'pt', tecleado: 'carteira', equivalente: 'bolsa' },
+  { idioma: 'fr', tecleado: 'chandail', equivalente: 'pull' },
+  { idioma: 'it', tecleado: 'soprabito', equivalente: 'cappotto' },
+  { idioma: 'de', tecleado: 'überzieher', equivalente: 'mantel' },
+  { idioma: 'nl', tecleado: 'gympen', equivalente: 'sneaker' },
+]
+
 /** Los sinónimos NO aparecen en ningún título: si salen resultados, es que el diccionario actúa. */
 const SINONIMOS: [string, string][] = [['playera', 'camis'], ['tenis', 'zapatilla'], ['jeans', 'vaquer'],
   ['pollera', 'falda']]
@@ -255,6 +272,23 @@ test.describe('Búsqueda en el escaparate', () => {
       expect(r.titulos.some(t => t.includes(raiz)), `«${termino}» debe traer algún ${raiz}`).toBe(true)
     }
   })
+
+  /**
+   * Hasta el 12-oct-2026 el índice tenía UN solo diccionario, el español: teclear «spectacles»,
+   * «chandail» o «überzieher» devolvía CERO, que es indistinguible de «no hay ese producto». Los
+   * sinónimos se aplican al buscar, no al indexar, así que añadir los otros seis idiomas no obligó a
+   * reindexar — pero sí hay que certificar que el analizador de cada idioma los expande de verdad.
+   */
+  for (const caso of SINONIMOS_POR_IDIOMA) {
+    test(`${caso.idioma} — «${caso.tecleado}» trae ${caso.equivalente}`, async ({ page }) => {
+      const r = await busca(page, caso.tecleado, caso.idioma)
+      expect(r.pintado, `la página debe estar en ${caso.idioma}`).toBe(caso.idioma)
+      expect(r.n, `«${caso.tecleado}» debe devolver productos`).toBeGreaterThan(0)
+      expect(r.titulos.some(t => t.includes(caso.equivalente)),
+        `«${caso.tecleado}» debe traer algún ${caso.equivalente}; salió: ${r.titulos.slice(0, 3).join(' | ')}`)
+        .toBe(true)
+    })
+  }
 
   test('es — el nombre completo de un producto lo trae a ÉL', async ({ page }) => {
     test.skip(!NOMBRE_COMPLETO, 'sin título de referencia')
