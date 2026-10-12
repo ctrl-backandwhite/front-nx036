@@ -144,6 +144,13 @@ async function busca(page: Page, termino: string, idioma: string) {
 }
 
 test.describe('Búsqueda en el escaparate', () => {
+  // El tamaño se fija AQUÍ y no se hereda de ninguna configuración: lo que se certifica es el
+  // buscador, no el diseño adaptable, y en el proyecto «movil» de `e2e/playwright.config.ts` la barra
+  // de filtros se colapsa y el campo no está a la vista. Hoy esto corre sin esa configuración —no hay
+  // ninguna en la raíz del repo—, y dejarlo al azar de qué config se encuentre es pedir un fallo
+  // falso el día que alguien añada una.
+  test.use({ viewport: { width: 1440, height: 900 } })
+
   test.beforeEach(async ({ page }) => {
     await consienteCookies(page)
     await entra(page)
