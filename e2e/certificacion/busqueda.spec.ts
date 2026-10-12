@@ -32,8 +32,14 @@ interface Caso {
   raiz: string
 }
 
+/**
+ * Las frases están MEDIDAS contra el catálogo de preproducción, con las condiciones reales de
+ * visibilidad (activo y con imagen espejada): entre 31 y 309 productos cada una. Importa porque la
+ * primera frase española era «vestido de noche», con solo 4 productos visibles — y una certificación
+ * que depende de cuatro fichas falla cuando el catálogo adelgaza, no cuando el buscador se rompe.
+ */
 const CASOS: Caso[] = [
-  { idioma: 'es', medias: 'zapatil', entera: 'zapatillas', frase: 'vestido de noche', raiz: 'zapatilla' },
+  { idioma: 'es', medias: 'zapatil', entera: 'zapatillas', frase: 'vestido largo', raiz: 'zapatilla' },
   { idioma: 'en', medias: 'snea', entera: 'sneakers', frase: 'evening dress', raiz: 'sneaker' },
   { idioma: 'pt', medias: 'sapat', entera: 'sapato', frase: 'vestido longo', raiz: 'sapat' },
   { idioma: 'fr', medias: 'chauss', entera: 'chaussures', frase: 'robe de soirée', raiz: 'chauss' },
