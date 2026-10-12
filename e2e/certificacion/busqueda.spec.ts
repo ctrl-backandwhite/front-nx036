@@ -24,7 +24,13 @@ const CLAVE = process.env['CERT_PASS'] ?? ''
 /** El título exacto de un producto real del entorno, para la búsqueda por nombre completo. */
 const NOMBRE_COMPLETO = process.env['CERT_NOMBRE'] ?? ''
 
-type Caso = { idioma: string; medias: string; entera: string; frase: string; raiz: string }
+interface Caso {
+  idioma: string
+  medias: string
+  entera: string
+  frase: string
+  raiz: string
+}
 
 const CASOS: Caso[] = [
   { idioma: 'es', medias: 'zapatil', entera: 'zapatillas', frase: 'vestido de noche', raiz: 'zapatilla' },
@@ -34,18 +40,49 @@ const CASOS: Caso[] = [
   { idioma: 'it', medias: 'scarp', entera: 'scarpe', frase: 'abito da sera', raiz: 'scarp' },
   { idioma: 'de', medias: 'schuh', entera: 'schuhe', frase: 'langes kleid', raiz: 'schuh' },
   { idioma: 'nl', medias: 'schoen', entera: 'schoenen', frase: 'lange jurk', raiz: 'schoen' },
+  // El chino va por su propio campo del índice (`titleZh`, analizador cjk) y por eso se certifica
+  // aparte: los 11.968 títulos lo tienen. No hay espacios entre palabras, así que «a medias» es
+  // teclear 运动 esperando 运动鞋 —565 productos—, que se resuelve por bigramas del analizador.
+  { idioma: 'zh', medias: '运动', entera: '运动鞋', frase: '长袖连衣裙', raiz: '运动鞋' },
 ]
 
 /** Los sinónimos NO aparecen en ningún título: si salen resultados, es que el diccionario actúa. */
 const SINONIMOS: [string, string][] = [['playera', 'camis'], ['tenis', 'zapatilla'], ['jeans', 'vaquer'],
   ['pollera', 'falda']]
 
+/**
+ * El aviso de cookies tapa la página y se come el primer clic. Se acepta como haría cualquiera: sin
+ * esto, el botón de acceso recibía el clic del banner y el formulario no llegaba a enviarse nunca.
+ */
+async function aceptaCookies(page: Page) {
+  const boton = page.getByRole('button', { name: /accept all|aceptar todo/i }).first()
+  if (await boton.count()) {
+    await boton.click({ timeout: 10_000 }).catch(() => undefined)
+    await page.waitForTimeout(400)
+  }
+}
+
 async function entra(page: Page) {
   await page.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' })
-  await page.getByLabel(/correo|email/i).first().fill(CORREO)
+  await aceptaCookies(page)
+  // Los mismos selectores que usa `e2e/util/sesion.ts`: por rol y texto fallaba, porque el rótulo
+  // del botón cambia con el idioma y el campo de correo no lleva etiqueta asociada.
+  await page.locator('input[type="email"]').first().fill(CORREO)
   await page.locator('input[type="password"]').first().fill(CLAVE)
-  await page.getByRole('button', { name: /entrar|iniciar|acceder|log in/i }).first().click()
+  await page.locator('button[type="submit"]').first().click()
   await page.waitForURL(u => !u.pathname.includes('/login'), { timeout: 45_000 })
+}
+
+/**
+ * Fija el idioma COMO LO GUARDA LA APLICACIÓN: en la cookie `nx036-locale`.
+ *
+ * <p>Antes esto se intentaba con `?lang=xx` en la dirección, y ese parámetro NO existe: el idioma sale
+ * de la cookie y, si no la hay, del idioma del navegador. La certificación habría buscado los siete
+ * idiomas con el que trajera Playwright de serie (inglés), así que «chauss» o «scarp» no habrían
+ * devuelto nada y el fallo habría apuntado al buscador en vez de a la prueba.
+ */
+async function ponElIdioma(page: Page, idioma: string) {
+  await page.context().addCookies([{ name: 'nx036-locale', value: idioma, url: BASE }])
 }
 
 /**
@@ -53,7 +90,9 @@ async function entra(page: Page) {
  * la escritura del criterio en la URL—, que es donde ya se perdió una búsqueda en silencio.
  */
 async function busca(page: Page, termino: string, idioma: string) {
-  await page.goto(`${BASE}/catalog?lang=${idioma}`, { waitUntil: 'domcontentloaded' })
+  await ponElIdioma(page, idioma)
+  await page.goto(`${BASE}/catalog`, { waitUntil: 'domcontentloaded' })
+  await aceptaCookies(page)
   const campo = page.locator('input[type="search"]').first()
   await campo.waitFor({ state: 'visible', timeout: 30_000 })
   await campo.fill('')
@@ -63,7 +102,10 @@ async function busca(page: Page, termino: string, idioma: string) {
   const n = await tarjetas.count()
   const primero = n > 0 ? ((await tarjetas.first().innerText()).split('\n')[0] ?? '') : ''
   const vacio = await page.getByText(/ningún producto|no products|nenhum produto|aucun produit/i).count()
-  return { n, primero, vacio }
+  // El idioma que la página dice estar pintando. Sin comprobarlo, una prueba «en francés» que en
+  // realidad corre en inglés devuelve cero y se interpreta como un fallo del buscador.
+  const pintado = await page.evaluate(() => document.documentElement.lang)
+  return { n, primero, vacio, pintado }
 }
 
 test.describe('Búsqueda en el escaparate', () => {
@@ -72,6 +114,7 @@ test.describe('Búsqueda en el escaparate', () => {
   for (const c of CASOS) {
     test(`${c.idioma} — a medias, entera y frase`, async ({ page }) => {
       const medias = await busca(page, c.medias, c.idioma)
+      expect(medias.pintado, `la página debe estar en ${c.idioma}`).toBe(c.idioma)
       expect(medias.vacio, `«${c.medias}» no debe decir que no hay nada`).toBe(0)
       expect(medias.n, `«${c.medias}» debe devolver productos`).toBeGreaterThan(0)
 
