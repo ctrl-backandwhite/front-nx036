@@ -2348,6 +2348,7 @@ const diccionario: Record<string, string> = {
   'catalog.filters.more': 'Mais filtros',
   'catalog.filters.ship_from': 'Origem do envio',
   'catalog.filters.free_shipping': 'Frete grátis',
+  'catalog.filters.shipping_subsidy': 'Frete subsidiado',
   'catalog.filters.self_pickup': 'Retirada no local',
   'catalog.filters.has_video': 'Com vídeo',
   'catalog.filters.min_rating': 'Nota mín.',

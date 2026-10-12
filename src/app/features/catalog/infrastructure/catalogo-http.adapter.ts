@@ -159,7 +159,7 @@ export class CatalogoHttpAdapter implements CatalogoPort, TaxonomiaPort, Portada
       minPrice: criterio.precioMinimo,
       maxPrice: criterio.precioMaximo,
       shipFrom: criterio.enviaDesde,
-      freeShipping: criterio.envioGratis || undefined,
+      shippingSubsidy: criterio.conSubsidioEnvio || undefined,
       hasVideo: criterio.conVideo || undefined,
       minRating: criterio.valoracionMinima,
       certification: criterio.certificacion,

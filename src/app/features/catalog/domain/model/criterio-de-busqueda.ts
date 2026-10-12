@@ -50,7 +50,7 @@ export interface CriterioDeBusqueda {
   readonly precioMinimo?: string;
   readonly precioMaximo?: string;
   readonly enviaDesde?: string;
-  readonly envioGratis: boolean;
+  readonly conSubsidioEnvio: boolean;
   readonly conVideo: boolean;
   readonly valoracionMinima?: string;
   readonly certificacion?: string;
@@ -64,7 +64,7 @@ export interface CriterioDeBusqueda {
 }
 
 export const CRITERIO_VACIO: CriterioDeBusqueda = {
-  envioGratis: false,
+  conSubsidioEnvio: false,
   conVideo: false,
   verificado: '',
   orden: ORDEN_POR_DEFECTO,
@@ -113,7 +113,7 @@ const PARAMETROS_DE_TEXTO = {
 export function desdeParametros(parametros: URLSearchParams): CriterioDeBusqueda {
   const orden = parametros.get('sort');
   const criterio: Record<string, unknown> = {
-    envioGratis: parametros.get('freeShipping') === '1',
+    conSubsidioEnvio: parametros.get('shippingSubsidy') === '1',
     conVideo: parametros.get('hasVideo') === '1',
     verificado: parametros.get('verified') ?? '',
     orden: esOrden(orden) ? orden : ORDEN_POR_DEFECTO,
@@ -138,7 +138,7 @@ export function aParametros(criterio: CriterioDeBusqueda): Record<string, string
   if (!criterio.promocion) {
     delete salida['promo'];
   }
-  if (criterio.envioGratis) salida['freeShipping'] = '1';
+  if (criterio.conSubsidioEnvio) salida['shippingSubsidy'] = '1';
   if (criterio.conVideo) salida['hasVideo'] = '1';
   if (criterio.verificado) salida['verified'] = criterio.verificado;
   if (criterio.orden !== ORDEN_POR_DEFECTO) salida['sort'] = criterio.orden;
@@ -159,7 +159,7 @@ export function cuantosFiltros(criterio: CriterioDeBusqueda): number {
     criterio.precioMinimo,
     criterio.precioMaximo,
     criterio.enviaDesde,
-    criterio.envioGratis || undefined,
+    criterio.conSubsidioEnvio || undefined,
     criterio.conVideo || undefined,
     criterio.valoracionMinima,
     criterio.certificacion,

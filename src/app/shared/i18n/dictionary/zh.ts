@@ -2348,6 +2348,7 @@ const diccionario: Record<string, string> = {
   'catalog.filters.more': '更多筛选',
   'catalog.filters.ship_from': '发货地',
   'catalog.filters.free_shipping': '免运费',
+  'catalog.filters.shipping_subsidy': '运费补贴',
   'catalog.filters.self_pickup': '到店自提',
   'catalog.filters.has_video': '有视频',
   'catalog.filters.min_rating': '最低评分',

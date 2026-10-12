@@ -281,7 +281,7 @@ describe('BarraDeFiltros', () => {
     const { vista } = await monta();
     await userEvent.click(screen.getAllByRole('checkbox')[0]);
     vista.fixture.detectChanges();
-    expect(vista.fixture.componentInstance.criterio().envioGratis).toBe(true);
+    expect(vista.fixture.componentInstance.criterio().conSubsidioEnvio).toBe(true);
   });
 
   /**

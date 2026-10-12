@@ -1983,6 +1983,7 @@ const diccionario: Record<string, string> = {
   'catalog.end_of_list': 'C\'est tout pour ces filtres.',
   'catalog.filters.certification': 'Certification',
   'catalog.filters.free_shipping': 'Livraison gratuite',
+  'catalog.filters.shipping_subsidy': 'Livraison subventionnée',
   'catalog.filters.has_video': 'Avec vidéo',
   'catalog.filters.min_rating': 'Note min',
   'catalog.filters.ship_from': 'Expédié depuis',

@@ -1982,6 +1982,7 @@ const diccionario: Record<string, string> = {
   'catalog.end_of_list': 'Questo è tutto per questi filtri.',
   'catalog.filters.certification': 'Certificazione',
   'catalog.filters.free_shipping': 'Spedizione gratuita',
+  'catalog.filters.shipping_subsidy': 'Spedizione sovvenzionata',
   'catalog.filters.has_video': 'Con video',
   'catalog.filters.min_rating': 'Valutazione min',
   'catalog.filters.ship_from': 'Spedito da',

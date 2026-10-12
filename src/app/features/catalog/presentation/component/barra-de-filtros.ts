@@ -179,10 +179,10 @@ const ORDENES: readonly OrdenDelCatalogo[] = [
           />
 
           <nx-filtro-interruptor
-            [etiqueta]="t('catalog.filters.free_shipping')"
+            [etiqueta]="t('catalog.filters.shipping_subsidy')"
             [icono]="iconos.camion"
-            [activo]="criterio().envioGratis"
-            (activoChange)="cambia({ envioGratis: $event })"
+            [activo]="criterio().conSubsidioEnvio"
+            (activoChange)="cambia({ conSubsidioEnvio: $event })"
           />
           <nx-filtro-interruptor
             [etiqueta]="t('catalog.filters.has_video')"

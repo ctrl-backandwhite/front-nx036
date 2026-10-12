@@ -279,11 +279,11 @@ describe('ListadoPage', () => {
   it('los filtros de la dirección llegan a la consulta', async () => {
     const busca = vi.fn().mockResolvedValue(exito(pagina(1)));
     const { vista } = await monta(busca);
-    await TestBed.inject(Router).navigate([], { queryParams: { q: 'gorro', freeShipping: '1' } });
+    await TestBed.inject(Router).navigate([], { queryParams: { q: 'gorro', shippingSubsidy: '1' } });
     await vista.fixture.whenStable();
     const ultima = busca.mock.calls.at(-1)?.[0];
     expect(ultima.criterio.texto).toBe('gorro');
-    expect(ultima.criterio.envioGratis).toBe(true);
+    expect(ultima.criterio.conSubsidioEnvio).toBe(true);
   });
 
   /** Con búsqueda por texto NO se baraja: el orden lo decide la relevancia. */

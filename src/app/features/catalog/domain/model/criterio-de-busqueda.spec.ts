@@ -16,11 +16,11 @@ const UUID = '3f2504e0-4f89-11d3-9a0c-0305e82c3301';
 describe('desdeParametros y aParametros', () => {
   it('un enlace compartido llega con sus filtros puestos', () => {
     const criterio = desdeParametros(
-      new URLSearchParams(`q=gorro&categoryId=${UUID}&freeShipping=1&sort=newest&grupo=abc`),
+      new URLSearchParams(`q=gorro&categoryId=${UUID}&shippingSubsidy=1&sort=newest&grupo=abc`),
     );
     expect(criterio.texto).toBe('gorro');
     expect(criterio.categoria).toBe(UUID);
-    expect(criterio.envioGratis).toBe(true);
+    expect(criterio.conSubsidioEnvio).toBe(true);
     expect(criterio.orden).toBe('newest');
     expect(criterio.grupoDeArancel).toBe('abc');
   });
@@ -58,7 +58,7 @@ describe('cuantosFiltros', () => {
       cuantosFiltros({
         ...CRITERIO_VACIO,
         texto: 'gorro',
-        envioGratis: true,
+        conSubsidioEnvio: true,
         orden: 'newest',
         grupoDeArancel: GRUPO_DEL_CARRITO,
       }),
