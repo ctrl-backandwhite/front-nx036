@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Page, type Response } from '@playwright/test'
 
 import { aceptaCookies, BASE, consienteCookies, entra, ponElIdioma } from './sesion-certificada'
 
@@ -16,9 +16,11 @@ import { aceptaCookies, BASE, consienteCookies, entra, ponElIdioma } from './ses
  * exige además que devuelva MENOS que el catálogo entero, porque un interruptor que no filtra nada
  * también devuelve algo.
  *
- * <p>Se lee el contador de la pantalla y no la respuesta de la API a propósito: el PRIMER listado
- * llega renderizado del servidor y no genera ninguna petición que espiar, así que esperar una
- * respuesta se agota sin que nada esté roto.
+ * <p>El total SIN filtrar se lee del contador de la pantalla y no de la API: el PRIMER listado llega
+ * renderizado del servidor y no genera ninguna petición que espiar, así que esperar una respuesta se
+ * agota sin que nada esté roto. El total CON el filtro sí sale de la respuesta, porque pulsar sí
+ * pide — y porque entre el clic y el dato la pantalla pasa medio segundo por «Mostrando 0 / 0»:
+ * leer el contador sin más captura ese parpadeo y acusa al filtro de devolver cero.
  */
 
 const PARAMETRO = 'shippingSubsidy'
@@ -45,10 +47,36 @@ function interruptorDeSubsidio(page: Page) {
   return page.locator('nx-filtro-interruptor').filter({ hasText: /envío subvencionado/i }).first()
 }
 
-/** Espera a que el listado se rehaga: el contador deja de decir lo que decía. */
-async function totalDistintoDe(page: Page, anterior: number): Promise<number> {
-  await expect.poll(() => totalDelListado(page), { timeout: 60_000 }).not.toBe(anterior)
-  return totalDelListado(page)
+/** La respuesta del listado que lleva el filtro puesto, con el parámetro ya decodificado. */
+function esLaFiltrada(r: Response) {
+  if (!r.url().includes('/api/catalog/products')) {
+    return false
+  }
+  try {
+    return new URL(r.url()).searchParams.get(PARAMETRO) === 'true'
+  } catch {
+    return false
+  }
+}
+
+/** Cuántos dijo la API que hay. `items`, no `content`: ese nombre ya costó un diagnóstico entero. */
+async function cuantosTrajo(r: Response): Promise<number> {
+  if (!r.ok()) {
+    throw new Error(`el catálogo respondió ${r.status()} al listado`)
+  }
+  const cuerpo = await r.json() as { totalElements?: number; items?: unknown[] }
+  return cuerpo.totalElements ?? cuerpo.items?.length ?? 0
+}
+
+/**
+ * Pulsa el interruptor y devuelve lo que contestó la API.
+ *
+ * <p>La espera se arma ANTES del clic: montada después, una respuesta rápida ya habría pasado.
+ */
+async function pulsaElInterruptor(page: Page): Promise<number> {
+  const respuesta = page.waitForResponse(esLaFiltrada, { timeout: 90_000 })
+  await interruptorDeSubsidio(page).click()
+  return cuantosTrajo(await respuesta)
 }
 
 test.describe('Filtro de porte subvencionado', () => {
@@ -65,15 +93,16 @@ test.describe('Filtro de porte subvencionado', () => {
     expect(sinFiltrar, 'el catálogo debe tener productos para que esto signifique algo')
       .toBeGreaterThan(0)
 
-    await interruptorDeSubsidio(page).click()
-    const conSubsidio = await totalDistintoDe(page, sinFiltrar)
+    const conSubsidio = await pulsaElInterruptor(page)
 
     // LO QUE SE ROMPÍA: aquí salía 0, y en pantalla era indistinguible de «no hay ninguno».
     expect(conSubsidio, 'el filtro no puede dejar la cuadrícula vacía').toBeGreaterThan(0)
     // Y que de verdad FILTRE.
     expect(conSubsidio, 'con subvención tiene que haber menos que en total').toBeLessThan(sinFiltrar)
 
-    // Y que se pinten: lo que importa es que el comprador los vea, no que la API los cuente.
+    // Y que la pantalla acabe diciendo lo mismo que la API: que la cuente no basta, el comprador
+    // tiene que verlos. Se espera al valor porque el contador pasa por «0 / 0» mientras carga.
+    await expect.poll(() => totalDelListado(page), { timeout: 60_000 }).toBe(conSubsidio)
     await page.locator('nx-tarjeta-producto').first().waitFor({ state: 'visible', timeout: 30_000 })
   })
 
@@ -82,15 +111,15 @@ test.describe('Filtro de porte subvencionado', () => {
    * En este escaparate ya se perdió un criterio en una navegación descartada, en silencio.
    */
   test('el criterio queda en la dirección y sobrevive a recargar', async ({ page }) => {
-    const sinFiltrar = await abreElCatalogo(page)
-    await interruptorDeSubsidio(page).click()
-    const alPulsar = await totalDistintoDe(page, sinFiltrar)
+    await abreElCatalogo(page)
+    const alPulsar = await pulsaElInterruptor(page)
 
     await expect(page).toHaveURL(new RegExp(`${PARAMETRO}=1`))
 
     // Recargar la dirección tal cual: es lo que le pasa a quien recibe el enlace.
     await page.reload({ waitUntil: 'domcontentloaded' })
     await page.locator('nx-tarjeta-producto').first().waitFor({ state: 'visible', timeout: 60_000 })
-    expect(await totalDelListado(page), 'el enlace compartido debe traer lo mismo').toBe(alPulsar)
+    await expect.poll(() => totalDelListado(page), { timeout: 60_000 })
+      .toBe(alPulsar)
   })
 })
