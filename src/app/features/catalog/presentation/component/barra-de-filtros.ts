@@ -208,7 +208,13 @@ const ORDENES: readonly OrdenDelCatalogo[] = [
             (valorChange)="cambiaOrden($event)"
           />
 
-          <span class="text-[11px] text-ink-400 ml-auto">
+          <!--
+            El identificador de prueba es para la certificación en navegador: el PRIMER listado llega
+            renderizado del servidor y no genera ninguna petición que espiar, así que el total hay que
+            leerlo de la pantalla. Sin él habría que agarrarse a las clases de Tailwind, que cambian
+            con cualquier retoque visual.
+          -->
+          <span class="text-[11px] text-ink-400 ml-auto" data-testid="contador-del-catalogo">
             {{ t('pagination.showing') }} <strong>{{ mostrados() }}</strong> / {{ total() }}
           </span>
 
