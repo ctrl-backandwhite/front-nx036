@@ -1,28 +1,22 @@
-# Frontend NX036 — guía de trabajo
+# Frontend NX036
 
-Este fichero existe para las herramientas que no leen `CLAUDE.md` (Codex, Cursor, Copilot). **Las
-normas no se duplican aquí**: están en [`CLAUDE.md`](CLAUDE.md), y dos copias de una norma divergen.
+Escaparate y panel de administración de la plataforma NX036: Angular con renderizado previo,
+Tailwind y arquitectura hexagonal.
 
-## Arranque
+**Las normas de este repositorio están en [`CLAUDE.md`](CLAUDE.md), y no se repiten aquí**: dos
+copias de una norma divergen, y entonces no hay ninguna fiable. Léelo antes de tocar código.
 
-```bash
-npm install
-npm start                                       # ng serve
-npm test                                        # ng test — ~3.983 pruebas, ~50 s
-npm test -- --include src/ruta/fichero.spec.ts  # un solo fichero: 35 s
-```
+| Qué necesitas | Dónde está |
+|---|---|
+| Arrancar, construir, probar | [`README.md`](README.md) |
+| Las normas (hexágono, mobile first, CSS, qué se usa de Angular) | [`CLAUDE.md`](CLAUDE.md) |
+| Colores y tipografía | [`docs/design-tokens.md`](docs/design-tokens.md) |
+| Desplegar y comprobar que se desplegó | [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md) |
+| Trampas al escribir componentes | [`.claude/rules/componentes.md`](.claude/rules/componentes.md) |
+| Las ocho traducciones | [`.claude/rules/i18n.md`](.claude/rules/i18n.md) |
+| Pruebas de navegador | [`.claude/rules/pruebas-e2e.md`](.claude/rules/pruebas-e2e.md) |
+| Cómo se lanza cada cosa, y qué falla raro | [`.claude/skills/frontend/SKILL.md`](.claude/skills/frontend/SKILL.md) |
 
-**Nunca `npx vitest run`**: rompe 397 de 421 ficheros, porque el entorno de pruebas de Angular lo
-monta el constructor de `ng test`. La pista está en el resumen: `setup 0ms`.
-
-## Lo imprescindible antes de tocar nada
-
-- **`presentation` no importa `infrastructure`.** Es la regla que sostiene la arquitectura.
-- **Mobile first**: la pantalla se escribe estrecha y se amplía hacia arriba.
-- **Toda cadena va en los ocho idiomas** (es, en, pt, fr, it, de, nl, zh), como clave y no como
-  texto.
-- **El CSS está centralizado**: se cambia el token, no se parchea el color en el componente.
-- **La documentación se actualiza en el mismo commit.**
-
-El detalle, con el motivo de cada una, está en `CLAUDE.md` (396 líneas), en `.claude/rules/` por
-carpeta y en `.claude/skills/frontend/SKILL.md`.
+Las tres que más tiempo ahorran, si solo vas a leer una cosa: **`presentation` no importa
+`infrastructure`**; **toda cadena va en los ocho idiomas**, como clave y no como texto; y los
+precios **no se calculan aquí** — el backend los da ya formateados.
