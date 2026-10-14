@@ -307,6 +307,19 @@
    * claro y #e7eef3 (blanco) en el oscuro, justo donde se pedía el gris más suave de la escala. Los
    * bordes no faltaban: estaban a máximo contraste. */
   --color-ink-200: #ccd5db;
+  /* `ink-400`, `ink-600` e `ink-800` faltaban, y es el mismo agujero que tenía `ink-200`: la escala
+   * va de 50 a 900 pero tres peldaños no estaban declarados. No es inofensivo — se usan 214 veces
+   * (129 el 400, 82 el 600, 3 el 800) y, al no generarse la utilidad, `color` no se escribe y el
+   * texto HEREDA el del padre. En el tema oscuro sí funcionaban, porque el bloque de abajo los
+   * declara a mano con `!important`: el tono muteado salía en oscuro y no en claro, justo al revés
+   * de lo que uno supone al depurar.
+   *
+   * Interpolados de los peldaños vecinos. El 400 se separa un poco del punto medio exacto (#8a98a4,
+   * 2,90:1) para cruzar el 3:1 que pide la norma para lo no textual, que es para lo que se usa:
+   * iconos, separadores y texto de apoyo. */
+  --color-ink-400: #80909c;
+  --color-ink-600: #445665;
+  --color-ink-800: #20303e;
   --color-ink-300: #b7c2cb;
   --color-ink-100: #e1e7ec;
   --color-ink-50:  #f4f7f9;

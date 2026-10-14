@@ -56,6 +56,25 @@ icono o un texto que desaparece en oscuro, mira ahí primero.
 Además de los tokens de daisyUI hay una escala `--color-ink-*`, de `ink-900` (`#14212e`) a `ink-50`
 (`#f4f7f9`). **No es gris puro**: lleva un tinte marino para acompañar a la paleta.
 
+**La escala está completa, y tiene que seguir estándolo.** Durante un tiempo faltaron tres peldaños
+—`ink-400`, `ink-600` e `ink-800`— aunque el código los usaba 214 veces. Un peldaño sin declarar no
+genera su utilidad, y entonces `color` no se escribe y el texto hereda el del padre; con los bordes
+es peor, porque `border-color` cae en `currentColor` y el borde sale al máximo contraste. Y el fallo
+se veía **solo en el tema claro**, porque el bloque del oscuro los declara a mano más abajo.
+
+| Peldaño | Claro | Contraste sobre `base-100` | Para qué |
+|---|---|---:|---|
+| `ink-900` | `#14212e` | 15,8:1 | títulos |
+| `ink-800` | `#20303e` | 13,3:1 | |
+| `ink-700` | `#2c3e4e` | 10,8:1 | texto principal |
+| `ink-600` | `#445665` | 7,5:1 | |
+| `ink-500` | `#5c6e7c` | 5,2:1 | texto de apoyo, enlaces tenues |
+| `ink-400` | `#80909c` | 3,2:1 | iconos y separadores — **no para texto** |
+| `ink-300` | `#b7c2cb` | 1,8:1 | solo decorativo: no llega ni al mínimo no textual |
+
+`ink-400` no es el punto medio exacto entre sus vecinos (`#8a98a4`, 2,90:1): se oscurece un poco
+para cruzar el 3:1 que pide la norma para lo no textual, que es justo para lo que se usa.
+
 Y `--color-brand-*`, que se usa sobre todo en el foco: el `:focus-visible` general del sitio es
 `outline: 2px solid var(--color-brand-400)` con dos píxeles de separación.
 

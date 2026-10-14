@@ -58,7 +58,7 @@ function legible(trozo: string): string {
             <span>{{ t('breadcrumb.home') }}</span>
           </a>
           @if (rastro().length > 0) {
-            <fa-icon [icon]="iconoSeparador" class="text-[9px] text-ink-300" />
+            <fa-icon [icon]="iconoSeparador" class="text-[9px] text-ink-400" />
           }
         }
         @for (miga of rastro(); track $index; let ultima = $last) {
@@ -74,7 +74,7 @@ function legible(trozo: string): string {
               >
             }
             @if (!ultima) {
-              <fa-icon [icon]="iconoSeparador" class="text-[9px] text-ink-300" />
+              <fa-icon [icon]="iconoSeparador" class="text-[9px] text-ink-400" />
             }
           </span>
         }
