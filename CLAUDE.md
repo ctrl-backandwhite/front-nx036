@@ -144,7 +144,7 @@ Nada de API retirada ni de estilo de versiones anteriores. En concreto:
   Cada pantalla acaba resolviendo eso por su cuenta, y con doscientos campos son doscientas formas
   distintas de resolverlo.
 
-  El patrón, tal como está en `features/auth/presentation/page/acceso.page.ts`:
+  El patrón, tal como está en `src/app/features/auth/presentation/page/acceso.page.ts`:
 
   ```ts
   protected readonly modelo = signal({ email: '', contrasena: '' });
@@ -242,7 +242,7 @@ y ninguna abrible sin cuenta. Los atajos del panel eran peor: se prerenderizan c
 Son **tres capas y tienen que decir lo mismo**: `public/robots.txt` impide el rastreo, el `map
 $request_uri $etiqueta_robots` de `nginx.conf` manda la cabecera `X-Robots-Tag` —la única que llega
 a quien no ejecuta JavaScript— y la etiqueta la pone Angular. Lo verifica
-`core/seo/lo-cerrado-no-se-indexa.spec.ts`, que además comprueba que la lista es la MISMA para
+`src/app/core/seo/lo-cerrado-no-se-indexa.spec.ts`, que además comprueba que la lista es la MISMA para
 Google, para Bing y para el resto: estaba partida en dos bloques y ya había divergido.
 
 Dos excepciones, las dos a propósito: la **ficha de producto**, cuyo `<head>` se prerenderiza y lo
@@ -377,8 +377,9 @@ Norma del proyecto: **90 % de cobertura en el front**. Cada desarrollo llega con
 Un cambio **no está terminado** hasta que la documentación que lo describe dice la verdad. Va en el
 **mismo commit**, no en uno posterior «de documentación»: si van separados, el segundo no llega.
 
-- ¿Tocaste una ruta, un campo o una cabecera de la API? → `docs/api/INTEGRATION.md`
-- ¿El despliegue, las ramas o los entornos? → `docs/DEPLOY.md`
+- ¿Necesitas que la API cambie? → eso no se hace aquí: el contrato lo publica y lo documenta el
+  backend. Este repositorio lo consume, y adaptarse a un cambio de contrato es trabajo de aquí
+- ¿El despliegue, las ramas o los entornos? → `docs/DESPLIEGUE.md`
 - ¿Colores, tipografía o un componente visual? → `docs/design-tokens.md`
 - ¿Una norma, una versión o una cifra de este repositorio? → este mismo fichero
 - ¿Cómo se arranca o se prueba? → el `README.md`

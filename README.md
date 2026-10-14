@@ -66,4 +66,4 @@ a mano.
 | Por qué el hexágono y sus fronteras | [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md) |
 | Costuras entre contextos por coser | [`docs/INTEGRACION-PENDIENTE.md`](docs/INTEGRACION-PENDIENTE.md) |
 | Defectos abiertos a la espera de decisión | [`docs/DEFECTOS-CERTIFICACION.md`](docs/DEFECTOS-CERTIFICACION.md) |
-| Colores y tipografía | [`../docs/design-tokens.md`](../docs/design-tokens.md) |
+| Colores y tipografía | [`docs/design-tokens.md`](docs/design-tokens.md) |
