@@ -17,6 +17,10 @@ copias de una norma divergen, y entonces no hay ninguna fiable. Léelo antes de 
 | Pruebas de navegador | [`.claude/rules/pruebas-e2e.md`](.claude/rules/pruebas-e2e.md) |
 | Cómo se lanza cada cosa, y qué falla raro | [`.claude/skills/frontend/SKILL.md`](.claude/skills/frontend/SKILL.md) |
 
+Dos subagentes, en `.claude/agents/`: **`revisor-de-normas`** comprueba un cambio contra las normas
+de este repositorio, y **`certificador`** ejecuta la certificación en navegador y devuelve solo lo
+que falló, ya diagnosticado. Ninguno de los dos escribe: informan.
+
 Las tres que más tiempo ahorran, si solo vas a leer una cosa: **`presentation` no importa
 `infrastructure`**; **toda cadena va en los ocho idiomas**, como clave y no como texto; y los
 precios **no se calculan aquí** — el backend los da ya formateados.
