@@ -39,7 +39,7 @@ import { InfoDeAranceles } from './info-de-aranceles';
         </div>
       }
 
-      <div class="flex items-baseline text-ink-500">
+      <div class="flex items-baseline text-ink-500" data-testid="desglose-envio">
         <!-- El plazo es el del canal con el que se ha cotizado, no el genérico del país: si se elige uno
              más rápido y el resumen sigue diciendo el plazo del más barato, se está anunciando una fecha
              de entrega que no es la contratada. -->

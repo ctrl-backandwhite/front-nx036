@@ -59,7 +59,13 @@ async function llenaLaCesta(page: Page) {
 
 /** Deja una sola dirección predeterminada en ese país y recarga el checkout. */
 async function entregaEn(page: Page, p: (typeof PAISES)[number]) {
+  // El testigo va en `Authorization`, no en una cookie: el front lo guarda en el almacenamiento del
+  // navegador (`nx-access-token`). Sin esta cabecera el alta responde 401, y el fallo parece de
+  // permisos cuando lo que falta es el testigo.
+  const testigo = await page.evaluate(() => window.localStorage.getItem('nx-access-token'))
+  expect(testigo, 'no hay testigo de sesión: ¿falló el acceso?').toBeTruthy()
   const alta = await page.request.post(`${BASE}/api/me/addresses`, {
+    headers: { Authorization: `Bearer ${testigo}` },
     data: {
       label: `cert-${p.codigo}`, fullName: 'Certificacion NX036', phone: '+34600000000',
       line1: 'Calle de la Certificacion 1', city: p.ciudad, postalCode: p.cp,
@@ -69,6 +75,13 @@ async function entregaEn(page: Page, p: (typeof PAISES)[number]) {
   expect(alta.ok(), `no se pudo crear la dirección de ${p.nombre}: ${alta.status()}`).toBe(true)
   await page.goto(`${BASE}/checkout`, { waitUntil: 'domcontentloaded' })
   await aceptaCookies(page)
+  // Hay que ESPERAR a la cotización, no solo a que cargue la página. Mientras el checkout no ha
+  // resuelto el país, el resumen enseña solo subtotal y total —el total con un «elige un país»— y
+  // leerlo entonces da cero: parece que no se cobra nada cuando lo que pasa es que aún no se sabe
+  // adónde se envía.
+  await page.getByTestId('desglose-envio').waitFor({ state: 'visible', timeout: 60_000 })
+  await expect.poll(async () => (await page.getByTestId('desglose-total').innerText()).replace(/\s/g, ''),
+    { timeout: 60_000 }).toMatch(/\d/)
 }
 
 test.describe('Envío e impuestos por país', () => {
