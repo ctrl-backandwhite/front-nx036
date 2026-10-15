@@ -82,7 +82,7 @@ import { InfoDeAranceles } from './info-de-aranceles';
       }
 
       @if (hayArancel()) {
-        <div class="flex items-baseline text-ink-500">
+        <div class="flex items-baseline text-ink-500" data-testid="desglose-aranceles">
           <span>{{ t('checkout.customs_eu') }}<nx-info-de-aranceles /></span>
           <nx-guia-puntos />
           <span>{{ cotizacion()?.recargoDeAduanaFormateado }}</span>
@@ -119,13 +119,14 @@ import { InfoDeAranceles } from './info-de-aranceles';
           <!-- Sin el porcentaje: el tipo depende del país y lo decide el servidor, así que enseñarlo aquí
                obligaría al front a hacer una cuenta con un dato fiscal que no es suyo. Lo que hace falta
                saber es cuánto se paga de impuesto, no a qué tipo se ha calculado. -->
-          <span>{{ t('order.detail.tax') }}</span>
+          <span data-testid="desglose-iva-rotulo">{{ t('order.detail.tax') }}</span>
           <nx-guia-puntos />
-          <span>{{ cotizacion()?.impuestoFormateado }}</span>
+          <span data-testid="desglose-iva">{{ cotizacion()?.impuestoFormateado }}</span>
         </div>
       }
 
-      <div class="border-t border-ink-100 pt-2 mt-2 flex items-baseline font-medium text-base">
+      <div class="border-t border-ink-100 pt-2 mt-2 flex items-baseline font-medium text-base"
+           data-testid="desglose-total">
         <span>{{ t('checkout.total') }}</span>
         <nx-guia-puntos />
         @if (!hayPais()) {
