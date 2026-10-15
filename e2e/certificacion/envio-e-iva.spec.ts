@@ -56,12 +56,18 @@ async function importeDe(page: Page, testid: string): Promise<number> {
 async function llenaLaCesta(page: Page) {
   const r = await page.request.get(`${BASE}/api/catalog/welcome/examples?lang=es`)
   expect(r.ok(), 'no se pudieron leer los productos de la guía').toBe(true)
-  const cuerpo = await r.json() as { examples?: { slug?: string }[] }
-  const slug = cuerpo.examples?.[0]?.slug
-  expect(slug, 'la guía no expone ningún producto con slug').toBeTruthy()
+  const cuerpo = await r.json() as { examples?: { slug?: string; titulo?: string; title?: string }[] }
+  const ejemplo = cuerpo.examples?.[0]
+  const titulo = ejemplo?.titulo ?? ejemplo?.title
+  expect(titulo, 'la guía no expone ningún producto con título').toBeTruthy()
 
-  await page.goto(`${BASE}/catalog/${slug}`, { waitUntil: 'domcontentloaded' })
+  // Se añade desde la TARJETA del catálogo, no desde la ficha: la ficha obliga a elegir color y
+  // talla antes de dejar añadir, y la tarjeta resuelve la variante sola. Se llega a ella buscando
+  // por el TÍTULO —el criterio viaja en la dirección—; por el slug no se encuentra, el buscador
+  // no indexa esa forma.
+  await page.goto(`${BASE}/catalog?q=${encodeURIComponent(titulo as string)}`, { waitUntil: 'domcontentloaded' })
   await aceptaCookies(page)
+  await page.locator('nx-tarjeta-producto').first().waitFor({ state: 'visible', timeout: 60_000 })
   const anadir = page.getByRole('button', { name: /añadir al carrito/i }).first()
   await anadir.waitFor({ state: 'visible', timeout: 60_000 })
   await anadir.click()
