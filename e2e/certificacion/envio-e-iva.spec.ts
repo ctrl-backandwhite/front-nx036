@@ -41,14 +41,26 @@ async function importeDe(page: Page, testid: string): Promise<number> {
 }
 
 /**
- * Mete un producto en la cesta POR LA INTERFAZ, no por la API.
+ * Mete en la cesta UN producto CONOCIDO, por la interfaz.
  *
- * <p>La línea del carrito que acepta el backend pide slug, título, precio de origen y divisa: armarla
- * a mano en la prueba sería inventar datos y dejaría de comprobar el camino real. Pulsar el botón es
- * lo que hace quien compra, y de paso ejercita el cálculo del precio.
+ * <p>Dos cosas que parecen detalles y no lo son. La primera: el producto tiene que ser SIEMPRE EL
+ * MISMO. Tomar «la primera tarjeta del catálogo» no vale, porque el listado se baraja y cada prueba
+ * metía un artículo distinto; el arancel depende de los datos aduaneros de lo que se compra, así que
+ * España falló en producción y pasó en preproducción por puro sorteo. Se usa el producto de la guía
+ * de bienvenida, que cada entorno expone y es estable.
+ *
+ * <p>La segunda: se añade pulsando el botón, no llamando a la API. La línea que acepta el backend
+ * pide slug, título, precio de origen y divisa; armarla a mano sería inventar datos y dejaría de
+ * comprobar el camino real.
  */
 async function llenaLaCesta(page: Page) {
-  await page.goto(`${BASE}/catalog`, { waitUntil: 'domcontentloaded' })
+  const r = await page.request.get(`${BASE}/api/catalog/welcome/examples?lang=es`)
+  expect(r.ok(), 'no se pudieron leer los productos de la guía').toBe(true)
+  const cuerpo = await r.json() as { examples?: { slug?: string }[] }
+  const slug = cuerpo.examples?.[0]?.slug
+  expect(slug, 'la guía no expone ningún producto con slug').toBeTruthy()
+
+  await page.goto(`${BASE}/catalog/${slug}`, { waitUntil: 'domcontentloaded' })
   await aceptaCookies(page)
   const anadir = page.getByRole('button', { name: /añadir al carrito/i }).first()
   await anadir.waitFor({ state: 'visible', timeout: 60_000 })
