@@ -19,6 +19,11 @@ de volver a escribir el acceso.
    sin que nada esté roto.
 4. **El contador parpadea a «0 / 0»** medio segundo tras pulsar un filtro. Una espera que solo pida
    «un valor distinto» captura el parpadeo y acusa al filtro de devolver cero estando sano.
+5. **El resumen del checkout se pinta por partes.** En cuanto hay país aparece la fila del envío,
+   pero el arancel y el IVA llegan con la cotización. Esperar a que se vea una fila no es esperar al
+   desglose: hay que esperar a la RESPUESTA de `/shipping/quote`. Con un backend recién reiniciado
+   la ventana es de segundos, y la prueba acusa de no cobrar aranceles a un país que sí los cobra —
+   España, el 16-oct, que sola volvía a pasar.
 
 **Y lo que vale para cualquier prueba de datos reales: mide el dato en el entorno donde va a
 correr.** El catálogo de producción es seis veces menor que el de preproducción y no tiene las

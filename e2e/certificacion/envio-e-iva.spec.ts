@@ -22,6 +22,8 @@ const PAISES: { codigo: string; nombre: string; ivaBps: number; ue: boolean; cp:
   { codigo: 'DE', nombre: 'Alemania', ivaBps: 1900, ue: true, cp: '10115', ciudad: 'Berlín' },
   { codigo: 'HU', nombre: 'Hungría', ivaBps: 2700, ue: true, cp: '1011', ciudad: 'Budapest' },
   { codigo: 'LU', nombre: 'Luxemburgo', ivaBps: 1700, ue: true, cp: '1111', ciudad: 'Luxemburgo' },
+  { codigo: 'MT', nombre: 'Malta', ivaBps: 1800, ue: true, cp: 'VLT 1117', ciudad: 'La Valeta' },
+  { codigo: 'CL', nombre: 'Chile', ivaBps: 1900, ue: false, cp: '8320000', ciudad: 'Santiago' },
   { codigo: 'US', nombre: 'Estados Unidos', ivaBps: 0, ue: false, cp: '10001', ciudad: 'Nueva York' },
   { codigo: 'JP', nombre: 'Japón', ivaBps: 1000, ue: false, cp: '1000001', ciudad: 'Tokio' },
 ]
@@ -91,12 +93,18 @@ async function entregaEn(page: Page, p: (typeof PAISES)[number]) {
     },
   })
   expect(alta.ok(), `no se pudo crear la dirección de ${p.nombre}: ${alta.status()}`).toBe(true)
+  // Se espera a la RESPUESTA de la cotización, no a que aparezca una fila. Esperar al rótulo del
+  // envío no basta: el resumen lo pinta en cuanto hay país, y durante ese instante el arancel
+  // todavía no está — un backend recién reiniciado tarda lo suficiente como para que la prueba
+  // lea el desglose a medias y acuse de no cobrar aranceles a un país que sí los cobra. Pasó con
+  // España en la tanda del 16-oct, y sola volvía a pasar.
+  const cotizacion = page.waitForResponse(
+    (r) => r.url().includes('/shipping/quote') && r.status() === 200,
+    { timeout: 60_000 },
+  )
   await page.goto(`${BASE}/checkout`, { waitUntil: 'domcontentloaded' })
   await aceptaCookies(page)
-  // Hay que ESPERAR a la cotización, no solo a que cargue la página. Mientras el checkout no ha
-  // resuelto el país, el resumen enseña solo subtotal y total —el total con un «elige un país»— y
-  // leerlo entonces da cero: parece que no se cobra nada cuando lo que pasa es que aún no se sabe
-  // adónde se envía.
+  await cotizacion
   await page.getByTestId('desglose-envio').waitFor({ state: 'visible', timeout: 60_000 })
   await expect.poll(async () => (await page.getByTestId('desglose-total').innerText()).replace(/\s/g, ''),
     { timeout: 60_000 }).toMatch(/\d/)
