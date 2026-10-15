@@ -29,6 +29,8 @@ import {
 } from '../../domain/model/galeria';
 import { AbreLaFicha } from '../../application/use-case/abre-la-ficha.use-case';
 import { MigaDeCategoria } from '../../application/use-case/miga-de-categoria.use-case';
+import { vuelaALaCesta } from '@core/animacion/vuela-a-la-cesta';
+import { DOCUMENT } from '@angular/common';
 import { AnadeALaCesta, esMotivoDeRechazo } from '../../application/use-case/anade-a-la-cesta.use-case';
 import { AlternaFavorito } from '../../application/use-case/alterna-favorito.use-case';
 import { RECUPERADOR_DE_SESION } from '@core/auth/recuperador-de-sesion.port';
@@ -213,6 +215,7 @@ export class FichaPage {
   private readonly abre = inject(AbreLaFicha);
   private readonly miga = inject(MigaDeCategoria);
   private readonly anadeALaCesta = inject(AnadeALaCesta);
+  private readonly documento = inject(DOCUMENT);
   private readonly alterna = inject(AlternaFavorito);
   private readonly avisos = inject(AvisosStore);
   private readonly dialogo = inject(DialogoStore);
@@ -479,6 +482,9 @@ export class FichaPage {
         this.avisos.error(this.t('cart.add_failed'));
         return false;
       }
+      // Aquí se señala la imagen GRANDE por su id, no el anfitrión: en la ficha las miniaturas van
+      // antes en el documento, así que buscar «la primera imagen» haría volar la miniatura.
+      vuelaALaCesta(this.documento.getElementById('nx-pdp-main-img'));
       this.avisos.exito(
         this.traduccion.tCon('cart.added', { qty: String(unidades), title: ficha.titulo }),
       );

@@ -1,5 +1,6 @@
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
+import { ElementRef } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
@@ -23,6 +24,7 @@ import { FavoritosStore } from '../../application/state/favoritos.store';
 import { SesionActual } from '@core/auth/sesion-actual';
 import { ReferenciaDeCestaStore } from '../../application/state/referencia-de-cesta.store';
 import { AlternaFavorito } from '../../application/use-case/alterna-favorito.use-case';
+import { vuelaALaCesta } from '@core/animacion/vuela-a-la-cesta';
 import { AnadeALaCesta, esMotivoDeRechazo } from '../../application/use-case/anade-a-la-cesta.use-case';
 import { EtiquetaPrecio } from './etiqueta-precio';
 import { DistintivoArancel } from './distintivo-arancel';
@@ -257,6 +259,7 @@ export class TarjetaProducto {
   private readonly favoritos = inject(FavoritosStore);
   private readonly alterna = inject(AlternaFavorito);
   private readonly anade = inject(AnadeALaCesta);
+  private readonly anfitrion = inject(ElementRef<HTMLElement>);
   private readonly avisos = inject(AvisosStore);
   private readonly enrutador = inject(Router);
   private readonly referencia = inject(ReferenciaDeCestaStore);
@@ -325,6 +328,9 @@ export class TarjetaProducto {
         );
         return;
       }
+      // El vuelo arranca al CONFIRMAR el backend, no al pulsar: si saliera volando y luego el
+      // producto se rechazara, habríamos contado una compra que no fue.
+      vuelaALaCesta(this.anfitrion.nativeElement);
       this.anadido.set(true);
       setTimeout(() => this.anadido.set(false), CONFIRMACION_MS);
     } finally {

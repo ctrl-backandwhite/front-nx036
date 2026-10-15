@@ -1,6 +1,7 @@
 import {
   Component,
   computed,
+  ElementRef,
   inject,
   input,
   linkedSignal,
@@ -26,6 +27,7 @@ import { AvisosStore } from '@ds/component/avisos/avisos.store';
 import { ImagenSegura } from '@ds/component/marcador/imagen-segura';
 import { CATALOGO_PORT } from '../../domain/port/catalogo.port';
 import { galeriaVisible } from '../../domain/model/galeria';
+import { vuelaALaCesta } from '@core/animacion/vuela-a-la-cesta';
 import { AnadeALaCesta, esMotivoDeRechazo } from '../../application/use-case/anade-a-la-cesta.use-case';
 import { EtiquetaPrecio } from './etiqueta-precio';
 
@@ -190,6 +192,7 @@ export class VistaRapida {
 
   private readonly catalogo = inject(CATALOGO_PORT);
   private readonly anadeALaCesta = inject(AnadeALaCesta);
+  private readonly anfitrion = inject(ElementRef<HTMLElement>);
   private readonly avisos = inject(AvisosStore);
   private readonly preferencias = inject(PreferenciasService);
 
@@ -270,6 +273,7 @@ export class VistaRapida {
         );
         return;
       }
+      vuelaALaCesta(this.anfitrion.nativeElement);
       this.avisos.exito(this.t('product.added'));
     } finally {
       this.anadiendo.set(false);
