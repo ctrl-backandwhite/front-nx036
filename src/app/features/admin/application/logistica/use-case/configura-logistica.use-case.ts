@@ -1,4 +1,8 @@
 import { Injectable, inject } from '@angular/core';
+import {
+  FiltroDeTarifas,
+  TarifaDeTransportista,
+} from '../../../domain/logistica/model/tarifa-transportista';
 import { Result, exito, fallo } from '@shared/result/result';
 import { AppError } from '@shared/error/app-error';
 import {
@@ -15,6 +19,7 @@ import {
 import {
   ALMACENES_ADMIN_PORT,
   LIMITES_DE_TRANSPORTISTA_PORT,
+  TARIFAS_DE_TRANSPORTISTA_PORT,
 } from '../../../domain/logistica/port/configuracion-logistica.port';
 
 /** Lo que se rechaza sin llegar al servidor: falta la clave con la que se identifica la fila. */
@@ -146,4 +151,70 @@ export class AplicaLoteDeAlmacenes {
 /** Un lote vacío no es un fallo: es que no había nada seleccionado. */
 export function loteVacio(): Result<ParteDeLote, never> {
   return exito({ correctas: 0, errores: [] });
+}
+
+/**
+ * Lo que cuesta cada canal del transportista en cada destino.
+ *
+ * <p>La tabla la mide sola un cron cada tres horas. Estos casos de uso son para MIRARLA y para forzar
+ * una medición cuando el transportista acaba de cambiar precios y no se quiere esperar a la siguiente
+ * pasada.
+ */
+@Injectable()
+export class ConsultaTarifasDeTransportista {
+  private readonly tarifas = inject(TARIFAS_DE_TRANSPORTISTA_PORT);
+
+  ejecuta(filtro: FiltroDeTarifas): Promise<Result<readonly TarifaDeTransportista[], AppError>> {
+    return this.tarifas.lista(filtro);
+  }
+}
+
+/**
+ * Vuelve a medir la tarifa de un destino, o la de todos.
+ *
+ * <p>El barrido completo son varios minutos —una tanda de llamadas por destino—, así que quien lo
+ * lanza tiene que verlo trabajando: la pantalla deja el botón ocupado hasta que responde.
+ */
+@Injectable()
+export class RefrescaTarifasDeTransportista {
+  private readonly tarifas = inject(TARIFAS_DE_TRANSPORTISTA_PORT);
+
+  unDestino(pais: string): Promise<Result<number, AppError>> {
+    return this.tarifas.refrescaDestino(pais);
+  }
+
+  todos(): Promise<Result<number, AppError>> {
+    return this.tarifas.refrescaTodo();
+  }
+}
+
+/**
+ * Corrige a mano una fila de tarifa.
+ *
+ * <p><b>Lo que se escriba aquí se pisa en el siguiente refresco</b>, porque la fuente de verdad es el
+ * transportista. Sirve de parche mientras se aclara con la gestora; para que un valor sobreviva hay
+ * que desactivar la fila, no editarla.
+ */
+@Injectable()
+export class GuardaTarifaDeTransportista {
+  private readonly tarifas = inject(TARIFAS_DE_TRANSPORTISTA_PORT);
+
+  ejecuta(tarifa: TarifaDeTransportista): Promise<Result<void, AppError>> {
+    return this.tarifas.guarda(tarifa);
+  }
+}
+
+/**
+ * Borra una fila de tarifa.
+ *
+ * <p>No deja el destino sin tarifa para siempre: el siguiente refresco la vuelve a medir. Si lo que
+ * se quiere es que un canal NO se ofrezca, se desactiva.
+ */
+@Injectable()
+export class BorraTarifaDeTransportista {
+  private readonly tarifas = inject(TARIFAS_DE_TRANSPORTISTA_PORT);
+
+  ejecuta(id: string): Promise<Result<void, AppError>> {
+    return this.tarifas.borra(id);
+  }
 }

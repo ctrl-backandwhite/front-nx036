@@ -48,6 +48,15 @@ export const rutas: Routes = [
         loadComponent: () => import('./page/compras.page').then((m) => m.ComprasPage),
       },
       {
+        path: 'carrier-rates',
+        // Solo administración, como los límites: la tarifa es lo que se paga al transportista, y el
+        // menú de quien da soporte no la ofrece. Sin esta línea la ruta quedaba abierta a OPERATOR
+        // por el guardián del grupo — una pantalla alcanzable que su menú no enseña.
+        canActivate: [exigeRol('ADMIN')],
+        loadComponent: () =>
+          import('./page/tarifas-de-transportista.page').then((m) => m.TarifasDeTransportistaPage),
+      },
+      {
         path: 'carrier-limits',
         canActivate: [exigeRol('ADMIN')],
         loadComponent: () =>
@@ -98,6 +107,7 @@ export const rutasDeServidor: ServerRoute[] = [
   'admin/ordenes',
   'admin/purchases',
   'admin/carrier-limits',
+  'admin/carrier-rates',
   'admin/warehouses',
   'admin/compliance',
   'admin/taxes',

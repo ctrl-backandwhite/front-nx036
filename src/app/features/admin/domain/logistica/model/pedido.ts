@@ -262,6 +262,34 @@ export function filtraPorFecha(
   });
 }
 
+/**
+ * La fecha de un pedido, escrita para leerla.
+ *
+ * <p>El backend manda el instante en ISO —`2026-10-15T20:27:27.114854Z`— y la tabla lo pintaba tal
+ * cual: una columna con microsegundos y zona horaria que nadie lee y que descuadra el ancho de la
+ * fila. Se escribe en el idioma del panel, no en el del navegador, que es la misma regla que siguen
+ * los importes.
+ *
+ * <p>Cadena vacía si no hay fecha o si no se entiende, para que quien pinta decida qué poner en su
+ * lugar; devolver el texto original «por si acaso» es justo lo que dejaba el ISO en pantalla.
+ */
+export function fechaDelPedido(iso: string | undefined, idioma: string): string {
+  if (!iso) {
+    return '';
+  }
+  const fecha = new Date(iso);
+  if (Number.isNaN(fecha.getTime())) {
+    return '';
+  }
+  return fecha.toLocaleString(idioma, {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 /** Los años presentes en el listado, del más reciente al más antiguo, para poder elegir uno. */
 export function aniosDe(pedidos: readonly Pedido[]): readonly string[] {
   const anios = new Set<string>();

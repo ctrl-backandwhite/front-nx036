@@ -14,6 +14,7 @@ import {
   AccionSobrePedido,
   Pedido,
   accionesPermitidas,
+  fechaDelPedido,
 } from '../../../domain/logistica/model/pedido';
 import { Seleccion } from '../../../application/logistica/state/seleccion';
 import { InsigniaEstado } from './insignia-estado';
@@ -97,7 +98,11 @@ export interface PeticionSobrePedido {
                 <!-- El importe lo formatea el BACKEND: reconvertirlo aquí mostraba un céntimo menos
                      de lo cobrado, porque el cobro suma las líneas ya convertidas. -->
                 <td class="px-4 py-2 text-right font-medium">{{ pedido.totalFormateado || '—' }}</td>
-                <td class="px-4 py-2 text-[12px] text-ink-500">{{ pedido.realizadoEl || '—' }}</td>
+                <!-- Escrita, no en ISO: el backend manda el instante con microsegundos y zona, y
+                     pintarlo tal cual llenaba la columna de algo que nadie lee. -->
+                <td class="px-4 py-2 text-[12px] text-ink-500 whitespace-nowrap">
+                  {{ fechaDe(pedido) || '—' }}
+                </td>
                 <td class="px-4 py-2">
                   <div class="flex gap-1 flex-wrap">
                     <a
@@ -144,7 +149,13 @@ export class TablaDePedidos {
 
   readonly pide = output<PeticionSobrePedido>();
 
-  protected readonly t = inject(TraduccionService).t;
+  private readonly traduccion = inject(TraduccionService);
+  protected readonly t = this.traduccion.t;
+
+  /** La fecha del pedido en el idioma del panel. */
+  protected fechaDe(pedido: Pedido): string {
+    return fechaDelPedido(pedido.realizadoEl, this.traduccion.idioma());
+  }
 
   protected readonly iconos = {
     ver: faEye,

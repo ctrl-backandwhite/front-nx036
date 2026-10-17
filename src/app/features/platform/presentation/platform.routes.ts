@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { exigeRol, exigeSesion } from '@core/auth/sesion.guard';
+import { exigeSesion } from '@core/auth/sesion.guard';
 import { proveePlatform } from '../platform.providers';
 
 /**
@@ -21,10 +21,15 @@ import { proveePlatform } from '../platform.providers';
  * cada contexto tenía el suyo, había ocho parecidos y ninguno idéntico, y no había forma de asegurar
  * que todos redirigieran igual ni que todos esperaran a saber quién mira antes de decidir.
  *
- * <p>Las variantes bajo `/admin/…` exigen además el papel: son las mismas pantallas, pero llegar por
- * esa dirección significa que se entra desde el panel. Y las públicas —«sobre nosotros», legales,
- * conexión, documentación, estado— no llevan guardián a propósito: son justo las que tienen que poder
- * abrirse sin cuenta y las que indexa un buscador.
+ * <p><b>Las variantes bajo `/admin/…` NO se declaran aquí.</b> Estuvieron, y el resultado era que
+ * `/admin/shops` o `/admin/sourcing` se pintaban con la cabecera y el pie del ESCAPARATE: quien las
+ * abría desde el menú del panel se quedaba sin barra lateral, como si hubiera salido de la casa. Lo
+ * que dan el marco son las rutas hijas de `admin` en `app.routes.ts`, y allí están montadas junto a
+ * `browse` y `affiliate` por la misma razón que ellas: juntar dos contextos es componer, y componer
+ * se hace en la raíz.
+ *
+ * <p>Las públicas —«sobre nosotros», legales, conexión, documentación, estado— no llevan guardián a
+ * propósito: son justo las que tienen que poder abrirse sin cuenta y las que indexa un buscador.
  */
 export const rutas: Routes = [
   {
@@ -81,21 +86,8 @@ export const rutas: Routes = [
         loadComponent: () => import('./page/tiendas.page').then((m) => m.TiendasPage),
       },
       {
-        path: 'admin/shops',
-        canActivate: [exigeRol('ADMIN', 'OPERATOR')],
-        data: { privada: true },
-        loadComponent: () => import('./page/tiendas.page').then((m) => m.TiendasPage),
-      },
-      {
         path: 'sourcing',
         canActivate: [exigeSesion],
-        data: { privada: true },
-        loadComponent: () =>
-          import('./page/aprovisionamiento.page').then((m) => m.AprovisionamientoPage),
-      },
-      {
-        path: 'admin/sourcing',
-        canActivate: [exigeRol('ADMIN', 'OPERATOR')],
         data: { privada: true },
         loadComponent: () =>
           import('./page/aprovisionamiento.page').then((m) => m.AprovisionamientoPage),
@@ -107,32 +99,14 @@ export const rutas: Routes = [
         loadComponent: () => import('./page/inteligencia.page').then((m) => m.InteligenciaPage),
       },
       {
-        path: 'admin/intelligence',
-        canActivate: [exigeRol('ADMIN', 'OPERATOR')],
-        data: { privada: true },
-        loadComponent: () => import('./page/inteligencia.page').then((m) => m.InteligenciaPage),
-      },
-      {
         path: 'odm',
         canActivate: [exigeSesion],
         data: { privada: true },
         loadComponent: () => import('./page/odm.page').then((m) => m.OdmPage),
       },
       {
-        path: 'admin/odm',
-        canActivate: [exigeRol('ADMIN', 'OPERATOR')],
-        data: { privada: true },
-        loadComponent: () => import('./page/odm.page').then((m) => m.OdmPage),
-      },
-      {
         path: 'pod',
         canActivate: [exigeSesion],
-        data: { privada: true },
-        loadComponent: () => import('./page/pod.page').then((m) => m.PodPage),
-      },
-      {
-        path: 'admin/pod',
-        canActivate: [exigeRol('ADMIN', 'OPERATOR')],
         data: { privada: true },
         loadComponent: () => import('./page/pod.page').then((m) => m.PodPage),
       },
@@ -146,6 +120,47 @@ export const rutas: Routes = [
         path: '**',
         data: { privada: true },
         loadComponent: () => import('./page/no-encontrada.page').then((m) => m.NoEncontradaPage),
+      },
+    ],
+  },
+];
+
+/**
+ * Las pantallas de este contexto que el PANEL enseña dentro de su marco: tiendas, aprovisionamiento,
+ * inteligencia, ODM e impresión bajo demanda.
+ *
+ * <p>Se exportan aparte para que `app.routes.ts` las cuelgue del nodo `admin` —que es quien monta la
+ * barra lateral— sin importar de aquí nada en firme: con un import normal, los proveedores de este
+ * contexto entran en el paquete inicial y el presupuesto de arranque se pasa en 115 kB.
+ *
+ * <p>Sin guardián propio: el nodo del que cuelgan ya exige ADMIN u OPERATOR, y repetirlo aquí sería
+ * tener dos sitios donde cambiar lo mismo.
+ */
+export const rutasDelPanel: Routes = [
+  {
+    path: '',
+    providers: [proveePlatform()],
+    children: [
+      {
+        path: 'shops',
+        loadComponent: () => import('./page/tiendas.page').then((m) => m.TiendasPage),
+      },
+      {
+        path: 'sourcing',
+        loadComponent: () =>
+          import('./page/aprovisionamiento.page').then((m) => m.AprovisionamientoPage),
+      },
+      {
+        path: 'intelligence',
+        loadComponent: () => import('./page/inteligencia.page').then((m) => m.InteligenciaPage),
+      },
+      {
+        path: 'odm',
+        loadComponent: () => import('./page/odm.page').then((m) => m.OdmPage),
+      },
+      {
+        path: 'pod',
+        loadComponent: () => import('./page/pod.page').then((m) => m.PodPage),
       },
     ],
   },

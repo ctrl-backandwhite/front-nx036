@@ -92,6 +92,7 @@ import { ResumenDeLaCompra } from '../component/resumen-de-la-compra';
           <aside class="lg:col-span-1">
             <nx-resumen-de-la-compra
               [cotizacion]="envio.cotizacion()"
+              [cotizando]="envio.cargando()"
               [opcionCotizada]="opcionCotizada()"
               [subtotal]="valoracion.subtotal()"
               [hayPais]="!!estado.paisDeEnvio()"

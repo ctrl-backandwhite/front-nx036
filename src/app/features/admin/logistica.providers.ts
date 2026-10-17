@@ -18,6 +18,7 @@ import {
   CUMPLIMIENTO_PORT,
   IMPUESTOS_PORT,
   LIMITES_DE_TRANSPORTISTA_PORT,
+  TARIFAS_DE_TRANSPORTISTA_PORT,
 } from './domain/logistica/port/configuracion-logistica.port';
 import {
   MIS_GANANCIAS_PORT,
@@ -31,6 +32,7 @@ import { PedidosAdminHttpAdapter } from './infrastructure/logistica/pedidos-admi
 import { SeguimientoHttpAdapter } from './infrastructure/logistica/seguimiento-http.adapter';
 import { ComprasHttpAdapter } from './infrastructure/logistica/compras-http.adapter';
 import { LimitesTransportistaHttpAdapter } from './infrastructure/logistica/limites-transportista-http.adapter';
+import { TarifasTransportistaHttpAdapter } from './infrastructure/logistica/tarifas-transportista-http.adapter';
 import { AlmacenesHttpAdapter } from './infrastructure/logistica/almacenes-http.adapter';
 import { ImpuestosHttpAdapter } from './infrastructure/logistica/impuestos-http.adapter';
 import { CumplimientoHttpAdapter } from './infrastructure/logistica/cumplimiento-http.adapter';
@@ -134,6 +136,12 @@ export function proveeAdminLogistica(): EnvironmentProviders {
     {
       provide: LIMITES_DE_TRANSPORTISTA_PORT,
       useFactory: () => inject(LimitesTransportistaHttpAdapter),
+    },
+
+    TarifasTransportistaHttpAdapter,
+    {
+      provide: TARIFAS_DE_TRANSPORTISTA_PORT,
+      useFactory: () => inject(TarifasTransportistaHttpAdapter),
     },
 
     AlmacenesHttpAdapter,

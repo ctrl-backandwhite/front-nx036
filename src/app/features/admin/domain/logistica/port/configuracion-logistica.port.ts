@@ -2,6 +2,7 @@ import { InjectionToken } from '@angular/core';
 import { Result } from '@shared/result/result';
 import { AppError } from '@shared/error/app-error';
 import { LimiteDeTransportista } from '../model/limite-transportista';
+import { FiltroDeTarifas, TarifaDeTransportista } from '../model/tarifa-transportista';
 import { Almacen, DatosDeAlmacen } from '../model/almacen';
 import { DatosDeImpuesto, DatosDeRegion, ImpuestoDePais, RegionFiscal } from '../model/impuesto';
 import { EstadoDeCumplimiento, OperadorEconomico, PapelDeOperador } from '../model/cumplimiento';
@@ -21,6 +22,26 @@ export interface LimitesDeTransportistaPort {
 
 export const LIMITES_DE_TRANSPORTISTA_PORT = new InjectionToken<LimitesDeTransportistaPort>(
   'LimitesDeTransportistaPort',
+);
+
+/**
+ * La tarifa del transportista: lo que cuesta cada canal en cada destino.
+ *
+ * <p>`refresca` vuelve a medirla contra el transportista. Tarda —son varias llamadas por destino— y
+ * por eso no la invoca ningún camino de compra: solo el botón del panel.
+ */
+export interface TarifasDeTransportistaPort {
+  lista(filtro: FiltroDeTarifas): Promise<Result<readonly TarifaDeTransportista[], AppError>>;
+  /** Mide de nuevo UN destino. Devuelve cuántas filas se escribieron. */
+  refrescaDestino(pais: string): Promise<Result<number, AppError>>;
+  /** Mide de nuevo TODOS los destinos abiertos. Son varios minutos. */
+  refrescaTodo(): Promise<Result<number, AppError>>;
+  guarda(tarifa: TarifaDeTransportista): Promise<Result<void, AppError>>;
+  borra(id: string): Promise<Result<void, AppError>>;
+}
+
+export const TARIFAS_DE_TRANSPORTISTA_PORT = new InjectionToken<TarifasDeTransportistaPort>(
+  'TarifasDeTransportistaPort',
 );
 
 export interface AlmacenesAdminPort {

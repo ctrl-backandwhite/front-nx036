@@ -125,6 +125,22 @@ import { InfoDeAranceles } from './info-de-aranceles';
         </div>
       }
 
+      <!-- Mientras llega la cotización se reservan las líneas que vendrán —arancel e impuesto— en vez
+           de dejar el resumen corto y que luego dé un salto. Son barras y no rótulos a propósito: hasta
+           que no responde el servidor no se sabe QUÉ conceptos tiene ese destino, y escribir «Aranceles»
+           para después quitarlo sería prometer algo que quizá no aplique. -->
+      @if (enEspera()) {
+        <div class="space-y-1.5" data-testid="desglose-en-espera" aria-hidden="true">
+          @for (fila of filasEnEspera; track fila) {
+            <div class="flex items-baseline">
+              <span class="h-3 w-24 animate-pulse rounded bg-ink-100"></span>
+              <nx-guia-puntos />
+              <span class="h-3 w-14 animate-pulse rounded bg-ink-100"></span>
+            </div>
+          }
+        </div>
+      }
+
       <div class="border-t border-ink-100 pt-2 mt-2 flex items-baseline font-medium text-base"
            data-testid="desglose-total">
         <span>{{ t('checkout.total') }}</span>
@@ -133,6 +149,11 @@ import { InfoDeAranceles } from './info-de-aranceles';
           <span class="text-[12px] font-normal text-ink-500">{{
             t('checkout.pick_country_for_total')
           }}</span>
+        } @else if (enEspera()) {
+          <!-- Ni el subtotal ni un cero: cualquier cifra aquí se lee como el importe final. Con dos
+               artículos a España el subtotal eran 23,31 € y lo que se cobra, 51,27 €. -->
+          <span class="inline-block h-4 w-20 animate-pulse rounded bg-ink-100" aria-hidden="true"></span>
+          <span class="sr-only">{{ t('common.loading') }}</span>
         } @else {
           <span>{{ cubierto() ? cotizacion()?.totalFormateado : subtotal() }}</span>
         }
@@ -146,6 +167,11 @@ export class DesgloseDelPedido {
   readonly hayPais = input.required<boolean>();
   /** El canal con el que se ha cotizado: su plazo es el que se anuncia. */
   readonly opcionCotizada = input<OpcionDeEnvio | undefined>(undefined);
+  /** Si el servidor está cotizando ahora mismo. */
+  readonly cargando = input(false);
+
+  /** Cuántas líneas se reservan mientras se cotiza: el arancel y el impuesto del destino. */
+  protected readonly filasEnEspera = [0, 1];
 
   private readonly traduccion = inject(TraduccionService);
   protected readonly t = this.traduccion.t;
@@ -153,6 +179,17 @@ export class DesgloseDelPedido {
 
   protected cubierto(): boolean {
     return this.cotizacion()?.cubierto === true;
+  }
+
+  /**
+   * ¿Hay país elegido pero todavía no se sabe lo que cuesta?
+   *
+   * <p>Es el estado que faltaba. Hasta ahora solo se distinguía «sin país» de «cotizado», así que al
+   * recargar el checkout con una dirección puesta el resumen enseñaba el subtotal en la casilla del
+   * total durante un par de segundos — un importe que no era el que se iba a cobrar.
+   */
+  protected enEspera(): boolean {
+    return this.hayPais() && (this.cargando() || this.cotizacion() === undefined);
   }
 
   protected hayArancel(): boolean {

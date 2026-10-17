@@ -127,6 +127,27 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./composition/afiliado-ensamblado').then((m) => m.AfiliadoEnsamblado),
       },
+
+      /*
+       * Las cinco pantallas de «platform» que el menú del panel enlaza: tiendas, aprovisionamiento,
+       * inteligencia, ODM e impresión bajo demanda.
+       *
+       * Estaban declaradas dentro de «platform» como `admin/shops`, `admin/sourcing`… y por eso se
+       * pintaban CON EL MARCO DEL ESCAPARATE: cabecera pública, pie de página y sin barra lateral.
+       * Quien las abría desde el menú creía haberse salido del panel. El camino `admin/x` no basta
+       * para estar dentro del panel; lo que mete dentro es colgar de este nodo, que es el que monta
+       * `PaginaDePanel`.
+       *
+       * Van aquí por lo mismo que `browse` y `affiliate`: el contexto «admin» no puede entrar en las
+       * tripas de «platform» —el lint lo impide— pero este fichero sí. Y en DIFERIDO: importar sus
+       * proveedores en firme mete este contexto en el paquete inicial y se pasa el presupuesto de
+       * arranque en 115 kB.
+       */
+      {
+        path: '',
+        loadChildren: () =>
+          import('@features/platform/presentation/platform.routes').then((m) => m.rutasDelPanel),
+      },
       {
         path: '',
         loadChildren: () => import('@features/admin/presentation/admin.routes').then((m) => m.rutas),

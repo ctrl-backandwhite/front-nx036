@@ -21,6 +21,11 @@ const DIAS: readonly OpcionDeFiltro[] = Array.from({ length: 31 }, (_, indice) =
  * mantener ocho listas de doce nombres es garantía de que una se quede a medias.
  */
 @Component({
+  // `display: contents`: este componente no es una caja, es un GRUPO de filtros que se proyecta
+  // dentro de la barra. Sin esto nace `inline` —como cualquier elemento propio— y sus seis hijos
+  // dejan de ser ítems del flex de la barra: se apilan en una columna a media pantalla, con el
+  // buscador suelto al lado y un hueco a la izquierda. La trampa ya ha costado cinco veces.
+  host: { class: 'contents' },
   selector: 'nx-filtros-de-pedidos',
   imports: [FiltroDesplegable, FormField],
   template: `

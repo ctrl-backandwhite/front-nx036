@@ -127,4 +127,32 @@ describe('DesgloseDelPedido', () => {
 
     expect(screen.getByText('…')).toBeInTheDocument();
   });
+
+  /**
+   * Con el país ya puesto y la cotización en camino, el total enseñaba el SUBTOTAL. Al recargar el
+   * checkout se veía «Total 23,31 €» durante dos segundos y luego saltaba a 51,27 €: un importe que
+   * no era el que se iba a cobrar, en la casilla que todo el mundo mira.
+   */
+  it('mientras se cotiza, el total NO enseña el subtotal', async () => {
+    const vista = await monta({ cotizacion: undefined, hayPais: true, subtotal: '23,31 €' });
+
+    const total = vista.fixture.nativeElement.querySelector('[data-testid="desglose-total"]');
+    expect(total.textContent).not.toContain('23,31');
+  });
+
+  it('mientras se cotiza, se reservan las líneas que van a venir', async () => {
+    const vista = await monta({ cotizacion: undefined, hayPais: true });
+
+    // Sin reservarlas, el resumen crece de golpe al llegar la respuesta y lo que estabas mirando se
+    // desplaza hacia abajo.
+    expect(vista.fixture.nativeElement.querySelector('[data-testid="desglose-en-espera"]'))
+      .not.toBeNull();
+  });
+
+  it('con la cotización ya puesta no queda ninguna línea en espera', async () => {
+    const vista = await monta({ cotizacion: cotizacion({ totalFormateado: '51,27 €' }) });
+
+    expect(vista.fixture.nativeElement.querySelector('[data-testid="desglose-en-espera"]')).toBeNull();
+    expect(screen.getByText('51,27 €')).toBeInTheDocument();
+  });
 });

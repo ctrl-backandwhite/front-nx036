@@ -2,6 +2,7 @@ import {
   IconDefinition,
   faBell,
   faBoxesPacking,
+  faMoneyBillWave,
   faBoxesStacked,
   faCartShopping,
   faChalkboardUser,
@@ -102,6 +103,7 @@ export const SECCIONES_ADMIN: readonly SeccionAdmin[] = [
       { destino: '/admin/orders', clave: 'admin.nav.orders', icono: faTruck, permitidaAOperador: true },
       { destino: '/admin/purchases', clave: 'admin.nav.purchases', icono: faCartShopping },
       { destino: '/admin/carrier-limits', clave: 'admin.nav.carrier_limits', icono: faBoxesPacking },
+      { destino: '/admin/carrier-rates', clave: 'admin.nav.carrier_rates', icono: faMoneyBillWave },
       {
         destino: '/admin/operator/earnings',
         clave: 'operator.nav.earnings',

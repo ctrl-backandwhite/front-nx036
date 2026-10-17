@@ -49,6 +49,7 @@ import { BotonDePago } from './boton-de-pago';
         [subtotal]="subtotal()"
         [hayPais]="hayPais()"
         [opcionCotizada]="opcionCotizada()"
+        [cargando]="cotizando()"
       />
 
       <nx-avisos-de-aduana [cotizacion]="cotizacion()" [hayPais]="hayPais()" />
@@ -112,6 +113,8 @@ export class ResumenDeLaCompra {
   readonly opcionCotizada = input<OpcionDeEnvio | undefined>(undefined);
   readonly subtotal = input.required<string>();
   readonly hayPais = input.required<boolean>();
+  /** Si el servidor está cotizando: el desglose lo necesita para no enseñar un total que no es. */
+  readonly cotizando = input(false);
   readonly cuponAplicado = input.required<string>();
   readonly referidoPendiente = input.required<string>();
   readonly referidoAplicado = input.required<boolean>();
