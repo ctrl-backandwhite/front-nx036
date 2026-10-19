@@ -862,8 +862,40 @@ aside .menu .menu-title {
 .input-xs, .select-xs { width: auto !important; min-height: 1.5rem !important; }
 .input-sm, .select-sm { min-height: 2rem; }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+ * LA LISTA DESPLEGADA DE UN <select> NO HEREDA EL TEMA. Hay que decírselo.
+ *
+ * El preflight de Tailwind pone `color: inherit; background-color: transparent` en
+ * `select`, `option` y `optgroup`. En tema oscuro eso deja el texto casi blanco —heredado de
+ * `base-content`— sobre el fondo que el sistema le da a la lista desplegada, que es BLANCO.
+ * Casi blanco sobre blanco: las opciones no se leen.
+ *
+ * No había ninguna regla para `option` en todo el proyecto, así que pasaba en los 42 `<select>`
+ * de la aplicación, y de forma total en los dos que ni siquiera llevan clase de color
+ * (`usuarios-acciones-en-lote.ts` y `usuarios-tabla.ts`, los de gestión de usuarios).
+ *
+ * `select` va en @layer base para NO pisar al `.select` de daisyUI, que vive en `components`:
+ * una regla de elemento sin capa le ganaría y rompería el componente. `option` y `optgroup`,
+ * en cambio, van SIN capa a propósito, porque tienen que ganarle al preflight y no compiten
+ * con ningún componente.
+ *
+ * Esto cubre Chrome, Firefox y el selector a pantalla completa de Android. Safari ignora el
+ * pintado de `option` y se apoya en el `color-scheme` que daisyUI ya declara por tema.
+ * ───────────────────────────────────────────────────────────────────────────── */
+@layer base {
+  select { background-color: var(--color-base-100); color: var(--color-base-content); }
+}
+option, optgroup { background-color: var(--color-base-100); color: var(--color-base-content); }
+optgroup { font-weight: 600; }
+option:checked, option:hover { background-color: var(--color-base-200); }
+
 /* Los <select> con clase .input no muestran la flecha nativa (parecen un input normal).
- * Añadimos un chevron para que se note que son desplegables. */
+ * Añadimos un chevron para que se note que son desplegables.
+ *
+ * El color va DENTRO del data-URI, así que no puede ser una variable, y se queda en `%236b7280`
+ * aunque sea un literal fuera de la paleta. Medido: 4,75:1 sobre el fondo claro y 3,64:1 sobre
+ * el oscuro, y para algo que no es texto la norma pide 3:1 — o sea que cumple en los dos.
+ * Cambiarlo a `ink-400` se probó y es PEOR: sube el oscuro a 5,35 pero baja el claro a 3,23. */
 select.input {
   appearance: none;
   -webkit-appearance: none;
