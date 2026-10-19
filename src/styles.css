@@ -210,9 +210,11 @@
  * Aquí se cubren las DOS ramas, que es lo que nadie cubría: el atributo cuando hay elección, y
  * la preferencia del sistema solo cuando NO la hay —el mismo criterio que usa `app.ts`—.
  *
- * Hoy no la usa nadie: las diez clases `dark:` que había se borraron al dar variante de tema a
- * `ink` y a las paletas crudas, porque pasaron a ser redundantes. Esto queda como barandilla
- * para que la próxima que alguien escriba no nazca invertida.
+ * Las diez clases `dark:` que había se borraron al dar variante de tema a `ink` y a las paletas
+ * crudas, porque pasaron a ser redundantes. La usa un solo caso, y es el legítimo: el azul de
+ * marca de PayPal, que es de un tercero y no puede salir de nuestra paleta. Tiene dos valores
+ * oficiales y hacen falta los dos — el oscuro (#003087) da 11,63:1 sobre fondo claro y 1,48:1
+ * sobre el oscuro, donde el icono sencillamente no se ve; el claro (#009cde) da 5,70:1 allí.
  * ───────────────────────────────────────────────────────────────────────────── */
 @custom-variant dark {
   &:where([data-theme="nx036-pastel-dark"], [data-theme="nx036-pastel-dark"] *) { @slot; }
@@ -345,6 +347,14 @@
   --color-ink-300: #b7c2cb;
   --color-ink-100: #e1e7ec;
   --color-ink-50:  #f4f7f9;
+
+  /* Superficie SIEMPRE oscura, con su texto. No se invierte con el tema porque no describe
+   * «el fondo de la página» sino «un velo oscuro sobre una foto»: el velo es oscuro en los dos
+   * temas, así que su texto tiene que ser claro en los dos. Tenerlo como token evita que vuelvan
+   * a aparecer hex sueltos cada vez que hace falta esta combinación. */
+  --color-scrim: #08111d;
+  --color-scrim-alto: #0a1b30;
+  --color-scrim-content: #eef4fc;
 
   --font-sans: "Roboto", system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
   --font-mono: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -1747,7 +1757,7 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
    * Se fija la variable AQUÍ en vez de cambiar las siete clases del componente: así entran también
    * las variantes con opacidad (`/90`, `/95`, `/80`, `/60`) y el fondo y el borde de la tarjeta de
    * la cita, que son la misma decisión. En el tema claro no cambia nada: es el valor que ya tenía. */
-  --color-primary-content: #eef4fc;
+  --color-primary-content: var(--color-scrim-content);
 }
 .auth-hero-img::before {
   content: ""; position: absolute; inset: 0; z-index: 0;
@@ -1761,9 +1771,9 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
    * derecha; + un brillo azul de marca sutil desde abajo. Nada de lavado plano de color. */
   background:
     linear-gradient(103deg,
-      color-mix(in oklch, #08111d 92%, transparent) 0%,
-      color-mix(in oklch, #08111d 66%, transparent) 46%,
-      color-mix(in oklch, #0a1b30 34%, transparent) 100%),
+      color-mix(in oklch, var(--color-scrim) 92%, transparent) 0%,
+      color-mix(in oklch, var(--color-scrim) 66%, transparent) 46%,
+      color-mix(in oklch, var(--color-scrim-alto) 34%, transparent) 100%),
     linear-gradient(to top,
       color-mix(in oklch, var(--color-primary) 34%, transparent) 0%,
       transparent 52%);
