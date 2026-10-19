@@ -1128,6 +1128,30 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
   --color-ink-800: oklch(90.5% 0.017 245);
   --color-ink-900: oklch(95% 0.015 245);
 
+  /* ── Y la escala `brand`, por el mismo motivo ────────────────────────────────
+   * Mismo caso que `ink`: un solo juego de valores claros y un puñado de parches que cubrían
+   * lo enumerado. Quedaban fuera `bg-brand-500/600` (13 usos), `border-brand-200/300/500/600/700`
+   * (19) y `ring-brand-100` (5).
+   *
+   * Los tintes claros (50-300) se derivan de `primary` sobre el fondo, que es lo que ya hacían
+   * los parches. Los oscuros (500-900) van al tono claro único que usaba el parche de texto.
+   * `brand-100` tenía DOS valores en pugna —30 % de fondo y 35 % de borde—; se unifica en 32 %.
+   *
+   * `brand-400` pasa a ser `primary`, y eso mejora de paso el anillo de foco: lo dibuja
+   * `--color-brand-400`, que en oscuro era el azul del tema claro. Medido sobre el fondo oscuro,
+   * pasa de 3,35:1 a 5,52:1 — cumplía el 3:1 por poco y ahora con holgura.
+   * ─────────────────────────────────────────────────────────────────────────── */
+  --color-brand-50:  color-mix(in oklch, var(--color-primary) 22%, var(--color-base-100));
+  --color-brand-100: color-mix(in oklch, var(--color-primary) 32%, var(--color-base-100));
+  --color-brand-200: color-mix(in oklch, var(--color-primary) 45%, var(--color-base-100));
+  --color-brand-300: color-mix(in oklch, var(--color-primary) 60%, var(--color-base-100));
+  --color-brand-400: var(--color-primary);
+  --color-brand-500: oklch(72% 0.16 248);
+  --color-brand-600: oklch(72% 0.16 248);
+  --color-brand-700: oklch(72% 0.16 248);
+  --color-brand-800: oklch(72% 0.16 248);
+  --color-brand-900: oklch(72% 0.16 248);
+
   /* DROP-424: hero badges/icons legibles */
   .hero .badge-outline { background-color: color-mix(in oklch, var(--color-base-100) 60%, transparent); }
   .hero .kpi-icon { background-color: color-mix(in oklch, var(--color-primary) 28%, var(--color-base-100)); }
@@ -1192,22 +1216,17 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
     border: 1px solid var(--color-base-300);
   }
   /* Tarjetas brand-50 (cyan claro): en dark son ilegibles → invertir tinte. */
-  .bg-brand-50 { background-color: color-mix(in oklch, var(--color-primary) 22%, var(--color-base-100)) !important; }
   /* `brand-100` se quedó fuera y es el mismo caso: el avatar del perfil del panel es
    * `bg-brand-100 text-brand-700`, y con el texto ya remapeado a un tono claro quedaban las iniciales
    * a 2.32:1 sobre un fondo que seguía siendo azul claro de tema claro. */
-  .bg-brand-100 { background-color: color-mix(in oklch, var(--color-primary) 30%, var(--color-base-100)) !important; }
 
   /* Lo que había aquí eran los parches de los FONDOS de `ink` —`bg-ink-50`, `bg-ink-100`,
    * `border-ink-200` y sus variantes de `hover`—, enumerados a mano uno a uno. Los sustituye la
    * redeclaración de las variables de arriba, que además alcanza a los que nadie enumeró. */
   /* Mismo motivo que los fondos: un borde de la escala `ink` es claro por definición. */
-  .border-brand-100 { border-color: color-mix(in oklch, var(--color-primary) 35%, transparent) !important; }
   /* `brand-800` y `brand-900` entran con los otros dos: son el MISMO caso y se quedaron fuera. El
    * chip de filtro activo (`border-brand-300 bg-brand-50 text-brand-800`) dejaba su valor a 1.40:1
    * sobre el fondo oscuro — en el catálogo se leía «Ordenar por:» y el valor simplemente no estaba. */
-  .text-brand-700, .text-brand-600,
-  .text-brand-800, .text-brand-900 { color: oklch(72% 0.16 248) !important; }
 
   /* Las VARIANTES DE ESTADO de esos mismos colores.
    *
@@ -1218,14 +1237,9 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
    * negro sobre el fondo oscuro: justo el elemento que se está señalando era el que no se leía.
    *
    * Van los mismos valores que sus clases base, para que señalar algo no cambie de paleta. */
-  .hover\:text-brand-700:hover,
-  .hover\:text-brand-800:hover { color: oklch(72% 0.16 248) !important; }
-  .group:hover .group-hover\:text-brand-700,
-  .group:hover .group-hover\:text-brand-600 { color: oklch(72% 0.16 248) !important; }
 
   /* Y lo mismo con el fondo de realce: `bg-brand-50` ya se traduce arriba, pero su variante al pasar
    * el ratón no, y dejaba un azul claro de tema claro debajo del texto. */
-  .hover\:bg-brand-50:hover { background-color: color-mix(in oklch, var(--color-primary) 22%, var(--color-base-100)) !important; }
 
   /* DROP-430: topbar admin sin tinte rosado */
   .navbar { background-color: var(--color-base-100) !important; }
@@ -1327,6 +1341,30 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
     --color-ink-800: oklch(90.5% 0.017 245);
     --color-ink-900: oklch(95% 0.015 245);
 
+    /* ── Y la escala `brand`, por el mismo motivo ────────────────────────────────
+     * Mismo caso que `ink`: un solo juego de valores claros y un puñado de parches que cubrían
+     * lo enumerado. Quedaban fuera `bg-brand-500/600` (13 usos), `border-brand-200/300/500/600/700`
+     * (19) y `ring-brand-100` (5).
+     *
+     * Los tintes claros (50-300) se derivan de `primary` sobre el fondo, que es lo que ya hacían
+     * los parches. Los oscuros (500-900) van al tono claro único que usaba el parche de texto.
+     * `brand-100` tenía DOS valores en pugna —30 % de fondo y 35 % de borde—; se unifica en 32 %.
+     *
+     * `brand-400` pasa a ser `primary`, y eso mejora de paso el anillo de foco: lo dibuja
+     * `--color-brand-400`, que en oscuro era el azul del tema claro. Medido sobre el fondo oscuro,
+     * pasa de 3,35:1 a 5,52:1 — cumplía el 3:1 por poco y ahora con holgura.
+     * ─────────────────────────────────────────────────────────────────────────── */
+    --color-brand-50:  color-mix(in oklch, var(--color-primary) 22%, var(--color-base-100));
+    --color-brand-100: color-mix(in oklch, var(--color-primary) 32%, var(--color-base-100));
+    --color-brand-200: color-mix(in oklch, var(--color-primary) 45%, var(--color-base-100));
+    --color-brand-300: color-mix(in oklch, var(--color-primary) 60%, var(--color-base-100));
+    --color-brand-400: var(--color-primary);
+    --color-brand-500: oklch(72% 0.16 248);
+    --color-brand-600: oklch(72% 0.16 248);
+    --color-brand-700: oklch(72% 0.16 248);
+    --color-brand-800: oklch(72% 0.16 248);
+    --color-brand-900: oklch(72% 0.16 248);
+
     /* DROP-424: hero badges/icons legibles */
     .hero .badge-outline { background-color: color-mix(in oklch, var(--color-base-100) 60%, transparent); }
     .hero .kpi-icon { background-color: color-mix(in oklch, var(--color-primary) 28%, var(--color-base-100)); }
@@ -1391,22 +1429,17 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
       border: 1px solid var(--color-base-300);
     }
     /* Tarjetas brand-50 (cyan claro): en dark son ilegibles → invertir tinte. */
-    .bg-brand-50 { background-color: color-mix(in oklch, var(--color-primary) 22%, var(--color-base-100)) !important; }
     /* `brand-100` se quedó fuera y es el mismo caso: el avatar del perfil del panel es
      * `bg-brand-100 text-brand-700`, y con el texto ya remapeado a un tono claro quedaban las iniciales
      * a 2.32:1 sobre un fondo que seguía siendo azul claro de tema claro. */
-    .bg-brand-100 { background-color: color-mix(in oklch, var(--color-primary) 30%, var(--color-base-100)) !important; }
 
     /* Lo que había aquí eran los parches de los FONDOS de `ink` —`bg-ink-50`, `bg-ink-100`,
      * `border-ink-200` y sus variantes de `hover`—, enumerados a mano uno a uno. Los sustituye la
      * redeclaración de las variables de arriba, que además alcanza a los que nadie enumeró. */
     /* Mismo motivo que los fondos: un borde de la escala `ink` es claro por definición. */
-    .border-brand-100 { border-color: color-mix(in oklch, var(--color-primary) 35%, transparent) !important; }
     /* `brand-800` y `brand-900` entran con los otros dos: son el MISMO caso y se quedaron fuera. El
      * chip de filtro activo (`border-brand-300 bg-brand-50 text-brand-800`) dejaba su valor a 1.40:1
      * sobre el fondo oscuro — en el catálogo se leía «Ordenar por:» y el valor simplemente no estaba. */
-    .text-brand-700, .text-brand-600,
-    .text-brand-800, .text-brand-900 { color: oklch(72% 0.16 248) !important; }
 
     /* Las VARIANTES DE ESTADO de esos mismos colores.
      *
@@ -1417,14 +1450,9 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
      * negro sobre el fondo oscuro: justo el elemento que se está señalando era el que no se leía.
      *
      * Van los mismos valores que sus clases base, para que señalar algo no cambie de paleta. */
-    .hover\:text-brand-700:hover,
-    .hover\:text-brand-800:hover { color: oklch(72% 0.16 248) !important; }
-    .group:hover .group-hover\:text-brand-700,
-    .group:hover .group-hover\:text-brand-600 { color: oklch(72% 0.16 248) !important; }
 
     /* Y lo mismo con el fondo de realce: `bg-brand-50` ya se traduce arriba, pero su variante al pasar
      * el ratón no, y dejaba un azul claro de tema claro debajo del texto. */
-    .hover\:bg-brand-50:hover { background-color: color-mix(in oklch, var(--color-primary) 22%, var(--color-base-100)) !important; }
 
     /* DROP-430: topbar admin sin tinte rosado */
     .navbar { background-color: var(--color-base-100) !important; }
