@@ -139,7 +139,7 @@ const CONFIRMACION_MS = 1400;
           }
           @if (etiquetas().includes('free_shipping')) {
             <span
-              class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-600 text-white shadow-sm"
+              class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-success text-success-content shadow-sm"
               [attr.aria-label]="t('catalog.filters.free_shipping')"
             >
               <fa-icon [icon]="iconos.camion" class="text-[9px]" />

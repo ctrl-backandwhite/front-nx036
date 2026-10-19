@@ -34,13 +34,13 @@ export type TamanoDePrecio = keyof typeof TAMANOS;
             El precio a pagar va en el color normal del texto y el ANTERIOR en rojo tachado: así el rojo
             señala lo que se deja de pagar, no lo que se paga (decisión del usuario, 8-ago-2026).
           -->
-          <span [class]="tamanos().ahora" class="text-ink-900 dark:text-ink-100">{{ importe }}</span>
-          <s [class]="tamanos().antes" class="text-rose-600 dark:text-rose-400">
+          <span [class]="tamanos().ahora" class="text-ink-900">{{ importe }}</span>
+          <s [class]="tamanos().antes" class="text-rose-600">
             {{ precio().anteriorFormateado }}
           </s>
           <span
             [class]="tamanos().distintivo"
-            class="rounded bg-rose-600 font-semibold text-white dark:bg-rose-500"
+            class="rounded bg-error font-semibold text-error-content"
           >
             −{{ precio().descuentoPorcentaje }}%
           </span>

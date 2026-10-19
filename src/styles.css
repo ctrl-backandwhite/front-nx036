@@ -199,6 +199,28 @@
  * frío/cálido evita el look de "azul SaaS" genérico y del índigo violáceo de IA. Marino como
  * estructura. El nombre del theme se mantiene (nx036-pastel) por compat con data-theme / theme.ts.
  */
+/* ─────────────────────────────────────────────────────────────────────────────
+ * LA VARIANTE `dark:`, ATADA AL TEMA Y NO SOLO AL SISTEMA.
+ *
+ * En Tailwind 4, `dark:` sigue por defecto a `prefers-color-scheme`. Pero esta aplicación pinta
+ * el tema con `data-theme`, así que quien ELIGE un tema distinto del de su equipo recibía las
+ * clases `dark:` AL REVÉS: con el equipo en claro y el tema oscuro elegido no se aplicaban, y
+ * con el equipo en oscuro y el tema claro elegido se aplicaban igualmente.
+ *
+ * Aquí se cubren las DOS ramas, que es lo que nadie cubría: el atributo cuando hay elección, y
+ * la preferencia del sistema solo cuando NO la hay —el mismo criterio que usa `app.ts`—.
+ *
+ * Hoy no la usa nadie: las diez clases `dark:` que había se borraron al dar variante de tema a
+ * `ink` y a las paletas crudas, porque pasaron a ser redundantes. Esto queda como barandilla
+ * para que la próxima que alguien escriba no nazca invertida.
+ * ───────────────────────────────────────────────────────────────────────────── */
+@custom-variant dark {
+  &:where([data-theme="nx036-pastel-dark"], [data-theme="nx036-pastel-dark"] *) { @slot; }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme]), :root:not([data-theme]) *) { @slot; }
+  }
+}
+
 @plugin "daisyui" {
   themes: nx036-pastel --default, nx036-pastel-dark --prefersdark, corporate, business;
 }
