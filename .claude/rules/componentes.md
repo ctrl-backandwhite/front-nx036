@@ -8,8 +8,13 @@ globs: ["src/app/**/presentation/**", "src/app/design-system/**"]
 Ninguna de estas da un error claro. Todas se han pagado varias veces.
 
 - **Una comilla invertida dentro de una plantilla la rompe.** La plantilla ya vive dentro de un
-  literal de plantilla, así que un backtick en el texto la cierra antes de tiempo. Ha pasado 7
+  literal de plantilla, así que un backtick en el texto la cierra antes de tiempo. Ha pasado 8
   veces. Si hace falta el carácter, va escapado o fuera de la plantilla.
+  La octava fue en un COMENTARIO HTML, no en texto visible —citando nombres de clase entre
+  backticks, como se escribe en los comentarios de TypeScript—, y el error que salió no menciona
+  la comilla: dice «Argument expression expected» y señala el cierre del decorador, 130 líneas más
+  abajo. Y van dos trampas en el mismo comentario, porque un comentario HTML tampoco puede ir
+  DENTRO de una etiqueta, entre atributos.
 - **Un componente propio nace `inline`.** El navegador no sabe qué es `<nx-loquesea>` y le da
   `display: inline`: se pinta estrecho, ignora alto y márgenes, y parece un fallo de CSS. Hay que
   darle `display` explícito en el propio componente. Ha pasado 5 veces.

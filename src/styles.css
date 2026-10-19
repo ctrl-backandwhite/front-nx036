@@ -1102,6 +1102,32 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
 
 /* ⟦OSCURO:ELEGIDO:INICIO⟧ */
 [data-theme="nx036-pastel-dark"] {
+  /* ── La escala `ink` INVERTIDA, como variables ───────────────────────────────
+   * `ink-*` es una escala propia, fuera de daisyUI, y hasta ahora tenía un solo juego de
+   * valores: los del tema claro. El oscuro la corregía clase a clase con `!important`, y eso
+   * cubría solo lo que alguien se acordó de enumerar: `text-ink-900..300`, `bg-ink-50/100`,
+   * `border-ink-200` y poco más. Quedaban fuera `border-ink-100` (103 usos), `divide-ink-100`,
+   * `border-ink-300`, `ring-ink-*` y toda variante con opacidad.
+   *
+   * Tailwind 4 compila `.text-ink-700` a `color: var(--color-ink-700)`, no al literal. Así que
+   * redeclarar la variable aquí retiñe de golpe `text-`, `bg-`, `border-`, `ring-`, `divide-`,
+   * `fill-`, `stroke-`, `hover:`, `group-hover:` y las opacidades — sin un solo `!important`.
+   *
+   * Los valores son LOS MISMOS que ya escribían los parches, para que donde hoy funciona siga
+   * saliendo idéntico. Lo que cambia es que ahora también funciona donde no había parche.
+   * ─────────────────────────────────────────────────────────────────────────── */
+  --color-ink-50:  var(--color-base-200);
+  --color-ink-100: var(--color-base-300);
+  --color-ink-200: var(--color-base-300);
+  --color-ink-300: oklch(45% 0.020 245);
+  --color-ink-400: oklch(55% 0.020 245);
+  --color-ink-500: oklch(68% 0.020 245);
+  --color-ink-600: oklch(80% 0.020 245);
+  --color-ink-700: oklch(86% 0.018 245);
+  /* Sin parche previo: interpolado entre el 700 y el 900 para que la rampa no salte. */
+  --color-ink-800: oklch(90.5% 0.017 245);
+  --color-ink-900: oklch(95% 0.015 245);
+
   /* DROP-424: hero badges/icons legibles */
   .hero .badge-outline { background-color: color-mix(in oklch, var(--color-base-100) 60%, transparent); }
   .hero .kpi-icon { background-color: color-mix(in oklch, var(--color-primary) 28%, var(--color-base-100)); }
@@ -1156,16 +1182,6 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
   .prose a { color: var(--color-primary); text-decoration: underline; }
   .prose strong, .prose b { color: var(--color-base-content); font-weight: 600; }
 
-  /* DROP-428 v2: /developers no usa .prose; usa text-ink-* directamente,
-   * que en dark mode son hex codes claros sobre fondo claro (i.e. tokens
-   * pensados para light). Re-mapeamos los ink-* para que en dark caigan a
-   * tonos legibles. */
-  .text-ink-900 { color: oklch(95% 0.015 245) !important; }
-  .text-ink-700 { color: oklch(86% 0.018 245) !important; }
-  .text-ink-600 { color: oklch(80% 0.020 245) !important; }
-  .text-ink-500 { color: oklch(68% 0.020 245) !important; }
-  .text-ink-400 { color: oklch(55% 0.020 245) !important; }
-  .text-ink-300 { color: oklch(45% 0.020 245) !important; }
   /* La sidebar TOC del docs casi desaparecía: subir contraste y reforzar
    * el item activo con un fondo claro sobre dark. */
   aside nav a:hover { background-color: color-mix(in oklch, var(--color-primary) 16%, transparent) !important; }
@@ -1182,29 +1198,10 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
    * a 2.32:1 sobre un fondo que seguía siendo azul claro de tema claro. */
   .bg-brand-100 { background-color: color-mix(in oklch, var(--color-primary) 30%, var(--color-base-100)) !important; }
 
-  /* Los FONDOS de la escala `ink` son claros por definición y no dependen del tema: en oscuro se
-   * quedaban tal cual mientras el texto de encima sí se remapeaba arriba a tonos claros. El resultado
-   * era texto casi blanco sobre fondo casi blanco. Medido en este mismo tema:
-   *
-   *   .text-ink-900 sobre .bg-ink-50   -> 1.07:1     .text-ink-700 sobre .bg-ink-100 -> 1.22:1
-   *   .text-ink-600 sobre .bg-ink-100  -> 1.50:1     .text-ink-500 sobre .bg-ink-50  -> 2.67:1
-   *
-   * El mínimo de la norma para texto corriente es 4.5:1, así que eran bloques ILEGIBLES, no bloques
-   * flojos. Afectaba a 58 ficheros —cartera, pedidos, cuenta, afiliado y buena parte del panel—, que
-   * es justo donde hay tablas y fichas con fondo tenue.
-   *
-   * Se traducen a las superficies del tema, que es lo que ya se hizo arriba con `.bg-brand-50`. Las
-   * clases se enumeran una a una a propósito: con `[class*="bg-ink-50"]` entrarían también las
-   * variantes `hover:bg-ink-50`, y el fondo se pintaría SIEMPRE en vez de solo al pasar por encima. */
-  .bg-ink-50,
-  .bg-ink-50\/40,
-  .bg-ink-50\/50,
-  .bg-ink-50\/60 { background-color: var(--color-base-200) !important; }
-  .bg-ink-100 { background-color: var(--color-base-300) !important; }
+  /* Lo que había aquí eran los parches de los FONDOS de `ink` —`bg-ink-50`, `bg-ink-100`,
+   * `border-ink-200` y sus variantes de `hover`—, enumerados a mano uno a uno. Los sustituye la
+   * redeclaración de las variables de arriba, que además alcanza a los que nadie enumeró. */
   /* Mismo motivo que los fondos: un borde de la escala `ink` es claro por definición. */
-  .border-ink-200 { border-color: var(--color-base-300) !important; }
-  .hover\:bg-ink-50:hover,
-  .hover\:bg-ink-50\/50:hover { background-color: var(--color-base-200) !important; }
   .border-brand-100 { border-color: color-mix(in oklch, var(--color-primary) 35%, transparent) !important; }
   /* `brand-800` y `brand-900` entran con los otros dos: son el MISMO caso y se quedaron fuera. El
    * chip de filtro activo (`border-brand-300 bg-brand-50 text-brand-800`) dejaba su valor a 1.40:1
@@ -1221,11 +1218,8 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
    * negro sobre el fondo oscuro: justo el elemento que se está señalando era el que no se leía.
    *
    * Van los mismos valores que sus clases base, para que señalar algo no cambie de paleta. */
-  .hover\:text-ink-900:hover { color: oklch(95% 0.015 245) !important; }
-  .hover\:text-ink-700:hover { color: oklch(86% 0.018 245) !important; }
   .hover\:text-brand-700:hover,
   .hover\:text-brand-800:hover { color: oklch(72% 0.16 248) !important; }
-  .group:hover .group-hover\:text-ink-600 { color: oklch(80% 0.020 245) !important; }
   .group:hover .group-hover\:text-brand-700,
   .group:hover .group-hover\:text-brand-600 { color: oklch(72% 0.16 248) !important; }
 
@@ -1298,7 +1292,6 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
   .badge.bg-violet-100.text-violet-700, .badge.bg-violet-100.text-violet-800 { color: oklch(24% 0.05 250) !important; }
   .badge.bg-brand-50    { background-color: color-mix(in oklch, var(--color-primary) 40%, var(--color-base-100)) !important; }
   .badge.bg-brand-50.text-brand-700, .badge.bg-brand-50.text-brand-800 { color: oklch(40% 0.16 248) !important; }
-  .badge.bg-ink-100, .badge.bg-ink-200 { background-color: var(--color-base-300) !important; color: var(--color-base-content) !important; }
   /* Reforzar borde para visibilidad incluso si el fondo se confunde con base-300. */
   .badge { border: 1px solid color-mix(in oklch, var(--color-base-300) 70%, transparent); }
 }
@@ -1308,6 +1301,32 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
 /* ⟦OSCURO:SISTEMA:INICIO⟧ */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
+    /* ── La escala `ink` INVERTIDA, como variables ───────────────────────────────
+     * `ink-*` es una escala propia, fuera de daisyUI, y hasta ahora tenía un solo juego de
+     * valores: los del tema claro. El oscuro la corregía clase a clase con `!important`, y eso
+     * cubría solo lo que alguien se acordó de enumerar: `text-ink-900..300`, `bg-ink-50/100`,
+     * `border-ink-200` y poco más. Quedaban fuera `border-ink-100` (103 usos), `divide-ink-100`,
+     * `border-ink-300`, `ring-ink-*` y toda variante con opacidad.
+     *
+     * Tailwind 4 compila `.text-ink-700` a `color: var(--color-ink-700)`, no al literal. Así que
+     * redeclarar la variable aquí retiñe de golpe `text-`, `bg-`, `border-`, `ring-`, `divide-`,
+     * `fill-`, `stroke-`, `hover:`, `group-hover:` y las opacidades — sin un solo `!important`.
+     *
+     * Los valores son LOS MISMOS que ya escribían los parches, para que donde hoy funciona siga
+     * saliendo idéntico. Lo que cambia es que ahora también funciona donde no había parche.
+     * ─────────────────────────────────────────────────────────────────────────── */
+    --color-ink-50:  var(--color-base-200);
+    --color-ink-100: var(--color-base-300);
+    --color-ink-200: var(--color-base-300);
+    --color-ink-300: oklch(45% 0.020 245);
+    --color-ink-400: oklch(55% 0.020 245);
+    --color-ink-500: oklch(68% 0.020 245);
+    --color-ink-600: oklch(80% 0.020 245);
+    --color-ink-700: oklch(86% 0.018 245);
+    /* Sin parche previo: interpolado entre el 700 y el 900 para que la rampa no salte. */
+    --color-ink-800: oklch(90.5% 0.017 245);
+    --color-ink-900: oklch(95% 0.015 245);
+
     /* DROP-424: hero badges/icons legibles */
     .hero .badge-outline { background-color: color-mix(in oklch, var(--color-base-100) 60%, transparent); }
     .hero .kpi-icon { background-color: color-mix(in oklch, var(--color-primary) 28%, var(--color-base-100)); }
@@ -1362,16 +1381,6 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
     .prose a { color: var(--color-primary); text-decoration: underline; }
     .prose strong, .prose b { color: var(--color-base-content); font-weight: 600; }
 
-    /* DROP-428 v2: /developers no usa .prose; usa text-ink-* directamente,
-     * que en dark mode son hex codes claros sobre fondo claro (i.e. tokens
-     * pensados para light). Re-mapeamos los ink-* para que en dark caigan a
-     * tonos legibles. */
-    .text-ink-900 { color: oklch(95% 0.015 245) !important; }
-    .text-ink-700 { color: oklch(86% 0.018 245) !important; }
-    .text-ink-600 { color: oklch(80% 0.020 245) !important; }
-    .text-ink-500 { color: oklch(68% 0.020 245) !important; }
-    .text-ink-400 { color: oklch(55% 0.020 245) !important; }
-    .text-ink-300 { color: oklch(45% 0.020 245) !important; }
     /* La sidebar TOC del docs casi desaparecía: subir contraste y reforzar
      * el item activo con un fondo claro sobre dark. */
     aside nav a:hover { background-color: color-mix(in oklch, var(--color-primary) 16%, transparent) !important; }
@@ -1388,29 +1397,10 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
      * a 2.32:1 sobre un fondo que seguía siendo azul claro de tema claro. */
     .bg-brand-100 { background-color: color-mix(in oklch, var(--color-primary) 30%, var(--color-base-100)) !important; }
 
-    /* Los FONDOS de la escala `ink` son claros por definición y no dependen del tema: en oscuro se
-     * quedaban tal cual mientras el texto de encima sí se remapeaba arriba a tonos claros. El resultado
-     * era texto casi blanco sobre fondo casi blanco. Medido en este mismo tema:
-     *
-     *   .text-ink-900 sobre .bg-ink-50   -> 1.07:1     .text-ink-700 sobre .bg-ink-100 -> 1.22:1
-     *   .text-ink-600 sobre .bg-ink-100  -> 1.50:1     .text-ink-500 sobre .bg-ink-50  -> 2.67:1
-     *
-     * El mínimo de la norma para texto corriente es 4.5:1, así que eran bloques ILEGIBLES, no bloques
-     * flojos. Afectaba a 58 ficheros —cartera, pedidos, cuenta, afiliado y buena parte del panel—, que
-     * es justo donde hay tablas y fichas con fondo tenue.
-     *
-     * Se traducen a las superficies del tema, que es lo que ya se hizo arriba con `.bg-brand-50`. Las
-     * clases se enumeran una a una a propósito: con `[class*="bg-ink-50"]` entrarían también las
-     * variantes `hover:bg-ink-50`, y el fondo se pintaría SIEMPRE en vez de solo al pasar por encima. */
-    .bg-ink-50,
-    .bg-ink-50\/40,
-    .bg-ink-50\/50,
-    .bg-ink-50\/60 { background-color: var(--color-base-200) !important; }
-    .bg-ink-100 { background-color: var(--color-base-300) !important; }
+    /* Lo que había aquí eran los parches de los FONDOS de `ink` —`bg-ink-50`, `bg-ink-100`,
+     * `border-ink-200` y sus variantes de `hover`—, enumerados a mano uno a uno. Los sustituye la
+     * redeclaración de las variables de arriba, que además alcanza a los que nadie enumeró. */
     /* Mismo motivo que los fondos: un borde de la escala `ink` es claro por definición. */
-    .border-ink-200 { border-color: var(--color-base-300) !important; }
-    .hover\:bg-ink-50:hover,
-    .hover\:bg-ink-50\/50:hover { background-color: var(--color-base-200) !important; }
     .border-brand-100 { border-color: color-mix(in oklch, var(--color-primary) 35%, transparent) !important; }
     /* `brand-800` y `brand-900` entran con los otros dos: son el MISMO caso y se quedaron fuera. El
      * chip de filtro activo (`border-brand-300 bg-brand-50 text-brand-800`) dejaba su valor a 1.40:1
@@ -1427,11 +1417,8 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
      * negro sobre el fondo oscuro: justo el elemento que se está señalando era el que no se leía.
      *
      * Van los mismos valores que sus clases base, para que señalar algo no cambie de paleta. */
-    .hover\:text-ink-900:hover { color: oklch(95% 0.015 245) !important; }
-    .hover\:text-ink-700:hover { color: oklch(86% 0.018 245) !important; }
     .hover\:text-brand-700:hover,
     .hover\:text-brand-800:hover { color: oklch(72% 0.16 248) !important; }
-    .group:hover .group-hover\:text-ink-600 { color: oklch(80% 0.020 245) !important; }
     .group:hover .group-hover\:text-brand-700,
     .group:hover .group-hover\:text-brand-600 { color: oklch(72% 0.16 248) !important; }
 
@@ -1504,7 +1491,6 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
     .badge.bg-violet-100.text-violet-700, .badge.bg-violet-100.text-violet-800 { color: oklch(24% 0.05 250) !important; }
     .badge.bg-brand-50    { background-color: color-mix(in oklch, var(--color-primary) 40%, var(--color-base-100)) !important; }
     .badge.bg-brand-50.text-brand-700, .badge.bg-brand-50.text-brand-800 { color: oklch(40% 0.16 248) !important; }
-    .badge.bg-ink-100, .badge.bg-ink-200 { background-color: var(--color-base-300) !important; color: var(--color-base-content) !important; }
     /* Reforzar borde para visibilidad incluso si el fondo se confunde con base-300. */
     .badge { border: 1px solid color-mix(in oklch, var(--color-base-300) 70%, transparent); }
   }
