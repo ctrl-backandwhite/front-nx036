@@ -1152,6 +1152,70 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
   --color-brand-800: oklch(72% 0.16 248);
   --color-brand-900: oklch(72% 0.16 248);
 
+  /* ── Y las paletas crudas de Tailwind ────────────────────────────────────────
+   * 383 usos en 105 ficheros, sin un solo remapeo: en oscuro conservaban su valor del tema
+   * claro. Medido sobre el fondo oscuro: `text-slate-900` daba 1,02:1 —invisible—, `red-700`
+   * 2,72:1, `emerald-700` 3,21:1 y `amber-700` 3,50:1. Ninguno llega al 4,5 que pide AA.
+   *
+   * No es diversidad de diseño: es la misma decisión escrita de seis maneras. El 90 % del uso
+   * son rojo (error), verde (éxito) y ámbar (aviso), y lo que había que hacer era tratarlos
+   * como lo que son. Aquí se invierten por rampa, con UNA regla explícita:
+   *
+   *   50-200   superficies tenues  → se vuelven OSCURAS, mezclando el token sobre el fondo
+   *   300-500  bordes e iconos     → NO se tocan. La portada los usa como paleta categórica,
+   *                                  y varios son relleno sólido con texto blanco encima
+   *   600-900  texto sobre tinte   → se vuelven CLAROS, a oklch(72%), que da 5,5-6,5:1
+   *
+   * Los tintes se derivan de los tokens del tema, no de un literal, para que sigan a la paleta
+   * si cambia. Y `slate` no se invierte: se ALINEA con `ink`, que es lo que debió ser desde el
+   * principio — eso arregla solo el panel de cookies y la tarjeta de compras del admin.
+   * ─────────────────────────────────────────────────────────────────────────── */
+
+  /* Rojo y rosa = error. */
+  --color-red-50:    color-mix(in oklch, var(--color-error) 12%, var(--color-base-100));
+  --color-red-100:   color-mix(in oklch, var(--color-error) 18%, var(--color-base-100));
+  --color-red-200:   color-mix(in oklch, var(--color-error) 26%, var(--color-base-100));
+  --color-red-600:   oklch(72% 0.14 25);
+  --color-red-700:   oklch(72% 0.14 25);
+  --color-red-800:   oklch(72% 0.14 25);
+  --color-rose-400:  oklch(72% 0.14 15);
+  --color-rose-500:  oklch(72% 0.14 15);
+  --color-rose-600:  oklch(72% 0.14 15);
+
+  /* Verde = éxito. */
+  --color-emerald-50:  color-mix(in oklch, var(--color-success) 12%, var(--color-base-100));
+  --color-emerald-100: color-mix(in oklch, var(--color-success) 18%, var(--color-base-100));
+  --color-emerald-200: color-mix(in oklch, var(--color-success) 26%, var(--color-base-100));
+  --color-emerald-600: oklch(72% 0.11 160);
+  --color-emerald-700: oklch(72% 0.11 160);
+  --color-emerald-800: oklch(72% 0.11 160);
+
+  /* Ámbar = aviso. */
+  --color-amber-50:  color-mix(in oklch, var(--color-warning) 12%, var(--color-base-100));
+  --color-amber-100: color-mix(in oklch, var(--color-warning) 18%, var(--color-base-100));
+  --color-amber-200: color-mix(in oklch, var(--color-warning) 26%, var(--color-base-100));
+  --color-amber-600: oklch(72% 0.13 80);
+  --color-amber-700: oklch(72% 0.13 80);
+  --color-amber-800: oklch(72% 0.13 80);
+  --color-amber-900: oklch(72% 0.13 80);
+
+  /* Azules = información. */
+  --color-blue-100:   color-mix(in oklch, var(--color-info) 18%, var(--color-base-100));
+  --color-indigo-100: color-mix(in oklch, var(--color-info) 18%, var(--color-base-100));
+  --color-blue-700:   oklch(72% 0.13 240);
+  --color-indigo-600: oklch(72% 0.13 240);
+  --color-indigo-700: oklch(72% 0.13 240);
+  --color-sky-600:    oklch(72% 0.13 240);
+
+  /* `slate` se alinea con `ink`: es la misma escala de grises azulados escrita dos veces. */
+  --color-slate-50:  var(--color-ink-50);
+  --color-slate-100: var(--color-ink-100);
+  --color-slate-200: var(--color-ink-200);
+  --color-slate-400: var(--color-ink-400);
+  --color-slate-500: var(--color-ink-500);
+  --color-slate-800: var(--color-ink-800);
+  --color-slate-900: var(--color-ink-900);
+
   /* DROP-424: hero badges/icons legibles */
   .hero .badge-outline { background-color: color-mix(in oklch, var(--color-base-100) 60%, transparent); }
   .hero .kpi-icon { background-color: color-mix(in oklch, var(--color-primary) 28%, var(--color-base-100)); }
@@ -1290,24 +1354,15 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
     border-color: var(--color-base-300);
   }
 
-  /* DROP-500/512: en dark mode los tonos pastel claros con texto oscuro
-   * (bg-emerald-100 text-emerald-700) quedaban casi invisibles sobre el
-   * fondo dark. Re-mapeamos los badges Tailwind a tonos saturados con
-   * texto claro/alto contraste. */
-  .badge.bg-emerald-100 { background-color: color-mix(in oklch, oklch(70% 0.13 150) 75%, var(--color-base-100)) !important; }
-  .badge.bg-emerald-100.text-emerald-700, .badge.bg-emerald-100.text-emerald-800 { color: oklch(15% 0.05 150) !important; }
-  .badge.bg-amber-100   { background-color: color-mix(in oklch, oklch(78% 0.13 85) 75%, var(--color-base-100)) !important; }
-  .badge.bg-amber-100.text-amber-700, .badge.bg-amber-100.text-amber-800 { color: oklch(20% 0.07 70) !important; }
-  .badge.bg-sky-100     { background-color: color-mix(in oklch, oklch(72% 0.10 230) 75%, var(--color-base-100)) !important; }
-  .badge.bg-sky-100.text-sky-700, .badge.bg-sky-100.text-sky-800 { color: oklch(16% 0.06 230) !important; }
-  .badge.bg-rose-100    { background-color: color-mix(in oklch, oklch(72% 0.12 25) 75%, var(--color-base-100)) !important; }
-  .badge.bg-rose-100.text-rose-700, .badge.bg-rose-100.text-rose-800 { color: oklch(16% 0.06 25) !important; }
-  .badge.bg-violet-100  { background-color: color-mix(in oklch, oklch(60% 0.07 250) 75%, var(--color-base-100)) !important; }
-  .badge.bg-violet-100.text-violet-700, .badge.bg-violet-100.text-violet-800 { color: oklch(24% 0.05 250) !important; }
-  .badge.bg-brand-50    { background-color: color-mix(in oklch, var(--color-primary) 40%, var(--color-base-100)) !important; }
-  .badge.bg-brand-50.text-brand-700, .badge.bg-brand-50.text-brand-800 { color: oklch(40% 0.16 248) !important; }
-  /* Reforzar borde para visibilidad incluso si el fondo se confunde con base-300. */
-  .badge { border: 1px solid color-mix(in oklch, var(--color-base-300) 70%, transparent); }
+  /* Aquí vivía DROP-500/512: insignia a insignia, `bg-emerald-100`, `bg-amber-100`, `bg-sky-100`,
+   * `bg-rose-100`, `bg-violet-100` y `bg-brand-50`, cada una con su color de texto. Lo sustituye
+   * la inversión de las paletas de arriba, que además alcanza a los chips que NO llevan la clase
+   * `.badge` —estos selectores la exigían— y a las paletas que nadie puso en la lista, como
+   * `blue-100`, `indigo-100` y `red-100`. Por eso tres de los ocho estados de un pedido salían
+   * con un lenguaje de color distinto de los otros cinco.
+   *
+   * Se va con ellas el borde universal de `.badge`, que existía solo en oscuro y no en claro.
+   * Si se quiere, se declara para los dos temas y fuera de este bloque. */
 }
 /* ⟦OSCURO:ELEGIDO:FIN⟧ */
 
@@ -1364,6 +1419,70 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
     --color-brand-700: oklch(72% 0.16 248);
     --color-brand-800: oklch(72% 0.16 248);
     --color-brand-900: oklch(72% 0.16 248);
+
+    /* ── Y las paletas crudas de Tailwind ────────────────────────────────────────
+     * 383 usos en 105 ficheros, sin un solo remapeo: en oscuro conservaban su valor del tema
+     * claro. Medido sobre el fondo oscuro: `text-slate-900` daba 1,02:1 —invisible—, `red-700`
+     * 2,72:1, `emerald-700` 3,21:1 y `amber-700` 3,50:1. Ninguno llega al 4,5 que pide AA.
+     *
+     * No es diversidad de diseño: es la misma decisión escrita de seis maneras. El 90 % del uso
+     * son rojo (error), verde (éxito) y ámbar (aviso), y lo que había que hacer era tratarlos
+     * como lo que son. Aquí se invierten por rampa, con UNA regla explícita:
+     *
+     *   50-200   superficies tenues  → se vuelven OSCURAS, mezclando el token sobre el fondo
+     *   300-500  bordes e iconos     → NO se tocan. La portada los usa como paleta categórica,
+     *                                  y varios son relleno sólido con texto blanco encima
+     *   600-900  texto sobre tinte   → se vuelven CLAROS, a oklch(72%), que da 5,5-6,5:1
+     *
+     * Los tintes se derivan de los tokens del tema, no de un literal, para que sigan a la paleta
+     * si cambia. Y `slate` no se invierte: se ALINEA con `ink`, que es lo que debió ser desde el
+     * principio — eso arregla solo el panel de cookies y la tarjeta de compras del admin.
+     * ─────────────────────────────────────────────────────────────────────────── */
+
+    /* Rojo y rosa = error. */
+    --color-red-50:    color-mix(in oklch, var(--color-error) 12%, var(--color-base-100));
+    --color-red-100:   color-mix(in oklch, var(--color-error) 18%, var(--color-base-100));
+    --color-red-200:   color-mix(in oklch, var(--color-error) 26%, var(--color-base-100));
+    --color-red-600:   oklch(72% 0.14 25);
+    --color-red-700:   oklch(72% 0.14 25);
+    --color-red-800:   oklch(72% 0.14 25);
+    --color-rose-400:  oklch(72% 0.14 15);
+    --color-rose-500:  oklch(72% 0.14 15);
+    --color-rose-600:  oklch(72% 0.14 15);
+
+    /* Verde = éxito. */
+    --color-emerald-50:  color-mix(in oklch, var(--color-success) 12%, var(--color-base-100));
+    --color-emerald-100: color-mix(in oklch, var(--color-success) 18%, var(--color-base-100));
+    --color-emerald-200: color-mix(in oklch, var(--color-success) 26%, var(--color-base-100));
+    --color-emerald-600: oklch(72% 0.11 160);
+    --color-emerald-700: oklch(72% 0.11 160);
+    --color-emerald-800: oklch(72% 0.11 160);
+
+    /* Ámbar = aviso. */
+    --color-amber-50:  color-mix(in oklch, var(--color-warning) 12%, var(--color-base-100));
+    --color-amber-100: color-mix(in oklch, var(--color-warning) 18%, var(--color-base-100));
+    --color-amber-200: color-mix(in oklch, var(--color-warning) 26%, var(--color-base-100));
+    --color-amber-600: oklch(72% 0.13 80);
+    --color-amber-700: oklch(72% 0.13 80);
+    --color-amber-800: oklch(72% 0.13 80);
+    --color-amber-900: oklch(72% 0.13 80);
+
+    /* Azules = información. */
+    --color-blue-100:   color-mix(in oklch, var(--color-info) 18%, var(--color-base-100));
+    --color-indigo-100: color-mix(in oklch, var(--color-info) 18%, var(--color-base-100));
+    --color-blue-700:   oklch(72% 0.13 240);
+    --color-indigo-600: oklch(72% 0.13 240);
+    --color-indigo-700: oklch(72% 0.13 240);
+    --color-sky-600:    oklch(72% 0.13 240);
+
+    /* `slate` se alinea con `ink`: es la misma escala de grises azulados escrita dos veces. */
+    --color-slate-50:  var(--color-ink-50);
+    --color-slate-100: var(--color-ink-100);
+    --color-slate-200: var(--color-ink-200);
+    --color-slate-400: var(--color-ink-400);
+    --color-slate-500: var(--color-ink-500);
+    --color-slate-800: var(--color-ink-800);
+    --color-slate-900: var(--color-ink-900);
 
     /* DROP-424: hero badges/icons legibles */
     .hero .badge-outline { background-color: color-mix(in oklch, var(--color-base-100) 60%, transparent); }
@@ -1503,24 +1622,15 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
       border-color: var(--color-base-300);
     }
 
-    /* DROP-500/512: en dark mode los tonos pastel claros con texto oscuro
-     * (bg-emerald-100 text-emerald-700) quedaban casi invisibles sobre el
-     * fondo dark. Re-mapeamos los badges Tailwind a tonos saturados con
-     * texto claro/alto contraste. */
-    .badge.bg-emerald-100 { background-color: color-mix(in oklch, oklch(70% 0.13 150) 75%, var(--color-base-100)) !important; }
-    .badge.bg-emerald-100.text-emerald-700, .badge.bg-emerald-100.text-emerald-800 { color: oklch(15% 0.05 150) !important; }
-    .badge.bg-amber-100   { background-color: color-mix(in oklch, oklch(78% 0.13 85) 75%, var(--color-base-100)) !important; }
-    .badge.bg-amber-100.text-amber-700, .badge.bg-amber-100.text-amber-800 { color: oklch(20% 0.07 70) !important; }
-    .badge.bg-sky-100     { background-color: color-mix(in oklch, oklch(72% 0.10 230) 75%, var(--color-base-100)) !important; }
-    .badge.bg-sky-100.text-sky-700, .badge.bg-sky-100.text-sky-800 { color: oklch(16% 0.06 230) !important; }
-    .badge.bg-rose-100    { background-color: color-mix(in oklch, oklch(72% 0.12 25) 75%, var(--color-base-100)) !important; }
-    .badge.bg-rose-100.text-rose-700, .badge.bg-rose-100.text-rose-800 { color: oklch(16% 0.06 25) !important; }
-    .badge.bg-violet-100  { background-color: color-mix(in oklch, oklch(60% 0.07 250) 75%, var(--color-base-100)) !important; }
-    .badge.bg-violet-100.text-violet-700, .badge.bg-violet-100.text-violet-800 { color: oklch(24% 0.05 250) !important; }
-    .badge.bg-brand-50    { background-color: color-mix(in oklch, var(--color-primary) 40%, var(--color-base-100)) !important; }
-    .badge.bg-brand-50.text-brand-700, .badge.bg-brand-50.text-brand-800 { color: oklch(40% 0.16 248) !important; }
-    /* Reforzar borde para visibilidad incluso si el fondo se confunde con base-300. */
-    .badge { border: 1px solid color-mix(in oklch, var(--color-base-300) 70%, transparent); }
+    /* Aquí vivía DROP-500/512: insignia a insignia, `bg-emerald-100`, `bg-amber-100`, `bg-sky-100`,
+     * `bg-rose-100`, `bg-violet-100` y `bg-brand-50`, cada una con su color de texto. Lo sustituye
+     * la inversión de las paletas de arriba, que además alcanza a los chips que NO llevan la clase
+     * `.badge` —estos selectores la exigían— y a las paletas que nadie puso en la lista, como
+     * `blue-100`, `indigo-100` y `red-100`. Por eso tres de los ocho estados de un pedido salían
+     * con un lenguaje de color distinto de los otros cinco.
+     *
+     * Se va con ellas el borde universal de `.badge`, que existía solo en oscuro y no en claro.
+     * Si se quiere, se declara para los dos temas y fuera de este bloque. */
   }
 }
 /* ⟦OSCURO:SISTEMA:FIN⟧ */
