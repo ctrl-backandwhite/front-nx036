@@ -1048,7 +1048,27 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
 .card .font-semibold.text-brand-700 { color: var(--color-primary-content) !important; }
 
 /* ============ DARK MODE — DROP-424..433 ============ */
+/* ─────────────────────────────────────────────────────────────────────────────
+ * TEMA OSCURO — las correcciones van en DOS ramas, y no es un descuido.
+ *
+ * daisyUI publica la paleta oscura bajo dos selectores distintos: el atributo
+ * `[data-theme="nx036-pastel-dark"]` para quien ELIGIÓ el tema, y
+ * `:root:not([data-theme])` dentro de `prefers-color-scheme: dark` para quien no ha elegido
+ * nada y tiene el equipo en oscuro. Y `app.ts` QUITA el atributo cuando no hay elección, a
+ * propósito, porque el atributo gana sobre la preferencia del sistema.
+ *
+ * Mientras estas correcciones colgaban solo del atributo, TODO visitante nuevo con el equipo
+ * en oscuro recibía la paleta oscura y NINGUNA de ellas: ni tarjetas, ni remapeo de `ink`, ni
+ * insignias, ni bordes de campo, ni cebra de tablas, ni `btn-outline`. Es decir, la mayoría —
+ * y sobre todo en el móvil, donde el equipo viene en oscuro casi siempre. Eso es lo que se
+ * veía como «el modo oscuro está roto en todas partes».
+ *
+ * Los dos bloques tienen que ser IDÉNTICOS salvo el selector. Lo verifica
+ * `src/styles-contraste.spec.ts`, porque mantenerlos a mano se desincroniza en semanas.
+ * Al tocar uno, tocar el otro.
+ * ───────────────────────────────────────────────────────────────────────────── */
 
+/* ⟦OSCURO:ELEGIDO:INICIO⟧ */
 [data-theme="nx036-pastel-dark"] {
   /* DROP-424: hero badges/icons legibles */
   .hero .badge-outline { background-color: color-mix(in oklch, var(--color-base-100) 60%, transparent); }
@@ -1250,6 +1270,214 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
   /* Reforzar borde para visibilidad incluso si el fondo se confunde con base-300. */
   .badge { border: 1px solid color-mix(in oklch, var(--color-base-300) 70%, transparent); }
 }
+/* ⟦OSCURO:ELEGIDO:FIN⟧ */
+
+/* La MISMA corrección para quien no ha elegido tema y trae el equipo en oscuro. */
+/* ⟦OSCURO:SISTEMA:INICIO⟧ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    /* DROP-424: hero badges/icons legibles */
+    .hero .badge-outline { background-color: color-mix(in oklch, var(--color-base-100) 60%, transparent); }
+    .hero .kpi-icon { background-color: color-mix(in oklch, var(--color-primary) 28%, var(--color-base-100)); }
+
+    /* DROP-425: tarjetas de catálogo — fondo coherente con base-100 oscuro */
+    .card, .card-border {
+      background-color: var(--color-base-100) !important;
+      border-color: var(--color-base-300) !important;
+    }
+    .card.bg-base-100 { background-color: var(--color-base-100) !important; }
+
+    /* DROP-426: precios catálogo legibles (texto antes en azul oscuro) */
+    .card .text-brand-700,
+    .card .font-semibold.text-brand-700,
+    .card .text-primary-content {
+      color: var(--color-primary) !important;
+    }
+    .product-card .font-medium { color: var(--color-base-content) !important; }
+
+    /* La regla de arriba tiñe de `primary` cualquier `.text-primary-content` que viva en una `.card`,
+     * y está pensada para los PRECIOS de las tarjetas del catálogo. De paso atrapaba la cita del panel
+     * de marca de acceso y registro, que es un `figure.card` sobre una foto oscura: el texto salía del
+     * color exacto del fondo de su tarjeta —1.00:1, invisible—. Allí el color correcto es el que fija
+     * `.auth-hero-img`, así que se devuelve. */
+    .auth-hero-img .card .text-primary-content { color: var(--color-primary-content) !important; }
+    /* Y tampoco a un avatar: ahí `text-primary-content` es el texto SOBRE el círculo de color, que es
+     * justo lo que la regla de arriba convertía en invisible. */
+    .avatar .text-primary-content { color: var(--color-primary-content) !important; }
+
+    /* La regla por la CAUSA, no por el sitio. Las dos excepciones de arriba son el mismo fallo parcheado
+     * dos veces, y volvió a morder una tercera en la tarjeta «Vendido y enviado por»: un círculo
+     * `bg-primary text-primary-content` dentro de una `.card`, donde el icono salía del color exacto de
+     * su propio fondo —1,00:1, invisible en el tema oscuro—.
+     *
+     * Cuando `text-primary-content` convive con `bg-primary` en el MISMO elemento no es un precio: es
+     * texto encima del color de marca, y ahí su contraste ya está resuelto por definición. Teñirlo de
+     * `primary` no puede estar bien nunca. Acotarlo así cubre los que vengan sin una cuarta excepción. */
+    .card .bg-primary.text-primary-content { color: var(--color-primary-content) !important; }
+
+    /* DROP-427: features del pricing legibles */
+    .card .text-success, .card .text-warning, .card .text-info { filter: brightness(1.2); }
+
+    /* DROP-428: prose docs jerarquía + contraste fuerte */
+    .prose, .prose * { color: var(--color-base-content); }
+    .prose h1, .prose h2, .prose h3, .prose h4 { color: var(--color-base-content); opacity: 1; }
+    .prose code, .prose kbd {
+      background: color-mix(in oklch, var(--color-primary) 18%, var(--color-base-200)) !important;
+      color: var(--color-base-content) !important;
+      border: 1px solid var(--color-base-300);
+    }
+    .prose pre { background: var(--color-base-200); color: var(--color-base-content); }
+    .prose a { color: var(--color-primary); text-decoration: underline; }
+    .prose strong, .prose b { color: var(--color-base-content); font-weight: 600; }
+
+    /* DROP-428 v2: /developers no usa .prose; usa text-ink-* directamente,
+     * que en dark mode son hex codes claros sobre fondo claro (i.e. tokens
+     * pensados para light). Re-mapeamos los ink-* para que en dark caigan a
+     * tonos legibles. */
+    .text-ink-900 { color: oklch(95% 0.015 245) !important; }
+    .text-ink-700 { color: oklch(86% 0.018 245) !important; }
+    .text-ink-600 { color: oklch(80% 0.020 245) !important; }
+    .text-ink-500 { color: oklch(68% 0.020 245) !important; }
+    .text-ink-400 { color: oklch(55% 0.020 245) !important; }
+    .text-ink-300 { color: oklch(45% 0.020 245) !important; }
+    /* La sidebar TOC del docs casi desaparecía: subir contraste y reforzar
+     * el item activo con un fondo claro sobre dark. */
+    aside nav a:hover { background-color: color-mix(in oklch, var(--color-primary) 16%, transparent) !important; }
+    /* Bloque de código: garantizar fondo elevado distinguible del page bg. */
+    pre, pre code, .card pre {
+      background-color: oklch(13% 0.015 245) !important;
+      color: oklch(92% 0.015 245) !important;
+      border: 1px solid var(--color-base-300);
+    }
+    /* Tarjetas brand-50 (cyan claro): en dark son ilegibles → invertir tinte. */
+    .bg-brand-50 { background-color: color-mix(in oklch, var(--color-primary) 22%, var(--color-base-100)) !important; }
+    /* `brand-100` se quedó fuera y es el mismo caso: el avatar del perfil del panel es
+     * `bg-brand-100 text-brand-700`, y con el texto ya remapeado a un tono claro quedaban las iniciales
+     * a 2.32:1 sobre un fondo que seguía siendo azul claro de tema claro. */
+    .bg-brand-100 { background-color: color-mix(in oklch, var(--color-primary) 30%, var(--color-base-100)) !important; }
+
+    /* Los FONDOS de la escala `ink` son claros por definición y no dependen del tema: en oscuro se
+     * quedaban tal cual mientras el texto de encima sí se remapeaba arriba a tonos claros. El resultado
+     * era texto casi blanco sobre fondo casi blanco. Medido en este mismo tema:
+     *
+     *   .text-ink-900 sobre .bg-ink-50   -> 1.07:1     .text-ink-700 sobre .bg-ink-100 -> 1.22:1
+     *   .text-ink-600 sobre .bg-ink-100  -> 1.50:1     .text-ink-500 sobre .bg-ink-50  -> 2.67:1
+     *
+     * El mínimo de la norma para texto corriente es 4.5:1, así que eran bloques ILEGIBLES, no bloques
+     * flojos. Afectaba a 58 ficheros —cartera, pedidos, cuenta, afiliado y buena parte del panel—, que
+     * es justo donde hay tablas y fichas con fondo tenue.
+     *
+     * Se traducen a las superficies del tema, que es lo que ya se hizo arriba con `.bg-brand-50`. Las
+     * clases se enumeran una a una a propósito: con `[class*="bg-ink-50"]` entrarían también las
+     * variantes `hover:bg-ink-50`, y el fondo se pintaría SIEMPRE en vez de solo al pasar por encima. */
+    .bg-ink-50,
+    .bg-ink-50\/40,
+    .bg-ink-50\/50,
+    .bg-ink-50\/60 { background-color: var(--color-base-200) !important; }
+    .bg-ink-100 { background-color: var(--color-base-300) !important; }
+    /* Mismo motivo que los fondos: un borde de la escala `ink` es claro por definición. */
+    .border-ink-200 { border-color: var(--color-base-300) !important; }
+    .hover\:bg-ink-50:hover,
+    .hover\:bg-ink-50\/50:hover { background-color: var(--color-base-200) !important; }
+    .border-brand-100 { border-color: color-mix(in oklch, var(--color-primary) 35%, transparent) !important; }
+    /* `brand-800` y `brand-900` entran con los otros dos: son el MISMO caso y se quedaron fuera. El
+     * chip de filtro activo (`border-brand-300 bg-brand-50 text-brand-800`) dejaba su valor a 1.40:1
+     * sobre el fondo oscuro — en el catálogo se leía «Ordenar por:» y el valor simplemente no estaba. */
+    .text-brand-700, .text-brand-600,
+    .text-brand-800, .text-brand-900 { color: oklch(72% 0.16 248) !important; }
+
+    /* Las VARIANTES DE ESTADO de esos mismos colores.
+     *
+     * Tailwind genera `hover:text-brand-700` como `.hover\:text-brand-700:hover`, que es otro selector:
+     * las reglas de arriba, escritas sobre la clase base, no lo alcanzan. Resultado: el color se
+     * remapeaba en reposo y al pasar el ratón volvía el tono ORIGINAL, pensado para fondo claro. En la
+     * miga de pan de la ficha —`hover:text-brand-700`— el enlace señalado pasaba a #0b3d78, un azul casi
+     * negro sobre el fondo oscuro: justo el elemento que se está señalando era el que no se leía.
+     *
+     * Van los mismos valores que sus clases base, para que señalar algo no cambie de paleta. */
+    .hover\:text-ink-900:hover { color: oklch(95% 0.015 245) !important; }
+    .hover\:text-ink-700:hover { color: oklch(86% 0.018 245) !important; }
+    .hover\:text-brand-700:hover,
+    .hover\:text-brand-800:hover { color: oklch(72% 0.16 248) !important; }
+    .group:hover .group-hover\:text-ink-600 { color: oklch(80% 0.020 245) !important; }
+    .group:hover .group-hover\:text-brand-700,
+    .group:hover .group-hover\:text-brand-600 { color: oklch(72% 0.16 248) !important; }
+
+    /* Y lo mismo con el fondo de realce: `bg-brand-50` ya se traduce arriba, pero su variante al pasar
+     * el ratón no, y dejaba un azul claro de tema claro debajo del texto. */
+    .hover\:bg-brand-50:hover { background-color: color-mix(in oklch, var(--color-primary) 22%, var(--color-base-100)) !important; }
+
+    /* DROP-430: topbar admin sin tinte rosado */
+    .navbar { background-color: var(--color-base-100) !important; }
+    .navbar.bg-base-100\/95 { background-color: color-mix(in oklch, var(--color-base-100) 95%, transparent) !important; }
+
+    /* DROP-431: zebra visible en dark — mayor diferencia entre filas */
+    .table.table-zebra tbody tr:nth-child(even) {
+      background-color: color-mix(in oklch, var(--color-primary) 10%, var(--color-base-100)) !important;
+    }
+    .table.table-zebra tbody tr:nth-child(odd) {
+      background-color: var(--color-base-100) !important;
+    }
+    .table tbody tr:hover {
+      background-color: color-mix(in oklch, var(--color-primary) 18%, var(--color-base-100)) !important;
+    }
+
+    /* DROP-432: inputs/selects/textarea con borde visible */
+    .input, .select, .textarea,
+    .input-bordered, .select-bordered, .textarea-bordered {
+      border-color: var(--color-base-300) !important;
+      border-width: 1px !important;
+      background-color: color-mix(in oklch, var(--color-base-100) 95%, var(--color-base-200)) !important;
+      color: var(--color-base-content);
+    }
+    .input:focus, .select:focus, .textarea:focus {
+      border-color: var(--color-primary) !important;
+      outline: 2px solid color-mix(in oklch, var(--color-primary) 30%, transparent);
+      outline-offset: -1px;
+    }
+
+    /* DROP-433: botones secundarios distinguibles */
+    .btn-outline {
+      border-color: color-mix(in oklch, var(--color-primary) 50%, var(--color-base-300)) !important;
+      color: var(--color-base-content);
+    }
+    .btn-outline:hover {
+      background-color: color-mix(in oklch, var(--color-primary) 20%, transparent) !important;
+      border-color: var(--color-primary) !important;
+      /* Aquí el relleno es tenue sobre un fondo OSCURO, así que lo legible es la letra clara: se
+       * mantiene `base-content` en vez del `primary` que fija la regla general. */
+      color: var(--color-base-content) !important;
+    }
+    .btn-ghost {
+      border: 1px solid color-mix(in oklch, var(--color-base-300) 60%, transparent);
+    }
+    .btn-ghost:hover {
+      background-color: color-mix(in oklch, var(--color-primary) 16%, transparent) !important;
+      border-color: var(--color-base-300);
+    }
+
+    /* DROP-500/512: en dark mode los tonos pastel claros con texto oscuro
+     * (bg-emerald-100 text-emerald-700) quedaban casi invisibles sobre el
+     * fondo dark. Re-mapeamos los badges Tailwind a tonos saturados con
+     * texto claro/alto contraste. */
+    .badge.bg-emerald-100 { background-color: color-mix(in oklch, oklch(70% 0.13 150) 75%, var(--color-base-100)) !important; }
+    .badge.bg-emerald-100.text-emerald-700, .badge.bg-emerald-100.text-emerald-800 { color: oklch(15% 0.05 150) !important; }
+    .badge.bg-amber-100   { background-color: color-mix(in oklch, oklch(78% 0.13 85) 75%, var(--color-base-100)) !important; }
+    .badge.bg-amber-100.text-amber-700, .badge.bg-amber-100.text-amber-800 { color: oklch(20% 0.07 70) !important; }
+    .badge.bg-sky-100     { background-color: color-mix(in oklch, oklch(72% 0.10 230) 75%, var(--color-base-100)) !important; }
+    .badge.bg-sky-100.text-sky-700, .badge.bg-sky-100.text-sky-800 { color: oklch(16% 0.06 230) !important; }
+    .badge.bg-rose-100    { background-color: color-mix(in oklch, oklch(72% 0.12 25) 75%, var(--color-base-100)) !important; }
+    .badge.bg-rose-100.text-rose-700, .badge.bg-rose-100.text-rose-800 { color: oklch(16% 0.06 25) !important; }
+    .badge.bg-violet-100  { background-color: color-mix(in oklch, oklch(60% 0.07 250) 75%, var(--color-base-100)) !important; }
+    .badge.bg-violet-100.text-violet-700, .badge.bg-violet-100.text-violet-800 { color: oklch(24% 0.05 250) !important; }
+    .badge.bg-brand-50    { background-color: color-mix(in oklch, var(--color-primary) 40%, var(--color-base-100)) !important; }
+    .badge.bg-brand-50.text-brand-700, .badge.bg-brand-50.text-brand-800 { color: oklch(40% 0.16 248) !important; }
+    .badge.bg-ink-100, .badge.bg-ink-200 { background-color: var(--color-base-300) !important; color: var(--color-base-content) !important; }
+    /* Reforzar borde para visibilidad incluso si el fondo se confunde con base-300. */
+    .badge { border: 1px solid color-mix(in oklch, var(--color-base-300) 70%, transparent); }
+  }
+}
+/* ⟦OSCURO:SISTEMA:FIN⟧ */
 
 /* DROP-423 (light): precios en azul oscuro sobre fondo pastel rosa — más contraste */
 [data-theme="nx036-pastel"] .product-card .text-brand-700,
