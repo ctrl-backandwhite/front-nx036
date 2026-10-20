@@ -24,7 +24,7 @@ import { CampoBusqueda } from '@ds/component/campo-busqueda/campo-busqueda';
       <nx-campo-busqueda
         [(valor)]="texto"
         [marcador]="t('admin.users.search_placeholder')"
-        clase="min-w-[280px]"
+        clase="w-full sm:min-w-[280px]"
       />
       <nx-filtro-desplegable
         [etiqueta]="t('filters.role')"

@@ -1855,33 +1855,38 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
    ─────────────────────────────────────────────────────────────────────────────
 
    Son cuatro detalles pequeños, y son justo los que delatan a una web cuando se
-   usa con el dedo. Ninguno afecta al escritorio. */
-@media (max-width: 767px) {
+   usa con el dedo.
+
+   Estaban los cuatro en un `@media (max-width: 767px)`, que incumple la norma mobile first del
+   proyecto. Pero no son lo mismo y por eso se separan: dos dependen de que haya un DEDO, no de
+   que la pantalla sea estrecha, y para eso existe `pointer: coarse`, que dice exactamente eso.
+   Los otros dos no dependen de nada y se aplican siempre. */
+
+/* Lo que depende de que se toque con el dedo. */
+@media (pointer: coarse) {
   /* 1. El destello azul al tocar. Es la marca de fábrica del navegador: ninguna
         aplicación lo hace, y aparece en CADA toque. */
   a, button, [role="button"], input, select, textarea, summary {
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* 2. El rebote elástico al llegar al final. En una aplicación el contenido se
-        para; en el navegador se despega y asoma el fondo. */
-  html, body {
-    overscroll-behavior-y: contain;
-  }
-
-  /* 3. Que al tocar un campo no se acerque la pantalla de golpe. El navegador lo
+  /* 2. Que al tocar un campo no se acerque la pantalla de golpe. El navegador lo
         hace cuando la letra baja de 16px, y devolver el zoom es cosa del usuario:
-        se queda mirando un formulario descuadrado. */
+        se queda mirando un formulario descuadrado.
+        OJO: esta regla va sin capa, así que GANA a las utilidades de Tailwind. Sacarla de aquí
+        reventaría las tablas densas del panel, que llevan `<select>` a 11px a propósito. En una
+        pantalla táctil ese ensanchamiento es el mal menor; en escritorio sería gratuito. */
   input, select, textarea {
     font-size: max(16px, 1em);
   }
+}
 
-  /* 4. Lo fijo abajo respeta el indicador de inicio de los móviles sin botón. Sin
-        esto, la última franja de la pantalla queda bajo el gesto del sistema y no
-        se puede tocar. */
-  .fixed.bottom-0 {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
+/* Y lo que no depende del dispositivo: en escritorio `env()` vale cero y el rebote no estorba. */
+html, body {
+  overscroll-behavior-y: contain;
+}
+.fixed.bottom-0 {
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* Las hileras que se deslizan no enseñan su barra: ninguna aplicación la muestra, y en una franja de
@@ -1907,35 +1912,43 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
    ellos, que es lo que evita pulsar el que no es. En pantallas grandes no hay
    barra y no se toca nada. */
 :root {
-  /* Cuánto hay que subir lo que va anclado abajo. En pantallas grandes no hay barra de pestañas y vale
-     cero; el valor real se define en el media query de abajo. Existe como variable porque el asistente
-     se ARRASTRA y lleva su posición en un estilo en línea: una regla de hoja de estilos no puede
-     sobreescribirlo, pero sí puede entrar en su cálculo. */
-  --hueco-barra: 0px;
+  /* Cuánto hay que subir lo que va anclado abajo, para que no lo tape la barra de pestañas.
+     MOBILE FIRST: el valor por defecto es el del móvil —donde la barra existe— y el escritorio lo
+     devuelve a cero más abajo. Existe como variable porque el asistente se ARRASTRA y lleva su
+     posición en un estilo en línea: una regla de hoja de estilos no puede sobreescribirlo, pero sí
+     puede entrar en su cálculo.
+     3,5rem es el alto de la barra; el añadido es el indicador de inicio de los móviles sin botón. */
+  --hueco-barra: calc(3.5rem + env(safe-area-inset-bottom));
 }
 
-@media (max-width: 767px) {
+.fixed.bottom-6:not(nav) {
+  bottom: calc(1.5rem + var(--hueco-barra));
+}
+.fixed.bottom-28 {
+  bottom: calc(7rem + var(--hueco-barra));
+}
+
+/* En pantalla ancha no hay barra de pestañas, así que no hay hueco que dejar. */
+@media (min-width: 768px) {
   :root {
-    /* 3,5rem es el alto de la barra; el añadido es el indicador de inicio de los móviles sin botón. */
-    --hueco-barra: calc(3.5rem + env(safe-area-inset-bottom));
-  }
-
-  .fixed.bottom-6:not(nav) {
-    bottom: calc(1.5rem + var(--hueco-barra));
-  }
-  .fixed.bottom-28 {
-    bottom: calc(7rem + var(--hueco-barra));
+    --hueco-barra: 0px;
   }
 }
 
-/* El asistente y el chat, a escala de móvil.
-   58 px de personaje y 48 de botón de chat están pensados para una pantalla de escritorio; en 375 px
-   de ancho se comen una esquina entera y tapan producto. Se reducen a 42 y 40, que sigue estando muy
-   por encima del mínimo que se puede tocar con el dedo sin fallar. */
-@media (max-width: 767px) {
+/* El asistente, a escala de cada pantalla.
+   MOBILE FIRST: 42 px es el valor por defecto, y el escritorio sube a 58. Al revés —58 por defecto
+   y un `max-width` que lo baja— era lo que había, y además se lee peor: en 375 px de ancho un
+   personaje de 58 px se come una esquina entera y tapa producto. 42 sigue estando muy por encima
+   del mínimo que se puede tocar con el dedo sin fallar. */
+.personaje-asistente {
+  width: 42px;
+  height: 42px;
+}
+
+@media (min-width: 768px) {
   .personaje-asistente {
-    width: 42px;
-    height: 42px;
+    width: 58px;
+    height: 58px;
   }
 }
 

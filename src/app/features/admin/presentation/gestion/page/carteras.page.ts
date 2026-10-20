@@ -90,7 +90,7 @@ const APUNTES_DEL_VISTAZO = 30;
         <nx-campo-busqueda
           [(valor)]="texto"
           [marcador]="t('admin.wallets.search')"
-          clase="min-w-[320px]"
+          clase="w-full sm:min-w-[320px]"
         />
         <nx-filtro-desplegable
           [etiqueta]="t('admin.wallets.col.status')"

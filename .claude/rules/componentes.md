@@ -8,13 +8,18 @@ globs: ["src/app/**/presentation/**", "src/app/design-system/**"]
 Ninguna de estas da un error claro. Todas se han pagado varias veces.
 
 - **Una comilla invertida dentro de una plantilla la rompe.** La plantilla ya vive dentro de un
-  literal de plantilla, así que un backtick en el texto la cierra antes de tiempo. Ha pasado 8
-  veces. Si hace falta el carácter, va escapado o fuera de la plantilla.
+  literal de plantilla, así que un backtick en el texto la cierra antes de tiempo. Ha pasado 9
+  veces, dos de ellas el mismo día y la segunda DESPUÉS de actualizar esta cuenta. Si hace falta el carácter, va escapado o fuera de la plantilla.
   La octava fue en un COMENTARIO HTML, no en texto visible —citando nombres de clase entre
   backticks, como se escribe en los comentarios de TypeScript—, y el error que salió no menciona
   la comilla: dice «Argument expression expected» y señala el cierre del decorador, 130 líneas más
   abajo. Y van dos trampas en el mismo comentario, porque un comentario HTML tampoco puede ir
   DENTRO de una etiqueta, entre atributos.
+  **Leer esta regla no basta para no caer**: quien escribe un comentario está pensando en lo que
+  explica, no en dónde vive el comentario, y citar un nombre de clase entre backticks es el gesto
+  automático de cualquiera que venga de comentar TypeScript. Lo que sí funciona es una norma sin
+  excepciones: **en una plantilla, los nombres de clase se citan SIN comillas invertidas**, en
+  comentarios y en texto. No hay ningún caso en el que haga falta el carácter.
 - **Un componente propio nace `inline`.** El navegador no sabe qué es `<nx-loquesea>` y le da
   `display: inline`: se pinta estrecho, ignora alto y márgenes, y parece un fallo de CSS. Hay que
   darle `display` explícito en el propio componente. Ha pasado 5 veces.

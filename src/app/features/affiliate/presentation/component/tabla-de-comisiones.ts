@@ -20,7 +20,11 @@ const INSIGNIA: Readonly<Record<EstadoDeComision, string>> = {
   template: `
     <section class="card overflow-hidden">
       <div class="card-header"><span>{{ t('affiliate.commissions.title') }}</span></div>
-      <table class="table table-zebra table-sm">
+      <!-- MOBILE FIRST: la tabla se DESPLAZA, no se recorta. El overflow-hidden de la tarjeta
+           está para redondear las esquinas, pero aplicado a una tabla ancha se come las últimas
+           columnas sin avisar, y aquí no hay ninguna oculta en móvil que lo compense. -->
+      <div class="overflow-x-auto">
+        <table class="table table-zebra table-sm">
         <thead class="bg-ink-50 text-ink-500 text-left text-[12px]">
           <tr>
             <th scope="col" class="px-4 py-2 font-medium">{{ t('affiliate.commissions.date') }}</th>
@@ -57,7 +61,8 @@ const INSIGNIA: Readonly<Record<EstadoDeComision, string>> = {
             </tr>
           }
         </tbody>
-      </table>
+        </table>
+      </div>
     </section>
   `,
 })
