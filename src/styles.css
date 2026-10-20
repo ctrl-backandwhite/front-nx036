@@ -24,6 +24,11 @@
 @source not "./app/shared/i18n";
 @source not "./app/shared/data";
 @source not "./app/shared/content";
+/* Y la documentación: es prosa, pero cita nombres de clase. Al escribir en
+ * `docs/design-tokens.md` que el bloque de código ESTABA escrito `bg-ink-900 text-ink-50`,
+ * Tailwind generó esas dos utilidades otra vez —ya no las usa nadie— y la hoja servida dejó
+ * de coincidir con la construida. Mismo motivo que los ficheros de datos de arriba. */
+@source not "../docs";
 /* Los ficheros de PRUEBA tampoco: llevan nombres de clase dentro de aserciones y de marcado de
  * ejemplo, y de ahí salen utilidades que no pinta ninguna pantalla real. */
 @source not "./app/**/*.spec.ts";

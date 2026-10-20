@@ -1,4 +1,4 @@
-import { existsSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
@@ -68,7 +68,10 @@ function esDeuda(ruta: string, tema: string, selector: string): boolean {
 }
 
 /**
- * El nombre de la hoja recién construida, para contrastarlo con la que sirve el entorno.
+ * La hoja recién construida, para contrastarla con la que sirve el entorno.
+ *
+ * <p>Devuelve su CONTENIDO, no su nombre: el nombre lleva hash, pero el entorno construye con
+ * otra configuración y dos hojas con las mismas reglas pueden salir con nombres distintos.
  *
  * <p>Obliga a construir antes de medir, y eso es a propósito: si no hay `dist`, no hay con qué
  * comparar y la batería no puede afirmar contra qué versión está midiendo.
@@ -80,7 +83,7 @@ function hojaConstruida(): string {
   }
   const hoja = readdirSync(dir).find((f) => /^styles-[A-Z0-9]+\.css$/.test(f));
   if (!hoja) throw new Error(`No encuentro la hoja de estilos en ${dir}.`);
-  return hoja;
+  return readFileSync(join(dir, hoja), 'utf8');
 }
 
 /**
