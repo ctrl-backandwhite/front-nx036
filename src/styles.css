@@ -353,17 +353,6 @@
   --color-info:    #4a8cab;
   --color-info-content: #071720;
 
-  /* El rojo de Tailwind, oscurecido lo justo. El valor por defecto —oklch(58,6% .253 17,585),
-   * #ec003f— daba 4,44:1 sobre `base-100` y 4,18:1 sobre `base-200`, por debajo del 4,5 que pide
-   * el texto. Se usa en el precio tachado de la tarjeta de producto y en DOS mensajes de error
-   * con `role="alert"`, que es donde menos se puede permitir.
-   *
-   * En el tema oscuro ya estaba remapeado más abajo; en el claro no, así que heredaba el de
-   * Tailwind. Lo encontró la certificación de PRODUCCIÓN, no la de preproducción: el catálogo de
-   * PRE no enseña productos rebajados en portada y el de PRO sí, así que el precio tachado no
-   * existía en la página medida. Es la misma trampa que ya está escrita en las normas de las
-   * pruebas de navegador —mide el dato en el entorno donde va a correr—, vista del revés. */
-  --color-rose-600: oklch(55% 0.253 17.585);
   /* Subido desde #2e9070: ese verde daba 4.47:1 sobre el fondo del tema, justo por debajo del 4.5
    * que pide la norma, y se usa en cifras pequeñas como los indicadores del panel. El tono apenas
    * cambia y pasa a 5.24:1 sobre base-100 y 4.70:1 sobre base-200. */
@@ -1212,6 +1201,33 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
  * `src/styles-contraste.spec.ts`, porque mantenerlos a mano se desincroniza en semanas.
  * Al tocar uno, tocar el otro.
  * ───────────────────────────────────────────────────────────────────────────── */
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * EL ROJO DEL TEMA CLARO, Y POR QUÉ VA AQUÍ Y NO EN EL BLOQUE DEL TEMA.
+ *
+ * El valor por defecto de Tailwind para `rose-600` —oklch(58,6% .253 17,585), #ec003f— da 4,44:1
+ * sobre `base-100` y 4,18:1 sobre `base-200`: por debajo del 4,5 que pide el texto. Lo usan el
+ * precio tachado de la tarjeta de producto y DOS mensajes de error con `role="alert"`, que es
+ * donde menos se puede permitir.
+ *
+ * PRIMER INTENTO FALLIDO, que es lo que hay que recordar: ponerlo dentro del bloque
+ * `@plugin "daisyui/theme"` del tema claro NO funciona. Ese bloque se emite en una capa, el valor
+ * por defecto de Tailwind vive en `@layer theme`, y gana el de Tailwind. En la hoja servida se
+ * veían las dos declaraciones y el navegador pintaba la vieja. Fuera de capa sí gana — es la misma
+ * razón por la que `option` y `optgroup` están sin capa más arriba.
+ *
+ * Va ANTES de los bloques oscuros a propósito: ellos lo remapean a su propio tono y tienen que
+ * seguir ganando en oscuro.
+ *
+ * Lo encontró la certificación de PRODUCCIÓN, no la de preproducción, y no por suerte: el catálogo
+ * de PRE no enseña productos rebajados en portada, así que el precio tachado no existía en la
+ * página medida. Es la trampa que ya está escrita en las normas de las pruebas de navegador
+ * —mide el dato en el entorno donde va a correr—, vista del revés: lo que faltaba en PRE era el
+ * DEFECTO, no el dato.
+ * ───────────────────────────────────────────────────────────────────────────── */
+:root {
+  --color-rose-600: oklch(55% 0.253 17.585);
+}
 
 /* ⟦OSCURO:ELEGIDO:INICIO⟧ */
 [data-theme="nx036-pastel-dark"] {
