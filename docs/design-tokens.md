@@ -106,6 +106,20 @@ apagado sobre algo ya apagado, y el culpable casi nunca es el elemento que la he
 Las piezas de daisyUI que lo traen de fábrica se corrigen en `styles.css`: se les quita la opacidad
 y se les da `ink-500`, que ya está medido en los dos temas.
 
+**Y el caso que se escapa al razonamiento anterior: un contenedor con opacidad que envuelve un
+ENLACE.** «`opacity-70` está bien porque sobre `base-content` da 6,01:1» es cierto para el texto, y
+falso para el enlace que hay dentro: su color no es `base-content` sino `primary`, que parte de más
+abajo. En `/login`, `<div class="text-sm opacity-70">` dejaba «Regístrate» en 4,01:1 mientras el
+texto que lo rodea pasaba de sobra.
+
+Cuesta verlo porque los dos elementos comparten contenedor y solo uno falla. Y cuesta MEDIRLO: al
+inspeccionar a mano `a.link-primary` en esa página sale el primero, «¿Olvidaste tu contraseña?»,
+que no tiene opacidad encima y mide 8,44:1 — con lo que el fallo parece un falso positivo de la
+herramienta. No lo era. Si una herramienta señala un elemento, hay que mirar ESE elemento.
+
+La regla: **un contenedor que envuelve un enlace no se apaga con `opacity`.** Se apaga el texto con
+su token y el enlace se queda entero.
+
 Y una regla que no admite excepción: **`opacity-40` sobre texto no es recuperable.** Ni con negro
 puro sobre la superficie más clara pasa de 2,82:1, ni con blanco puro sobre la oscura de 3,69:1.
 No hay token que lo salve: si el texto hay que leerlo, no se apaga al 40 %.

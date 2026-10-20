@@ -133,7 +133,7 @@ import { PanelDeMarca } from '../component/panel-de-marca';
               </button>
             </form>
 
-            <div class="mt-6 text-center text-sm opacity-70">
+            <div class="mt-6 text-center text-sm text-ink-500">
               {{ t('login.no_account') }}
               <a routerLink="/register" class="link link-primary font-medium">{{ t('login.register') }}</a>
             </div>

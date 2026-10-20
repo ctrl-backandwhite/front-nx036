@@ -177,7 +177,7 @@ const ESPERA_ANTES_DE_ACTIVAR_MS = 2500;
                 <label class="flex items-start gap-2 cursor-pointer">
                   <input type="checkbox" class="checkbox checkbox-sm checkbox-primary mt-0.5"
                          [checked]="aceptaCondiciones()" (change)="cambiaCondiciones($event)" />
-                  <span class="text-[13px] opacity-80 leading-relaxed">
+                  <span class="text-[13px] text-ink-600 leading-relaxed">
                     {{ t('register.accept_terms_pre') }}
                     <a routerLink="/legal/terms" target="_blank" class="link link-primary">{{ t('footer.link.terms') }}</a>
                     {{ t('register.accept_terms_and') }}
@@ -209,7 +209,7 @@ const ESPERA_ANTES_DE_ACTIVAR_MS = 2500;
               </div>
             </form>
 
-            <div class="mt-6 text-center text-sm opacity-70">
+            <div class="mt-6 text-center text-sm text-ink-500">
               {{ t('register.have_account') }}
               <a routerLink="/login" class="link link-primary font-medium">{{ t('login.title') }}</a>
             </div>
