@@ -45,24 +45,24 @@ import { EnfocaAlAparecer } from '../../directive/enfoca-al-aparecer.directive';
         <!-- A ancho completo (el cajón del móvil) se enseña el país además de la moneda: ahí hay sitio
              y sin el nombre no se entiende qué es este botón. -->
         @if (anchoCompleto()) {
-          <span class="text-[12px] text-ink-700 dark:text-ink-200">{{ activa().countryLabel }}</span>
+          <span class="text-[12px] text-ink-700">{{ activa().countryLabel }}</span>
         }
         <!-- La variante «sm:» lleva dos puntos y no cabe en un «[class.x]»: va en una cadena entera. -->
         <span
           [class]="
-            'font-mono text-[11px] text-ink-700 dark:text-ink-200 font-medium ' +
+            'font-mono text-[11px] text-ink-700 font-medium ' +
             (anchoCompleto() ? 'inline' : 'hidden sm:inline')
           "
         >
           {{ activa().currency }}
         </span>
-        <span class="hidden md:inline text-[11px] text-ink-400 dark:text-ink-500">·</span>
-        <span class="hidden md:inline font-mono text-[11px] text-ink-700 dark:text-ink-200 font-medium">
+        <span class="hidden md:inline text-[11px] text-ink-400">·</span>
+        <span class="hidden md:inline font-mono text-[11px] text-ink-700 font-medium">
           {{ activa().locale.toUpperCase() }}
         </span>
         <fa-icon
           [icon]="iconoAbajo"
-          class="text-[9px] text-ink-500 dark:text-ink-400"
+          class="text-[9px] text-ink-500"
           [class.ml-auto]="anchoCompleto()"
         />
       </button>
@@ -110,10 +110,10 @@ import { EnfocaAlAparecer } from '../../directive/enfoca-al-aparecer.directive';
               >
                 <span class="text-base leading-none">{{ region.flag }}</span>
                 <span class="flex-1 truncate">{{ region.countryLabel }}</span>
-                <span class="font-mono text-[11px] text-ink-700 dark:text-ink-200 font-medium">
+                <span class="font-mono text-[11px] text-ink-700 font-medium">
                   {{ region.currency }}
                 </span>
-                <span class="font-mono text-[11px] text-ink-600 dark:text-ink-300 font-medium">
+                <span class="font-mono text-[11px] text-ink-600 font-medium">
                   {{ region.locale.toUpperCase() }}
                 </span>
               </button>

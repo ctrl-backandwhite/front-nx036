@@ -41,7 +41,7 @@ const ENTRADA_MS = 250;
   template: `
     @if (promocion(); as promo) {
       <section
-        class="relative isolate overflow-hidden rounded-3xl bg-[#14212e] text-[#f4f6f9]
+        class="relative isolate overflow-hidden rounded-3xl bg-neutral text-neutral-content
                shadow-[0_10px_40px_-12px_rgba(10,20,30,0.55)] ring-1 ring-white/5
                transition-all duration-700"
         [class.translate-y-0]="visible()"
@@ -54,14 +54,14 @@ const ENTRADA_MS = 250;
       >
         <!-- Textura del fondo: dos halos difusos con los colores de marca y un velo diagonal muy tenue.
              Estáticos y sutiles a propósito: dan profundidad sin el degradado chillón de antes. -->
-        <span aria-hidden="true" class="pointer-events-none absolute -right-24 -top-28 -z-10 h-72 w-72 rounded-full bg-[#0c4a97]/25 blur-3xl"></span>
-        <span aria-hidden="true" class="pointer-events-none absolute -bottom-24 left-1/3 -z-10 h-64 w-64 rounded-full bg-[#c0862d]/15 blur-3xl"></span>
+        <span aria-hidden="true" class="pointer-events-none absolute -right-24 -top-28 -z-10 h-72 w-72 rounded-full bg-primary/25 blur-3xl"></span>
+        <span aria-hidden="true" class="pointer-events-none absolute -bottom-24 left-1/3 -z-10 h-64 w-64 rounded-full bg-accent/15 blur-3xl"></span>
         <span aria-hidden="true" class="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-white/5 via-transparent to-transparent"></span>
         <span aria-hidden="true" class="pointer-events-none absolute inset-0 promo-shine"></span>
 
         <div class="animate-nx-fade relative flex flex-col gap-4 p-5 sm:p-6 lg:flex-row lg:items-center lg:gap-8">
           <div class="min-w-0 lg:w-72 lg:shrink-0">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#d9a441]">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">
               {{ t('promo.banner.kicker') }}
             </p>
             <!-- «text-white!»: la regla global de los encabezados gana a las utilidades, y sin la
@@ -70,7 +70,7 @@ const ENTRADA_MS = 250;
               {{ promo.nombre }}
             </h2>
             <div class="mt-3 flex flex-wrap items-center gap-2">
-              <span class="rounded-lg bg-[#b4472e] px-2.5 py-1 text-base font-extrabold text-[#fbf0ec] shadow-sm">
+              <span class="rounded-lg bg-error px-2.5 py-1 text-base font-extrabold text-error-content shadow-sm">
                 {{ hasta() }}
               </span>
               @if (dias() !== null) {
@@ -82,7 +82,7 @@ const ENTRADA_MS = 250;
             <a
               [routerLink]="['/catalog']"
               [queryParams]="{ promotionId: promo.id, promo: promo.nombre }"
-              class="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-ink-900 shadow-sm transition hover:bg-white/90"
+              class="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-scrim shadow-sm transition hover:bg-white/90"
             >
               {{ t('promo.banner.cta') }}
             </a>
@@ -95,20 +95,20 @@ const ENTRADA_MS = 250;
                   [routerLink]="['/catalog', producto.slug]"
                   class="group w-28 shrink-0 rounded-2xl bg-base-100 p-2 text-ink-900 shadow-sm transition hover:-translate-y-1 hover:shadow-lg sm:w-32"
                 >
-                  <div class="aspect-square overflow-hidden rounded-xl bg-[#f4f6f9]">
+                  <div class="aspect-square overflow-hidden rounded-xl bg-base-200">
                     <nx-imagen-segura
                       [src]="producto.imagenPrincipal"
                       [alt]="producto.titulo"
                       clase="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                     />
                   </div>
-                  <p class="mt-1.5 line-clamp-2 text-[11px] leading-tight text-[#485563]">
+                  <p class="mt-1.5 line-clamp-2 text-[11px] leading-tight text-ink-600">
                     {{ producto.titulo }}
                   </p>
                   <div class="mt-0.5 flex items-baseline gap-1.5">
                     <p class="text-sm font-bold text-ink-900">{{ producto.precio.formateado }}</p>
                     @if (producto.precio.anteriorFormateado) {
-                      <p class="text-[10px] text-[#8a97a5] line-through">
+                      <p class="text-[10px] text-ink-400 line-through">
                         {{ producto.precio.anteriorFormateado }}
                       </p>
                     }
@@ -128,7 +128,7 @@ const ENTRADA_MS = 250;
                 [attr.aria-label]="otra.nombre"
                 [attr.aria-current]="i === actual()"
                 class="h-1.5 rounded-full transition-all"
-                [class]="i === actual() ? 'w-6 bg-[#d9a441]' : 'w-1.5 bg-white/30 hover:bg-white/60'"
+                [class]="i === actual() ? 'w-6 bg-accent' : 'w-1.5 bg-neutral-content/30 hover:bg-neutral-content/60'"
               ></button>
             }
           </div>

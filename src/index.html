@@ -12,6 +12,13 @@
   <meta name="description" content="Compra bestsellers transfronterizos por unidades, sin pedidos mínimos, con impuestos y envío internacional incluidos en el precio y seguimiento de cada pedido.">
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- El color de la barra del navegador en Android. Sin esto se queda blanca sobre una página
+       oscura, que es de lo más pobre que se ve en el móvil. Son los `base-200` de cada tema.
+       Sigue a la preferencia del SISTEMA, no al tema elegido: el atributo `media` no sabe de
+       nuestra cookie. Cubre el caso normal —nadie elige tema— que es justamente el que peor se
+       veía. -->
+  <meta name="theme-color" content="#f4f6f9" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0e1a26" media="(prefers-color-scheme: dark)">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 </head>
 

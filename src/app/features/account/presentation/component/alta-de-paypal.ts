@@ -25,7 +25,7 @@ import { AnadePaypal } from '../../application/use-case/cobros.use-case';
   template: `
     <div class="mt-4 pt-4 border-t border-ink-100">
       <label for="alta-paypal-correo" class="text-sm font-semibold text-ink-700 flex items-center gap-1.5 mb-1">
-        <fa-icon [icon]="iconoPaypal" class="text-[#003087]" /> {{ t('profile.billing.add_paypal') }}
+        <fa-icon [icon]="iconoPaypal" class="text-[#003087] dark:text-[#009cde]" /> {{ t('profile.billing.add_paypal') }}
       </label>
       <div class="flex flex-col gap-2 mt-1 sm:flex-row">
         <input

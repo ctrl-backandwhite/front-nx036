@@ -141,7 +141,7 @@ const POR_PAGINA = 25;
               [valor]="texto()"
               (valorChange)="cambiaTexto($event)"
               [marcador]="t('admin.billing.subs_search')"
-              clase="min-w-[280px]"
+              clase="w-full sm:min-w-[280px]"
             />
             <nx-filtro-desplegable
               [etiqueta]="t('admin.billing.col.status')"

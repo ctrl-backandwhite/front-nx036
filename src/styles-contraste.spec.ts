@@ -134,4 +134,59 @@ describe('Contraste de la paleta y de la hoja de estilos', () => {
       expect(regla.test(estilos), `falta la regla de .btn-outline.btn-${estado}`).toBe(true);
     },
   );
+
+  /**
+   * Las correcciones del tema oscuro viven DUPLICADAS, y tienen que seguir siendo iguales.
+   *
+   * <p>daisyUI publica la paleta oscura bajo dos selectores: el atributo, para quien eligió el
+   * tema, y `:root:not([data-theme])` dentro de `prefers-color-scheme: dark`, para quien no eligió
+   * nada y trae el equipo en oscuro. Y `app.ts` QUITA el atributo cuando no hay elección, a
+   * propósito. Mientras las ~200 correcciones colgaron solo del atributo, todo visitante nuevo con
+   * el equipo en oscuro recibió la paleta y ninguna corrección: tarjetas, insignias, bordes de
+   * campo, cebra de tablas y `btn-outline` sin arreglar. Era la mayoría de los visitantes, y en el
+   * móvil casi todos.
+   *
+   * <p>Duplicar es la única forma de cubrir las dos ramas sin JavaScript y sin que la página
+   * reajuste sus estilos al hidratar. El precio es que se pueden desincronizar, y eso es justo lo
+   * que mira esta prueba: si alguien toca una rama y olvida la otra, aquí se entera.
+   */
+  it('las dos ramas del tema oscuro son idénticas salvo el selector', () => {
+    const entre = (inicio: string, fin: string): string => {
+      const a = estilos.indexOf(inicio);
+      const b = estilos.indexOf(fin);
+      expect(a, `falta el marcador ${inicio}`).toBeGreaterThan(-1);
+      expect(b, `falta el marcador ${fin}`).toBeGreaterThan(a);
+      return estilos.slice(a + inicio.length, b);
+    };
+
+    /**
+     * El cuerpo de dentro de `profundidad` envoltorios, emparejando llaves.
+     *
+     * <p>Con expresiones regulares no sale: la rama del sistema cierra DOS llaves —la regla y la
+     * media query— y la del atributo una, así que recortar «la última llave» deja una de más en
+     * un lado. Y las reglas de dentro llevan sus propias llaves anidadas.
+     */
+    const cuerpo = (css: string, profundidad: number): string => {
+      let desde = 0;
+      let hasta = css.length;
+      for (let nivel = 0; nivel < profundidad; nivel++) {
+        desde = css.indexOf('{', desde) + 1;
+        let abiertas = 1;
+        let i = desde;
+        while (i < css.length && abiertas > 0) {
+          if (css[i] === '{') abiertas++;
+          else if (css[i] === '}') abiertas--;
+          i++;
+        }
+        hasta = i - 1;
+      }
+      return css.slice(desde, hasta).replace(/\s+/g, ' ').trim();
+    };
+
+    const elegido = cuerpo(entre('⟦OSCURO:ELEGIDO:INICIO⟧ */', '/* ⟦OSCURO:ELEGIDO:FIN⟧'), 1);
+    const sistema = cuerpo(entre('⟦OSCURO:SISTEMA:INICIO⟧ */', '/* ⟦OSCURO:SISTEMA:FIN⟧'), 2);
+
+    expect(elegido.length, 'el bloque del tema elegido salió vacío').toBeGreaterThan(1000);
+    expect(sistema).toBe(elegido);
+  });
 });

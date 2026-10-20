@@ -113,7 +113,7 @@ const POR_PAGINA = 25;
         <nx-campo-busqueda
           [(valor)]="texto"
           [marcador]="t('admin.orders.search_placeholder')"
-          clase="min-w-[280px]"
+          clase="w-full sm:min-w-[280px]"
         />
         <nx-filtros-de-pedidos
           [(estado)]="estado"

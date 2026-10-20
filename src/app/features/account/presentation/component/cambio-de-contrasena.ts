@@ -86,7 +86,7 @@ const LARGO_MINIMO = 8;
           @for (requisito of requisitos(); track requisito.clave; let ultimo = $last) {
             <li [class]="claseDeRequisito(requisito.cumple, ultimo)">
               <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded-full transition-colors"
-                    [class]="requisito.cumple ? 'bg-emerald-600 text-white' : 'border border-ink-300 text-transparent'">
+                    [class]="requisito.cumple ? 'bg-success text-success-content' : 'border border-ink-300 text-transparent'">
                 <fa-icon [icon]="iconos.hecho" class="text-[9px]" />
               </span>
               {{ t(requisito.clave) }}

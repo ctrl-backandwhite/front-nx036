@@ -24,6 +24,11 @@
 @source not "./app/shared/i18n";
 @source not "./app/shared/data";
 @source not "./app/shared/content";
+/* Y la documentación: es prosa, pero cita nombres de clase. Al escribir en
+ * `docs/design-tokens.md` que el bloque de código ESTABA escrito `bg-ink-900 text-ink-50`,
+ * Tailwind generó esas dos utilidades otra vez —ya no las usa nadie— y la hoja servida dejó
+ * de coincidir con la construida. Mismo motivo que los ficheros de datos de arriba. */
+@source not "../docs";
 /* Los ficheros de PRUEBA tampoco: llevan nombres de clase dentro de aserciones y de marcado de
  * ejemplo, y de ahí salen utilidades que no pinta ninguna pantalla real. */
 @source not "./app/**/*.spec.ts";
@@ -199,6 +204,87 @@
  * frío/cálido evita el look de "azul SaaS" genérico y del índigo violáceo de IA. Marino como
  * estructura. El nombre del theme se mantiene (nx036-pastel) por compat con data-theme / theme.ts.
  */
+/* ─────────────────────────────────────────────────────────────────────────────
+ * SUPERFICIE DE CÓDIGO: oscura en los DOS temas, a propósito.
+ *
+ * Un bloque de código es oscuro por convención, igual en una página clara que en una oscura.
+ * Estaba escrito como `bg-ink-900 text-ink-50`, que funcionaba mientras `ink` tenía un solo juego
+ * de valores. Desde que la escala se invierte por tema, en oscuro el bloque se vuelve CLARO sobre
+ * una página oscura —al revés de lo que debe ser— y el `text-white` de sus pestañas quedaba a
+ * 1,15:1, medido contra preproducción en /developers.
+ *
+ * Así que no es una escala invertible: es una superficie con su propia pareja fondo/texto, como el
+ * velo del panel de acceso. Reutiliza los mismos tokens.
+ * ───────────────────────────────────────────────────────────────────────────── */
+@utility superficie-codigo {
+  background-color: var(--color-scrim);
+  color: var(--color-scrim-content);
+}
+/* El tono apagado de dentro: rótulos de pestaña y botones de copiar. Medido sobre `scrim`
+ * (#08111d): 7,30:1, muy por encima del 4,5 que pide el texto normal. */
+@utility texto-codigo-apagado {
+  color: color-mix(in oklch, var(--color-scrim-content) 72%, var(--color-scrim));
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * LAS OPACIDADES SE MULTIPLICAN, Y ESA ES LA CAUSA DE CASI TODO EL TEXTO ILEGIBLE.
+ *
+ * Medido contra preproducción el 20-oct-2026 con axe, en los dos temas. El texto apagado de la
+ * aplicación ya llega con ALFA EN EL COLOR —`base-content/80` en el pie, `/60` en `stat-desc`,
+ * `/50` en una pestaña inactiva—, y encima el elemento añade su propia `opacity`. El navegador
+ * las multiplica:
+ *
+ *     pie, <p class="opacity-70">   alfa 0,80 × 0,70 = 0,56  → 3,75:1
+ *     pie, h6.footer-title           alfa 0,80 × 0,60 = 0,48  → 2,98:1   ← el peor del tema claro
+ *
+ * Lo que engaña al depurar: `opacity-70` por sí sola NO es el problema. Sobre `base-content`
+ * entero da 6,01:1 y pasa de sobra; hay 212 usos en la aplicación y están bien. Lo que falla es
+ * el SEGUNDO apagado sobre algo ya apagado, y eso no se ve leyendo la plantilla: hay que mirar la
+ * cadena de ancestros con opacidad, porque el culpable casi nunca es el elemento que axe señala.
+ *
+ * Aquí se corta la multiplicación en las piezas de daisyUI que la traen de fábrica: se les quita
+ * la opacidad y se les da el token del texto apagado, que ya está medido en los dos temas
+ * (claro #67727b 4,88:1 · oscuro oklch(68%) 5,49:1 sobre las dos superficies).
+ *
+ * Y una que NO se arregla desde aquí: `opacity-40` es irrecuperable. Ni con negro puro sobre la
+ * superficie más clara pasa de 2,82:1, ni con blanco puro sobre la oscura de 3,69:1. No hay token
+ * que lo salve; esos 20 usos tienen que dejar de apagar al 40 % el texto que sí hay que leer.
+ * ───────────────────────────────────────────────────────────────────────────── */
+.footer-title {
+  opacity: 1;
+  color: var(--color-ink-500);
+}
+.stat-desc {
+  color: var(--color-ink-500);
+}
+[role='tablist'] > .tab:not(.tab-active) {
+  color: var(--color-ink-500);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * LA VARIANTE `dark:`, ATADA AL TEMA Y NO SOLO AL SISTEMA.
+ *
+ * En Tailwind 4, `dark:` sigue por defecto a `prefers-color-scheme`. Pero esta aplicación pinta
+ * el tema con `data-theme`, así que quien ELIGE un tema distinto del de su equipo recibía las
+ * clases `dark:` AL REVÉS: con el equipo en claro y el tema oscuro elegido no se aplicaban, y
+ * con el equipo en oscuro y el tema claro elegido se aplicaban igualmente.
+ *
+ * Aquí se cubren las DOS ramas, que es lo que nadie cubría: el atributo cuando hay elección, y
+ * la preferencia del sistema solo cuando NO la hay —el mismo criterio que usa `app.ts`—.
+ *
+ * Las diez clases `dark:` que había se borraron al dar variante de tema a `ink` y a las paletas
+ * crudas, porque pasaron a ser redundantes. La usa un solo caso, y es el legítimo: el azul de
+ * marca de PayPal, que es de un tercero y no puede salir de nuestra paleta. Tiene dos valores
+ * oficiales y hacen falta los dos — el oscuro (#003087) da 11,63:1 sobre fondo claro y 1,48:1
+ * sobre el oscuro, donde el icono sencillamente no se ve; el claro (#009cde) da 5,70:1 allí.
+ * ───────────────────────────────────────────────────────────────────────────── */
+@custom-variant dark {
+  &:where([data-theme="nx036-pastel-dark"], [data-theme="nx036-pastel-dark"] *) { @slot; }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme]), :root:not([data-theme]) *) { @slot; }
+  }
+}
+
 @plugin "daisyui" {
   themes: nx036-pastel --default, nx036-pastel-dark --prefersdark, corporate, business;
 }
@@ -314,15 +400,30 @@
    * declara a mano con `!important`: el tono muteado salía en oscuro y no en claro, justo al revés
    * de lo que uno supone al depurar.
    *
-   * Interpolados de los peldaños vecinos. El 400 se separa un poco del punto medio exacto (#8a98a4,
-   * 2,90:1) para cruzar el 3:1 que pide la norma para lo no textual, que es para lo que se usa:
-   * iconos, separadores y texto de apoyo. */
-  --color-ink-400: #80909c;
+   * Interpolados de los peldaños vecinos.
+   *
+   * EL 400 SE SUBIÓ A 4,5:1 EL 20-OCT-2026, y conviene saber por qué estaba donde estaba. Se fijó
+   * en #80909c para cruzar el 3:1 «de lo no textual, que es para lo que se usa». Esa frase
+   * describía una intención, no el código: hay 134 usos y TODOS son `text-ink-400` — mensajes de
+   * lista vacía, rótulos, pies de tabla. Es el token del texto apagado, y el listón del texto es
+   * 4,5:1, no 3:1. Medido contra preproducción daba 3,04:1 sobre la superficie más clara.
+   *
+   * El valor nuevo, #67727b, es oklch(54,5% .02 245): el MISMO tono, ocho puntos más oscuro.
+   * Da 4,54:1 y sigue siendo más claro que el 500 (#5c6e7c, 4,88:1), así que la rampa no se cruza. */
+  --color-ink-400: #67727b;
   --color-ink-600: #445665;
   --color-ink-800: #20303e;
   --color-ink-300: #b7c2cb;
   --color-ink-100: #e1e7ec;
   --color-ink-50:  #f4f7f9;
+
+  /* Superficie SIEMPRE oscura, con su texto. No se invierte con el tema porque no describe
+   * «el fondo de la página» sino «un velo oscuro sobre una foto»: el velo es oscuro en los dos
+   * temas, así que su texto tiene que ser claro en los dos. Tenerlo como token evita que vuelvan
+   * a aparecer hex sueltos cada vez que hace falta esta combinación. */
+  --color-scrim: #08111d;
+  --color-scrim-alto: #0a1b30;
+  --color-scrim-content: #eef4fc;
 
   --font-sans: "Roboto", system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
   --font-mono: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -862,8 +963,40 @@ aside .menu .menu-title {
 .input-xs, .select-xs { width: auto !important; min-height: 1.5rem !important; }
 .input-sm, .select-sm { min-height: 2rem; }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+ * LA LISTA DESPLEGADA DE UN <select> NO HEREDA EL TEMA. Hay que decírselo.
+ *
+ * El preflight de Tailwind pone `color: inherit; background-color: transparent` en
+ * `select`, `option` y `optgroup`. En tema oscuro eso deja el texto casi blanco —heredado de
+ * `base-content`— sobre el fondo que el sistema le da a la lista desplegada, que es BLANCO.
+ * Casi blanco sobre blanco: las opciones no se leen.
+ *
+ * No había ninguna regla para `option` en todo el proyecto, así que pasaba en los 42 `<select>`
+ * de la aplicación, y de forma total en los dos que ni siquiera llevan clase de color
+ * (`usuarios-acciones-en-lote.ts` y `usuarios-tabla.ts`, los de gestión de usuarios).
+ *
+ * `select` va en @layer base para NO pisar al `.select` de daisyUI, que vive en `components`:
+ * una regla de elemento sin capa le ganaría y rompería el componente. `option` y `optgroup`,
+ * en cambio, van SIN capa a propósito, porque tienen que ganarle al preflight y no compiten
+ * con ningún componente.
+ *
+ * Esto cubre Chrome, Firefox y el selector a pantalla completa de Android. Safari ignora el
+ * pintado de `option` y se apoya en el `color-scheme` que daisyUI ya declara por tema.
+ * ───────────────────────────────────────────────────────────────────────────── */
+@layer base {
+  select { background-color: var(--color-base-100); color: var(--color-base-content); }
+}
+option, optgroup { background-color: var(--color-base-100); color: var(--color-base-content); }
+optgroup { font-weight: 600; }
+option:checked, option:hover { background-color: var(--color-base-200); }
+
 /* Los <select> con clase .input no muestran la flecha nativa (parecen un input normal).
- * Añadimos un chevron para que se note que son desplegables. */
+ * Añadimos un chevron para que se note que son desplegables.
+ *
+ * El color va DENTRO del data-URI, así que no puede ser una variable, y se queda en `%236b7280`
+ * aunque sea un literal fuera de la paleta. Medido: 4,75:1 sobre el fondo claro y 3,64:1 sobre
+ * el oscuro, y para algo que no es texto la norma pide 3:1 — o sea que cumple en los dos.
+ * Cambiarlo a `ink-400` se probó y es PEOR: sube el oscuro a 5,35 pero baja el claro a 3,23. */
 select.input {
   appearance: none;
   -webkit-appearance: none;
@@ -1048,8 +1181,144 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
 .card .font-semibold.text-brand-700 { color: var(--color-primary-content) !important; }
 
 /* ============ DARK MODE — DROP-424..433 ============ */
+/* ─────────────────────────────────────────────────────────────────────────────
+ * TEMA OSCURO — las correcciones van en DOS ramas, y no es un descuido.
+ *
+ * daisyUI publica la paleta oscura bajo dos selectores distintos: el atributo
+ * `[data-theme="nx036-pastel-dark"]` para quien ELIGIÓ el tema, y
+ * `:root:not([data-theme])` dentro de `prefers-color-scheme: dark` para quien no ha elegido
+ * nada y tiene el equipo en oscuro. Y `app.ts` QUITA el atributo cuando no hay elección, a
+ * propósito, porque el atributo gana sobre la preferencia del sistema.
+ *
+ * Mientras estas correcciones colgaban solo del atributo, TODO visitante nuevo con el equipo
+ * en oscuro recibía la paleta oscura y NINGUNA de ellas: ni tarjetas, ni remapeo de `ink`, ni
+ * insignias, ni bordes de campo, ni cebra de tablas, ni `btn-outline`. Es decir, la mayoría —
+ * y sobre todo en el móvil, donde el equipo viene en oscuro casi siempre. Eso es lo que se
+ * veía como «el modo oscuro está roto en todas partes».
+ *
+ * Los dos bloques tienen que ser IDÉNTICOS salvo el selector. Lo verifica
+ * `src/styles-contraste.spec.ts`, porque mantenerlos a mano se desincroniza en semanas.
+ * Al tocar uno, tocar el otro.
+ * ───────────────────────────────────────────────────────────────────────────── */
 
+/* ⟦OSCURO:ELEGIDO:INICIO⟧ */
 [data-theme="nx036-pastel-dark"] {
+  /* ── La escala `ink` INVERTIDA, como variables ───────────────────────────────
+   * `ink-*` es una escala propia, fuera de daisyUI, y hasta ahora tenía un solo juego de
+   * valores: los del tema claro. El oscuro la corregía clase a clase con `!important`, y eso
+   * cubría solo lo que alguien se acordó de enumerar: `text-ink-900..300`, `bg-ink-50/100`,
+   * `border-ink-200` y poco más. Quedaban fuera `border-ink-100` (103 usos), `divide-ink-100`,
+   * `border-ink-300`, `ring-ink-*` y toda variante con opacidad.
+   *
+   * Tailwind 4 compila `.text-ink-700` a `color: var(--color-ink-700)`, no al literal. Así que
+   * redeclarar la variable aquí retiñe de golpe `text-`, `bg-`, `border-`, `ring-`, `divide-`,
+   * `fill-`, `stroke-`, `hover:`, `group-hover:` y las opacidades — sin un solo `!important`.
+   *
+   * Los valores son LOS MISMOS que ya escribían los parches, para que donde hoy funciona siga
+   * saliendo idéntico. Lo que cambia es que ahora también funciona donde no había parche.
+   * ─────────────────────────────────────────────────────────────────────────── */
+  --color-ink-50:  var(--color-base-200);
+  --color-ink-100: var(--color-base-300);
+  --color-ink-200: var(--color-base-300);
+  --color-ink-300: oklch(45% 0.020 245);
+  /* Subido de 55% a 63% el 20-oct-2026, por el mismo motivo que su gemelo claro: es el token
+   * del texto apagado, no el de los iconos. A 55% daba 3,26:1 sobre `base-200`. */
+  --color-ink-400: oklch(63% 0.020 245);
+  --color-ink-500: oklch(68% 0.020 245);
+  --color-ink-600: oklch(80% 0.020 245);
+  --color-ink-700: oklch(86% 0.018 245);
+  /* Sin parche previo: interpolado entre el 700 y el 900 para que la rampa no salte. */
+  --color-ink-800: oklch(90.5% 0.017 245);
+  --color-ink-900: oklch(95% 0.015 245);
+
+  /* ── Y la escala `brand`, por el mismo motivo ────────────────────────────────
+   * Mismo caso que `ink`: un solo juego de valores claros y un puñado de parches que cubrían
+   * lo enumerado. Quedaban fuera `bg-brand-500/600` (13 usos), `border-brand-200/300/500/600/700`
+   * (19) y `ring-brand-100` (5).
+   *
+   * Los tintes claros (50-300) se derivan de `primary` sobre el fondo, que es lo que ya hacían
+   * los parches. Los oscuros (500-900) van al tono claro único que usaba el parche de texto.
+   * `brand-100` tenía DOS valores en pugna —30 % de fondo y 35 % de borde—; se unifica en 32 %.
+   *
+   * `brand-400` pasa a ser `primary`, y eso mejora de paso el anillo de foco: lo dibuja
+   * `--color-brand-400`, que en oscuro era el azul del tema claro. Medido sobre el fondo oscuro,
+   * pasa de 3,35:1 a 5,52:1 — cumplía el 3:1 por poco y ahora con holgura.
+   * ─────────────────────────────────────────────────────────────────────────── */
+  --color-brand-50:  color-mix(in oklch, var(--color-primary) 22%, var(--color-base-100));
+  --color-brand-100: color-mix(in oklch, var(--color-primary) 32%, var(--color-base-100));
+  --color-brand-200: color-mix(in oklch, var(--color-primary) 45%, var(--color-base-100));
+  --color-brand-300: color-mix(in oklch, var(--color-primary) 60%, var(--color-base-100));
+  --color-brand-400: var(--color-primary);
+  --color-brand-500: oklch(72% 0.16 248);
+  --color-brand-600: oklch(72% 0.16 248);
+  --color-brand-700: oklch(72% 0.16 248);
+  --color-brand-800: oklch(72% 0.16 248);
+  --color-brand-900: oklch(72% 0.16 248);
+
+  /* ── Y las paletas crudas de Tailwind ────────────────────────────────────────
+   * 383 usos en 105 ficheros, sin un solo remapeo: en oscuro conservaban su valor del tema
+   * claro. Medido sobre el fondo oscuro: `text-slate-900` daba 1,02:1 —invisible—, `red-700`
+   * 2,72:1, `emerald-700` 3,21:1 y `amber-700` 3,50:1. Ninguno llega al 4,5 que pide AA.
+   *
+   * No es diversidad de diseño: es la misma decisión escrita de seis maneras. El 90 % del uso
+   * son rojo (error), verde (éxito) y ámbar (aviso), y lo que había que hacer era tratarlos
+   * como lo que son. Aquí se invierten por rampa, con UNA regla explícita:
+   *
+   *   50-200   superficies tenues  → se vuelven OSCURAS, mezclando el token sobre el fondo
+   *   300-500  bordes e iconos     → NO se tocan. La portada los usa como paleta categórica,
+   *                                  y varios son relleno sólido con texto blanco encima
+   *   600-900  texto sobre tinte   → se vuelven CLAROS, a oklch(72%), que da 5,5-6,5:1
+   *
+   * Los tintes se derivan de los tokens del tema, no de un literal, para que sigan a la paleta
+   * si cambia. Y `slate` no se invierte: se ALINEA con `ink`, que es lo que debió ser desde el
+   * principio — eso arregla solo el panel de cookies y la tarjeta de compras del admin.
+   * ─────────────────────────────────────────────────────────────────────────── */
+
+  /* Rojo y rosa = error. */
+  --color-red-50:    color-mix(in oklch, var(--color-error) 12%, var(--color-base-100));
+  --color-red-100:   color-mix(in oklch, var(--color-error) 18%, var(--color-base-100));
+  --color-red-200:   color-mix(in oklch, var(--color-error) 26%, var(--color-base-100));
+  --color-red-600:   oklch(72% 0.14 25);
+  --color-red-700:   oklch(72% 0.14 25);
+  --color-red-800:   oklch(72% 0.14 25);
+  --color-rose-400:  oklch(72% 0.14 15);
+  --color-rose-500:  oklch(72% 0.14 15);
+  --color-rose-600:  oklch(72% 0.14 15);
+
+  /* Verde = éxito. */
+  --color-emerald-50:  color-mix(in oklch, var(--color-success) 12%, var(--color-base-100));
+  --color-emerald-100: color-mix(in oklch, var(--color-success) 18%, var(--color-base-100));
+  --color-emerald-200: color-mix(in oklch, var(--color-success) 26%, var(--color-base-100));
+  --color-emerald-600: oklch(72% 0.11 160);
+  --color-emerald-700: oklch(72% 0.11 160);
+  --color-emerald-800: oklch(72% 0.11 160);
+
+  /* Ámbar = aviso. */
+  --color-amber-50:  color-mix(in oklch, var(--color-warning) 12%, var(--color-base-100));
+  --color-amber-100: color-mix(in oklch, var(--color-warning) 18%, var(--color-base-100));
+  --color-amber-200: color-mix(in oklch, var(--color-warning) 26%, var(--color-base-100));
+  --color-amber-600: oklch(72% 0.13 80);
+  --color-amber-700: oklch(72% 0.13 80);
+  --color-amber-800: oklch(72% 0.13 80);
+  --color-amber-900: oklch(72% 0.13 80);
+
+  /* Azules = información. */
+  --color-blue-100:   color-mix(in oklch, var(--color-info) 18%, var(--color-base-100));
+  --color-indigo-100: color-mix(in oklch, var(--color-info) 18%, var(--color-base-100));
+  --color-blue-700:   oklch(72% 0.13 240);
+  --color-indigo-600: oklch(72% 0.13 240);
+  --color-indigo-700: oklch(72% 0.13 240);
+  --color-sky-600:    oklch(72% 0.13 240);
+
+  /* `slate` se alinea con `ink`: es la misma escala de grises azulados escrita dos veces. */
+  --color-slate-50:  var(--color-ink-50);
+  --color-slate-100: var(--color-ink-100);
+  --color-slate-200: var(--color-ink-200);
+  --color-slate-400: var(--color-ink-400);
+  --color-slate-500: var(--color-ink-500);
+  --color-slate-800: var(--color-ink-800);
+  --color-slate-900: var(--color-ink-900);
+
   /* DROP-424: hero badges/icons legibles */
   .hero .badge-outline { background-color: color-mix(in oklch, var(--color-base-100) 60%, transparent); }
   .hero .kpi-icon { background-color: color-mix(in oklch, var(--color-primary) 28%, var(--color-base-100)); }
@@ -1104,61 +1373,26 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
   .prose a { color: var(--color-primary); text-decoration: underline; }
   .prose strong, .prose b { color: var(--color-base-content); font-weight: 600; }
 
-  /* DROP-428 v2: /developers no usa .prose; usa text-ink-* directamente,
-   * que en dark mode son hex codes claros sobre fondo claro (i.e. tokens
-   * pensados para light). Re-mapeamos los ink-* para que en dark caigan a
-   * tonos legibles. */
-  .text-ink-900 { color: oklch(95% 0.015 245) !important; }
-  .text-ink-700 { color: oklch(86% 0.018 245) !important; }
-  .text-ink-600 { color: oklch(80% 0.020 245) !important; }
-  .text-ink-500 { color: oklch(68% 0.020 245) !important; }
-  .text-ink-400 { color: oklch(55% 0.020 245) !important; }
-  .text-ink-300 { color: oklch(45% 0.020 245) !important; }
   /* La sidebar TOC del docs casi desaparecía: subir contraste y reforzar
    * el item activo con un fondo claro sobre dark. */
   aside nav a:hover { background-color: color-mix(in oklch, var(--color-primary) 16%, transparent) !important; }
   /* Bloque de código: garantizar fondo elevado distinguible del page bg. */
-  pre, pre code, .card pre {
-    background-color: oklch(13% 0.015 245) !important;
-    color: oklch(92% 0.015 245) !important;
-    border: 1px solid var(--color-base-300);
-  }
+  /* El fondo de los bloques `pre` ya no se parchea aquí: lo fija la utilidad
+   * `superficie-codigo`, que es oscura en los dos temas. Solo queda el borde, que sí depende
+   * del tema porque separa el bloque de la página. */
+  pre, pre code, .card pre { border: 1px solid var(--color-base-300); }
   /* Tarjetas brand-50 (cyan claro): en dark son ilegibles → invertir tinte. */
-  .bg-brand-50 { background-color: color-mix(in oklch, var(--color-primary) 22%, var(--color-base-100)) !important; }
   /* `brand-100` se quedó fuera y es el mismo caso: el avatar del perfil del panel es
    * `bg-brand-100 text-brand-700`, y con el texto ya remapeado a un tono claro quedaban las iniciales
    * a 2.32:1 sobre un fondo que seguía siendo azul claro de tema claro. */
-  .bg-brand-100 { background-color: color-mix(in oklch, var(--color-primary) 30%, var(--color-base-100)) !important; }
 
-  /* Los FONDOS de la escala `ink` son claros por definición y no dependen del tema: en oscuro se
-   * quedaban tal cual mientras el texto de encima sí se remapeaba arriba a tonos claros. El resultado
-   * era texto casi blanco sobre fondo casi blanco. Medido en este mismo tema:
-   *
-   *   .text-ink-900 sobre .bg-ink-50   -> 1.07:1     .text-ink-700 sobre .bg-ink-100 -> 1.22:1
-   *   .text-ink-600 sobre .bg-ink-100  -> 1.50:1     .text-ink-500 sobre .bg-ink-50  -> 2.67:1
-   *
-   * El mínimo de la norma para texto corriente es 4.5:1, así que eran bloques ILEGIBLES, no bloques
-   * flojos. Afectaba a 58 ficheros —cartera, pedidos, cuenta, afiliado y buena parte del panel—, que
-   * es justo donde hay tablas y fichas con fondo tenue.
-   *
-   * Se traducen a las superficies del tema, que es lo que ya se hizo arriba con `.bg-brand-50`. Las
-   * clases se enumeran una a una a propósito: con `[class*="bg-ink-50"]` entrarían también las
-   * variantes `hover:bg-ink-50`, y el fondo se pintaría SIEMPRE en vez de solo al pasar por encima. */
-  .bg-ink-50,
-  .bg-ink-50\/40,
-  .bg-ink-50\/50,
-  .bg-ink-50\/60 { background-color: var(--color-base-200) !important; }
-  .bg-ink-100 { background-color: var(--color-base-300) !important; }
+  /* Lo que había aquí eran los parches de los FONDOS de `ink` —`bg-ink-50`, `bg-ink-100`,
+   * `border-ink-200` y sus variantes de `hover`—, enumerados a mano uno a uno. Los sustituye la
+   * redeclaración de las variables de arriba, que además alcanza a los que nadie enumeró. */
   /* Mismo motivo que los fondos: un borde de la escala `ink` es claro por definición. */
-  .border-ink-200 { border-color: var(--color-base-300) !important; }
-  .hover\:bg-ink-50:hover,
-  .hover\:bg-ink-50\/50:hover { background-color: var(--color-base-200) !important; }
-  .border-brand-100 { border-color: color-mix(in oklch, var(--color-primary) 35%, transparent) !important; }
   /* `brand-800` y `brand-900` entran con los otros dos: son el MISMO caso y se quedaron fuera. El
    * chip de filtro activo (`border-brand-300 bg-brand-50 text-brand-800`) dejaba su valor a 1.40:1
    * sobre el fondo oscuro — en el catálogo se leía «Ordenar por:» y el valor simplemente no estaba. */
-  .text-brand-700, .text-brand-600,
-  .text-brand-800, .text-brand-900 { color: oklch(72% 0.16 248) !important; }
 
   /* Las VARIANTES DE ESTADO de esos mismos colores.
    *
@@ -1169,17 +1403,9 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
    * negro sobre el fondo oscuro: justo el elemento que se está señalando era el que no se leía.
    *
    * Van los mismos valores que sus clases base, para que señalar algo no cambie de paleta. */
-  .hover\:text-ink-900:hover { color: oklch(95% 0.015 245) !important; }
-  .hover\:text-ink-700:hover { color: oklch(86% 0.018 245) !important; }
-  .hover\:text-brand-700:hover,
-  .hover\:text-brand-800:hover { color: oklch(72% 0.16 248) !important; }
-  .group:hover .group-hover\:text-ink-600 { color: oklch(80% 0.020 245) !important; }
-  .group:hover .group-hover\:text-brand-700,
-  .group:hover .group-hover\:text-brand-600 { color: oklch(72% 0.16 248) !important; }
 
   /* Y lo mismo con el fondo de realce: `bg-brand-50` ya se traduce arriba, pero su variante al pasar
    * el ratón no, y dejaba un azul claro de tema claro debajo del texto. */
-  .hover\:bg-brand-50:hover { background-color: color-mix(in oklch, var(--color-primary) 22%, var(--color-base-100)) !important; }
 
   /* DROP-430: topbar admin sin tinte rosado */
   .navbar { background-color: var(--color-base-100) !important; }
@@ -1230,26 +1456,287 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
     border-color: var(--color-base-300);
   }
 
-  /* DROP-500/512: en dark mode los tonos pastel claros con texto oscuro
-   * (bg-emerald-100 text-emerald-700) quedaban casi invisibles sobre el
-   * fondo dark. Re-mapeamos los badges Tailwind a tonos saturados con
-   * texto claro/alto contraste. */
-  .badge.bg-emerald-100 { background-color: color-mix(in oklch, oklch(70% 0.13 150) 75%, var(--color-base-100)) !important; }
-  .badge.bg-emerald-100.text-emerald-700, .badge.bg-emerald-100.text-emerald-800 { color: oklch(15% 0.05 150) !important; }
-  .badge.bg-amber-100   { background-color: color-mix(in oklch, oklch(78% 0.13 85) 75%, var(--color-base-100)) !important; }
-  .badge.bg-amber-100.text-amber-700, .badge.bg-amber-100.text-amber-800 { color: oklch(20% 0.07 70) !important; }
-  .badge.bg-sky-100     { background-color: color-mix(in oklch, oklch(72% 0.10 230) 75%, var(--color-base-100)) !important; }
-  .badge.bg-sky-100.text-sky-700, .badge.bg-sky-100.text-sky-800 { color: oklch(16% 0.06 230) !important; }
-  .badge.bg-rose-100    { background-color: color-mix(in oklch, oklch(72% 0.12 25) 75%, var(--color-base-100)) !important; }
-  .badge.bg-rose-100.text-rose-700, .badge.bg-rose-100.text-rose-800 { color: oklch(16% 0.06 25) !important; }
-  .badge.bg-violet-100  { background-color: color-mix(in oklch, oklch(60% 0.07 250) 75%, var(--color-base-100)) !important; }
-  .badge.bg-violet-100.text-violet-700, .badge.bg-violet-100.text-violet-800 { color: oklch(24% 0.05 250) !important; }
-  .badge.bg-brand-50    { background-color: color-mix(in oklch, var(--color-primary) 40%, var(--color-base-100)) !important; }
-  .badge.bg-brand-50.text-brand-700, .badge.bg-brand-50.text-brand-800 { color: oklch(40% 0.16 248) !important; }
-  .badge.bg-ink-100, .badge.bg-ink-200 { background-color: var(--color-base-300) !important; color: var(--color-base-content) !important; }
-  /* Reforzar borde para visibilidad incluso si el fondo se confunde con base-300. */
-  .badge { border: 1px solid color-mix(in oklch, var(--color-base-300) 70%, transparent); }
+  /* Aquí vivía DROP-500/512: insignia a insignia, `bg-emerald-100`, `bg-amber-100`, `bg-sky-100`,
+   * `bg-rose-100`, `bg-violet-100` y `bg-brand-50`, cada una con su color de texto. Lo sustituye
+   * la inversión de las paletas de arriba, que además alcanza a los chips que NO llevan la clase
+   * `.badge` —estos selectores la exigían— y a las paletas que nadie puso en la lista, como
+   * `blue-100`, `indigo-100` y `red-100`. Por eso tres de los ocho estados de un pedido salían
+   * con un lenguaje de color distinto de los otros cinco.
+   *
+   * Se va con ellas el borde universal de `.badge`, que existía solo en oscuro y no en claro.
+   * Si se quiere, se declara para los dos temas y fuera de este bloque. */
 }
+/* ⟦OSCURO:ELEGIDO:FIN⟧ */
+
+/* La MISMA corrección para quien no ha elegido tema y trae el equipo en oscuro. */
+/* ⟦OSCURO:SISTEMA:INICIO⟧ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    /* ── La escala `ink` INVERTIDA, como variables ───────────────────────────────
+     * `ink-*` es una escala propia, fuera de daisyUI, y hasta ahora tenía un solo juego de
+     * valores: los del tema claro. El oscuro la corregía clase a clase con `!important`, y eso
+     * cubría solo lo que alguien se acordó de enumerar: `text-ink-900..300`, `bg-ink-50/100`,
+     * `border-ink-200` y poco más. Quedaban fuera `border-ink-100` (103 usos), `divide-ink-100`,
+     * `border-ink-300`, `ring-ink-*` y toda variante con opacidad.
+     *
+     * Tailwind 4 compila `.text-ink-700` a `color: var(--color-ink-700)`, no al literal. Así que
+     * redeclarar la variable aquí retiñe de golpe `text-`, `bg-`, `border-`, `ring-`, `divide-`,
+     * `fill-`, `stroke-`, `hover:`, `group-hover:` y las opacidades — sin un solo `!important`.
+     *
+     * Los valores son LOS MISMOS que ya escribían los parches, para que donde hoy funciona siga
+     * saliendo idéntico. Lo que cambia es que ahora también funciona donde no había parche.
+     * ─────────────────────────────────────────────────────────────────────────── */
+    --color-ink-50:  var(--color-base-200);
+    --color-ink-100: var(--color-base-300);
+    --color-ink-200: var(--color-base-300);
+    --color-ink-300: oklch(45% 0.020 245);
+    /* Subido de 55% a 63% el 20-oct-2026, por el mismo motivo que su gemelo claro: es el token
+   * del texto apagado, no el de los iconos. A 55% daba 3,26:1 sobre `base-200`. */
+  --color-ink-400: oklch(63% 0.020 245);
+    --color-ink-500: oklch(68% 0.020 245);
+    --color-ink-600: oklch(80% 0.020 245);
+    --color-ink-700: oklch(86% 0.018 245);
+    /* Sin parche previo: interpolado entre el 700 y el 900 para que la rampa no salte. */
+    --color-ink-800: oklch(90.5% 0.017 245);
+    --color-ink-900: oklch(95% 0.015 245);
+
+    /* ── Y la escala `brand`, por el mismo motivo ────────────────────────────────
+     * Mismo caso que `ink`: un solo juego de valores claros y un puñado de parches que cubrían
+     * lo enumerado. Quedaban fuera `bg-brand-500/600` (13 usos), `border-brand-200/300/500/600/700`
+     * (19) y `ring-brand-100` (5).
+     *
+     * Los tintes claros (50-300) se derivan de `primary` sobre el fondo, que es lo que ya hacían
+     * los parches. Los oscuros (500-900) van al tono claro único que usaba el parche de texto.
+     * `brand-100` tenía DOS valores en pugna —30 % de fondo y 35 % de borde—; se unifica en 32 %.
+     *
+     * `brand-400` pasa a ser `primary`, y eso mejora de paso el anillo de foco: lo dibuja
+     * `--color-brand-400`, que en oscuro era el azul del tema claro. Medido sobre el fondo oscuro,
+     * pasa de 3,35:1 a 5,52:1 — cumplía el 3:1 por poco y ahora con holgura.
+     * ─────────────────────────────────────────────────────────────────────────── */
+    --color-brand-50:  color-mix(in oklch, var(--color-primary) 22%, var(--color-base-100));
+    --color-brand-100: color-mix(in oklch, var(--color-primary) 32%, var(--color-base-100));
+    --color-brand-200: color-mix(in oklch, var(--color-primary) 45%, var(--color-base-100));
+    --color-brand-300: color-mix(in oklch, var(--color-primary) 60%, var(--color-base-100));
+    --color-brand-400: var(--color-primary);
+    --color-brand-500: oklch(72% 0.16 248);
+    --color-brand-600: oklch(72% 0.16 248);
+    --color-brand-700: oklch(72% 0.16 248);
+    --color-brand-800: oklch(72% 0.16 248);
+    --color-brand-900: oklch(72% 0.16 248);
+
+    /* ── Y las paletas crudas de Tailwind ────────────────────────────────────────
+     * 383 usos en 105 ficheros, sin un solo remapeo: en oscuro conservaban su valor del tema
+     * claro. Medido sobre el fondo oscuro: `text-slate-900` daba 1,02:1 —invisible—, `red-700`
+     * 2,72:1, `emerald-700` 3,21:1 y `amber-700` 3,50:1. Ninguno llega al 4,5 que pide AA.
+     *
+     * No es diversidad de diseño: es la misma decisión escrita de seis maneras. El 90 % del uso
+     * son rojo (error), verde (éxito) y ámbar (aviso), y lo que había que hacer era tratarlos
+     * como lo que son. Aquí se invierten por rampa, con UNA regla explícita:
+     *
+     *   50-200   superficies tenues  → se vuelven OSCURAS, mezclando el token sobre el fondo
+     *   300-500  bordes e iconos     → NO se tocan. La portada los usa como paleta categórica,
+     *                                  y varios son relleno sólido con texto blanco encima
+     *   600-900  texto sobre tinte   → se vuelven CLAROS, a oklch(72%), que da 5,5-6,5:1
+     *
+     * Los tintes se derivan de los tokens del tema, no de un literal, para que sigan a la paleta
+     * si cambia. Y `slate` no se invierte: se ALINEA con `ink`, que es lo que debió ser desde el
+     * principio — eso arregla solo el panel de cookies y la tarjeta de compras del admin.
+     * ─────────────────────────────────────────────────────────────────────────── */
+
+    /* Rojo y rosa = error. */
+    --color-red-50:    color-mix(in oklch, var(--color-error) 12%, var(--color-base-100));
+    --color-red-100:   color-mix(in oklch, var(--color-error) 18%, var(--color-base-100));
+    --color-red-200:   color-mix(in oklch, var(--color-error) 26%, var(--color-base-100));
+    --color-red-600:   oklch(72% 0.14 25);
+    --color-red-700:   oklch(72% 0.14 25);
+    --color-red-800:   oklch(72% 0.14 25);
+    --color-rose-400:  oklch(72% 0.14 15);
+    --color-rose-500:  oklch(72% 0.14 15);
+    --color-rose-600:  oklch(72% 0.14 15);
+
+    /* Verde = éxito. */
+    --color-emerald-50:  color-mix(in oklch, var(--color-success) 12%, var(--color-base-100));
+    --color-emerald-100: color-mix(in oklch, var(--color-success) 18%, var(--color-base-100));
+    --color-emerald-200: color-mix(in oklch, var(--color-success) 26%, var(--color-base-100));
+    --color-emerald-600: oklch(72% 0.11 160);
+    --color-emerald-700: oklch(72% 0.11 160);
+    --color-emerald-800: oklch(72% 0.11 160);
+
+    /* Ámbar = aviso. */
+    --color-amber-50:  color-mix(in oklch, var(--color-warning) 12%, var(--color-base-100));
+    --color-amber-100: color-mix(in oklch, var(--color-warning) 18%, var(--color-base-100));
+    --color-amber-200: color-mix(in oklch, var(--color-warning) 26%, var(--color-base-100));
+    --color-amber-600: oklch(72% 0.13 80);
+    --color-amber-700: oklch(72% 0.13 80);
+    --color-amber-800: oklch(72% 0.13 80);
+    --color-amber-900: oklch(72% 0.13 80);
+
+    /* Azules = información. */
+    --color-blue-100:   color-mix(in oklch, var(--color-info) 18%, var(--color-base-100));
+    --color-indigo-100: color-mix(in oklch, var(--color-info) 18%, var(--color-base-100));
+    --color-blue-700:   oklch(72% 0.13 240);
+    --color-indigo-600: oklch(72% 0.13 240);
+    --color-indigo-700: oklch(72% 0.13 240);
+    --color-sky-600:    oklch(72% 0.13 240);
+
+    /* `slate` se alinea con `ink`: es la misma escala de grises azulados escrita dos veces. */
+    --color-slate-50:  var(--color-ink-50);
+    --color-slate-100: var(--color-ink-100);
+    --color-slate-200: var(--color-ink-200);
+    --color-slate-400: var(--color-ink-400);
+    --color-slate-500: var(--color-ink-500);
+    --color-slate-800: var(--color-ink-800);
+    --color-slate-900: var(--color-ink-900);
+
+    /* DROP-424: hero badges/icons legibles */
+    .hero .badge-outline { background-color: color-mix(in oklch, var(--color-base-100) 60%, transparent); }
+    .hero .kpi-icon { background-color: color-mix(in oklch, var(--color-primary) 28%, var(--color-base-100)); }
+
+    /* DROP-425: tarjetas de catálogo — fondo coherente con base-100 oscuro */
+    .card, .card-border {
+      background-color: var(--color-base-100) !important;
+      border-color: var(--color-base-300) !important;
+    }
+    .card.bg-base-100 { background-color: var(--color-base-100) !important; }
+
+    /* DROP-426: precios catálogo legibles (texto antes en azul oscuro) */
+    .card .text-brand-700,
+    .card .font-semibold.text-brand-700,
+    .card .text-primary-content {
+      color: var(--color-primary) !important;
+    }
+    .product-card .font-medium { color: var(--color-base-content) !important; }
+
+    /* La regla de arriba tiñe de `primary` cualquier `.text-primary-content` que viva en una `.card`,
+     * y está pensada para los PRECIOS de las tarjetas del catálogo. De paso atrapaba la cita del panel
+     * de marca de acceso y registro, que es un `figure.card` sobre una foto oscura: el texto salía del
+     * color exacto del fondo de su tarjeta —1.00:1, invisible—. Allí el color correcto es el que fija
+     * `.auth-hero-img`, así que se devuelve. */
+    .auth-hero-img .card .text-primary-content { color: var(--color-primary-content) !important; }
+    /* Y tampoco a un avatar: ahí `text-primary-content` es el texto SOBRE el círculo de color, que es
+     * justo lo que la regla de arriba convertía en invisible. */
+    .avatar .text-primary-content { color: var(--color-primary-content) !important; }
+
+    /* La regla por la CAUSA, no por el sitio. Las dos excepciones de arriba son el mismo fallo parcheado
+     * dos veces, y volvió a morder una tercera en la tarjeta «Vendido y enviado por»: un círculo
+     * `bg-primary text-primary-content` dentro de una `.card`, donde el icono salía del color exacto de
+     * su propio fondo —1,00:1, invisible en el tema oscuro—.
+     *
+     * Cuando `text-primary-content` convive con `bg-primary` en el MISMO elemento no es un precio: es
+     * texto encima del color de marca, y ahí su contraste ya está resuelto por definición. Teñirlo de
+     * `primary` no puede estar bien nunca. Acotarlo así cubre los que vengan sin una cuarta excepción. */
+    .card .bg-primary.text-primary-content { color: var(--color-primary-content) !important; }
+
+    /* DROP-427: features del pricing legibles */
+    .card .text-success, .card .text-warning, .card .text-info { filter: brightness(1.2); }
+
+    /* DROP-428: prose docs jerarquía + contraste fuerte */
+    .prose, .prose * { color: var(--color-base-content); }
+    .prose h1, .prose h2, .prose h3, .prose h4 { color: var(--color-base-content); opacity: 1; }
+    .prose code, .prose kbd {
+      background: color-mix(in oklch, var(--color-primary) 18%, var(--color-base-200)) !important;
+      color: var(--color-base-content) !important;
+      border: 1px solid var(--color-base-300);
+    }
+    .prose pre { background: var(--color-base-200); color: var(--color-base-content); }
+    .prose a { color: var(--color-primary); text-decoration: underline; }
+    .prose strong, .prose b { color: var(--color-base-content); font-weight: 600; }
+
+    /* La sidebar TOC del docs casi desaparecía: subir contraste y reforzar
+     * el item activo con un fondo claro sobre dark. */
+    aside nav a:hover { background-color: color-mix(in oklch, var(--color-primary) 16%, transparent) !important; }
+    /* Bloque de código: garantizar fondo elevado distinguible del page bg. */
+    /* El fondo de los bloques `pre` ya no se parchea aquí: lo fija la utilidad
+     * `superficie-codigo`, que es oscura en los dos temas. Solo queda el borde, que sí depende
+     * del tema porque separa el bloque de la página. */
+    pre, pre code, .card pre { border: 1px solid var(--color-base-300); }
+    /* Tarjetas brand-50 (cyan claro): en dark son ilegibles → invertir tinte. */
+    /* `brand-100` se quedó fuera y es el mismo caso: el avatar del perfil del panel es
+     * `bg-brand-100 text-brand-700`, y con el texto ya remapeado a un tono claro quedaban las iniciales
+     * a 2.32:1 sobre un fondo que seguía siendo azul claro de tema claro. */
+
+    /* Lo que había aquí eran los parches de los FONDOS de `ink` —`bg-ink-50`, `bg-ink-100`,
+     * `border-ink-200` y sus variantes de `hover`—, enumerados a mano uno a uno. Los sustituye la
+     * redeclaración de las variables de arriba, que además alcanza a los que nadie enumeró. */
+    /* Mismo motivo que los fondos: un borde de la escala `ink` es claro por definición. */
+    /* `brand-800` y `brand-900` entran con los otros dos: son el MISMO caso y se quedaron fuera. El
+     * chip de filtro activo (`border-brand-300 bg-brand-50 text-brand-800`) dejaba su valor a 1.40:1
+     * sobre el fondo oscuro — en el catálogo se leía «Ordenar por:» y el valor simplemente no estaba. */
+
+    /* Las VARIANTES DE ESTADO de esos mismos colores.
+     *
+     * Tailwind genera `hover:text-brand-700` como `.hover\:text-brand-700:hover`, que es otro selector:
+     * las reglas de arriba, escritas sobre la clase base, no lo alcanzan. Resultado: el color se
+     * remapeaba en reposo y al pasar el ratón volvía el tono ORIGINAL, pensado para fondo claro. En la
+     * miga de pan de la ficha —`hover:text-brand-700`— el enlace señalado pasaba a #0b3d78, un azul casi
+     * negro sobre el fondo oscuro: justo el elemento que se está señalando era el que no se leía.
+     *
+     * Van los mismos valores que sus clases base, para que señalar algo no cambie de paleta. */
+
+    /* Y lo mismo con el fondo de realce: `bg-brand-50` ya se traduce arriba, pero su variante al pasar
+     * el ratón no, y dejaba un azul claro de tema claro debajo del texto. */
+
+    /* DROP-430: topbar admin sin tinte rosado */
+    .navbar { background-color: var(--color-base-100) !important; }
+    .navbar.bg-base-100\/95 { background-color: color-mix(in oklch, var(--color-base-100) 95%, transparent) !important; }
+
+    /* DROP-431: zebra visible en dark — mayor diferencia entre filas */
+    .table.table-zebra tbody tr:nth-child(even) {
+      background-color: color-mix(in oklch, var(--color-primary) 10%, var(--color-base-100)) !important;
+    }
+    .table.table-zebra tbody tr:nth-child(odd) {
+      background-color: var(--color-base-100) !important;
+    }
+    .table tbody tr:hover {
+      background-color: color-mix(in oklch, var(--color-primary) 18%, var(--color-base-100)) !important;
+    }
+
+    /* DROP-432: inputs/selects/textarea con borde visible */
+    .input, .select, .textarea,
+    .input-bordered, .select-bordered, .textarea-bordered {
+      border-color: var(--color-base-300) !important;
+      border-width: 1px !important;
+      background-color: color-mix(in oklch, var(--color-base-100) 95%, var(--color-base-200)) !important;
+      color: var(--color-base-content);
+    }
+    .input:focus, .select:focus, .textarea:focus {
+      border-color: var(--color-primary) !important;
+      outline: 2px solid color-mix(in oklch, var(--color-primary) 30%, transparent);
+      outline-offset: -1px;
+    }
+
+    /* DROP-433: botones secundarios distinguibles */
+    .btn-outline {
+      border-color: color-mix(in oklch, var(--color-primary) 50%, var(--color-base-300)) !important;
+      color: var(--color-base-content);
+    }
+    .btn-outline:hover {
+      background-color: color-mix(in oklch, var(--color-primary) 20%, transparent) !important;
+      border-color: var(--color-primary) !important;
+      /* Aquí el relleno es tenue sobre un fondo OSCURO, así que lo legible es la letra clara: se
+       * mantiene `base-content` en vez del `primary` que fija la regla general. */
+      color: var(--color-base-content) !important;
+    }
+    .btn-ghost {
+      border: 1px solid color-mix(in oklch, var(--color-base-300) 60%, transparent);
+    }
+    .btn-ghost:hover {
+      background-color: color-mix(in oklch, var(--color-primary) 16%, transparent) !important;
+      border-color: var(--color-base-300);
+    }
+
+    /* Aquí vivía DROP-500/512: insignia a insignia, `bg-emerald-100`, `bg-amber-100`, `bg-sky-100`,
+     * `bg-rose-100`, `bg-violet-100` y `bg-brand-50`, cada una con su color de texto. Lo sustituye
+     * la inversión de las paletas de arriba, que además alcanza a los chips que NO llevan la clase
+     * `.badge` —estos selectores la exigían— y a las paletas que nadie puso en la lista, como
+     * `blue-100`, `indigo-100` y `red-100`. Por eso tres de los ocho estados de un pedido salían
+     * con un lenguaje de color distinto de los otros cinco.
+     *
+     * Se va con ellas el borde universal de `.badge`, que existía solo en oscuro y no en claro.
+     * Si se quiere, se declara para los dos temas y fuera de este bloque. */
+  }
+}
+/* ⟦OSCURO:SISTEMA:FIN⟧ */
 
 /* DROP-423 (light): precios en azul oscuro sobre fondo pastel rosa — más contraste */
 [data-theme="nx036-pastel"] .product-card .text-brand-700,
@@ -1341,7 +1828,7 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
    * Se fija la variable AQUÍ en vez de cambiar las siete clases del componente: así entran también
    * las variantes con opacidad (`/90`, `/95`, `/80`, `/60`) y el fondo y el borde de la tarjeta de
    * la cita, que son la misma decisión. En el tema claro no cambia nada: es el valor que ya tenía. */
-  --color-primary-content: #eef4fc;
+  --color-primary-content: var(--color-scrim-content);
 }
 .auth-hero-img::before {
   content: ""; position: absolute; inset: 0; z-index: 0;
@@ -1355,9 +1842,9 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
    * derecha; + un brillo azul de marca sutil desde abajo. Nada de lavado plano de color. */
   background:
     linear-gradient(103deg,
-      color-mix(in oklch, #08111d 92%, transparent) 0%,
-      color-mix(in oklch, #08111d 66%, transparent) 46%,
-      color-mix(in oklch, #0a1b30 34%, transparent) 100%),
+      color-mix(in oklch, var(--color-scrim) 92%, transparent) 0%,
+      color-mix(in oklch, var(--color-scrim) 66%, transparent) 46%,
+      color-mix(in oklch, var(--color-scrim-alto) 34%, transparent) 100%),
     linear-gradient(to top,
       color-mix(in oklch, var(--color-primary) 34%, transparent) 0%,
       transparent 52%);
@@ -1439,33 +1926,38 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
    ─────────────────────────────────────────────────────────────────────────────
 
    Son cuatro detalles pequeños, y son justo los que delatan a una web cuando se
-   usa con el dedo. Ninguno afecta al escritorio. */
-@media (max-width: 767px) {
+   usa con el dedo.
+
+   Estaban los cuatro en un `@media (max-width: 767px)`, que incumple la norma mobile first del
+   proyecto. Pero no son lo mismo y por eso se separan: dos dependen de que haya un DEDO, no de
+   que la pantalla sea estrecha, y para eso existe `pointer: coarse`, que dice exactamente eso.
+   Los otros dos no dependen de nada y se aplican siempre. */
+
+/* Lo que depende de que se toque con el dedo. */
+@media (pointer: coarse) {
   /* 1. El destello azul al tocar. Es la marca de fábrica del navegador: ninguna
         aplicación lo hace, y aparece en CADA toque. */
   a, button, [role="button"], input, select, textarea, summary {
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* 2. El rebote elástico al llegar al final. En una aplicación el contenido se
-        para; en el navegador se despega y asoma el fondo. */
-  html, body {
-    overscroll-behavior-y: contain;
-  }
-
-  /* 3. Que al tocar un campo no se acerque la pantalla de golpe. El navegador lo
+  /* 2. Que al tocar un campo no se acerque la pantalla de golpe. El navegador lo
         hace cuando la letra baja de 16px, y devolver el zoom es cosa del usuario:
-        se queda mirando un formulario descuadrado. */
+        se queda mirando un formulario descuadrado.
+        OJO: esta regla va sin capa, así que GANA a las utilidades de Tailwind. Sacarla de aquí
+        reventaría las tablas densas del panel, que llevan `<select>` a 11px a propósito. En una
+        pantalla táctil ese ensanchamiento es el mal menor; en escritorio sería gratuito. */
   input, select, textarea {
     font-size: max(16px, 1em);
   }
+}
 
-  /* 4. Lo fijo abajo respeta el indicador de inicio de los móviles sin botón. Sin
-        esto, la última franja de la pantalla queda bajo el gesto del sistema y no
-        se puede tocar. */
-  .fixed.bottom-0 {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
+/* Y lo que no depende del dispositivo: en escritorio `env()` vale cero y el rebote no estorba. */
+html, body {
+  overscroll-behavior-y: contain;
+}
+.fixed.bottom-0 {
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* Las hileras que se deslizan no enseñan su barra: ninguna aplicación la muestra, y en una franja de
@@ -1491,35 +1983,43 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
    ellos, que es lo que evita pulsar el que no es. En pantallas grandes no hay
    barra y no se toca nada. */
 :root {
-  /* Cuánto hay que subir lo que va anclado abajo. En pantallas grandes no hay barra de pestañas y vale
-     cero; el valor real se define en el media query de abajo. Existe como variable porque el asistente
-     se ARRASTRA y lleva su posición en un estilo en línea: una regla de hoja de estilos no puede
-     sobreescribirlo, pero sí puede entrar en su cálculo. */
-  --hueco-barra: 0px;
+  /* Cuánto hay que subir lo que va anclado abajo, para que no lo tape la barra de pestañas.
+     MOBILE FIRST: el valor por defecto es el del móvil —donde la barra existe— y el escritorio lo
+     devuelve a cero más abajo. Existe como variable porque el asistente se ARRASTRA y lleva su
+     posición en un estilo en línea: una regla de hoja de estilos no puede sobreescribirlo, pero sí
+     puede entrar en su cálculo.
+     3,5rem es el alto de la barra; el añadido es el indicador de inicio de los móviles sin botón. */
+  --hueco-barra: calc(3.5rem + env(safe-area-inset-bottom));
 }
 
-@media (max-width: 767px) {
+.fixed.bottom-6:not(nav) {
+  bottom: calc(1.5rem + var(--hueco-barra));
+}
+.fixed.bottom-28 {
+  bottom: calc(7rem + var(--hueco-barra));
+}
+
+/* En pantalla ancha no hay barra de pestañas, así que no hay hueco que dejar. */
+@media (min-width: 768px) {
   :root {
-    /* 3,5rem es el alto de la barra; el añadido es el indicador de inicio de los móviles sin botón. */
-    --hueco-barra: calc(3.5rem + env(safe-area-inset-bottom));
-  }
-
-  .fixed.bottom-6:not(nav) {
-    bottom: calc(1.5rem + var(--hueco-barra));
-  }
-  .fixed.bottom-28 {
-    bottom: calc(7rem + var(--hueco-barra));
+    --hueco-barra: 0px;
   }
 }
 
-/* El asistente y el chat, a escala de móvil.
-   58 px de personaje y 48 de botón de chat están pensados para una pantalla de escritorio; en 375 px
-   de ancho se comen una esquina entera y tapan producto. Se reducen a 42 y 40, que sigue estando muy
-   por encima del mínimo que se puede tocar con el dedo sin fallar. */
-@media (max-width: 767px) {
+/* El asistente, a escala de cada pantalla.
+   MOBILE FIRST: 42 px es el valor por defecto, y el escritorio sube a 58. Al revés —58 por defecto
+   y un `max-width` que lo baja— era lo que había, y además se lee peor: en 375 px de ancho un
+   personaje de 58 px se come una esquina entera y tapa producto. 42 sigue estando muy por encima
+   del mínimo que se puede tocar con el dedo sin fallar. */
+.personaje-asistente {
+  width: 42px;
+  height: 42px;
+}
+
+@media (min-width: 768px) {
   .personaje-asistente {
-    width: 42px;
-    height: 42px;
+    width: 58px;
+    height: 58px;
   }
 }
 

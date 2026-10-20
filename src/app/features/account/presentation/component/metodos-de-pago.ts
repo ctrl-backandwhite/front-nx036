@@ -46,7 +46,7 @@ import { BajaDeMetodo } from './baja-de-metodo';
             <div class="flex flex-col gap-2 border border-ink-100 rounded p-2.5 sm:flex-row sm:items-center sm:justify-between">
               <span class="flex items-center flex-wrap gap-2 text-[13px]">
                 @if (metodo.tipo === 'PAYPAL') {
-                  <fa-icon [icon]="iconos.paypal" class="text-[#003087]" />
+                  <fa-icon [icon]="iconos.paypal" class="text-[#003087] dark:text-[#009cde]" />
                   <span class="font-medium">PayPal</span>
                   <span class="text-ink-400">· {{ metodo.correoPaypal }}</span>
                 } @else {

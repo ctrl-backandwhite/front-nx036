@@ -99,9 +99,13 @@ const CONFIRMACION_MS = 1400;
             aria-hidden="true"
             class="absolute inset-0 z-10 flex items-center justify-center overflow-hidden"
           >
+            <!-- neutral y no ink-900: la banda de «agotado» necesita fondo oscuro con texto
+                 claro en LOS DOS temas, y desde que la escala ink se invierte por tema, ink-900
+                 se vuelve casi blanco en oscuro y dejaba blanco sobre blanco. neutral existe en
+                 ambos temas y trae su propio neutral-content, así que la pareja viaja junta. -->
             <span
-              class="w-[140%] -rotate-12 bg-ink-900/55 py-1.5 text-center text-[11px] font-semibold
-                     uppercase tracking-wider text-white backdrop-blur-[1px]"
+              class="w-[140%] -rotate-12 bg-neutral/55 py-1.5 text-center text-[11px] font-semibold
+                     uppercase tracking-wider text-neutral-content backdrop-blur-[1px]"
             >
               {{ t('product.out_of_stock') }}
             </span>
@@ -110,8 +114,9 @@ const CONFIRMACION_MS = 1400;
 
         <div class="absolute top-2 left-2 z-20 flex flex-col gap-1">
           @if (agotado()) {
+            <!-- Misma razón que la banda de arriba: la pareja fondo/texto va con neutral. -->
             <span
-              class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-ink-700 text-white shadow-sm"
+              class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-neutral text-neutral-content shadow-sm"
             >
               {{ t('product.out_of_stock') }}
             </span>
@@ -134,7 +139,7 @@ const CONFIRMACION_MS = 1400;
           }
           @if (etiquetas().includes('free_shipping')) {
             <span
-              class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-600 text-white shadow-sm"
+              class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-success text-success-content shadow-sm"
               [attr.aria-label]="t('catalog.filters.free_shipping')"
             >
               <fa-icon [icon]="iconos.camion" class="text-[9px]" />

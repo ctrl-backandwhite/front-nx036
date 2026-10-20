@@ -20,11 +20,11 @@ import { CopiaAlPortapapeles } from './copia-al-portapapeles';
   providers: [CopiaAlPortapapeles],
   template: `
     <div class="rounded-md overflow-hidden border border-ink-900/10">
-      <div class="bg-ink-900 text-ink-50 flex items-center justify-between text-[11px] px-3 py-1.5">
-        <span class="font-mono text-ink-400">{{ etiqueta() }}</span>
+      <div class="superficie-codigo flex items-center justify-between text-[11px] px-3 py-1.5">
+        <span class="font-mono texto-codigo-apagado">{{ etiqueta() }}</span>
         <button
           type="button"
-          class="text-ink-300 hover:text-white flex items-center gap-1"
+          class="texto-codigo-apagado hover:text-scrim-content flex items-center gap-1"
           (click)="portapapeles.copia(codigo())"
         >
           <fa-icon [icon]="portapapeles.copiado() ? iconos.hecho : iconos.copiar" class="text-[10px]" />
@@ -32,7 +32,7 @@ import { CopiaAlPortapapeles } from './copia-al-portapapeles';
         </button>
       </div>
       <pre
-        class="bg-ink-900 text-ink-50 p-3.5 overflow-x-auto text-[12px] leading-relaxed font-mono"
+        class="superficie-codigo p-3.5 overflow-x-auto text-[12px] leading-relaxed font-mono"
       ><code>{{ codigo() }}</code></pre>
     </div>
   `,
