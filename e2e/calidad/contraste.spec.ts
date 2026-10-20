@@ -77,7 +77,9 @@ function esDeuda(ruta: string, tema: string, selector: string): boolean {
  * comparar y la batería no puede afirmar contra qué versión está midiendo.
  */
 function hojaConstruida(): string {
-  const dir = join(process.cwd(), 'dist/front-nx036/browser');
+  // `DIST_NAVEGADOR` permite apuntar a otra carpeta: CI construye donde quiere, y en local
+  // sirve para medir sin tocar el `dist` del proyecto.
+  const dir = process.env['DIST_NAVEGADOR'] ?? join(process.cwd(), 'dist/front-nx036/browser');
   if (!existsSync(dir)) {
     throw new Error('No hay dist: construye antes de medir, o no se sabe contra qué versión se mide.');
   }
