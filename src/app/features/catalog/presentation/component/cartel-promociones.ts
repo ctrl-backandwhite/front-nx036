@@ -82,7 +82,7 @@ const ENTRADA_MS = 250;
             <a
               [routerLink]="['/catalog']"
               [queryParams]="{ promotionId: promo.id, promo: promo.nombre }"
-              class="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-ink-900 shadow-sm transition hover:bg-white/90"
+              class="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-scrim shadow-sm transition hover:bg-white/90"
             >
               {{ t('promo.banner.cta') }}
             </a>

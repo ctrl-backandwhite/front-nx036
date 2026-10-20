@@ -47,7 +47,7 @@ type Estado = 'resolviendo' | 'hecho' | 'error';
         }
       }
       <span
-        class="ml-auto inline-flex items-center gap-1 text-[10px] uppercase tracking-wide opacity-40"
+        class="ml-auto inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-ink-400"
       >
         <fa-icon [icon]="iconoEscudo" /> Altcha
       </span>

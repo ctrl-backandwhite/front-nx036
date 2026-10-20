@@ -82,7 +82,7 @@ const REDES = [
           <!-- La marca es «NX036» en toda la plataforma, sin la forma societaria. -->
           NX036
         </a>
-        <p class="text-[12px] opacity-70 mt-2 leading-relaxed">{{ t('footer.pitch') }}</p>
+        <p class="text-[12px] mt-2 leading-relaxed">{{ t('footer.pitch') }}</p>
       </aside>
       @for (columna of columnas; track columna.titulo) {
         <nav>
@@ -96,7 +96,7 @@ const REDES = [
       }
       <nav class="max-w-xs">
         <h6 class="footer-title text-[11px]">{{ t('newsletter.footer.title') }}</h6>
-        <p class="text-[12px] opacity-70 mb-2">{{ t('newsletter.footer.pitch') }}</p>
+        <p class="text-[12px] mb-2">{{ t('newsletter.footer.pitch') }}</p>
         <nx-alta-boletin
           [enviado]="boletinEnviado()"
           [yaSuscrito]="yaSuscrito()"

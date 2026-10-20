@@ -200,6 +200,63 @@
  * estructura. El nombre del theme se mantiene (nx036-pastel) por compat con data-theme / theme.ts.
  */
 /* ─────────────────────────────────────────────────────────────────────────────
+ * SUPERFICIE DE CÓDIGO: oscura en los DOS temas, a propósito.
+ *
+ * Un bloque de código es oscuro por convención, igual en una página clara que en una oscura.
+ * Estaba escrito como `bg-ink-900 text-ink-50`, que funcionaba mientras `ink` tenía un solo juego
+ * de valores. Desde que la escala se invierte por tema, en oscuro el bloque se vuelve CLARO sobre
+ * una página oscura —al revés de lo que debe ser— y el `text-white` de sus pestañas quedaba a
+ * 1,15:1, medido contra preproducción en /developers.
+ *
+ * Así que no es una escala invertible: es una superficie con su propia pareja fondo/texto, como el
+ * velo del panel de acceso. Reutiliza los mismos tokens.
+ * ───────────────────────────────────────────────────────────────────────────── */
+@utility superficie-codigo {
+  background-color: var(--color-scrim);
+  color: var(--color-scrim-content);
+}
+/* El tono apagado de dentro: rótulos de pestaña y botones de copiar. Medido sobre `scrim`
+ * (#08111d): 7,30:1, muy por encima del 4,5 que pide el texto normal. */
+@utility texto-codigo-apagado {
+  color: color-mix(in oklch, var(--color-scrim-content) 72%, var(--color-scrim));
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * LAS OPACIDADES SE MULTIPLICAN, Y ESA ES LA CAUSA DE CASI TODO EL TEXTO ILEGIBLE.
+ *
+ * Medido contra preproducción el 20-oct-2026 con axe, en los dos temas. El texto apagado de la
+ * aplicación ya llega con ALFA EN EL COLOR —`base-content/80` en el pie, `/60` en `stat-desc`,
+ * `/50` en una pestaña inactiva—, y encima el elemento añade su propia `opacity`. El navegador
+ * las multiplica:
+ *
+ *     pie, <p class="opacity-70">   alfa 0,80 × 0,70 = 0,56  → 3,75:1
+ *     pie, h6.footer-title           alfa 0,80 × 0,60 = 0,48  → 2,98:1   ← el peor del tema claro
+ *
+ * Lo que engaña al depurar: `opacity-70` por sí sola NO es el problema. Sobre `base-content`
+ * entero da 6,01:1 y pasa de sobra; hay 212 usos en la aplicación y están bien. Lo que falla es
+ * el SEGUNDO apagado sobre algo ya apagado, y eso no se ve leyendo la plantilla: hay que mirar la
+ * cadena de ancestros con opacidad, porque el culpable casi nunca es el elemento que axe señala.
+ *
+ * Aquí se corta la multiplicación en las piezas de daisyUI que la traen de fábrica: se les quita
+ * la opacidad y se les da el token del texto apagado, que ya está medido en los dos temas
+ * (claro #67727b 4,88:1 · oscuro oklch(68%) 5,49:1 sobre las dos superficies).
+ *
+ * Y una que NO se arregla desde aquí: `opacity-40` es irrecuperable. Ni con negro puro sobre la
+ * superficie más clara pasa de 2,82:1, ni con blanco puro sobre la oscura de 3,69:1. No hay token
+ * que lo salve; esos 20 usos tienen que dejar de apagar al 40 % el texto que sí hay que leer.
+ * ───────────────────────────────────────────────────────────────────────────── */
+.footer-title {
+  opacity: 1;
+  color: var(--color-ink-500);
+}
+.stat-desc {
+  color: var(--color-ink-500);
+}
+[role='tablist'] > .tab:not(.tab-active) {
+  color: var(--color-ink-500);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
  * LA VARIANTE `dark:`, ATADA AL TEMA Y NO SOLO AL SISTEMA.
  *
  * En Tailwind 4, `dark:` sigue por defecto a `prefers-color-scheme`. Pero esta aplicación pinta
@@ -338,10 +395,17 @@
    * declara a mano con `!important`: el tono muteado salía en oscuro y no en claro, justo al revés
    * de lo que uno supone al depurar.
    *
-   * Interpolados de los peldaños vecinos. El 400 se separa un poco del punto medio exacto (#8a98a4,
-   * 2,90:1) para cruzar el 3:1 que pide la norma para lo no textual, que es para lo que se usa:
-   * iconos, separadores y texto de apoyo. */
-  --color-ink-400: #80909c;
+   * Interpolados de los peldaños vecinos.
+   *
+   * EL 400 SE SUBIÓ A 4,5:1 EL 20-OCT-2026, y conviene saber por qué estaba donde estaba. Se fijó
+   * en #80909c para cruzar el 3:1 «de lo no textual, que es para lo que se usa». Esa frase
+   * describía una intención, no el código: hay 134 usos y TODOS son `text-ink-400` — mensajes de
+   * lista vacía, rótulos, pies de tabla. Es el token del texto apagado, y el listón del texto es
+   * 4,5:1, no 3:1. Medido contra preproducción daba 3,04:1 sobre la superficie más clara.
+   *
+   * El valor nuevo, #67727b, es oklch(54,5% .02 245): el MISMO tono, ocho puntos más oscuro.
+   * Da 4,54:1 y sigue siendo más claro que el 500 (#5c6e7c, 4,88:1), así que la rampa no se cruza. */
+  --color-ink-400: #67727b;
   --color-ink-600: #445665;
   --color-ink-800: #20303e;
   --color-ink-300: #b7c2cb;
@@ -1152,7 +1216,9 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
   --color-ink-100: var(--color-base-300);
   --color-ink-200: var(--color-base-300);
   --color-ink-300: oklch(45% 0.020 245);
-  --color-ink-400: oklch(55% 0.020 245);
+  /* Subido de 55% a 63% el 20-oct-2026, por el mismo motivo que su gemelo claro: es el token
+   * del texto apagado, no el de los iconos. A 55% daba 3,26:1 sobre `base-200`. */
+  --color-ink-400: oklch(63% 0.020 245);
   --color-ink-500: oklch(68% 0.020 245);
   --color-ink-600: oklch(80% 0.020 245);
   --color-ink-700: oklch(86% 0.018 245);
@@ -1306,11 +1372,10 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
    * el item activo con un fondo claro sobre dark. */
   aside nav a:hover { background-color: color-mix(in oklch, var(--color-primary) 16%, transparent) !important; }
   /* Bloque de código: garantizar fondo elevado distinguible del page bg. */
-  pre, pre code, .card pre {
-    background-color: oklch(13% 0.015 245) !important;
-    color: oklch(92% 0.015 245) !important;
-    border: 1px solid var(--color-base-300);
-  }
+  /* El fondo de los bloques `pre` ya no se parchea aquí: lo fija la utilidad
+   * `superficie-codigo`, que es oscura en los dos temas. Solo queda el borde, que sí depende
+   * del tema porque separa el bloque de la página. */
+  pre, pre code, .card pre { border: 1px solid var(--color-base-300); }
   /* Tarjetas brand-50 (cyan claro): en dark son ilegibles → invertir tinte. */
   /* `brand-100` se quedó fuera y es el mismo caso: el avatar del perfil del panel es
    * `bg-brand-100 text-brand-700`, y con el texto ya remapeado a un tono claro quedaban las iniciales
@@ -1420,7 +1485,9 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
     --color-ink-100: var(--color-base-300);
     --color-ink-200: var(--color-base-300);
     --color-ink-300: oklch(45% 0.020 245);
-    --color-ink-400: oklch(55% 0.020 245);
+    /* Subido de 55% a 63% el 20-oct-2026, por el mismo motivo que su gemelo claro: es el token
+   * del texto apagado, no el de los iconos. A 55% daba 3,26:1 sobre `base-200`. */
+  --color-ink-400: oklch(63% 0.020 245);
     --color-ink-500: oklch(68% 0.020 245);
     --color-ink-600: oklch(80% 0.020 245);
     --color-ink-700: oklch(86% 0.018 245);
@@ -1574,11 +1641,10 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
      * el item activo con un fondo claro sobre dark. */
     aside nav a:hover { background-color: color-mix(in oklch, var(--color-primary) 16%, transparent) !important; }
     /* Bloque de código: garantizar fondo elevado distinguible del page bg. */
-    pre, pre code, .card pre {
-      background-color: oklch(13% 0.015 245) !important;
-      color: oklch(92% 0.015 245) !important;
-      border: 1px solid var(--color-base-300);
-    }
+    /* El fondo de los bloques `pre` ya no se parchea aquí: lo fija la utilidad
+     * `superficie-codigo`, que es oscura en los dos temas. Solo queda el borde, que sí depende
+     * del tema porque separa el bloque de la página. */
+    pre, pre code, .card pre { border: 1px solid var(--color-base-300); }
     /* Tarjetas brand-50 (cyan claro): en dark son ilegibles → invertir tinte. */
     /* `brand-100` se quedó fuera y es el mismo caso: el avatar del perfil del panel es
      * `bg-brand-100 text-brand-700`, y con el texto ya remapeado a un tono claro quedaban las iniciales
