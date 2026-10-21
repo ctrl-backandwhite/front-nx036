@@ -1,5 +1,6 @@
-import { BrowserContext, Page, expect, test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { ANGULAR, abre } from '../util/comparador';
+import { ADMIN, CLIENTE, entra, olvida } from '../util/sesion';
 
 /**
  * Certificación con SESIÓN, recorriendo la aplicación como lo haría una persona.
@@ -13,9 +14,12 @@ import { ANGULAR, abre } from '../util/comparador';
  *
  * <p>Las cuentas son las de certificación del proyecto, creadas en la base local y desechables. No se
  * pueden dar de alta por la API porque el registro exige resolver un CAPTCHA.
+ * <p>Las credenciales y el propio acceso salen de util/sesion.ts, que es el ÚNICO sitio donde se
+ * declaran. Aquí estaban cableadas por duplicado y eso costó la tanda del 21-oct-2026: se
+ * parametrizó el ayudante para poder certificar preproducción, pero esta copia siguió pidiendo
+ * cert-admin@local.test, que allí no existe. Las 22 pruebas de flujo fallaban con un tiempo agotado
+ * esperando salir de /login, sin mencionar la cuenta por ningún sitio.
  */
-const CLIENTE = { correo: 'cert-cliente@local.test', clave: 'CertLocal2026!' };
-const ADMIN = { correo: 'cert-admin@local.test', clave: 'CertLocal2026!' };
 
 /** Busca el primer identificador de producto que aparezca en la respuesta, sea cual sea su forma. */
 function buscaSlug(dato: unknown, profundidad = 0): string | undefined {
@@ -52,84 +56,12 @@ function buscaSlug(dato: unknown, profundidad = 0): string | undefined {
  */
 const FRONTS = [{ nombre: 'Angular', base: ANGULAR }] as const;
 
-/**
- * Sesiones ya abiertas, guardadas para no volver a pedirlas.
- *
- * <p>El backend LIMITA los accesos: a partir del undécimo en poco rato responde 429 y la pantalla se
- * queda donde está. Es una protección correcta contra la fuerza bruta, pero esta batería entraba por el
- * formulario en cada una de sus casi treinta pruebas, así que de la mitad en adelante lo que medía era
- * el limitador. Aparecía como pruebas distintas cada vez, con un tiempo agotado de treinta segundos que
- * no mencionaba el 429 por ninguna parte, y se venía atribuyendo a «carga de la máquina».
- *
- * <p>Ahora se entra UNA vez por cada front y cuenta —cuatro veces en toda la tanda— y las demás pruebas
- * reciben esa sesión ya hecha. La prueba que certifica el formulario en sí pide expresamente entrar de
- * verdad, que para eso está.
- */
-type Cookies = Awaited<ReturnType<BrowserContext['storageState']>>['cookies'];
-
-const sesiones = new Map<string, { cookies: Cookies; almacen: Record<string, string> }>();
-
-/**
- * Abre sesión por la pantalla de acceso, no por la API.
- *
- * <p>Es deliberado y cuesta unos segundos más: entrar por la API certificaría el backend, que no es lo
- * que se está portando. Lo que hay que comprobar es que el formulario recoge las credenciales, las
- * manda, guarda la sesión y lleva a donde toca — que son cuatro cosas que se pueden romper por separado.
- * Por eso la primera vez SIEMPRE se entra de verdad: lo que se reutiliza después es su resultado.
- */
-async function entra(
-  page: Page,
-  base: string,
-  cuenta: { correo: string; clave: string },
-  opciones: { siempreDeVerdad?: boolean } = {},
-): Promise<void> {
-  const clave = `${base}|${cuenta.correo}`;
-  const guardada = sesiones.get(clave);
-
-  if (guardada && !opciones.siempreDeVerdad) {
-    await page.context().addCookies(guardada.cookies);
-    // El almacén local se repone ANTES de que arranque la aplicación: si se hiciera después, ya habría
-    // decidido que no hay sesión.
-    await page.addInitScript((entradas: Record<string, string>) => {
-      for (const [k, v] of Object.entries(entradas)) {
-        try {
-          localStorage.setItem(k, v);
-        } catch {
-          /* una ventana privada puede negarse: la prueba lo dirá por otro sitio */
-        }
-      }
-    }, guardada.almacen);
-    await page.goto(`${base}/`, { waitUntil: 'domcontentloaded' });
-    return;
-  }
-
-  await page.goto(`${base}/login`, { waitUntil: 'domcontentloaded' });
-
-  // Los dos frontends etiquetan igual los campos, pero no comparten marcado: se busca por tipo, que es
-  // lo estable, y se cae al identificador si hiciera falta.
-  await page.locator('input[type="email"]').first().fill(cuenta.correo);
-  await page.locator('input[type="password"]').first().fill(cuenta.clave);
-  await page.locator('button[type="submit"]').first().click();
-
-  // La entrada termina cuando la dirección deja de ser la de acceso. Se espera a eso y no a un texto
-  // concreto: el destino depende del papel de la cuenta.
-  await page.waitForURL((url) => !url.pathname.startsWith('/login'), { timeout: 30_000 });
-
-  const estado = await page.context().storageState();
-  const almacen: Record<string, string> = {};
-  for (const origen of estado.origins) {
-    for (const par of origen.localStorage) {
-      almacen[par.name] = par.value;
-    }
-  }
-  sesiones.set(clave, { cookies: estado.cookies, almacen });
-}
-
 for (const front of FRONTS) {
   test.describe(`${front.nombre} · recorrido con sesión`, () => {
     test('entra con la cuenta de cliente y llega a su zona', async ({ page }) => {
       // Esta es LA prueba del formulario: aquí no vale una sesión reutilizada.
-      await entra(page, front.base, CLIENTE, { siempreDeVerdad: true });
+      olvida(front.base, CLIENTE.correo);
+      await entra(page, front.base, CLIENTE);
 
       // A quien no es personal interno se le lleva al catálogo, que es su zona de trabajo.
       expect(new URL(page.url()).pathname).not.toBe('/login');
