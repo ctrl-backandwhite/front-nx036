@@ -149,6 +149,29 @@ import { TarjetaIndicador } from '../component/tarjeta-indicador';
           </div>
         }
       }
+    } @else {
+      <!--
+        La TERCERA rama, que no estaba.
+
+        Si la consulta falla —por ejemplo con una cuenta de administración, que no es afiliada y
+        recibe un 422— el panel se queda a nulo y cargando a falso. Sin este bloque no se pintaba
+        NADA: pantalla en blanco dentro del marco, sin mensaje, sin aviso y sin nada que explicara
+        qué había pasado. El menú del panel enlaza aquí, así que quien lo pulsaba creía que estaba
+        roto. Se vio certificando en el navegador; ninguna prueba lo miraba.
+
+        Se reutilizan dos claves que ya existen en los ocho idiomas en vez de inventar otras.
+      -->
+      <div class="space-y-4 max-w-lg mx-auto text-center card p-6">
+        <div
+          class="mx-auto w-12 h-12 rounded-full bg-base-200 text-ink-500 flex items-center justify-center"
+        >
+          <fa-icon [icon]="iconos.reloj" class="text-xl" />
+        </div>
+        <p class="text-ink-600">{{ t('common.error') }}</p>
+        <button type="button" class="btn btn-primary min-h-11 sm:min-h-0" (click)="reintenta()">
+          {{ t('common.retry') }}
+        </button>
+      </div>
     }
   `,
 })
@@ -195,6 +218,11 @@ export class AfiliadoPage {
     return this.traduccion.tCon('affiliate.subtitle', {
       pct: this.panel()?.porcentajeDeComision ?? 0,
     });
+  }
+
+  /** Vuelve a pedir el panel desde la rama de error, sin obligar a recargar la pantalla entera. */
+  protected reintenta(): void {
+    void this.carga();
   }
 
   private async carga(): Promise<void> {

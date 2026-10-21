@@ -80,8 +80,12 @@ import {
   BorraLimiteDeTransportista,
   ConsultaAlmacenes,
   ConsultaLimitesDeTransportista,
+  BorraTarifaDeTransportista,
+  ConsultaTarifasDeTransportista,
   GuardaAlmacen,
   GuardaLimiteDeTransportista,
+  GuardaTarifaDeTransportista,
+  RefrescaTarifasDeTransportista,
 } from './application/logistica/use-case/configura-logistica.use-case';
 import {
   AlternaImpuestoDePais,
@@ -194,6 +198,15 @@ export function proveeAdminLogistica(): EnvironmentProviders {
     GuardaLimiteDeTransportista,
     AlternaLimiteDeTransportista,
     BorraLimiteDeTransportista,
+    /* Faltaban los dos de TARIFAS y la pantalla era inalcanzable: su puerto sí estaba registrado
+     * —de ahí que pareciera completo— pero los casos de uso no, así que el componente moría al
+     * construirse con NG0201 y el outlet se quedaba vacío. Sale como pantalla en blanco, sin error
+     * visible y sin ninguna petición fallida que lo delate. No lo cazaba nada porque
+     * /admin/carrier-rates no estaba en la lista de pantallas que se certifican. */
+    ConsultaTarifasDeTransportista,
+    RefrescaTarifasDeTransportista,
+    GuardaTarifaDeTransportista,
+    BorraTarifaDeTransportista,
     ConsultaAlmacenes,
     GuardaAlmacen,
     BorraAlmacen,
