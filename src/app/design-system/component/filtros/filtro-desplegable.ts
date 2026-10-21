@@ -87,7 +87,7 @@ const TECLAS_DE_NAVEGACION = ['ArrowDown', 'ArrowUp', 'Home', 'End'];
           [attr.aria-label]="etiqueta()"
           (keydown)="navega($event)"
           tabindex="-1"
-          class="absolute left-0 top-full mt-1 min-w-[14rem] max-w-[20rem] bg-base-100 border border-ink-200 rounded-lg shadow-lg z-30 overflow-hidden"
+          class="fixed inset-x-2 top-auto mt-1 z-40 sm:absolute sm:inset-x-auto sm:left-0 sm:top-full sm:z-30 sm:min-w-[14rem] sm:max-w-[20rem] bg-base-100 border border-ink-200 rounded-lg shadow-lg overflow-hidden"
         >
           @if (conBuscador()) {
             <div class="p-2 border-b border-ink-100 relative">

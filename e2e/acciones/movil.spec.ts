@@ -1615,6 +1615,56 @@ test.describe('lo estético del móvil', () => {
   }
 
   /**
+   * UN FILTRO ABIERTO TAMPOCO PUEDE SACAR LA PÁGINA DE LA PANTALLA.
+   *
+   * <p>QUÉ SE ROMPIÓ. A 384 px, abrir el filtro «Proveedor» del catálogo desplazaba el documento
+   * entero 84 px: el título se leía «ógo» y los demás filtros perdían su principio. El panel es
+   * `absolute left-0` con un suelo de 14rem, se ancla a una pastilla que ya empieza a 168 px del
+   * borde, y nada en `styles.css` recorta el eje X del documento —se descartó a propósito, porque
+   * `overflow-x: hidden` en el cuerpo mata `position: sticky`—.
+   *
+   * <p>POR QUÉ NO LO VIO NADIE. Las pruebas que miden el desborde lo hacen con la pantalla RECIÉN
+   * ABIERTA. Un panel desplegado es un estado que solo existe mientras alguien opera, y ahí no
+   * miraba nadie. Medido en preproducción: «Proveedor» 84 px y «Certificación» 28 px; los otros
+   * cinco caben. Que cinco de siete quepan es justo lo que hace que el fallo pase desapercibido.
+   *
+   * <p>Y UNA TRAMPA AL ESCRIBIR ESTO, por si alguien la repite: en móvil los siete desplegables
+   * están DENTRO del bloque plegable de filtros. Existen en el DOM desde el principio, así que un
+   * sondeo que los pulse sin abrir el bloque antes no pulsa nada —y si además se tragan los errores
+   * con un `catch` vacío, sale un cero tranquilizador. La primera medición que hice decía 0 px.
+   */
+  test('ningún filtro del catálogo saca la página de la pantalla al abrirse', async ({ page }) => {
+    await enLaPantalla(page, ANGULAR, '/catalog');
+
+    // En móvil los filtros viven detrás de su propio plegable: sin abrirlo no hay nada que pulsar.
+    const plegable = page.getByRole('button', { name: /filtros/i }).first();
+    if (await plegable.isVisible().catch(() => false)) {
+      await plegable.click();
+    }
+
+    const desplegables = page.locator('nx-filtro-desplegable');
+    const cuantos = await desplegables.count();
+    expect(cuantos, 'el catálogo tiene que ofrecer sus filtros').toBeGreaterThan(0);
+
+    for (let i = 0; i < cuantos; i++) {
+      const chip = desplegables.nth(i).locator('button').first();
+      if (!(await chip.isVisible().catch(() => false))) {
+        continue;
+      }
+      const cual = (await chip.innerText()).replace(/\s+/g, ' ').trim();
+
+      await chip.click();
+      // El panel aparece al instante, pero su contenido —las opciones— puede llegar después, y es el
+      // contenido el que decide el ancho. Se espera a que haya algo dentro antes de medir.
+      await expect(desplegables.nth(i).locator('[role="option"], button').nth(1)).toBeVisible({ timeout: 5000 });
+
+      await sinDesplazamientoHorizontal(page, `con el filtro «${cual}» abierto`);
+
+      await page.keyboard.press('Escape');
+    }
+  });
+
+  /**
    * Nada que haya que pulsar puede medir menos de 24 píxeles, que es el mínimo del nivel AA que el
    * proyecto se fija.
    *

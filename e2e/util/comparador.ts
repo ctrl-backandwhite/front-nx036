@@ -147,12 +147,16 @@ export function vigilaLaConsola(page: Page): string[] {
  * sin contenedor propio, una imagen con ancho fijo, una rejilla que no baja a una columna. Se tolera un
  * píxel de holgura por los redondeos del navegador.
  */
-export async function sinDesplazamientoHorizontal(page: Page): Promise<void> {
+export async function sinDesplazamientoHorizontal(page: Page, cuando?: string): Promise<void> {
   const desborde = await page.evaluate(() => {
     const d = document.documentElement;
     return d.scrollWidth - d.clientWidth;
   });
-  expect(desborde, 'la página se desplaza en horizontal').toBeLessThanOrEqual(1);
+  // `cuando` es opcional y describe el ESTADO en que se midió —«con el filtro X abierto»—. Sin él, un
+  // fallo dice solo que la página se desplaza, y en una prueba que mide siete veces seguidas eso
+  // obliga a reproducirlo a mano para saber cuál de las siete fue.
+  const donde = cuando ? `la página se desplaza en horizontal ${cuando}` : 'la página se desplaza en horizontal';
+  expect(desborde, donde).toBeLessThanOrEqual(1);
 }
 
 /**
