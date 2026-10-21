@@ -47,7 +47,7 @@ test.describe('acciones de administración', () => {
    * 412 px sería otra batería con otros gestos. La MAQUETA del panel en móvil ya está certificada en
    * `flujo/panel-admin.spec.ts` y `paridad/movil.spec.ts`.
    */
-  test.beforeEach(async ({}, info) => {
+  test.beforeEach(async (_fixtures, info) => {
     test.skip(info.project.name !== 'escritorio', 'las acciones del panel se certifican en escritorio');
   });
 

@@ -133,6 +133,15 @@ for (const front of FRONTS) {
       expect(texto, 'enseña pedidos sin haber entrado').not.toMatch(/pedido n[.º]|nº de pedido|order #/i);
 
       if (front.nombre === 'Angular') {
+        /* Se ESPERA a la dirección, no se lee una vez.
+         *
+         * El guardián consulta si hay sesión antes de decidir, y eso es una llamada de red: el
+         * rebote a /login llega DESPUÉS de que la página se haya asentado. `abre` da por buena la
+         * pantalla en cuanto su texto deja de cambiar —y el aviso de cookies ya es texto—, así que
+         * leer la dirección ahí cazaba el instante anterior al rebote. Salía como «no manda a la
+         * pantalla de acceso» en las dos anchuras, y el pantallazo del fallo enseñaba el formulario
+         * de acceso: la aplicación hacía lo correcto y la prueba miraba demasiado pronto. */
+        await page.waitForURL((url) => url.pathname.startsWith('/login'), { timeout: 15_000 });
         expect(page.url(), 'no manda a la pantalla de acceso').toContain('/login');
       }
     });

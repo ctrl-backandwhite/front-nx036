@@ -55,14 +55,24 @@ export const RUTAS_PRIVADAS: readonly string[] = [
  * <p>Se quitaron cuatro entradas que no son rutas: el comodín literal `/admin/*` y tres caminos que
  * salían de concatenar mal el prefijo del panel al extraerlas del enrutador original. Comprobar que
  * «protegen» una dirección que no existe no prueba nada y ensucia el informe.
+ *
+ * <p>SINCRONIZADA el 21-oct-2026 contra las tres fuentes que declaran pantallas de panel, que es lo
+ * que costaba verlo: `features/admin/**` (catálogo, logística y gestión), `features/platform`
+ * —cinco pantallas que cuelgan del panel pero se declaran en su propio contexto— y `app.routes.ts`,
+ * que monta `browse` y `affiliate` directamente en el nodo del panel. Mirar solo la primera deja
+ * fuera un tercio. Hoy son 42 y la lista tiene las 42: entraron `/admin/carrier-rates`,
+ * `/admin/affiliate` y `/admin/browse`, y salió `/admin/notifications`, que no la declara nadie.
  */
 export const RUTAS_DE_PANEL: readonly string[] = [
   '/admin',
   '/admin/academy',
   '/admin/affiliates',
+  '/admin/affiliate',
   '/admin/billing',
+  '/admin/browse',
   '/admin/browse/:slug',
   '/admin/carrier-limits',
+  '/admin/carrier-rates',
   '/admin/catalog',
   '/admin/catalog/:id',
   '/admin/categories',
@@ -74,7 +84,6 @@ export const RUTAS_DE_PANEL: readonly string[] = [
   '/admin/legal',
   '/admin/mentors',
   '/admin/newsletter',
-  '/admin/notifications',
   '/admin/odm',
   '/admin/operator/earnings',
   '/admin/operators',
