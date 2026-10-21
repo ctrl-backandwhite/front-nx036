@@ -96,6 +96,51 @@ describe('mapa de rutas', () => {
     revisa(rutas, '');
   });
 
+  /**
+   * Quien PRIMERO reclama el camino vacío de `/admin` tiene que saber pintar algo.
+   *
+   * <p>Lo que se rompió el 21-oct-2026: el nodo `admin` cuelga varios grupos del mismo camino vacío
+   * —así se montan los marcos, y es correcto— pero uno de ellos, las pantallas de «platform»,
+   * envolvía las suyas en un padre `path: ''` sin ninguna hija vacía Y se cargaba ANTES que el panel
+   * de control. La dirección `/admin` la capturaba ese padre, que no tenía nada que pintar, y el
+   * panel salía EN BLANCO: el marco con su barra lateral y el contenido vacío.
+   *
+   * <p>No lo cazaba nada. Las otras cuarenta pantallas del panel abrían perfectamente, porque su
+   * resto de camino no está vacío; y la prueba de hermanas permite a propósito varios caminos
+   * vacíos. Se vio en el navegador, contra preproducción, y hubo que mirar el pantallazo.
+   *
+   * <p>Es la SEGUNDA vez —ya está documentado en `admin.routes.ts`— así que lo que se fija no es el
+   * orden, que volverá a cambiar, sino la condición: el PRIMERO que pueda quedarse con el camino
+   * vacío tiene que resolverlo, pintando él o teniendo una hija vacía que pinte. Los de detrás dan
+   * igual: no les llega.
+   */
+  it('quien primero reclama el camino vacío de /admin sabe qué pintar', async () => {
+    const admin = rutas.find((r) => r.path === 'admin');
+    expect(admin, 'no hay nodo /admin en el mapa').toBeDefined();
+
+    const enOrden: Route[] = [];
+    for (const hija of admin!.children ?? []) {
+      if (hija.loadChildren) {
+        const traidas = await hija.loadChildren();
+        enOrden.push(...(Array.isArray(traidas) ? traidas : []));
+      } else {
+        enOrden.push(hija);
+      }
+    }
+
+    const pinta = (r: Route): boolean =>
+      Boolean(r.loadComponent ?? r.component ?? r.redirectTo) ||
+      (r.children ?? []).some((h) => (h.path ?? '') === '');
+
+    const primera = enOrden.find((r) => (r.path ?? '') === '');
+    expect(primera, 'nadie resuelve /admin: el panel de control no tiene ruta').toBeDefined();
+    expect(
+      pinta(primera!),
+      'el primero que se queda con /admin no pinta nada ni tiene hija vacía: el panel de control ' +
+        'sale EN BLANCO, con su marco y el contenido hueco',
+    ).toBe(true);
+  });
+
   it('el comodín es siempre la ÚLTIMA de su nivel', () => {
     const revisa = (lista: Routes, donde: string): void => {
       const comodin = lista.findIndex((ruta) => ruta.path === '**');

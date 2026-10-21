@@ -1,4 +1,4 @@
-import { Routes } from '@angular/router';
+import { Route, Routes } from '@angular/router';
 import { exigeSesion } from '@core/auth/sesion.guard';
 import { proveePlatform } from '../platform.providers';
 
@@ -135,33 +135,36 @@ export const rutas: Routes = [
  *
  * <p>Sin guardián propio: el nodo del que cuelgan ya exige ADMIN u OPERATOR, y repetirlo aquí sería
  * tener dos sitios donde cambiar lo mismo.
+ *
+ * <p>Y SIN nodo envolvente de camino vacío, que es lo que tenía y dejó el PANEL DE CONTROL EN BLANCO.
+ * Este grupo se cuelga de `/admin` ANTES que el del propio panel. Con un padre `path: ''`, la
+ * dirección `/admin` —resto del camino vacío— la capturaba este grupo, que no tiene ninguna hija
+ * vacía que la atienda, y el marco se pintaba con el contenido vacío. Las demás pantallas del panel
+ * no lo notaban porque su resto del camino no está vacío.
+ *
+ * <p>Es la MISMA trampa que `admin.routes.ts` documenta y que ya se pagó una vez: un camino vacío
+ * repartido entre varios grupos solo lo resuelve el primero. Se reintrodujo al insertar este grupo
+ * por encima del suyo, y volvió a salir en blanco. Por eso aquí no hay padre: cada pantalla lleva
+ * su camino y sus proveedores, y nada reclama el camino vacío.
  */
+/**
+ * Una ruta del panel: su pantalla y los proveedores de este contexto, SIN nodo envolvente.
+ *
+ * <p>Los proveedores van en cada ruta y no en un padre de camino vacío. Ese padre existía y costó
+ * el panel de control entero: ver {@link rutasDelPanel}.
+ */
+function delPanel(camino: string, pantalla: Route['loadComponent']): Route {
+  return { path: camino, loadComponent: pantalla, providers: [proveePlatform()] };
+}
+
 export const rutasDelPanel: Routes = [
-  {
-    path: '',
-    providers: [proveePlatform()],
-    children: [
-      {
-        path: 'shops',
-        loadComponent: () => import('./page/tiendas.page').then((m) => m.TiendasPage),
-      },
-      {
-        path: 'sourcing',
-        loadComponent: () =>
-          import('./page/aprovisionamiento.page').then((m) => m.AprovisionamientoPage),
-      },
-      {
-        path: 'intelligence',
-        loadComponent: () => import('./page/inteligencia.page').then((m) => m.InteligenciaPage),
-      },
-      {
-        path: 'odm',
-        loadComponent: () => import('./page/odm.page').then((m) => m.OdmPage),
-      },
-      {
-        path: 'pod',
-        loadComponent: () => import('./page/pod.page').then((m) => m.PodPage),
-      },
-    ],
-  },
+  delPanel('shops', () => import('./page/tiendas.page').then((m) => m.TiendasPage)),
+  delPanel('sourcing', () =>
+    import('./page/aprovisionamiento.page').then((m) => m.AprovisionamientoPage),
+  ),
+  delPanel('intelligence', () =>
+    import('./page/inteligencia.page').then((m) => m.InteligenciaPage),
+  ),
+  delPanel('odm', () => import('./page/odm.page').then((m) => m.OdmPage)),
+  delPanel('pod', () => import('./page/pod.page').then((m) => m.PodPage)),
 ];
