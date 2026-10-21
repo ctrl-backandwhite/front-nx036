@@ -24,7 +24,8 @@ export const LEGAL_UPDATED = '2026-08-15'
 //
 // ⚠ PENDIENTES ANTES DE OPERAR CON LA LLC COMO VENDEDORA:
 //
-//   1. EIN. El SS-4 está presentado pero el número aún no ha llegado. `taxId` lleva un marcador.
+//   1. EIN. RESUELTO el 21-oct-2026: el IRS asignó el 61-2397623 el 15-10-2026. La carta oficial
+//      CP575 llega dentro de los 10 días hábiles siguientes y es la que sirve de verificación formal.
 //   2. REPRESENTANTE EN LA UNIÓN (art. 27 del RGPD). El responsable del tratamiento es la sociedad, que
 //      NO está establecida en la Unión, así que debe designar por escrito un representante que sí lo
 //      esté y publicarlo aquí. Puede serlo la misma persona que figura como operador económico.
@@ -44,7 +45,7 @@ const CO = {
   brand: 'NX036',
   /** Titular que contrata y responde. */
   name: 'NX036 LLC',
-  taxId: 'PENDIENTE-EIN',
+  taxId: '61-2397623',
   address: '30 N Gould St, Ste R, Sheridan, WY 82801, Estados Unidos',
   // El buzón de ATENCIÓN, no el de envío. Por aquí llegan los ejercicios de derechos del RGPD y los
   // desistimientos, así que tiene que ser uno que alguien lea: `no-reply@` habría hecho que esas
