@@ -97,47 +97,55 @@ describe('mapa de rutas', () => {
   });
 
   /**
-   * Quien PRIMERO reclama el camino vacío de `/admin` tiene que saber pintar algo.
+   * Quien PRIMERO reclama el camino vacío de `/admin` tiene que saber RESOLVERLO.
    *
-   * <p>Lo que se rompió el 21-oct-2026: el nodo `admin` cuelga varios grupos del mismo camino vacío
-   * —así se montan los marcos, y es correcto— pero uno de ellos, las pantallas de «platform»,
-   * envolvía las suyas en un padre `path: ''` sin ninguna hija vacía Y se cargaba ANTES que el panel
-   * de control. La dirección `/admin` la capturaba ese padre, que no tenía nada que pintar, y el
-   * panel salía EN BLANCO: el marco con su barra lateral y el contenido vacío.
+   * <p>El nodo `admin` cuelga varios grupos del mismo camino vacío. Eso es correcto —así se montan
+   * los marcos— pero tiene una condición que no se ve: el enrutador prueba el primero, y si ese
+   * grupo no trae ninguna ruta vacía **no vuelve atrás** a probar el hermano siguiente. La pantalla
+   * sale en blanco: el marco con su barra lateral y el contenido hueco.
    *
-   * <p>No lo cazaba nada. Las otras cuarenta pantallas del panel abrían perfectamente, porque su
-   * resto de camino no está vacío; y la prueba de hermanas permite a propósito varios caminos
-   * vacíos. Se vio en el navegador, contra preproducción, y hubo que mirar el pantallazo.
+   * <p>Ojo a la asimetría, que es lo que despista: para los caminos CON nombre sí vuelve atrás, así
+   * que `/admin/users` abría perfectamente mientras `/admin` no. Cuarenta pantallas en verde y la
+   * principal rota.
    *
-   * <p>Es la SEGUNDA vez —ya está documentado en `admin.routes.ts`— así que lo que se fija no es el
-   * orden, que volverá a cambiar, sino la condición: el PRIMERO que pueda quedarse con el camino
-   * vacío tiene que resolverlo, pintando él o teniendo una hija vacía que pinte. Los de detrás dan
-   * igual: no les llega.
+   * <p>Ha pasado DOS veces. La primera, con el panel de control dentro de «gestión» y «catálogo»
+   * delante —está contado en `admin.routes.ts`—. La segunda, el 21-oct-2026, al colgar del nodo las
+   * cinco pantallas de «platform» por encima del grupo del panel; llegó a producción y dejaba sin
+   * cuadro de mando tanto a administración como a soporte, que ni siquiera era redirigido a sus
+   * pedidos.
+   *
+   * <p>Por eso se comprueba SIN expandir primero: lo que importa es qué grupo se queda con la
+   * dirección, no qué hay dentro de todos juntos. Una versión anterior de esta prueba aplanaba los
+   * grupos antes de mirar, y por eso daba verde con el defecto puesto.
    */
-  it('quien primero reclama el camino vacío de /admin sabe qué pintar', async () => {
+  it('quien primero reclama el camino vacío de /admin sabe resolverlo', async () => {
     const admin = rutas.find((r) => r.path === 'admin');
     expect(admin, 'no hay nodo /admin en el mapa').toBeDefined();
 
-    const enOrden: Route[] = [];
-    for (const hija of admin!.children ?? []) {
-      if (hija.loadChildren) {
-        const traidas = await hija.loadChildren();
-        enOrden.push(...(Array.isArray(traidas) ? traidas : []));
-      } else {
-        enOrden.push(hija);
-      }
-    }
-
-    const pinta = (r: Route): boolean =>
+    const resuelveElVacio = (r: Route): boolean =>
       Boolean(r.loadComponent ?? r.component ?? r.redirectTo) ||
       (r.children ?? []).some((h) => (h.path ?? '') === '');
 
-    const primera = enOrden.find((r) => (r.path ?? '') === '');
-    expect(primera, 'nadie resuelve /admin: el panel de control no tiene ruta').toBeDefined();
+    const primera = (admin!.children ?? []).find((r) => (r.path ?? '') === '');
+    expect(primera, 'nadie reclama /admin: el panel de control no tiene ruta').toBeDefined();
+
+    /* Si el primero es un grupo en diferido, lo que decide es si TRAE una ruta vacía: es justo lo
+     * que le faltaba a «platform» y lo que dejó la pantalla hueca. */
+    const candidatas: Route[] = primera!.loadChildren
+      ? await (async () => {
+          const traidas = await primera!.loadChildren!();
+          return Array.isArray(traidas) ? traidas.filter((r) => (r.path ?? '') === '') : [];
+        })()
+      : [primera!];
+
     expect(
-      pinta(primera!),
-      'el primero que se queda con /admin no pinta nada ni tiene hija vacía: el panel de control ' +
-        'sale EN BLANCO, con su marco y el contenido hueco',
+      candidatas.length,
+      'el primer grupo que se queda con /admin no trae ninguna ruta vacía, y el enrutador NO vuelve ' +
+        'atrás: el panel de control sale EN BLANCO',
+    ).toBeGreaterThan(0);
+    expect(
+      resuelveElVacio(candidatas[0]),
+      'la ruta que se queda con /admin no sabe qué pintar ni adónde llevar',
     ).toBe(true);
   });
 

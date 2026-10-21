@@ -143,14 +143,31 @@ export const routes: Routes = [
        * proveedores en firme mete este contexto en el paquete inicial y se pasa el presupuesto de
        * arranque en 115 kB.
        */
+      /*
+       * EL GRUPO DEL PANEL VA PRIMERO, y el orden aquí no es cosmético.
+       *
+       * Los dos grupos cuelgan del MISMO camino vacío. Con `platform` delante, la dirección `/admin`
+       * —resto del camino vacío— la capturaba ese grupo, que no tiene ninguna ruta vacía que la
+       * atienda, y el enrutador NO vuelve atrás a probar el hermano siguiente: el panel de control
+       * salía EN BLANCO, con su barra lateral y el contenido hueco, para administración y para
+       * soporte. Medido en preproducción el 21-oct-2026, y estaba también en producción.
+       *
+       * Con el panel delante, `/admin` la resuelve su primera ruta —el cuadro de mando— y ya no hace
+       * falta volver atrás. Para los caminos CON nombre sí vuelve, que es como `/admin/users` seguía
+       * abriendo con `platform` delante; por eso `/admin/shops` sigue llegando a su sitio.
+       *
+       * Es la segunda vez que esto deja la misma pantalla en blanco —la primera está contada en
+       * `admin.routes.ts`— así que lo fija una prueba: `app.routes.spec.ts`, «quien primero reclama
+       * el camino vacío de /admin sabe resolverlo».
+       */
+      {
+        path: '',
+        loadChildren: () => import('@features/admin/presentation/admin.routes').then((m) => m.rutas),
+      },
       {
         path: '',
         loadChildren: () =>
           import('@features/platform/presentation/platform.routes').then((m) => m.rutasDelPanel),
-      },
-      {
-        path: '',
-        loadChildren: () => import('@features/admin/presentation/admin.routes').then((m) => m.rutas),
       },
     ],
   },
