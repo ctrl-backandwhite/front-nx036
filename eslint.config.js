@@ -330,6 +330,20 @@ module.exports = defineConfig([
   },
 
   {
+    /*
+     * Playwright EXIGE que el primer argumento sea una desestructuración, aunque esté vacía: es
+     * como detecta qué fixtures pide la prueba. En un `beforeEach` que solo mira `info` queda
+     * `({}, info)`, y eso es justo lo que `no-empty-pattern` denuncia.
+     *
+     * No es un aviso que se pueda «limpiar»: cambiarlo por `(_fixtures, info)` deja la suite sin
+     * arrancar con «First argument must use the object destructuring pattern». Se intentó el
+     * 21-oct-2026 y se cayeron las cinco baterías que lo usan, en el arranque y sin ejecutar nada.
+     */
+    files: ['e2e/**/*.ts'],
+    rules: { 'no-empty-pattern': 'off' },
+  },
+
+  {
     files: ['**/*.html'],
     extends: [angular.configs.templateRecommended, angular.configs.templateAccessibility],
     rules: {},

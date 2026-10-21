@@ -55,7 +55,7 @@ test.describe('acciones del cliente', () => {
    * otros gestos, no la misma con otro ancho. Lo que el móvil YA tiene certificado es su maqueta
    * (`paridad/movil.spec.ts`). Lo que queda sin cubrir es EJECUTAR estas acciones a 412 px.
    */
-  test.beforeEach(async (_fixtures, info) => {
+  test.beforeEach(async ({}, info) => {
     test.skip(info.project.name !== 'escritorio', 'las acciones se certifican a la anchura de escritorio');
   });
 

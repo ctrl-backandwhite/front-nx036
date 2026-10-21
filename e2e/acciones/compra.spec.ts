@@ -29,7 +29,7 @@ import { sinErroresDeConsola, vigilaLasPeticiones } from '../util/acciones';
  * se SALTA diciéndolo, en vez de fallar por un motivo que no es del código.
  */
 test.describe('la compra', () => {
-  test.beforeEach(async (_fixtures, info) => {
+  test.beforeEach(async ({}, info) => {
     test.skip(info.project.name !== 'escritorio', 'la compra se certifica a la anchura de escritorio');
   });
 

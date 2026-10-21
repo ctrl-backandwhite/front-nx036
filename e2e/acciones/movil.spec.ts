@@ -88,7 +88,7 @@ const SECCIONES = RUTAS_DE_PANEL.filter((ruta) => !ruta.includes(':'));
 
 test.describe('acciones del cliente en el móvil', () => {
   /** Solo a 412 px: son otros gestos, y a 1.440 px ni el cajón ni la barra de pestañas se pintan. */
-  test.beforeEach(async (_fixtures, info) => {
+  test.beforeEach(async ({}, info) => {
     test.skip(info.project.name !== 'movil', 'estas acciones son las del móvil: solo aplican a 412 px');
   });
 
@@ -816,7 +816,7 @@ test.describe('acciones del cliente en el móvil', () => {
 
 test.describe('acciones de administración en el móvil', () => {
   /** Solo a 412 px: por encima de 1.024 px el menú del panel deja de plegarse y el gesto desaparece. */
-  test.beforeEach(async (_fixtures, info) => {
+  test.beforeEach(async ({}, info) => {
     test.skip(info.project.name !== 'movil', 'estas acciones son las del móvil: solo aplican a 412 px');
   });
 
@@ -1571,7 +1571,7 @@ const YA_PEQUENOS: Readonly<Record<string, readonly string[]>> = {
 };
 
 test.describe('lo estético del móvil', () => {
-  test.beforeEach(async (_fixtures, info) => {
+  test.beforeEach(async ({}, info) => {
     test.skip(info.project.name !== 'movil', 'la maqueta del móvil solo se mide a 412 px');
   });
 
