@@ -1954,6 +1954,7 @@ const diccionario: Record<string, string> = {
   'affiliate.payout.profile.err_iban': 'Ongeldige IBAN',
   'affiliate.subtitle': 'Deel uw code en verdien 15% commissie op elke referral.',
   'affiliate.title': 'Partnerprogramma',
+  'affiliate.unavailable': 'We konden je partnerdashboard niet laden. Het programma is alleen voor klantaccounts: met een beheerders- of supportaccount heb je geen toegang.',
   'attr.brand': 'Merk',
   'attr.certifications': 'Certificeringen',
   'attr.dimensions': 'Afmetingen',

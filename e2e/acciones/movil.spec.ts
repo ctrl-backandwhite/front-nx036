@@ -1035,12 +1035,15 @@ test.describe('acciones de administración en el móvil', () => {
   /**
    * Edita un importe del desglose y lo DEVUELVE a su valor original.
    *
-   * <p>HALLAZGO DEL PORTE A ESTA ANCHURA: la única forma de abrir el campo es un DOBLE CLIC
-   * (`(dblclick)` en `nx-fila-de-yuanes`), y en una pantalla táctil no hay doble clic —dos toques
-   * seguidos son un gesto de zoom—. No hay lápiz, ni pulsación larga, ni ninguna otra puerta. Aquí se
-   * ejecuta con el doble clic que emula el navegador, así que lo que la prueba certifica es que la
-   * EDICIÓN funciona; que el gesto para llegar a ella no existe en un móvil de verdad queda anotado
-   * como defecto de accesibilidad táctil en el informe.
+   * <p>El defecto táctil que esta nota describía —que la ÚNICA puerta era un doble clic, imposible
+   * en una pantalla donde dos toques seguidos amplían— ya está corregido: `nx-fila-de-yuanes` lleva
+   * un lápiz al lado del importe, que además lo hace alcanzable con el teclado. Se deja escrito
+   * porque el texto anterior decía lo contrario y leerlo despistaba.
+   *
+   * <p>Y la etiqueta se pasa desde fuera a propósito: el RECARGO dejó de ser un importe en yuanes y
+   * pasó a porcentaje, así que su campo es «Recargo (%)» mientras los dos subsidios siguen en CNY.
+   * La prueba buscaba «Recargo (CNY)» y fallaba con «el doble clic no abre el campo de edición»,
+   * que acusa al gesto de algo que hacía bien.
    *
    * <p>El importe se restaura al terminar: el recargo es una de las tres palancas del precio de venta.
    */
@@ -1086,7 +1089,7 @@ test.describe('acciones de administración en el móvil', () => {
   }
 
   test('editar el Recargo enseña lo tecleado y lo guarda', async ({ page }) => {
-    await certificaImporte(page, 'Recargo', 'Recargo (CNY)');
+    await certificaImporte(page, 'Recargo', 'Recargo (%)');
   });
 
   test('editar el Subsidio de envío enseña lo tecleado y lo guarda', async ({ page }) => {

@@ -2644,6 +2644,7 @@ const diccionario: Record<string, string> = {
   'mentors.rate_hour': '/小时',
   'mentors.empty': '暂无可用导师',
   'affiliate.title': '联盟计划',
+  'affiliate.unavailable': '无法加载你的联盟面板。该计划仅面向客户账户：如果你的是管理或客服账户，将无法访问。',
   'affiliate.subtitle': '分享您的代码,每次推荐获得 15% 佣金。',
   'affiliate.code': '您的代码',
   'affiliate.earnings': '收益',

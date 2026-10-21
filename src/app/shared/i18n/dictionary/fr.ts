@@ -1955,6 +1955,7 @@ const diccionario: Record<string, string> = {
   'affiliate.payout.profile.err_iban': 'IBAN invalide',
   'affiliate.subtitle': 'Partagez votre code et gagnez 15 % de commission sur chaque parrainage.',
   'affiliate.title': 'Programme d\'affiliation',
+  'affiliate.unavailable': 'Nous n\'avons pas pu charger votre tableau de bord d\'affilié. Le programme est réservé aux comptes clients : si le vôtre est un compte d\'administration ou de support, vous n\'y aurez pas accès.',
   'attr.brand': 'Marque',
   'attr.certifications': 'Certifications',
   'attr.dimensions': 'Dimensions',

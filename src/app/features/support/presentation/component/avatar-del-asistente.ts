@@ -118,8 +118,14 @@ const SALUDO_MS = 7000;
                 El botón de la voz solo existe donde el navegador sabe hablar. Y encenderla ES la
                 interacción que los navegadores exigen antes de dejar sonar a una página.
               -->
+              <!--
+                Los cuatro botones de esta barra son SOLO el icono, y un icono de 11 px deja un
+                objetivo de 14x23: por debajo del mínimo de 24 que exige la norma táctil, y encima
+                este widget viaja en TODAS las pantallas, así que fallaba en todas a la vez. Se les
+                da el área con min-w-6 y min-h-6 sin tocar el icono, que es lo que fija el diseño.
+              -->
               @if (hayVoz()) {
-                <button type="button" class="opacity-70 hover:opacity-100"
+                <button type="button" class="opacity-70 hover:opacity-100 inline-flex items-center justify-center min-w-6 min-h-6"
                         [class.text-primary]="avatar.voz()"
                         [attr.aria-pressed]="avatar.voz()"
                         [attr.aria-label]="t(avatar.voz() ? 'avatar.voice_off' : 'avatar.voice_on')"
@@ -130,18 +136,18 @@ const SALUDO_MS = 7000;
               }
               <!-- Repetir: cada cosa se dice una sola vez, así que para volver a oírla se pide. -->
               @if (hayVoz() && avatar.voz()) {
-                <button type="button" class="opacity-70 hover:opacity-100"
+                <button type="button" class="opacity-70 hover:opacity-100 inline-flex items-center justify-center min-w-6 min-h-6"
                         [attr.aria-label]="t('avatar.repeat')" [title]="t('avatar.repeat')"
                         (click)="repite()">
                   <fa-icon [icon]="iconos.repetir" class="text-[11px]" />
                 </button>
               }
-              <button type="button" class="opacity-70 hover:opacity-100"
+              <button type="button" class="opacity-70 hover:opacity-100 inline-flex items-center justify-center min-w-6 min-h-6"
                       [attr.aria-label]="t('avatar.minimize')" [title]="t('avatar.minimize')"
                       (click)="cambiaEstado('mini')">
                 <fa-icon [icon]="iconos.encoger" class="text-[11px]" />
               </button>
-              <button type="button" class="opacity-70 hover:opacity-100"
+              <button type="button" class="opacity-70 hover:opacity-100 inline-flex items-center justify-center min-w-6 min-h-6"
                       [attr.aria-label]="t('avatar.hide')" [title]="t('avatar.hide')"
                       (click)="cambiaEstado('oculto')">
                 <fa-icon [icon]="iconos.ocultar" class="text-[11px]" />

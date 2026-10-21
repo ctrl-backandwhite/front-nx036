@@ -82,7 +82,7 @@ describe('AfiliadoPage', () => {
 
     await monta();
 
-    expect(await screen.findByText(/Algo salió mal|went wrong/i)).toBeTruthy();
+    expect(await screen.findByText(/solo para cuentas de cliente|customer accounts only/i)).toBeTruthy();
     const reintentar = screen.getByRole('button', { name: /Reintentar|Retry/i });
 
     consulta.ejecuta.mockResolvedValue(exito(panel()));
