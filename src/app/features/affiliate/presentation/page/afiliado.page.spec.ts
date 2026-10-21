@@ -70,6 +70,27 @@ describe('AfiliadoPage', () => {
     expect(alta).toBeEnabled();
   });
 
+  /**
+   * Cuando la consulta FALLA hay que decirlo, no dejar la pantalla vacía.
+   *
+   * <p>Es lo que pasaba con una cuenta de administración, que no es afiliada y recibe un 422: el
+   * panel quedaba a nulo, «cargando» a falso y la plantilla no tenía tercera rama. Pantalla en
+   * blanco dentro del marco del panel, sin mensaje ni aviso, enlazada desde el propio menú.
+   */
+  it('si no se puede leer el panel lo dice y deja reintentar', async () => {
+    consulta.ejecuta.mockResolvedValue(fallo(creaError('conflicto', 'no es afiliado')));
+
+    await monta();
+
+    expect(await screen.findByText(/solo para cuentas de cliente|customer accounts only/i)).toBeTruthy();
+    const reintentar = screen.getByRole('button', { name: /Reintentar|Retry/i });
+
+    consulta.ejecuta.mockResolvedValue(exito(panel()));
+    await userEvent.click(reintentar);
+
+    expect(consulta.ejecuta).toHaveBeenCalledTimes(2);
+  });
+
   it('al aceptar y pulsar, se inscribe', async () => {
     consulta.ejecuta.mockResolvedValue(exito(panel({ inscrito: false })));
     consulta.inscribe.mockResolvedValue(exito(panel()));

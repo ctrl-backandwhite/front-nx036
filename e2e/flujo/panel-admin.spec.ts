@@ -1,5 +1,6 @@
-import { Page, expect, test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { ANGULAR, abre, vigilaLaConsola } from '../util/comparador';
+import { ADMIN, entra } from '../util/sesion';
 import { RUTAS_DE_PANEL } from '../util/rutas';
 
 /**
@@ -13,12 +14,12 @@ import { RUTAS_DE_PANEL } from '../util/rutas';
  * no rebote al acceso, que traiga contenido y que no lance errores. No se afirma QUÉ dice cada
  * pantalla, porque eso depende de los datos que haya en la base; se afirma que funciona.
  *
- * <p>La sesión se abre UNA vez y se reutiliza. El backend limita los accesos —a partir del undécimo en
- * poco rato responde 429— y con cuarenta pantallas entrar en cada una convertiría esta batería en una
- * medición del limitador.
+ * <p>La sesión se abre UNA vez y se reutiliza, y de eso se encarga util/sesion.ts: el backend limita
+ * los accesos —a partir del undécimo en poco rato responde 429— y con cuarenta pantallas entrar en
+ * cada una convertiría esta batería en una medición del limitador. Aquí había una copia de ese
+ * ayudante con la cuenta cableada, y por eso la tanda contra preproducción del 21-oct-2026 no pudo
+ * abrir ni una pantalla: pedía cert-admin@local.test, que solo existe en la base local.
  */
-const ADMIN = { correo: 'cert-admin@local.test', clave: 'CertLocal2026!' };
-
 /**
  * Rutas sin parámetro: las que llevan `:algo` necesitan un dato real y se cubren en otra batería.
  *
@@ -29,47 +30,13 @@ const ADMIN = { correo: 'cert-admin@local.test', clave: 'CertLocal2026!' };
 const RUTAS = RUTAS_DE_PANEL.filter((r) => !r.includes(':'));
 
 
-const guardadas = new Map<string, { cookies: unknown[]; almacen: Record<string, string> }>();
-
-async function entraComoAdmin(page: Page, base: string): Promise<void> {
-  const guardada = guardadas.get(base);
-  if (guardada) {
-    await page.context().addCookies(guardada.cookies as never);
-    await page.addInitScript((entradas: Record<string, string>) => {
-      for (const [k, v] of Object.entries(entradas)) {
-        try {
-          localStorage.setItem(k, v);
-        } catch {
-          /* una ventana privada puede negarse */
-        }
-      }
-    }, guardada.almacen);
-    return;
-  }
-
-  await page.goto(`${base}/login`, { waitUntil: 'domcontentloaded' });
-  await page.locator('input[type="email"]').first().fill(ADMIN.correo);
-  await page.locator('input[type="password"]').first().fill(ADMIN.clave);
-  await page.locator('button[type="submit"]').first().click();
-  await page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 30_000 });
-
-  const estado = await page.context().storageState();
-  const almacen: Record<string, string> = {};
-  for (const origen of estado.origins) {
-    for (const par of origen.localStorage) {
-      almacen[par.name] = par.value;
-    }
-  }
-  guardadas.set(base, { cookies: estado.cookies, almacen });
-}
-
 // El React se retiró el 9-sep-2026: queda un solo frente que certificar.
 for (const front of [{ nombre: 'Angular', base: ANGULAR }] as const) {
   test.describe(`${front.nombre} · panel de administración`, () => {
     for (const ruta of RUTAS) {
       test(`${ruta} abre`, async ({ page }) => {
         const errores = vigilaLaConsola(page);
-        await entraComoAdmin(page, front.base);
+        await entra(page, front.base, ADMIN);
         await abre(page, `${front.base}${ruta}`);
 
         expect(new URL(page.url()).pathname, `${ruta} rebota al acceso con una cuenta de administración`)

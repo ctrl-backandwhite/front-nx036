@@ -14,8 +14,24 @@ import { join } from 'node:path';
  * tanda con fallos —la que más veces entra— es cuando hace falta que la sesión sobreviva.
  */
 
-export const CLIENTE = { correo: 'cert-cliente@local.test', clave: 'CertLocal2026!' };
-export const ADMIN = { correo: 'cert-admin@local.test', clave: 'CertLocal2026!' };
+/**
+ * Las credenciales se pueden SUSTITUIR por entorno, y hacía falta.
+ *
+ * <p>Estaban cableadas a `cert-*@local.test`, cuentas que se crearon a mano en la base LOCAL porque
+ * el alta por la API exige CAPTCHA. Contra cualquier otro entorno eso no entra: comprobado el
+ * 21-oct-2026, en preproducción no existe ninguna de las tres, así que las 244 pruebas de
+ * `acciones/` y `flujo/` —que son casi todo el panel— no podían correr allí. Y no había forma de
+ * notarlo leyendo el código: `CERT_EMAIL`/`CERT_PASS` existen, pero solo los usa `certificacion/`.
+ *
+ * <p>Los valores por defecto son los de siempre, así que en local no cambia nada.
+ */
+const deEntorno = (correo: string, clave: string, cuenta: string) => ({
+  correo: process.env[`CERT_${cuenta}_EMAIL`] ?? correo,
+  clave: process.env[`CERT_${cuenta}_PASS`] ?? clave,
+});
+
+export const CLIENTE = deEntorno('cert-cliente@local.test', 'CertLocal2026!', 'CLIENTE');
+export const ADMIN = deEntorno('cert-admin@local.test', 'CertLocal2026!', 'ADMIN');
 
 /**
  * La cuenta con papel OPERATOR: quien da soporte y procesa pedidos.
@@ -26,7 +42,7 @@ export const ADMIN = { correo: 'cert-admin@local.test', clave: 'CertLocal2026!' 
  * Misma contraseña que las otras dos; se creó a mano en la base local, como ellas, porque el alta por la
  * API exige CAPTCHA.
  */
-export const OPERADOR = { correo: 'cert-operador@local.test', clave: 'CertLocal2026!' };
+export const OPERADOR = deEntorno('cert-operador@local.test', 'CertLocal2026!', 'OPERADOR');
 
 /**
  * Lo único que se guarda y se repone: las CREDENCIALES.

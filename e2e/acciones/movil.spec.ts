@@ -1035,12 +1035,15 @@ test.describe('acciones de administración en el móvil', () => {
   /**
    * Edita un importe del desglose y lo DEVUELVE a su valor original.
    *
-   * <p>HALLAZGO DEL PORTE A ESTA ANCHURA: la única forma de abrir el campo es un DOBLE CLIC
-   * (`(dblclick)` en `nx-fila-de-yuanes`), y en una pantalla táctil no hay doble clic —dos toques
-   * seguidos son un gesto de zoom—. No hay lápiz, ni pulsación larga, ni ninguna otra puerta. Aquí se
-   * ejecuta con el doble clic que emula el navegador, así que lo que la prueba certifica es que la
-   * EDICIÓN funciona; que el gesto para llegar a ella no existe en un móvil de verdad queda anotado
-   * como defecto de accesibilidad táctil en el informe.
+   * <p>El defecto táctil que esta nota describía —que la ÚNICA puerta era un doble clic, imposible
+   * en una pantalla donde dos toques seguidos amplían— ya está corregido: `nx-fila-de-yuanes` lleva
+   * un lápiz al lado del importe, que además lo hace alcanzable con el teclado. Se deja escrito
+   * porque el texto anterior decía lo contrario y leerlo despistaba.
+   *
+   * <p>Y la etiqueta se pasa desde fuera a propósito: el RECARGO dejó de ser un importe en yuanes y
+   * pasó a porcentaje, así que su campo es «Recargo (%)» mientras los dos subsidios siguen en CNY.
+   * La prueba buscaba «Recargo (CNY)» y fallaba con «el doble clic no abre el campo de edición»,
+   * que acusa al gesto de algo que hacía bien.
    *
    * <p>El importe se restaura al terminar: el recargo es una de las tres palancas del precio de venta.
    */
@@ -1086,7 +1089,7 @@ test.describe('acciones de administración en el móvil', () => {
   }
 
   test('editar el Recargo enseña lo tecleado y lo guarda', async ({ page }) => {
-    await certificaImporte(page, 'Recargo', 'Recargo (CNY)');
+    await certificaImporte(page, 'Recargo', 'Recargo (%)');
   });
 
   test('editar el Subsidio de envío enseña lo tecleado y lo guarda', async ({ page }) => {
@@ -1613,6 +1616,56 @@ test.describe('lo estético del móvil', () => {
       await retrata(page, `porte-${comoSeLlamaElRetrato(ruta)}-cajon`);
     });
   }
+
+  /**
+   * UN FILTRO ABIERTO TAMPOCO PUEDE SACAR LA PÁGINA DE LA PANTALLA.
+   *
+   * <p>QUÉ SE ROMPIÓ. A 384 px, abrir el filtro «Proveedor» del catálogo desplazaba el documento
+   * entero 84 px: el título se leía «ógo» y los demás filtros perdían su principio. El panel es
+   * `absolute left-0` con un suelo de 14rem, se ancla a una pastilla que ya empieza a 168 px del
+   * borde, y nada en `styles.css` recorta el eje X del documento —se descartó a propósito, porque
+   * `overflow-x: hidden` en el cuerpo mata `position: sticky`—.
+   *
+   * <p>POR QUÉ NO LO VIO NADIE. Las pruebas que miden el desborde lo hacen con la pantalla RECIÉN
+   * ABIERTA. Un panel desplegado es un estado que solo existe mientras alguien opera, y ahí no
+   * miraba nadie. Medido en preproducción: «Proveedor» 84 px y «Certificación» 28 px; los otros
+   * cinco caben. Que cinco de siete quepan es justo lo que hace que el fallo pase desapercibido.
+   *
+   * <p>Y UNA TRAMPA AL ESCRIBIR ESTO, por si alguien la repite: en móvil los siete desplegables
+   * están DENTRO del bloque plegable de filtros. Existen en el DOM desde el principio, así que un
+   * sondeo que los pulse sin abrir el bloque antes no pulsa nada —y si además se tragan los errores
+   * con un `catch` vacío, sale un cero tranquilizador. La primera medición que hice decía 0 px.
+   */
+  test('ningún filtro del catálogo saca la página de la pantalla al abrirse', async ({ page }) => {
+    await enLaPantalla(page, ANGULAR, '/catalog');
+
+    // En móvil los filtros viven detrás de su propio plegable: sin abrirlo no hay nada que pulsar.
+    const plegable = page.getByRole('button', { name: /filtros/i }).first();
+    if (await plegable.isVisible().catch(() => false)) {
+      await plegable.click();
+    }
+
+    const desplegables = page.locator('nx-filtro-desplegable');
+    const cuantos = await desplegables.count();
+    expect(cuantos, 'el catálogo tiene que ofrecer sus filtros').toBeGreaterThan(0);
+
+    for (let i = 0; i < cuantos; i++) {
+      const chip = desplegables.nth(i).locator('button').first();
+      if (!(await chip.isVisible().catch(() => false))) {
+        continue;
+      }
+      const cual = (await chip.innerText()).replace(/\s+/g, ' ').trim();
+
+      await chip.click();
+      // El panel aparece al instante, pero su contenido —las opciones— puede llegar después, y es el
+      // contenido el que decide el ancho. Se espera a que haya algo dentro antes de medir.
+      await expect(desplegables.nth(i).locator('[role="option"], button').nth(1)).toBeVisible({ timeout: 5000 });
+
+      await sinDesplazamientoHorizontal(page, `con el filtro «${cual}» abierto`);
+
+      await page.keyboard.press('Escape');
+    }
+  });
 
   /**
    * Nada que haya que pulsar puede medir menos de 24 píxeles, que es el mínimo del nivel AA que el

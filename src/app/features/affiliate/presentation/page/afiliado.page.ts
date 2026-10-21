@@ -149,6 +149,33 @@ import { TarjetaIndicador } from '../component/tarjeta-indicador';
           </div>
         }
       }
+    } @else {
+      <!--
+        La TERCERA rama, que no estaba.
+
+        Si la consulta falla —por ejemplo con una cuenta de administración, que no es afiliada y
+        recibe un 422— el panel se queda a nulo y cargando a falso. Sin este bloque no se pintaba
+        NADA: pantalla en blanco dentro del marco, sin mensaje, sin aviso y sin nada que explicara
+        qué había pasado. El menú del panel enlaza aquí, así que quien lo pulsaba creía que estaba
+        roto. Se vio certificando en el navegador; ninguna prueba lo miraba.
+
+        Y DICE POR QUÉ, en vez de un «algo salió mal» a secas: /api/me/affiliate responde 200 a una
+        cuenta de cliente y 422 a administración y a soporte —el programa es solo para clientes—
+        así que a quien entra desde el menú del panel le pasa SIEMPRE. Un aviso escueto ahí no
+        informa de nada y deja la pantalla casi tan vacía como estaba.
+      -->
+      <div class="space-y-4 max-w-lg mx-auto text-center card p-6">
+        <div
+          class="mx-auto w-12 h-12 rounded-full bg-base-200 text-ink-500 flex items-center justify-center"
+        >
+          <fa-icon [icon]="iconos.reloj" class="text-xl" />
+        </div>
+        <h1 class="text-lg">{{ t('affiliate.title') }}</h1>
+        <p class="text-ink-600">{{ t('affiliate.unavailable') }}</p>
+        <button type="button" class="btn btn-primary min-h-11 sm:min-h-0" (click)="reintenta()">
+          {{ t('common.retry') }}
+        </button>
+      </div>
     }
   `,
 })
@@ -195,6 +222,11 @@ export class AfiliadoPage {
     return this.traduccion.tCon('affiliate.subtitle', {
       pct: this.panel()?.porcentajeDeComision ?? 0,
     });
+  }
+
+  /** Vuelve a pedir el panel desde la rama de error, sin obligar a recargar la pantalla entera. */
+  protected reintenta(): void {
+    void this.carga();
   }
 
   private async carga(): Promise<void> {

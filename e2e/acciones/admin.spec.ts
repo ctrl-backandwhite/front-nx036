@@ -293,7 +293,7 @@ test.describe('acciones de administración', () => {
   }
 
   test('editar el Recargo con doble clic enseña lo tecleado y lo guarda', async ({ page }) => {
-    await certificaImporte(page, 'Recargo', 'Recargo (CNY)');
+    await certificaImporte(page, 'Recargo', 'Recargo (%)');
   });
 
   test('editar el Subsidio de envío con doble clic enseña lo tecleado y lo guarda', async ({ page }) => {

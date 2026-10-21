@@ -1954,6 +1954,7 @@ const diccionario: Record<string, string> = {
   'affiliate.payout.profile.err_iban': 'IBAN non valido',
   'affiliate.subtitle': 'Condividi il tuo codice e guadagna il 15% di commissione su ogni referral.',
   'affiliate.title': 'Programma di affiliazione',
+  'affiliate.unavailable': 'Non è stato possibile caricare il tuo pannello di affiliazione. Il programma è riservato agli account cliente: se il tuo è di amministrazione o di supporto, non avrai accesso.',
   'attr.brand': 'Marca',
   'attr.certifications': 'Certificazioni',
   'attr.dimensions': 'Dimensioni',

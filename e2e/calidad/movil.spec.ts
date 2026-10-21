@@ -26,7 +26,7 @@ test.describe('la web en el móvil', () => {
    * 'project' de undefined» — y al reventar en la primera, las diecinueve siguientes NI SE EJECUTABAN.
    * Aparecían como «no ejecutadas» en el informe, que es la peor forma de fallar: un hueco de cobertura
    * que no se lee como un fallo. */
-  test.beforeEach(({ }, info) => {
+  test.beforeEach(({}, info) => {
     test.skip(info.project.name !== 'movil', 'solo aplica a la anchura de móvil');
   });
 

@@ -48,6 +48,27 @@ const TECLAS_DE_NAVEGACION = ['ArrowDown', 'ArrowUp', 'Home', 'End'];
  * blancos de ratón —quien filtra desde el móvil tenía que acertar en 24 píxeles—. Se quedó la buena y
  * la otra se borró, así que las diez pantallas que montaban aquella heredan las cuatro cosas.
  */
+/**
+ * EL PANEL, Y POR QUÉ ESTÁ ESCRITO ASÍ (21-oct-2026).
+ *
+ * <p>Era `absolute left-0 min-w-[14rem] max-w-[20rem]`, sin una sola variante responsiva: medía
+ * igual a 384 px que a 1920. Anclado a una pastilla que en móvil ya empieza a 168 px del borde, un
+ * panel de 300 px terminaba en 468 — y como `styles.css` NO recorta el eje X del documento (se
+ * descartó a propósito: `overflow-x: hidden` en el cuerpo mata `position: sticky`), el desborde se
+ * lo comía la página entera. El título se leía «ógo» y los demás filtros perdían su principio.
+ * Medido: 84 px a 384, 56 px a 412, 0 en escritorio.
+ *
+ * <p>En móvil se suelta del ancla y se pega a los dos lados; desde `sm:` vuelve a ser el popover de
+ * siempre. Es el mismo patrón que ya resolvió esto en `desplegable-de-avisos.ts`.
+ *
+ * <p>LA CAPA tiene su motivo. En móvil va en 45, no en 40: a 40 empataba con el avatar del
+ * asistente —que también es `fixed z-40`— y con empate gana el último del DOM, que es el avatar.
+ * Tapaba una opción de la lista. Y no sube a 50 porque ahí viven la cabecera, el aviso de galletas
+ * y el cajón de navegación, que deben seguir por encima.
+ *
+ * <p>Lo que hay que conservar al tocar esto: los objetivos táctiles de 44 px (`min-h-11 sm:min-h-0`
+ * en el buscador y en cada opción) y que las consultas de medio sean siempre `min-width`.
+ */
 @Component({
   selector: 'nx-filtro-desplegable',
   imports: [FaIconComponent, FormField, EnfocaAlAparecer],
@@ -87,7 +108,7 @@ const TECLAS_DE_NAVEGACION = ['ArrowDown', 'ArrowUp', 'Home', 'End'];
           [attr.aria-label]="etiqueta()"
           (keydown)="navega($event)"
           tabindex="-1"
-          class="absolute left-0 top-full mt-1 min-w-[14rem] max-w-[20rem] bg-base-100 border border-ink-200 rounded-lg shadow-lg z-30 overflow-hidden"
+          class="fixed inset-x-2 top-auto mt-1 z-[45] sm:absolute sm:inset-x-auto sm:left-0 sm:top-full sm:z-30 sm:min-w-[14rem] sm:max-w-[20rem] bg-base-100 border border-ink-200 rounded-lg shadow-lg overflow-hidden"
         >
           @if (conBuscador()) {
             <div class="p-2 border-b border-ink-100 relative">

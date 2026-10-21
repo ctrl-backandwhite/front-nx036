@@ -2631,6 +2631,7 @@ const diccionario: Record<string, string> = {
   'mentors.rate_hour': '/h',
   'mentors.empty': 'Aún no hay mentores disponibles',
   'affiliate.title': 'Programa de afiliados',
+  'affiliate.unavailable': 'No hemos podido cargar tu panel de afiliado. El programa es solo para cuentas de cliente: si la tuya es de administración o de soporte, no tendrás acceso.',
   'affiliate.subtitle': 'Gana un {pct}% de comisión por cada venta desde tus enlaces de referido.',
   'affiliate.code': 'Tu código',
   'affiliate.earnings': 'Ganancias',

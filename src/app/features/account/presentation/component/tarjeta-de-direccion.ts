@@ -35,11 +35,26 @@ import { Direccion } from '../../domain/model/direccion';
       <div class="text-xs text-ink-500">{{ localidad() }}</div>
       <div class="text-xs text-ink-500">{{ direccion().pais }}</div>
 
-      <div class="flex gap-3 mt-3 pt-3 border-t border-ink-100">
-        <button type="button" class="text-xs text-brand-700 hover:underline" (click)="edita.emit(direccion())">
+      <!--
+        Los dos botones eran texto de 12 px y nada más: 45x15 y 54x15, menos de la mitad del alto
+        mínimo de 24 que exige la norma táctil. En una pantalla con varias direcciones hay un par
+        por tarjeta, uno al lado del otro, y el de BORRAR pegado al de editar: la combinación que
+        peor se falla con el pulgar. Se les da el alto sin cambiar la tipografía ni el color, que
+        es lo que fija el diseño; el margen negativo mantiene la fila donde estaba.
+      -->
+      <div class="flex gap-3 mt-3 pt-3 border-t border-ink-100 -mb-1">
+        <button
+          type="button"
+          class="text-xs text-brand-700 hover:underline inline-flex items-center gap-1 min-h-6 px-1 -ml-1"
+          (click)="edita.emit(direccion())"
+        >
           <fa-icon [icon]="iconos.editar" /> {{ t('common.edit') }}
         </button>
-        <button type="button" class="text-xs text-red-600 hover:underline" (click)="pideBorrar()">
+        <button
+          type="button"
+          class="text-xs text-red-600 hover:underline inline-flex items-center gap-1 min-h-6 px-1"
+          (click)="pideBorrar()"
+        >
           <fa-icon [icon]="iconos.borrar" /> {{ t('common.delete') }}
         </button>
       </div>

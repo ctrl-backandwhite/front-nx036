@@ -2658,6 +2658,7 @@ const diccionario: Record<string, string> = {
   'mentors.rate_hour': '/h',
   'mentors.empty': 'No mentors available yet',
   'affiliate.title': 'Affiliate program',
+  'affiliate.unavailable': 'We could not load your affiliate dashboard. The program is for customer accounts only: if yours is an admin or support account, you will not have access.',
   'affiliate.subtitle': 'Earn {pct}% commission on every sale from your referral links.',
   'affiliate.code': 'Your code',
   'affiliate.earnings': 'Earnings',

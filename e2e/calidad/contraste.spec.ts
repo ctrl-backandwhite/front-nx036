@@ -4,6 +4,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { ANGULAR, abre, apartaAlAsistente, bajaAlFondo, descartaElAvisoDeGalletas } from '../util/comparador';
 import { CLARO, OSCURO, confirmaElTema, confirmaLaVersion, ponElTema } from '../util/tema';
+import { CLIENTE, entra } from '../util/sesion';
 
 /**
  * El texto se tiene que LEER, en los dos temas y en las dos anchuras.
@@ -46,7 +47,26 @@ const RUTAS = [
   '/register',
   '/password-reset',
   '/status',
+] as const;
+
+/**
+ * Las que exigen sesión, y por qué van aparte.
+ *
+ * <p>`/catalog` estaba en la lista de arriba, y era un error MÍO: el dueño la hizo privada a
+ * propósito, así que sin sesión redirige a `/login`. La prueba cargaba, medía el formulario de
+ * acceso y lo apuntaba como «catálogo certificado». Daba verde midiendo otra pantalla — el mismo
+ * defecto de fondo que el tema que no se aplicaba: una medida que no afirma QUÉ está midiendo.
+ *
+ * <p>Son además las pantallas con más color por centímetro —tarjetas, insignias, precios,
+ * descuentos, tablas— o sea justo donde el contraste falla, y ninguna se había mirado nunca.
+ */
+const RUTAS_CON_SESION = [
   '/catalog',
+  '/cart',
+  '/favorites',
+  '/orders',
+  '/profile',
+  '/wallet',
 ] as const;
 
 /**
@@ -146,6 +166,42 @@ for (const tema of [OSCURO, CLARO]) {
           contentType: 'application/json',
         });
       }
+
+      expect(fallos, fallos.map((f) => `${f.selector} — ${f.detalle}`).join('\n')).toEqual([]);
+    });
+  }
+}
+
+for (const tema of [OSCURO, CLARO]) {
+  for (const ruta of RUTAS_CON_SESION) {
+    test(`${ruta} se lee en tema ${tema === OSCURO ? 'oscuro' : 'claro'} (con sesión)`, async ({ page }) => {
+      // Más tiempo que el minuto por defecto, y no por capricho: estas pagan el ACCESO además de
+      // todo lo demás. Contra un entorno remoto, el acceso solo ya se lleva medio minuto —lleva un
+      // `toPass` que reintenta el ciclo entero porque al hidratar Angular vacía el formulario— y
+      // encima va el tema, la carga, la bajada al pie y el análisis de axe. Con 60 s se agotaban
+      // las veinticuatro, y un agotamiento no dice nada sobre el contraste: solo gasta media hora.
+      test.setTimeout(150_000);
+
+      // EL ORDEN IMPORTA, y cuesta verlo. `entra()` toca el almacén del navegador —solo guarda y
+      // repone las credenciales, a propósito— y por el camino se lleva la cookie del tema. Poniendo
+      // el tema ANTES, el acceso lo borraba y la página salía con `data-theme` vacío: la prueba
+      // fallaba en el guardián del tema, no en el contraste. Primero se entra, después se pide el
+      // tema, y solo entonces se navega.
+      await entra(page, ANGULAR, CLIENTE);
+      await ponElTema(page, ANGULAR, tema);
+      await abre(page, `${ANGULAR}${ruta}`);
+      await descartaElAvisoDeGalletas(page);
+      await apartaAlAsistente(page);
+
+      await confirmaElTema(page, tema);
+      await bajaAlFondo(page);
+      await esperaAQueAsienten(page);
+
+      const resultado = await new AxeBuilder({ page }).withRules(['color-contrast']).analyze();
+      const fallos = resultado.violations
+        .flatMap((v) => v.nodes)
+        .map((n) => ({ selector: n.target.join(' '), detalle: n.failureSummary ?? '' }))
+        .filter((f) => !esDeuda(ruta, tema, f.selector));
 
       expect(fallos, fallos.map((f) => `${f.selector} — ${f.detalle}`).join('\n')).toEqual([]);
     });
