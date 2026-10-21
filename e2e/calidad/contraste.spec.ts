@@ -175,8 +175,20 @@ for (const tema of [OSCURO, CLARO]) {
 for (const tema of [OSCURO, CLARO]) {
   for (const ruta of RUTAS_CON_SESION) {
     test(`${ruta} se lee en tema ${tema === OSCURO ? 'oscuro' : 'claro'} (con sesión)`, async ({ page }) => {
-      await ponElTema(page, ANGULAR, tema);
+      // Más tiempo que el minuto por defecto, y no por capricho: estas pagan el ACCESO además de
+      // todo lo demás. Contra un entorno remoto, el acceso solo ya se lleva medio minuto —lleva un
+      // `toPass` que reintenta el ciclo entero porque al hidratar Angular vacía el formulario— y
+      // encima va el tema, la carga, la bajada al pie y el análisis de axe. Con 60 s se agotaban
+      // las veinticuatro, y un agotamiento no dice nada sobre el contraste: solo gasta media hora.
+      test.setTimeout(150_000);
+
+      // EL ORDEN IMPORTA, y cuesta verlo. `entra()` toca el almacén del navegador —solo guarda y
+      // repone las credenciales, a propósito— y por el camino se lleva la cookie del tema. Poniendo
+      // el tema ANTES, el acceso lo borraba y la página salía con `data-theme` vacío: la prueba
+      // fallaba en el guardián del tema, no en el contraste. Primero se entra, después se pide el
+      // tema, y solo entonces se navega.
       await entra(page, ANGULAR, CLIENTE);
+      await ponElTema(page, ANGULAR, tema);
       await abre(page, `${ANGULAR}${ruta}`);
       await descartaElAvisoDeGalletas(page);
       await apartaAlAsistente(page);
