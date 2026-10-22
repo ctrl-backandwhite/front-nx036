@@ -915,7 +915,12 @@ aside .menu .menu-title {
 @utility marca-icono {
   display: inline-flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-  width: 1.9em; height: 1.9em;
+  /*
+   * 1,45em y no más: el aro va CEÑIDO al icono, sin el hueco de aire que dejaba 1,9em. Es el
+   * tamaño que pidió el titular viéndolo en pantalla, y se eligió comparando 1,4 / 1,5 / 1,65 /
+   * 1,9 sobre la página real. Por debajo de 1,4 el icono roza el trazo.
+   */
+  width: 1.45em; height: 1.45em;
   border: 0.11em solid currentColor; border-radius: 9999px;
   line-height: 1;
 }
