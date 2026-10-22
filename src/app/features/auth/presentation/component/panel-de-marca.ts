@@ -34,7 +34,7 @@ import { TraduccionService } from '@core/i18n/traduccion.service';
       </div>
 
       <a routerLink="/" class="inline-flex items-center gap-2 font-bold text-lg">
-        <fa-icon [icon]="iconoMarca" /> NX036
+        <fa-icon [icon]="iconoMarca" class="marca-icono" /> NX036
       </a>
 
       <div>

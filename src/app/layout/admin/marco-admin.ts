@@ -72,7 +72,7 @@ export interface UsuarioDelPanel {
             class="flex items-center gap-2 hover:opacity-80 flex-1"
             [title]="t('admin.back_to_site')"
           >
-            <fa-icon [icon]="iconoMarca" class="text-primary text-lg" />
+            <fa-icon [icon]="iconoMarca" class="text-primary text-lg marca-icono" />
             <div>
               <div class="font-medium text-[15px] leading-tight">NX036</div>
               <div class="text-[11px] opacity-70 -mt-0.5">{{ t('admin.subtitle') }}</div>

@@ -78,7 +78,7 @@ const REDES = [
     >
       <aside class="max-w-xs">
         <a routerLink="/" class="inline-flex items-center gap-2 font-medium text-[15px]">
-          <fa-icon [icon]="iconoMarca" class="text-primary" />
+          <fa-icon [icon]="iconoMarca" class="text-primary marca-icono" />
           <!-- La marca es «NX036» en toda la plataforma, sin la forma societaria. -->
           NX036
         </a>
