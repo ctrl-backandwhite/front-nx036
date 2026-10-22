@@ -897,6 +897,29 @@ aside .menu .menu-title {
   border-color: var(--color-brand-200);
 }
 
+/*
+ * EL ICONO DE LA MARCA, encerrado en su círculo.
+ *
+ * <p>El círculo va del MISMO color que el icono —`currentColor`— para que siga la marca y el tema
+ * sin repetir el valor: donde el icono es `text-primary`, el aro también; si mañana cambia el
+ * color de marca, cambia en los dos sitios a la vez. Pintarlo a mano sería justo lo que el tema
+ * oscuro se come.
+ *
+ * <p>Se mide en `em`, no en píxeles, porque el mismo icono se usa a cinco tamaños distintos —de
+ * 10 px en los paneles de acceso a `text-lg` en la cabecera del panel— y con un tamaño fijo el
+ * aro quedaba holgado en unos y estrangulado en otros. Con `em` el aro acompaña al icono.
+ *
+ * <p>`flex-shrink: 0` porque vive al lado del rótulo dentro de un flex: sin él, el aro se
+ * aplasta a elipse cuando el nombre no cabe.
+ */
+@utility marca-icono {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  width: 1.9em; height: 1.9em;
+  border: 0.11em solid currentColor; border-radius: 9999px;
+  line-height: 1;
+}
+
 @utility section-header {
   display: flex; align-items: baseline; justify-content: space-between;
   margin-bottom: 0.75rem;
