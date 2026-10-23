@@ -199,10 +199,11 @@
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
-/* Paleta NX036 "Aduana / Cargo" — identidad de comercio transfronterizo.
- * Cobalto profundo (acción/CTA) sobre neutros cálidos de arena + acento latón: la tensión
- * frío/cálido evita el look de "azul SaaS" genérico y del índigo violáceo de IA. Marino como
- * estructura. El nombre del theme se mantiene (nx036-pastel) por compat con data-theme / theme.ts.
+/* Paleta NX036 — identidad de comercio electrónico, viva y con color.
+ * Violeta de marca (acción/CTA/links) + acento magenta (rebajas/recompensas) sobre neutros
+ * gris-azulados para texto y superficies, y semánticos vivos (esmeralda/ámbar/rojo/azul). El gris
+ * es solo el fondo; el color lo llevan la marca y los estados. El nombre del theme se mantiene
+ * (nx036-pastel) por compat con data-theme / theme.ts; ya no es "pastel" ni "Aduana/Cargo".
  */
 /* ─────────────────────────────────────────────────────────────────────────────
  * SUPERFICIE DE CÓDIGO: oscura en los DOS temas, a propósito.
@@ -294,35 +295,35 @@
   default: true;
   prefersdark: false;
   color-scheme: light;
-  --color-base-100: #fcfdfe;   /* blanco casi puro, muy leve frío */
-  --color-base-200: #f4f6f9;   /* gris muy claro */
-  --color-base-300: #e3e8ef;   /* gris claro (bordes/divisores) */
-  --color-base-content: #14212e; /* tinta marino (texto) */
+  --color-base-100: #ffffff;   /* blanco puro (tarjetas) */
+  --color-base-200: #f6f7f9;   /* gris azulado muy claro (página) */
+  --color-base-300: #ebedf2;   /* gris claro (bordes/divisores) */
+  --color-base-content: #1f2937; /* gris-azulado profundo (texto) */
 
-  --color-primary:   #0c4a97;  /* cobalto profundo (CTA/links/activo) */
-  --color-primary-content: #eef4fc;
+  --color-primary:   #7c3aed;  /* violeta vibrante (CTA/links/activo) — color de marca */
+  --color-primary-content: #ffffff;
 
-  --color-secondary: #123246;  /* marino acero (superficies/botón secundario) */
-  --color-secondary-content: #eaf1f6;
+  --color-secondary: #4f5868;  /* gris-azulado (botón secundario neutro) */
+  --color-secondary-content: #ffffff;
 
-  --color-accent:    #c0862d;  /* latón (badges/acento premium) */
-  --color-accent-content: #211505;
+  --color-accent:    #ec4899;  /* magenta (acento premium: rebajas, recompensas) */
+  --color-accent-content: #ffffff;
 
-  --color-neutral:   #14212e;  /* tinta (superficies oscuras) */
-  --color-neutral-content: #f4f6f9;
+  --color-neutral:   #1f2937;  /* gris-azulado profundo (superficies oscuras/footer) */
+  --color-neutral-content: #f6f7f9;
 
-  --color-info:    #2e6e8e;
-  --color-info-content: #f0f7fa;
-  --color-success: #1e6b52;    /* pino (stock/éxito) */
-  --color-success-content: #eff7f2;
-  --color-warning: #d9962b;    /* ámbar */
-  --color-warning-content: #241704;
-  --color-error:   #b4472e;    /* ladrillo (error/rebajas) */
-  --color-error-content: #fbf0ec;
+  --color-info:    #2563eb;
+  --color-info-content: #ffffff;
+  --color-success: #10b981;    /* esmeralda (stock/éxito) */
+  --color-success-content: #05231a;
+  --color-warning: #f59e0b;    /* ámbar */
+  --color-warning-content: #271900;
+  --color-error:   #ef4444;    /* rojo (error/rebajas) */
+  --color-error-content: #ffffff;
 
-  --radius-selector: 0.6rem;
-  --radius-field:    0.55rem;
-  --radius-box:      0.85rem;
+  --radius-selector: 0.5rem;
+  --radius-field:    0.5rem;
+  --radius-box:      0.75rem;
   --border:          1px;
   --depth: 1;
   --noise: 0;
@@ -333,98 +334,82 @@
   default: false;
   prefersdark: true;
   color-scheme: dark;
-  --color-base-100: #0e1a26;   /* marino profundo */
-  --color-base-200: #142434;
-  --color-base-300: #1e3143;
-  --color-base-content: #e7eef3;
+  --color-base-100: #111827;   /* gris-azulado profundo (fondo de página) */
+  --color-base-200: #1f2937;
+  --color-base-300: #374151;
+  --color-base-content: #f9fafb;
 
-  --color-primary:   #3f93ec;  /* cobalto claro para dark */
-  --color-primary-content: #03121f;
+  --color-primary:   #a78bfa;  /* violeta claro (CTA/links en dark) */
+  --color-primary-content: #2e1065;
 
-  --color-secondary: #2a5a7e;
-  --color-secondary-content: #eaf1f6;
+  --color-secondary: #9ca3af;
+  --color-secondary-content: #111827;
 
-  --color-accent:    #d39b41;
-  --color-accent-content: #1e1305;
+  --color-accent:    #f472b6;  /* magenta claro (acento en dark) */
+  --color-accent-content: #3b0a28;
 
-  --color-neutral:   #1a2a38;
-  --color-neutral-content: #e7eef3;
+  --color-neutral:   #1f2937;
+  --color-neutral-content: #f9fafb;
 
-  --color-info:    #4a8cab;
-  --color-info-content: #071720;
+  --color-info:    #60a5fa;
+  --color-info-content: #06101f;
 
-  /* Subido desde #2e9070: ese verde daba 4.47:1 sobre el fondo del tema, justo por debajo del 4.5
-   * que pide la norma, y se usa en cifras pequeñas como los indicadores del panel. El tono apenas
-   * cambia y pasa a 5.24:1 sobre base-100 y 4.70:1 sobre base-200. */
-  --color-success: #339d7c;
-  --color-success-content: #05160f;
-  --color-warning: #e0a63a;
-  --color-warning-content: #201502;
-  --color-error:   #d0573c;
-  --color-error-content: #1f0a05;
+  /* Semánticos en tono claro para fondo oscuro; los `-content` son oscuros (se escriben sobre el
+   * color sólido). El verde mantiene cifras pequeñas legibles en los indicadores del panel. */
+  --color-success: #34d399;
+  --color-success-content: #04160f;
+  --color-warning: #fbbf24;
+  --color-warning-content: #231803;
+  --color-error:   #f87171;
+  --color-error-content: #2a0606;
 
-  --radius-selector: 0.6rem;
-  --radius-field:    0.55rem;
-  --radius-box:      0.85rem;
+  --radius-selector: 0.5rem;
+  --radius-field:    0.5rem;
+  --radius-box:      0.75rem;
   --border:          1px;
   --depth: 1;
   --noise: 0;
 }
 
 @theme {
-  /* brand = cobalto profundo "Aduana/Cargo" (azul real, no el índigo violáceo de IA) */
-  --color-brand-50:  #eaf1fb;
-  --color-brand-100: #cbdef4;
-  --color-brand-200: #98bde8;
-  --color-brand-300: #5c93d7;
-  --color-brand-400: #2a6cc0;
-  --color-brand-500: #1355a6;
-  --color-brand-600: #0c4a97;
-  --color-brand-700: #0b3d78;
-  --color-brand-800: #0d3460;
-  --color-brand-900: #0d2b4c;
+  /* brand = violeta (color de marca). El anillo de foco (:focus-visible) usa brand-400. */
+  --color-brand-50:  #f5f3ff;
+  --color-brand-100: #ede9fe;
+  --color-brand-200: #ddd6fe;
+  --color-brand-300: #c4b5fd;
+  --color-brand-400: #8b5cf6;
+  --color-brand-500: #7c3aed;
+  --color-brand-600: #6d28d9;
+  --color-brand-700: #5b21b6;
+  --color-brand-800: #4c1d95;
+  --color-brand-900: #2e1065;
 
-  /* ink = marino frío (antes slate) */
-  --color-ink-900: #14212e;
-  --color-ink-700: #2c3e4e;
-  --color-ink-500: #5c6e7c;
-  /* `ink-200` faltaba en una escala que por lo demás va de 50 a 900. No es un hueco inofensivo: la
-   * clase `border-ink-200` se usa en 21 sitios y, al no generarse la utilidad, `border-color` cae en
-   * `currentColor` —el color del TEXTO—. Medido en la propia web: borde #14212e (negro) en el tema
-   * claro y #e7eef3 (blanco) en el oscuro, justo donde se pedía el gris más suave de la escala. Los
-   * bordes no faltaban: estaban a máximo contraste. */
-  --color-ink-200: #ccd5db;
-  /* `ink-400`, `ink-600` e `ink-800` faltaban, y es el mismo agujero que tenía `ink-200`: la escala
-   * va de 50 a 900 pero tres peldaños no estaban declarados. No es inofensivo — se usan 214 veces
-   * (129 el 400, 82 el 600, 3 el 800) y, al no generarse la utilidad, `color` no se escribe y el
-   * texto HEREDA el del padre. En el tema oscuro sí funcionaban, porque el bloque de abajo los
-   * declara a mano con `!important`: el tono muteado salía en oscuro y no en claro, justo al revés
-   * de lo que uno supone al depurar.
+  /* ink = gris-azulado NEUTRO (texto, bordes y superficies). El COLOR de la tienda lo llevan
+   * primary (violeta) y accent (magenta) + los semánticos; `ink` es el gris de fondo, no color.
+   * Escala completa 50–900 para que se generen text-/bg-/border-/ring-/divide-.
    *
-   * Interpolados de los peldaños vecinos.
-   *
-   * EL 400 SE SUBIÓ A 4,5:1 EL 20-OCT-2026, y conviene saber por qué estaba donde estaba. Se fijó
-   * en #80909c para cruzar el 3:1 «de lo no textual, que es para lo que se usa». Esa frase
-   * describía una intención, no el código: hay 134 usos y TODOS son `text-ink-400` — mensajes de
-   * lista vacía, rótulos, pies de tabla. Es el token del texto apagado, y el listón del texto es
-   * 4,5:1, no 3:1. Medido contra preproducción daba 3,04:1 sobre la superficie más clara.
-   *
-   * El valor nuevo, #67727b, es oklch(54,5% .02 245): el MISMO tono, ocho puntos más oscuro.
-   * Da 4,54:1 y sigue siendo más claro que el 500 (#5c6e7c, 4,88:1), así que la rampa no se cruza. */
-  --color-ink-400: #67727b;
-  --color-ink-600: #445665;
-  --color-ink-800: #20303e;
-  --color-ink-300: #b7c2cb;
-  --color-ink-100: #e1e7ec;
-  --color-ink-50:  #f4f7f9;
+   * `ink-400` es el token del TEXTO APAGADO y se mantiene ≥4,5:1 sobre el fondo claro: #6b7280 da
+   * 4,67:1 (= `muted-foreground` de Ecomerce). El valor crudo de la rampa (#818b9c) daría 3,4:1, por
+   * debajo del listón del texto, y por eso no se usa aquí. El resto interpola la misma rampa, sin
+   * cruzarse con el 500 (#636d80). */
+  --color-ink-900: #1f2937;
+  --color-ink-800: #383e48;
+  --color-ink-700: #404754;
+  --color-ink-600: #4f5868;
+  --color-ink-500: #636d80;
+  --color-ink-400: #6b7280;
+  --color-ink-300: #adb4c0;
+  --color-ink-200: #d3d7df;
+  --color-ink-100: #ebedf2;
+  --color-ink-50:  #f6f7f9;
 
   /* Superficie SIEMPRE oscura, con su texto. No se invierte con el tema porque no describe
    * «el fondo de la página» sino «un velo oscuro sobre una foto»: el velo es oscuro en los dos
    * temas, así que su texto tiene que ser claro en los dos. Tenerlo como token evita que vuelvan
    * a aparecer hex sueltos cada vez que hace falta esta combinación. */
-  --color-scrim: #08111d;
-  --color-scrim-alto: #0a1b30;
-  --color-scrim-content: #eef4fc;
+  --color-scrim: #0f1419;
+  --color-scrim-alto: #1f2937;
+  --color-scrim-content: #f9fafb;
 
   --font-sans: "Roboto", system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
   --font-mono: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -514,7 +499,7 @@
    ═══════════════════════════════════════════════════════════════════════════════ */
 
 html, body, nx-root { height: 100%; }
-html { font-size: 15px; }
+html { font-size: 16px; }
 body {
   font-family: var(--font-sans);
   font-weight: 300;
@@ -527,10 +512,11 @@ body {
 }
 
 /* DROP-368: jerarquía tipográfica en color base-content; subtítulos en 70% opacity. */
-h1, h2, h3, h4 { font-weight: 500; letter-spacing: -0.018em; color: var(--color-base-content); }
+h1, h2, h3, h4 { font-weight: 400; letter-spacing: -0.018em; color: var(--color-base-content); }
 h1 { font-size: 1.5rem; line-height: 1.25; }
 h2 { font-size: 1.125rem; line-height: 1.3; }
 h3 { font-size: 0.95rem; line-height: 1.3; }
+h4 { font-weight: 500; }
 label { font-weight: 400; }
 strong, .font-medium { font-weight: 500; }
 .font-bold { font-weight: 700; }
@@ -1305,11 +1291,11 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
   --color-brand-200: color-mix(in oklch, var(--color-primary) 45%, var(--color-base-100));
   --color-brand-300: color-mix(in oklch, var(--color-primary) 60%, var(--color-base-100));
   --color-brand-400: var(--color-primary);
-  --color-brand-500: oklch(72% 0.16 248);
-  --color-brand-600: oklch(72% 0.16 248);
-  --color-brand-700: oklch(72% 0.16 248);
-  --color-brand-800: oklch(72% 0.16 248);
-  --color-brand-900: oklch(72% 0.16 248);
+  --color-brand-500: oklch(72% 0.16 292);
+  --color-brand-600: oklch(72% 0.16 292);
+  --color-brand-700: oklch(72% 0.16 292);
+  --color-brand-800: oklch(72% 0.16 292);
+  --color-brand-900: oklch(72% 0.16 292);
 
   /* ── Y las paletas crudas de Tailwind ────────────────────────────────────────
    * 383 usos en 105 ficheros, sin un solo remapeo: en oscuro conservaban su valor del tema
@@ -1574,11 +1560,11 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
     --color-brand-200: color-mix(in oklch, var(--color-primary) 45%, var(--color-base-100));
     --color-brand-300: color-mix(in oklch, var(--color-primary) 60%, var(--color-base-100));
     --color-brand-400: var(--color-primary);
-    --color-brand-500: oklch(72% 0.16 248);
-    --color-brand-600: oklch(72% 0.16 248);
-    --color-brand-700: oklch(72% 0.16 248);
-    --color-brand-800: oklch(72% 0.16 248);
-    --color-brand-900: oklch(72% 0.16 248);
+    --color-brand-500: oklch(72% 0.16 292);
+    --color-brand-600: oklch(72% 0.16 292);
+    --color-brand-700: oklch(72% 0.16 292);
+    --color-brand-800: oklch(72% 0.16 292);
+    --color-brand-900: oklch(72% 0.16 292);
 
     /* ── Y las paletas crudas de Tailwind ────────────────────────────────────────
      * 383 usos en 105 ficheros, sin un solo remapeo: en oscuro conservaban su valor del tema

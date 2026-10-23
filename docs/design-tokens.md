@@ -12,9 +12,12 @@ sustituye. Si los dos discrepan, manda el CSS.
 
 ## Cuidado con el nombre del tema
 
-Los temas se llaman **`nx036-pastel`** y **`nx036-pastel-dark`**, pero **ya no son pastel**. El
-diseño se rehízo a una identidad «Aduana / Cargo» —cobalto, marino y latón— y el nombre se mantuvo
-solo por compatibilidad con `data-theme` y con `theme.ts`. No te fíes del nombre.
+Los temas se llaman **`nx036-pastel`** y **`nx036-pastel-dark`**, pero **ya no son ni pastel ni
+"Aduana/Cargo"**. El 23-oct-2026 el diseño se rehízo a una identidad de **comercio electrónico con
+color**: **violeta** de marca (`primary`) + acento **magenta** (`accent`), sobre neutros
+gris-azulados para texto y superficies, y semánticos vivos (esmeralda/ámbar/rojo/azul). El gris es
+solo el fondo; el color lo llevan la marca y los estados. El nombre del tema se mantuvo solo por
+compatibilidad con `data-theme` y con `theme.ts`. No te fíes del nombre.
 
 daisyUI registra **cuatro** temas: `nx036-pastel` (por defecto), `nx036-pastel-dark` (el del sistema
 en oscuro), y `corporate` y `business`, que existen aunque no se usen en el producto.
@@ -23,21 +26,22 @@ en oscuro), y `corporate` y `business`, que existen aunque no se usen en el prod
 
 | Token | Valor | Para qué |
 |---|---|---|
-| `--color-base-100` | `#fcfdfe` | fondo de tarjetas y superficies |
-| `--color-base-200` | `#f4f6f9` | fondo de página |
-| `--color-base-300` | `#e3e8ef` | bordes y divisores |
-| `--color-base-content` | `#14212e` | el texto |
-| `--color-primary` | `#0c4a97` | **cobalto profundo** — llamadas a la acción, enlaces, activo |
-| `--color-primary-content` | `#eef4fc` | texto sobre cobalto |
-| `--color-secondary` | `#123246` | marino acero — botón secundario |
-| `--color-accent` | `#c0862d` | **latón** — distintivos y acento premium |
-| `--color-info` | `#2e6e8e` | |
-| `--color-success` | `#1e6b52` | pino — hay existencias, operación correcta |
-| `--color-warning` | `#d9962b` | ámbar |
-| `--color-error` | `#b4472e` | ladrillo — error y también rebajas |
+| `--color-base-100` | `#ffffff` | fondo de tarjetas y superficies |
+| `--color-base-200` | `#f6f7f9` | fondo de página |
+| `--color-base-300` | `#ebedf2` | bordes y divisores |
+| `--color-base-content` | `#1f2937` | el texto (gris-azulado) |
+| `--color-primary` | `#7c3aed` | **violeta** — llamadas a la acción, enlaces, activo |
+| `--color-primary-content` | `#ffffff` | texto sobre violeta |
+| `--color-secondary` | `#4f5868` | gris-azulado — botón secundario neutro |
+| `--color-accent` | `#ec4899` | **magenta** — distintivos, rebajas, recompensas |
+| `--color-info` | `#2563eb` | azul informativo |
+| `--color-success` | `#10b981` | esmeralda — hay existencias, operación correcta |
+| `--color-warning` | `#f59e0b` | ámbar |
+| `--color-error` | `#ef4444` | rojo — error y también rebajas |
 
-El tema oscuro redefine los mismos tokens a partir de la línea 952 de `styles.css`. **No inventes un
-color nuevo**: si necesitas uno, sale de esta lista o se añade al tema.
+El tema oscuro redefine los mismos tokens en su bloque `@plugin "daisyui/theme"` (`nx036-pastel-dark`)
+y en el bloque de correcciones marcado `⟦OSCURO⟧` de `styles.css`. **No inventes un color nuevo**: si
+necesitas uno, sale de esta lista o se añade al tema.
 
 ### La trampa del contraste que ya mordió tres veces
 
@@ -53,8 +57,9 @@ icono o un texto que desaparece en oscuro, mira ahí primero.
 
 ## Escala de grises propia
 
-Además de los tokens de daisyUI hay una escala `--color-ink-*`, de `ink-900` (`#14212e`) a `ink-50`
-(`#f4f7f9`). **No es gris puro**: lleva un tinte marino para acompañar a la paleta.
+Además de los tokens de daisyUI hay una escala `--color-ink-*`, de `ink-900` (`#1f2937`) a `ink-50`
+(`#f6f7f9`). Es el **gris-azulado neutro** para texto, bordes y superficies; el color de la tienda lo
+llevan `primary` (violeta) y `accent` (magenta), no `ink`.
 
 **La escala está completa, y tiene que seguir estándolo.** Durante un tiempo faltaron tres peldaños
 —`ink-400`, `ink-600` e `ink-800`— aunque el código los usaba 214 veces. Un peldaño sin declarar no
@@ -64,26 +69,23 @@ se veía **solo en el tema claro**, porque el bloque del oscuro los declara a ma
 
 | Peldaño | Claro | Contraste sobre `base-100` | Para qué |
 |---|---|---:|---|
-| `ink-900` | `#14212e` | 15,8:1 | títulos |
-| `ink-800` | `#20303e` | 13,3:1 | |
-| `ink-700` | `#2c3e4e` | 10,8:1 | texto principal |
-| `ink-600` | `#445665` | 7,5:1 | |
-| `ink-500` | `#5c6e7c` | 5,2:1 | texto de apoyo, enlaces tenues |
-| `ink-400` | `#67727b` | 4,6:1 | texto apagado: pies, rótulos, listas vacías |
-| `ink-300` | `#b7c2cb` | 1,8:1 | solo decorativo: no llega ni al mínimo no textual |
+| `ink-900` | `#1f2937` | 14,7:1 | títulos |
+| `ink-800` | `#383e48` | 10,9:1 | |
+| `ink-700` | `#404754` | 9,3:1 | texto principal |
+| `ink-600` | `#4f5868` | 7,2:1 | |
+| `ink-500` | `#636d80` | 5,5:1 | texto de apoyo, enlaces tenues |
+| `ink-400` | `#6b7280` | 4,8:1 | texto apagado: pies, rótulos, listas vacías |
+| `ink-300` | `#adb4c0` | 1,9:1 | solo decorativo: no llega ni al mínimo no textual |
 
-**`ink-400` cambió el 20-oct-2026, y la historia explica para qué sirve.** Estuvo en `#80909c`
-(3,2:1) con esta descripción: «iconos y separadores — no para texto». Esa frase describía una
-intención que el código nunca siguió: hay **134 usos y los 134 son `text-ink-400`** —mensajes de
-lista vacía, rótulos, pies de tabla—. Es el token del texto apagado, y el listón del texto es
-4,5:1, no 3:1. Axe lo marcó 28 veces en preproducción, en los dos temas.
+**`ink-400` es el texto apagado, y su listón es 4,5:1, no 3:1.** Hay **134 usos y los 134 son
+`text-ink-400`** —mensajes de lista vacía, rótulos, pies de tabla—. Con la identidad gris-azulada
+vale `#6b7280` (el `muted-foreground` de Ecomerce): da 4,8:1 sobre `base-100` y sigue más claro que
+el `500` (`#636d80`), así que la rampa no se cruza. En el tema oscuro su gemelo va en `oklch(63%)`
+por el mismo motivo. Lo vigila `styles-contraste.spec.ts`.
 
-Ahora vale `#67727b` —`oklch(54,5% .02 245)`, el mismo tono ocho puntos más oscuro— que da 4,6:1 y
-sigue siendo más claro que el `500`, así que la rampa no se cruza. En el tema oscuro, su gemelo
-pasó de `oklch(55%)` a `oklch(63%)` por el mismo motivo y con el mismo resultado.
-
-Y `--color-brand-*`, que se usa sobre todo en el foco: el `:focus-visible` general del sitio es
-`outline: 2px solid var(--color-brand-400)` con dos píxeles de separación.
+Y `--color-brand-*` —la rampa **violeta** a juego con `primary`—, que se usa sobre todo en el foco:
+el `:focus-visible` general del sitio es `outline: 2px solid var(--color-brand-400)` con dos píxeles
+de separación.
 
 ## Las opacidades se multiplican
 

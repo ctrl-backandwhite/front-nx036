@@ -24,9 +24,9 @@ interface ColorDelTema {
 }
 
 const PALETA: readonly ColorDelTema[] = [
-  { nombre: 'primary', token: '--color-primary', clase: 'bg-primary', descripcion: 'Lavanda pastel — acción principal, links activos, énfasis.' },
-  { nombre: 'secondary', token: '--color-secondary', clase: 'bg-secondary', descripcion: 'Aqua pastel — acción secundaria o data viz.' },
-  { nombre: 'accent', token: '--color-accent', clase: 'bg-accent', descripcion: 'Melocotón pastel — destaques cálidos y promociones.' },
+  { nombre: 'primary', token: '--color-primary', clase: 'bg-primary', descripcion: 'Violeta — acción principal, links activos, énfasis.' },
+  { nombre: 'secondary', token: '--color-secondary', clase: 'bg-secondary', descripcion: 'Gris-azulado — acción secundaria neutra.' },
+  { nombre: 'accent', token: '--color-accent', clase: 'bg-accent', descripcion: 'Magenta — destaques, rebajas y promociones.' },
   { nombre: 'neutral', token: '--color-neutral', clase: 'bg-neutral', descripcion: 'Gris neutro para textos secundarios y borders.' },
   { nombre: 'base-100', token: '--color-base-100', clase: 'bg-base-100', descripcion: 'Superficie elevada (cards, modales).' },
   { nombre: 'base-200', token: '--color-base-200', clase: 'bg-base-200', descripcion: 'Fondo de página y carriles de tabla zebra.' },
@@ -75,7 +75,7 @@ const SERIE_DE_MUESTRA: readonly number[] = [5, 7, 6, 8, 9, 7, 11, 13, 12, 14];
   template: `
     <div class="space-y-8">
       <header>
-        <h1>Style guide — Pastel NX036</h1>
+        <h1>Style guide — NX036</h1>
         <p class="text-sm opacity-70 mt-1">
           Sistema de diseño basado en daisyUI 5 + tema custom <code>nx036-pastel</code>.
           Activo: <span class="badge badge-primary badge-sm">{{ tema() }}</span>
@@ -104,9 +104,9 @@ const SERIE_DE_MUESTRA: readonly number[] = [5, 7, 6, 8, 9, 7, 11, 13, 12, 14];
         <div class="card-body">
           <h2 class="card-title">Tipografía</h2>
           <div class="space-y-2 mt-2">
-            <h1>Heading 1 — 1.5rem / 500</h1>
-            <h2>Heading 2 — 1.125rem / 500</h2>
-            <h3>Heading 3 — 0.95rem / 500</h3>
+            <h1>Heading 1 — 1.5rem / 400</h1>
+            <h2>Heading 2 — 1.125rem / 400</h2>
+            <h3>Heading 3 — 0.95rem / 400</h3>
             <p class="text-sm">Body — texto principal en <code>base-content</code>.</p>
             <p class="text-sm opacity-70">Body 70% — textos secundarios.</p>
             <p class="text-[12px] opacity-70">Caption 12px / 60% — metadatos, fechas.</p>

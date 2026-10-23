@@ -89,7 +89,7 @@ import {
                 [href]="origen"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="inline-flex items-center gap-1 text-xs text-sky-600 hover:underline"
+                class="inline-flex items-center gap-1 text-xs text-primary hover:underline"
               >
                 {{ t('admin.purchases.open_1688') }} <fa-icon [icon]="iconos.externo" />
               </a>
