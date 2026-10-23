@@ -16,7 +16,12 @@ Una rama sin entorno asignado **falla a propósito** en vez de desplegar a un si
 ## Qué hace el CI
 
 1. **Puertas de calidad**: `npm ci`, `npm run lint` —que verifica las fronteras del hexágono, no
-   solo el estilo— y `npm test`. En rojo, no se publica imagen.
+   solo el estilo—, `npm test` y `npm audit --omit=dev --audit-level=critical`. En rojo, no se
+   publica imagen. La puerta de `audit` mira solo las dependencias de PRODUCCIÓN (lo que viaja al
+   navegador) y bloquea por CRÍTICA —el umbral está en `critical` y no en `high` a propósito: hay dos
+   avisos ALTOS de Angular SSR que no se cierran sin un `ng update` con migraciones, y su riesgo real
+   aquí es bajo porque no hay servidor Node vivo; el detalle y cuándo subir a `high` está en el
+   comentario del propio `imagen.yml`—. Es la puerta que habría parado el XSS crítico de DOMPurify.
 2. **Construye y publica** `registry.nx036.com/nexadrop/frontend:<entorno>-sha-<commit>`. El tag
    lleva **el entorno y el SHA**, nunca `latest`: el mismo commit produce imágenes distintas para
    PRE y PRO porque la API se cocina DENTRO al construir.
