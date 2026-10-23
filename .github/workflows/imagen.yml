@@ -46,27 +46,20 @@ jobs:
         # La puerta: si algo está en rojo, no se publica imagen.
         run: npm test
 
-      - name: Vulnerabilidades de dependencias (gate — crítica de runtime)
-        # La puerta de seguridad: una dependencia de PRODUCCIÓN con CVE CRÍTICO no se publica.
-        # `--omit=dev` deja fuera el ruido de la cadena de build (vite, esbuild, source-map-js…); lo
-        # que bloquea es lo que viaja al navegador. Esto es lo que habría parado el DOMPurify ≤3.4.16
-        # (XSS almacenado CRÍTICO) antes de llegar a producción.
+      - name: Vulnerabilidades de dependencias (gate — alta/crítica de runtime)
+        # La puerta de seguridad: una dependencia de PRODUCCIÓN con CVE ALTO o CRÍTICO no se publica.
+        # `--omit=dev` deja fuera el ruido de la cadena de build (vite, esbuild…); lo que bloquea es lo
+        # que viaja al navegador. Esto es lo que habría parado el DOMPurify ≤3.4.16 (XSS crítico) antes
+        # de llegar a producción.
         #
-        # Umbral `critical`, no `high`, Y A PROPÓSITO (decisión de umbral, 23-oct-2026): hoy quedan
-        # dos avisos ALTOS de Angular SSR (@angular/platform-server y @angular/router 22.0–22.2: DoS
-        # y open-redirect de SSR) que NO se pueden cerrar con `npm audit fix` sin `--force` —los peers
-        # internos de Angular son de versión EXACTA, así que el conjunto entero exige un `ng update`
-        # con migraciones, una operación deliberada, no un parche al vuelo—. Su explotabilidad real
-        # aquí es baja: este front NO tiene servidor Node vivo (prerender estático + hidratación en el
-        # navegador), y esos fallos necesitan un Node procesando peticiones de un atacante en runtime.
-        # Poner la puerta en `high` dejaría `develop` en rojo por esa deuda conocida sin ganar
-        # seguridad real. El informe SIGUE mostrando las altas (abajo): `--audit-level` solo decide el
-        # código de salida, no qué se imprime.
-        #
-        # SUBIR A `high` cuando el `ng update` de Angular cierre esos dos avisos. Si antes hiciera
-        # falta bloquear altas conservando una excepción con caducidad (como el `.snyk` del backend),
-        # la vía es un `audit-ci`/`better-npm-audit` con lista de excepciones, no quitar la puerta.
-        run: npm audit --omit=dev --audit-level=critical
+        # Umbral SUBIDO a `high` el 23-oct-2026. Estuvo en `critical` mientras quedaban dos ALTAS de
+        # Angular SSR (platform-server/router 22.0–22.2) que solo cerraba un `ng update` (los peers
+        # internos de Angular son de versión exacta y no bajaban con `npm audit fix`). Hecho ese
+        # `ng update` (Angular 22.2.3/22.2.4) y limpiado source-map-js, el audit de runtime quedó a 0,
+        # así que ahora la puerta bloquea también las ALTAS. Si algún día hay que tolerar una alta
+        # concreta con motivo y caducidad (como el `.snyk` del backend), la vía es
+        # `audit-ci`/`better-npm-audit` con lista de excepciones, nunca bajar la puerta ni quitarla.
+        run: npm audit --omit=dev --audit-level=high
 
       - name: Entrar en el registro
         uses: docker/login-action@v3
