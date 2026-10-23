@@ -14,7 +14,7 @@ sustituye. Si los dos discrepan, manda el CSS.
 
 Los temas se llaman **`nx036-pastel`** y **`nx036-pastel-dark`**, pero **ya no son ni pastel ni
 "Aduana/Cargo"**. El 23-oct-2026 el diseño se rehízo a una identidad de **comercio electrónico con
-color**: **violeta** de marca (`primary`) + acento **magenta** (`accent`), sobre neutros
+color**: **primario gris-azulado** (`primary`) + acento **violeta** (`accent`), sobre neutros
 gris-azulados para texto y superficies, y semánticos vivos (esmeralda/ámbar/rojo/azul). El gris es
 solo el fondo; el color lo llevan la marca y los estados. El nombre del tema se mantuvo solo por
 compatibilidad con `data-theme` y con `theme.ts`. No te fíes del nombre.
@@ -30,10 +30,10 @@ en oscuro), y `corporate` y `business`, que existen aunque no se usen en el prod
 | `--color-base-200` | `#f6f7f9` | fondo de página |
 | `--color-base-300` | `#ebedf2` | bordes y divisores |
 | `--color-base-content` | `#1f2937` | el texto (gris-azulado) |
-| `--color-primary` | `#7c3aed` | **violeta** — llamadas a la acción, enlaces, activo |
-| `--color-primary-content` | `#ffffff` | texto sobre violeta |
-| `--color-secondary` | `#4f5868` | gris-azulado — botón secundario neutro |
-| `--color-accent` | `#ec4899` | **magenta** — distintivos, rebajas, recompensas |
+| `--color-primary` | `#1f2937` | **gris-azulado** — llamadas a la acción, enlaces, activo |
+| `--color-primary-content` | `#ffffff` | texto sobre primary |
+| `--color-secondary` | `#636d80` | gris medio — botón secundario neutro |
+| `--color-accent` | `#8b5cf6` | **violeta** — destaques (IA, recompensas), promociones |
 | `--color-info` | `#2563eb` | azul informativo |
 | `--color-success` | `#10b981` | esmeralda — hay existencias, operación correcta |
 | `--color-warning` | `#f59e0b` | ámbar |
@@ -59,7 +59,7 @@ icono o un texto que desaparece en oscuro, mira ahí primero.
 
 Además de los tokens de daisyUI hay una escala `--color-ink-*`, de `ink-900` (`#1f2937`) a `ink-50`
 (`#f6f7f9`). Es el **gris-azulado neutro** para texto, bordes y superficies; el color de la tienda lo
-llevan `primary` (violeta) y `accent` (magenta), no `ink`.
+llevan el `accent` (violeta), los estados y las fotos de producto, no `ink`.
 
 **La escala está completa, y tiene que seguir estándolo.** Durante un tiempo faltaron tres peldaños
 —`ink-400`, `ink-600` e `ink-800`— aunque el código los usaba 214 veces. Un peldaño sin declarar no
@@ -83,7 +83,7 @@ vale `#6b7280` (el `muted-foreground` de Ecomerce): da 4,8:1 sobre `base-100` y 
 el `500` (`#636d80`), así que la rampa no se cruza. En el tema oscuro su gemelo va en `oklch(63%)`
 por el mismo motivo. Lo vigila `styles-contraste.spec.ts`.
 
-Y `--color-brand-*` —la rampa **violeta** a juego con `primary`—, que se usa sobre todo en el foco:
+Y `--color-brand-*` —la rampa **gris-azulada** a juego con `primary`—, que se usa sobre todo en el foco:
 el `:focus-visible` general del sitio es `outline: 2px solid var(--color-brand-400)` con dos píxeles
 de separación.
 

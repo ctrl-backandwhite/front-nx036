@@ -24,9 +24,9 @@ interface ColorDelTema {
 }
 
 const PALETA: readonly ColorDelTema[] = [
-  { nombre: 'primary', token: '--color-primary', clase: 'bg-primary', descripcion: 'Violeta — acción principal, links activos, énfasis.' },
-  { nombre: 'secondary', token: '--color-secondary', clase: 'bg-secondary', descripcion: 'Gris-azulado — acción secundaria neutra.' },
-  { nombre: 'accent', token: '--color-accent', clase: 'bg-accent', descripcion: 'Magenta — destaques, rebajas y promociones.' },
+  { nombre: 'primary', token: '--color-primary', clase: 'bg-primary', descripcion: 'Gris-azulado — acción principal, links activos, énfasis.' },
+  { nombre: 'secondary', token: '--color-secondary', clase: 'bg-secondary', descripcion: 'Gris medio — acción secundaria neutra.' },
+  { nombre: 'accent', token: '--color-accent', clase: 'bg-accent', descripcion: 'Violeta — destaques (IA, recompensas) y promociones.' },
   { nombre: 'neutral', token: '--color-neutral', clase: 'bg-neutral', descripcion: 'Gris neutro para textos secundarios y borders.' },
   { nombre: 'base-100', token: '--color-base-100', clase: 'bg-base-100', descripcion: 'Superficie elevada (cards, modales).' },
   { nombre: 'base-200', token: '--color-base-200', clase: 'bg-base-200', descripcion: 'Fondo de página y carriles de tabla zebra.' },

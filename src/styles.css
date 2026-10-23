@@ -199,10 +199,11 @@
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
-/* Paleta NX036 — identidad de comercio electrónico, viva y con color.
- * Violeta de marca (acción/CTA/links) + acento magenta (rebajas/recompensas) sobre neutros
- * gris-azulados para texto y superficies, y semánticos vivos (esmeralda/ámbar/rojo/azul). El gris
- * es solo el fondo; el color lo llevan la marca y los estados. El nombre del theme se mantiene
+/* Paleta NX036 — la del proyecto Ecomerce (identidad de comercio electrónico).
+ * Primary gris-azulado profundo (#1f2937) para acción/CTA/links; acento VIOLETA (#8b5cf6) solo para
+ * destaques (IA, recompensas, promociones), no como color principal; semánticos vivos
+ * (esmeralda/ámbar/rojo/azul). El color de la tienda lo aportan el acento, los estados, las
+ * valoraciones (ámbar), las rebajas (rojo) y las fotos de producto. El nombre del theme se mantiene
  * (nx036-pastel) por compat con data-theme / theme.ts; ya no es "pastel" ni "Aduana/Cargo".
  */
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -300,13 +301,13 @@
   --color-base-300: #ebedf2;   /* gris claro (bordes/divisores) */
   --color-base-content: #1f2937; /* gris-azulado profundo (texto) */
 
-  --color-primary:   #7c3aed;  /* violeta vibrante (CTA/links/activo) — color de marca */
+  --color-primary:   #1f2937;  /* gris-azulado profundo (Ecomerce) — CTA/links/activo */
   --color-primary-content: #ffffff;
 
-  --color-secondary: #4f5868;  /* gris-azulado (botón secundario neutro) */
+  --color-secondary: #636d80;  /* gris medio (Ecomerce) — botón secundario */
   --color-secondary-content: #ffffff;
 
-  --color-accent:    #ec4899;  /* magenta (acento premium: rebajas, recompensas) */
+  --color-accent:    #8b5cf6;  /* violeta (acento Ecomerce: IA/recompensas/destaques, NO el principal) */
   --color-accent-content: #ffffff;
 
   --color-neutral:   #1f2937;  /* gris-azulado profundo (superficies oscuras/footer) */
@@ -339,14 +340,14 @@
   --color-base-300: #374151;
   --color-base-content: #f9fafb;
 
-  --color-primary:   #a78bfa;  /* violeta claro (CTA/links en dark) */
-  --color-primary-content: #2e1065;
+  --color-primary:   #e5e7eb;  /* gris claro invertido (Ecomerce dark) — botones legibles sobre oscuro */
+  --color-primary-content: #1f2937;
 
   --color-secondary: #9ca3af;
   --color-secondary-content: #111827;
 
-  --color-accent:    #f472b6;  /* magenta claro (acento en dark) */
-  --color-accent-content: #3b0a28;
+  --color-accent:    #a78bfa;  /* violeta claro (acento Ecomerce en dark) */
+  --color-accent-content: #2e1065;
 
   --color-neutral:   #1f2937;
   --color-neutral-content: #f9fafb;
@@ -372,17 +373,17 @@
 }
 
 @theme {
-  /* brand = violeta (color de marca). El anillo de foco (:focus-visible) usa brand-400. */
-  --color-brand-50:  #f5f3ff;
-  --color-brand-100: #ede9fe;
-  --color-brand-200: #ddd6fe;
-  --color-brand-300: #c4b5fd;
-  --color-brand-400: #8b5cf6;
-  --color-brand-500: #7c3aed;
-  --color-brand-600: #6d28d9;
-  --color-brand-700: #5b21b6;
-  --color-brand-800: #4c1d95;
-  --color-brand-900: #2e1065;
+  /* brand = gris-azulado (Ecomerce), a juego con primary. El foco (:focus-visible) usa brand-400. */
+  --color-brand-50:  #f6f7f9;
+  --color-brand-100: #ebedf2;
+  --color-brand-200: #d3d7df;
+  --color-brand-300: #adb4c0;
+  --color-brand-400: #636d80;
+  --color-brand-500: #4f5868;
+  --color-brand-600: #404754;
+  --color-brand-700: #383e48;
+  --color-brand-800: #2c3540;
+  --color-brand-900: #1f2937;
 
   /* ink = gris-azulado NEUTRO (texto, bordes y superficies). El COLOR de la tienda lo llevan
    * primary (violeta) y accent (magenta) + los semánticos; `ink` es el gris de fondo, no color.
@@ -1291,11 +1292,11 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
   --color-brand-200: color-mix(in oklch, var(--color-primary) 45%, var(--color-base-100));
   --color-brand-300: color-mix(in oklch, var(--color-primary) 60%, var(--color-base-100));
   --color-brand-400: var(--color-primary);
-  --color-brand-500: oklch(72% 0.16 292);
-  --color-brand-600: oklch(72% 0.16 292);
-  --color-brand-700: oklch(72% 0.16 292);
-  --color-brand-800: oklch(72% 0.16 292);
-  --color-brand-900: oklch(72% 0.16 292);
+  --color-brand-500: oklch(84% 0.02 250);
+  --color-brand-600: oklch(84% 0.02 250);
+  --color-brand-700: oklch(84% 0.02 250);
+  --color-brand-800: oklch(84% 0.02 250);
+  --color-brand-900: oklch(84% 0.02 250);
 
   /* ── Y las paletas crudas de Tailwind ────────────────────────────────────────
    * 383 usos en 105 ficheros, sin un solo remapeo: en oscuro conservaban su valor del tema
@@ -1560,11 +1561,11 @@ aside .menu > .menu-title:first-child { border-top: 0; padding-top: 0.5rem; }
     --color-brand-200: color-mix(in oklch, var(--color-primary) 45%, var(--color-base-100));
     --color-brand-300: color-mix(in oklch, var(--color-primary) 60%, var(--color-base-100));
     --color-brand-400: var(--color-primary);
-    --color-brand-500: oklch(72% 0.16 292);
-    --color-brand-600: oklch(72% 0.16 292);
-    --color-brand-700: oklch(72% 0.16 292);
-    --color-brand-800: oklch(72% 0.16 292);
-    --color-brand-900: oklch(72% 0.16 292);
+    --color-brand-500: oklch(84% 0.02 250);
+    --color-brand-600: oklch(84% 0.02 250);
+    --color-brand-700: oklch(84% 0.02 250);
+    --color-brand-800: oklch(84% 0.02 250);
+    --color-brand-900: oklch(84% 0.02 250);
 
     /* ── Y las paletas crudas de Tailwind ────────────────────────────────────────
      * 383 usos en 105 ficheros, sin un solo remapeo: en oscuro conservaban su valor del tema
