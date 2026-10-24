@@ -123,7 +123,7 @@ const TONOS = [
             <nx-revela [retardo]="fila * RETARDO_ENTRE_HILERAS">
             <section>
               <header class="flex items-baseline justify-between mb-3">
-                <h2 class="flex items-center gap-2 text-xl">
+                <h2 class="display-title flex items-center gap-2 text-xl">
                   <fa-icon [icon]="icono(seccion.codigo)" class="text-brand-500 text-[16px]" />
                   {{ t(clave(seccion.codigo)) }}
                 </h2>
@@ -152,7 +152,7 @@ const TONOS = [
         -->
         @if (datos.categoriasDestacadas.length > 0) {
           <section class="order-first md:order-none">
-            <h2 class="text-xl mb-3">{{ t('catalog.home.hot_categories') }}</h2>
+            <h2 class="display-title text-xl mb-3">{{ t('catalog.home.hot_categories') }}</h2>
             <!--
               No hay foto de categoría —el backend no la trae y todas comparten icono genérico—, así que
               la distinción visual la da un círculo de color con la inicial. Es el recurso de las

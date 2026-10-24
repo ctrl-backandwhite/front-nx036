@@ -13,4 +13,6 @@
  * separación. El tope se mantiene a propósito —sin él, en un monitor de 3.440 px una fila se estira
  * de lado a lado y el ojo pierde el renglón—.
  */
-export const CONTENEDOR_DE_PAGINA = 'w-full max-w-[1680px] mx-auto px-4 lg:px-6';
+// Ancho unificado a 1.440 px (el del proyecto Ecomerce, `wide`), con su mismo relleno lateral
+// progresivo px-4/sm:px-6/lg:px-8. Antes el cuerpo iba a 1.680.
+export const CONTENEDOR_DE_PAGINA = 'w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8';

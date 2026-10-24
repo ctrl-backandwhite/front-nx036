@@ -103,7 +103,7 @@ let barajaDeLaVisita: number | null = null;
           <div class="text-[11px] uppercase tracking-wider text-brand-700 font-medium">
             {{ t('catalog.category_hero.label') }}
           </div>
-          <h1 class="mt-1 text-3xl font-medium">{{ categoria.nombre }}</h1>
+          <h1 class="display-title mt-1 text-3xl">{{ categoria.nombre }}</h1>
           <div class="mt-3 inline-flex items-center gap-3 text-[12px] text-ink-500">
             <span>
               <strong class="text-ink-700">{{ categoria.cuantosProductos }}</strong>
@@ -119,7 +119,7 @@ let barajaDeLaVisita: number | null = null;
       <header class="flex flex-wrap items-end justify-between gap-3">
         <div>
           @if (!categoriaActiva()) {
-            <h1>{{ t('catalog.title') }}</h1>
+            <h1 class="display-title text-2xl sm:text-3xl">{{ t('catalog.title') }}</h1>
             <p class="text-sm text-ink-500 mt-1">{{ t('catalog.subtitle') }}</p>
           }
         </div>

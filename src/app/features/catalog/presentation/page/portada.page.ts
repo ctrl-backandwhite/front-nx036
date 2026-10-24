@@ -84,7 +84,7 @@ import { BandaDePaises } from '../component/banda-de-paises';
             {{ pildora() }}
           </div>
 
-          <h1 class="mt-5 text-4xl sm:text-5xl md:text-6xl font-medium tracking-tight">
+          <h1 class="display-title mt-5 text-4xl sm:text-5xl md:text-6xl tracking-tight">
             {{ t('home.hero.title_pre') }}
             <span class="bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent">
               {{ t('home.hero.title_accent') }}
