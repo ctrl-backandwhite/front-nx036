@@ -960,6 +960,18 @@ aside .menu .menu-title {
   line-height: 1.2;
 }
 
+/* Panel admin: el ítem de menú activo va en AZUL (acento propio del back-office, como Ecomerce),
+   no en el primary del tema. Acotado a `.admin-nav`; usa `--color-info` (azul en los DOS temas:
+   #2563eb claro / #60a5fa oscuro), así la pareja texto/fondo se adapta sin duplicar en el bloque
+   oscuro. El azul queda reservado al panel; el escaparate no lo toca. */
+.admin-nav li > a.menu-active,
+.admin-nav li > a.menu-active fa-icon {
+  color: var(--color-info) !important;
+}
+.admin-nav li > a.menu-active {
+  background-color: color-mix(in oklch, var(--color-info) 14%, var(--color-base-100)) !important;
+}
+
 @utility banner {
   display: flex; align-items: flex-start; gap: 0.625rem;
   padding: 0.75rem 1rem; border-radius: 0.5rem;

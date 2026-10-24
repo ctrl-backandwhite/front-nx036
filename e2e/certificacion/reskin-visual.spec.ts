@@ -82,9 +82,12 @@ test('re-skin · cliente: catálogo, ficha, carrito, checkout', async ({ page })
   await capturaTemas(page, '/checkout', 'checkout')
 })
 
-// ── Con sesión de admin (styleguide = vitrina del sistema de diseño) ──────────
-test('re-skin · admin: styleguide', async ({ page }) => {
+// ── Con sesión de admin (styleguide + dashboard del panel) ────────────────────
+test('re-skin · admin: styleguide y dashboard', async ({ page }) => {
+  test.setTimeout(180_000)
   await consienteCookies(page)
   await entra(page)
   await capturaTemas(page, '/admin/styleguide', 'styleguide')
+  // El dashboard enseña el sidebar con el ítem activo en azul y las tarjetas del panel.
+  await capturaTemas(page, '/admin/dashboard', 'admin-dashboard')
 })

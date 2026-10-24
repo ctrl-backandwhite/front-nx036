@@ -85,7 +85,7 @@ const MENU: readonly EntradaDeMenu[] = MENU_COMPLETO.filter(
   template: `
     <div class="max-w-6xl mx-auto">
       <header class="mb-6">
-        <h1>{{ t('profile.title') }}</h1>
+        <h1 class="display-title text-2xl sm:text-3xl">{{ t('profile.title') }}</h1>
         <p class="text-sm text-ink-500 mt-1">{{ t('profile.subtitle') }}</p>
       </header>
 

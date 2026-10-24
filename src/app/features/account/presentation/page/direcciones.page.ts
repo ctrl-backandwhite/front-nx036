@@ -52,7 +52,7 @@ import { RecuperaCuenta } from '../../application/use-case/recupera-cuenta.use-c
           <a routerLink="/profile" class="text-xs text-ink-500 hover:underline inline-flex items-center gap-1">
             <fa-icon [icon]="iconos.atras" /> {{ t('addresses.back_to_profile') }}
           </a>
-          <h1 class="mt-1 flex items-center gap-2">
+          <h1 class="display-title mt-1 flex items-center gap-2">
             <fa-icon [icon]="iconos.direccion" class="text-brand-600" /> {{ t('addresses.title') }}
           </h1>
           <p class="text-sm text-ink-500 mt-1">{{ t('addresses.subtitle') }}</p>

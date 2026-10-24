@@ -31,7 +31,7 @@ import { CargaPlanes } from '../../application/use-case/planes.use-case';
   template: `
     <div>
       <div class="text-center mb-10">
-        <h1 class="text-3xl font-bold">{{ t('plans.title') }}</h1>
+        <h1 class="display-title text-3xl">{{ t('plans.title') }}</h1>
         <p class="opacity-70 mt-2">{{ t('plans.subtitle') }}</p>
         <div class="join mt-4">
           <button

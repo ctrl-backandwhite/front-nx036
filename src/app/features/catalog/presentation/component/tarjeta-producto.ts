@@ -66,13 +66,13 @@ const CONFIRMACION_MS = 1400;
           la que no se le pone prioridad, porque competiría con la que sí importa.
         -->
         @if (prioritaria() && producto().imagenPrincipal; as foto) {
-          <div class="relative aspect-square w-full bg-base-200">
+          <div class="relative aspect-square w-full">
             <img
               [ngSrc]="foto"
               fill
               priority
               [alt]="producto().titulo"
-              class="object-contain p-3 transition-transform duration-300 group-hover:scale-105"
+              class="object-cover transition-transform duration-300 group-hover:scale-105"
             />
           </div>
         } @else {
@@ -80,8 +80,8 @@ const CONFIRMACION_MS = 1400;
             [src]="producto().imagenPrincipal"
             [class.opacity-60]="agotado()"
             [alt]="producto().titulo"
-            clase="aspect-square w-full object-contain p-3 bg-base-200 transition-transform duration-300 group-hover:scale-105"
-            claseMarcador="aspect-square w-full bg-base-200"
+            clase="aspect-square w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            claseMarcador="aspect-square w-full"
           />
         }
 

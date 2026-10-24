@@ -39,7 +39,7 @@ import { ResumenDeLaCompra } from '../component/resumen-de-la-compra';
   template: `
     @if (lineas().length === 0 && !estado.depositoEnCripto()) {
       <div class="max-w-2xl mx-auto card p-10 text-center">
-        <h1>{{ t('checkout.empty.title') }}</h1>
+        <h1 class="display-title text-xl sm:text-2xl">{{ t('checkout.empty.title') }}</h1>
         <p class="text-sm text-ink-500 mt-2">{{ t('checkout.empty.desc') }}</p>
         <a routerLink="/catalog" class="btn btn-primary inline-flex mt-5">{{
           t('cart.see_catalog')
@@ -47,7 +47,7 @@ import { ResumenDeLaCompra } from '../component/resumen-de-la-compra';
       </div>
     } @else {
       <form class="max-w-5xl mx-auto space-y-4" (submit)="paga($event)">
-        <h1>{{ t('checkout.title') }}</h1>
+        <h1 class="display-title text-2xl sm:text-3xl">{{ t('checkout.title') }}</h1>
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3 items-start">
           <div class="lg:col-span-2 space-y-4">
             <nx-seccion-de-envio
