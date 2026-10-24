@@ -56,7 +56,7 @@ const CONFIRMACION_MS = 1400;
   template: `
     <a
       [routerLink]="destino()"
-      class="card overflow-hidden transition-all duration-1000 hover:shadow-md hover:border-brand-200 hover:-translate-y-0.5 group focus-ring"
+      class="card card-hover overflow-hidden group focus-ring"
     >
       <div class="relative">
         <!--
@@ -72,7 +72,7 @@ const CONFIRMACION_MS = 1400;
               fill
               priority
               [alt]="producto().titulo"
-              class="object-cover transition-transform duration-1000 group-hover:scale-[1.03]"
+              class="object-cover transition-transform duration-300 group-hover:scale-105"
             />
           </div>
         } @else {
@@ -80,7 +80,7 @@ const CONFIRMACION_MS = 1400;
             [src]="producto().imagenPrincipal"
             [class.opacity-60]="agotado()"
             [alt]="producto().titulo"
-            clase="aspect-square w-full object-cover transition-transform duration-1000 group-hover:scale-[1.03]"
+            clase="aspect-square w-full object-cover transition-transform duration-300 group-hover:scale-105"
             claseMarcador="aspect-square w-full"
           />
         }
@@ -172,7 +172,7 @@ const CONFIRMACION_MS = 1400;
       </div>
 
       <div class="p-3">
-        <p class="text-sm line-clamp-2 min-h-[2.5rem] group-hover:text-brand-700">
+        <p class="text-sm line-clamp-2 min-h-[2.5rem]">
           {{ producto().titulo }}
         </p>
         <div class="flex items-center justify-between mt-2">
@@ -237,7 +237,7 @@ const CONFIRMACION_MS = 1400;
           type="button"
           (click)="compraRapida($event)"
           [disabled]="anadiendo()"
-          [class]="anadido() ? 'btn-success' : 'btn-outline'"
+          [class]="anadido() ? 'btn-success' : 'btn-primary'"
           class="btn btn-sm sm:btn-xs w-full mt-2"
         >
           <fa-icon [icon]="anadido() ? iconos.hecho : iconos.anadir" class="text-[11px]" />

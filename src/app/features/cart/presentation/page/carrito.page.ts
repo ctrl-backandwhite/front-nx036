@@ -38,7 +38,7 @@ import { ListaGuardada } from '../component/lista-guardada';
       <div class="hero max-w-2xl mx-auto py-10">
         <div class="hero-content text-center flex-col">
           <fa-icon [icon]="iconoCesta" class="text-4xl opacity-30 mb-2" />
-          <h1>{{ t('cart.empty') }}</h1>
+          <h1 class="display-title text-xl sm:text-2xl">{{ t('cart.empty') }}</h1>
           <p class="text-sm opacity-70">{{ t('cart.empty.desc') }}</p>
           <a routerLink="/catalog" class="btn btn-primary mt-2">{{ t('cart.see_catalog') }}</a>
         </div>
@@ -46,7 +46,7 @@ import { ListaGuardada } from '../component/lista-guardada';
     } @else {
       <div class="max-w-4xl mx-auto space-y-4">
         <div class="flex items-baseline justify-between gap-3">
-          <h1>{{ t('cart.title') }}</h1>
+          <h1 class="display-title text-2xl sm:text-3xl">{{ t('cart.title') }}</h1>
           @if (cotizacion.pesoTotal(); as peso) {
             <span class="text-[13px] text-ink-500 whitespace-nowrap">
               {{ cotizacion.pesoIncompleto() ? tCon('cart.weight_from', { w: peso }) : peso }}

@@ -122,7 +122,7 @@ describe('PieSitio, ancho del contenedor', () => {
     const { container } = await render(PieSitio);
 
     const pie = container.querySelector('footer');
-    expect(pie?.classList.contains('bg-base-200')).toBe(true);
+    expect(pie?.classList.contains('bg-neutral')).toBe(true);
     expect(pie?.classList.contains('footer')).toBe(true);
   });
 });

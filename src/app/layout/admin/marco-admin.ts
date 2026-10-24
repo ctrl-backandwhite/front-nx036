@@ -89,9 +89,9 @@ export interface UsuarioDelPanel {
         </div>
 
         <!-- Una sola columna: los títulos de sección son «menu-title» planos y las opciones, hermanas. -->
-        <ul class="menu menu-sm w-full flex-1 flex-nowrap overflow-y-auto scrollbar-thin px-2 py-3 gap-0.5">
+        <ul class="menu menu-sm admin-nav w-full flex-1 flex-nowrap overflow-y-auto scrollbar-thin px-2 py-3 gap-0.5">
           @for (seccion of secciones(); track seccion.clave; let primera = $first) {
-            <li class="menu-title text-[10px] uppercase tracking-wider opacity-70" [class.mt-3]="!primera">
+            <li class="menu-title eyebrow" [class.mt-3]="!primera">
               {{ t(seccion.clave) }}
             </li>
             @for (opcion of seccion.opciones; track opcion.destino) {

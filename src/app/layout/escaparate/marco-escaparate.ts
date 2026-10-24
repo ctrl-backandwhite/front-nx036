@@ -68,10 +68,10 @@ const RUTA_DE_FICHA = /^\/(catalog|admin\/browse)\/[^/]+$/;
     <div class="min-h-full flex flex-col">
       <header
         nxSombraAlDesplazar
-        class="navbar bg-base-100 border-b border-base-200 sticky top-0 z-30 min-h-14 px-4 lg:px-6"
+        class="navbar bg-base-100/95 backdrop-blur border-b border-base-200 sticky top-0 z-30 min-h-14 px-4 lg:px-6"
       >
         <div class="navbar-start">
-          <a routerLink="/" class="flex items-center gap-2 font-medium text-[15px]">
+          <a routerLink="/" class="flex items-center gap-2 font-semibold text-[15px] tracking-wide">
             <fa-icon [icon]="iconoMarca" class="text-primary marca-icono" />
             <!-- La marca es «NX036» en toda la plataforma, sin la forma societaria. -->
             <span>NX036</span>
@@ -238,7 +238,7 @@ const RUTA_DE_FICHA = /^\/(catalog|admin\/browse)\/[^/]+$/;
               <!-- Aquí el selector está abajo del todo, así que su panel abre HACIA ARRIBA para no
                    salirse de la pantalla; a ancho completo y con el nombre del país, para que se
                    entienda qué es. -->
-              <div class="text-[10px] uppercase tracking-wide text-ink-400 px-0.5">
+              <div class="eyebrow px-0.5">
                 {{ t('picker.country_currency') }}
               </div>
               <nx-selector-pais-moneda [haciaArriba]="true" [anchoCompleto]="true" />
@@ -266,15 +266,10 @@ const RUTA_DE_FICHA = /^\/(catalog|admin\/browse)\/[^/]+$/;
       <!-- El hueco para la barra de pestañas lo reserva el PIE, que va siempre debajo y en móvil lleva
            «pb-24». Reservarlo también aquí dejaba una franja en blanco entre el contenido y el pie. -->
       <!--
-        1.680 px de ancho máximo, no los 1.536 de «2xl».
-        En un portátil de 1.800 px sobraban casi 300 a los lados mientras las fotos de producto
-        —que es lo único que decide una compra aquí— se pintaban pequeñas. Con este tope se recupera
-        la mitad de ese margen y cada tarjeta de la cuadrícula gana ancho sin cambiar el número de
-        columnas: más foto, no más productos por fila.
-
-        Y sigue habiendo TOPE a propósito. Sin él, en un monitor de 3.440 px la fila se estiraría de
-        lado a lado y leer un listado obligaría a barrer la cabeza; el ojo pierde el renglón mucho
-        antes de eso.
+        El ancho máximo (1.440 px, el «wide» del proyecto Ecomerce) y el relleno lateral viven en
+        CONTENEDOR_DE_PAGINA, compartidos con el pie para que los bordes coincidan. Sigue habiendo
+        TOPE a propósito: sin él, en un monitor de 3.440 px la fila se estira de lado a lado y leer un
+        listado obliga a barrer la cabeza; el ojo pierde el renglón mucho antes de eso.
       -->
       <main class="flex-1 min-w-0 py-6 lg:py-10" [class]="contenedor">
         @if (conMigas()) {

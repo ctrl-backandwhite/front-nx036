@@ -71,32 +71,35 @@ const REDES = [
          El tope y el relleno lateral vienen de CONTENEDOR_DE_PAGINA, el MISMO que usa el cuerpo de la
          página: escritos aparte se separaron, y el recuadro gris quedaba 195 px más estrecho que las
          tarjetas que tiene justo encima. -->
+    <!-- Pie oscuro (lenguaje Ecomerce). Es una superficie SIEMPRE oscura, así que el texto va con
+         neutral-content, legible en los dos temas; footer-title y link están pensados para fondo
+         claro (ink-500/primary) y aquí quedarían ilegibles, igual que la escala ink sobre scrim. -->
     <footer
-      class="hidden md:flex footer sm:footer-horizontal bg-base-200 text-base-content/80 border-t border-base-300 py-10 mt-12
+      class="hidden md:flex footer sm:footer-horizontal bg-neutral text-neutral-content/80 border-t border-neutral py-10 mt-12
              justify-between gap-8"
       [class]="contenedor"
     >
       <aside class="max-w-xs">
-        <a routerLink="/" class="inline-flex items-center gap-2 font-medium text-[15px]">
-          <fa-icon [icon]="iconoMarca" class="text-primary marca-icono" />
+        <a routerLink="/" class="inline-flex items-center gap-2 font-medium text-[15px] text-neutral-content">
+          <fa-icon [icon]="iconoMarca" class="marca-icono" />
           <!-- La marca es «NX036» en toda la plataforma, sin la forma societaria. -->
           NX036
         </a>
-        <p class="text-[12px] mt-2 leading-relaxed">{{ t('footer.pitch') }}</p>
+        <p class="text-[12px] mt-2 leading-relaxed text-neutral-content/70">{{ t('footer.pitch') }}</p>
       </aside>
       @for (columna of columnas; track columna.titulo) {
         <nav>
-          <h6 class="footer-title text-[11px]">{{ t(columna.titulo) }}</h6>
+          <h6 class="eyebrow mb-1 text-neutral-content/60">{{ t(columna.titulo) }}</h6>
           @for (enlace of columna.enlaces; track enlace.texto) {
-            <a [routerLink]="enlace.destino" class="link link-hover text-[13px]">
+            <a [routerLink]="enlace.destino" class="text-[13px] text-neutral-content/80 hover:text-neutral-content transition-colors">
               {{ t(enlace.texto) }}
             </a>
           }
         </nav>
       }
       <nav class="max-w-xs">
-        <h6 class="footer-title text-[11px]">{{ t('newsletter.footer.title') }}</h6>
-        <p class="text-[12px] mb-2">{{ t('newsletter.footer.pitch') }}</p>
+        <h6 class="eyebrow mb-1 text-neutral-content/60">{{ t('newsletter.footer.title') }}</h6>
+        <p class="text-[12px] mb-2 text-neutral-content/70">{{ t('newsletter.footer.pitch') }}</p>
         <nx-alta-boletin
           [enviado]="boletinEnviado()"
           [yaSuscrito]="yaSuscrito()"
