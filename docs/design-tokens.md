@@ -19,6 +19,12 @@ gris-azulados para texto y superficies, y semánticos vivos (esmeralda/ámbar/ro
 solo el fondo; el color lo llevan la marca y los estados. El nombre del tema se mantuvo solo por
 compatibilidad con `data-theme` y con `theme.ts`. No te fíes del nombre.
 
+El 24-oct-2026 se adoptó además el **lenguaje visual completo** del proyecto Ecomerce: tipografía
+«display» en Fraunces con rótulos `eyebrow`, tarjetas planas con el borde que se oscurece al pasar por
+encima (nada de sombra dura), sombras muy sutiles, pie oscuro, contenedor a 1.440 px y el acento
+**azul** reservado al panel de administración. Todo vive en `styles.css`; los componentes solo usan
+las clases compartidas.
+
 daisyUI registra **cuatro** temas: `nx036-pastel` (por defecto), `nx036-pastel-dark` (el del sistema
 en oscuro), y `corporate` y `business`, que existen aunque no se usen en el producto.
 
@@ -52,8 +58,16 @@ icono o un texto que desaparece en oscuro, mira ahí primero.
 
 ## Tipografía
 
-**Roboto** para el texto y **Roboto Mono** para cifras monoespaciadas. Van **autoalojadas** en
-`front-nx036/src/fonts/*.woff2` con `font-display: swap`, no se piden a ningún servicio externo.
+**Roboto** para el texto, **Roboto Mono** para cifras monoespaciadas y **Fraunces** (serif «display»)
+para los títulos: portada, catálogo, ficha, cabeceras de sección y los títulos de cuenta, carrito y
+checkout. Las tres van **autoalojadas** en `front-nx036/src/fonts/*.woff2` con `font-display: swap`, no
+se piden a ningún servicio externo (RGPD).
+
+El título «display» no se escribe con la familia a mano: va con la utilidad **`display-title`** (token
+`--font-display` = `"Fraunces", Georgia, serif`, peso 400, `letter-spacing: -0.01em`). Y el rótulo en
+mayúsculas que va **encima** de un título —el «eyebrow» de las cabeceras de Ecomerce— va con la
+utilidad **`eyebrow`** (mayúsculas, 0,6875rem, `tracking` 0,12em, color `ink-400`). Las dos se
+declaran una sola vez en `styles.css`; no se repite el tratamiento a mano.
 
 ## Escala de grises propia
 
@@ -139,6 +153,16 @@ página oscura, con sus pestañas a **1,15:1**, y el mismo fallo en el botón de
 
 ## Componentes con tratamiento propio
 
+- **Tarjeta (`.card`)**: plana —sin sombra dura— y, al pasar por encima, el **borde se oscurece** más
+  una sombra muy sutil; no hay salto vertical. Es el patrón de tarjeta de Ecomerce y lo heredan el
+  catálogo, el carrito, el checkout y las tarjetas del panel.
+- **Pie del escaparate**: oscuro (`bg-neutral` + texto claro), con las columnas rotuladas en `eyebrow`.
+  Antes era claro (`bg-base-200`).
+- **Panel admin — ítem de menú activo en AZUL**: usa `--color-info` (azul en los dos temas), no el
+  `primary` del tema. Está acotado a `.admin-nav` (fondo azul claro + texto e icono azules) y es el
+  acento propio del back-office, como el admin de Ecomerce; **el escaparate no usa el azul**. La regla
+  lleva `!important` porque la base de daisyUI pinta `.menu-active` con `primary` también con
+  `!important`: sin él no ganaba.
 - **Alertas** con borde lateral de 3 px, en sus cuatro variantes.
 - **Tablas cebra**, con un tratamiento distinto en oscuro para que la franja no se coma el texto.
 - **`badge-trustpass`**, el distintivo de proveedor verificado.
