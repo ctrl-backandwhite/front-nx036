@@ -308,22 +308,56 @@ describe('OperadoresHttpAdapter', () => {
 });
 
 describe('ComprasHttpAdapter', () => {
-  it('traduce la cola al vocabulario del dominio', async () => {
+  it('traduce la página de la cola al vocabulario del dominio', async () => {
     const { instancia, http } = monta(ComprasHttpAdapter);
-    const promesa = instancia.cola();
+    const promesa = instancia.cola({});
 
-    http.expectOne('/api/admin/purchases').flush([
-      {
-        id: 'c1',
-        orderId: 'p1',
-        orderNumber: 'NX-1',
-        status: 'PENDING',
-        items: [{ orderItemId: 'l1', title: 'Gorro', titleZh: '帽子', quantity: 2 }],
-      },
-    ]);
+    http.expectOne('/api/admin/purchases?page=0&size=25').flush({
+      items: [
+        {
+          id: 'c1',
+          orderId: 'p1',
+          orderNumber: 'NX-1',
+          status: 'PENDING',
+          items: [{ orderItemId: 'l1', title: 'Gorro', titleZh: '帽子', quantity: 2 }],
+        },
+      ],
+      page: 0,
+      size: 25,
+      totalElements: 1,
+      totalPages: 1,
+    });
 
     const resultado = await promesa;
-    expect(resultado.ok && resultado.valor[0].lineas[0].tituloZh).toBe('帽子');
+    expect(resultado.ok && resultado.valor.items[0].lineas[0].tituloZh).toBe('帽子');
+    expect(resultado.ok && resultado.valor.total).toBe(1);
+    http.verify();
+  });
+
+  /** El filtro de estado y la página viajan como parámetros de consulta: se filtra en SERVIDOR. */
+  it('la cola filtra por estado y pagina en el servidor', async () => {
+    const { instancia, http } = monta(ComprasHttpAdapter);
+    const promesa = instancia.cola({ estado: 'AT_WAREHOUSE', pagina: 2, tamano: 25 });
+
+    http
+      .expectOne('/api/admin/purchases?status=AT_WAREHOUSE&page=2&size=25')
+      .flush({ items: [], page: 2, size: 25, totalElements: 60, totalPages: 3 });
+
+    const resultado = await promesa;
+    expect(resultado.ok && resultado.valor.totalPaginas).toBe(3);
+    http.verify();
+  });
+
+  it('los bultos en riesgo se piden a su ruta acotada', async () => {
+    const { instancia, http } = monta(ComprasHttpAdapter);
+    const promesa = instancia.enRiesgo();
+
+    http
+      .expectOne('/api/admin/purchases/at-risk')
+      .flush([{ id: 'c9', orderId: 'p9', status: 'AT_WAREHOUSE' }]);
+
+    const resultado = await promesa;
+    expect(resultado.ok && resultado.valor[0].id).toBe('c9');
     http.verify();
   });
 

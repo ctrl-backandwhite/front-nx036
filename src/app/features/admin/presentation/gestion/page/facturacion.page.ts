@@ -2,7 +2,6 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faPen } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
-import { CampoBusqueda } from '@ds/component/campo-busqueda/campo-busqueda';
 import { DialogoStore } from '@ds/component/dialogo/dialogo.store';
 import { BarraFiltros } from '@ds/component/filtros/barra-filtros';
 import { FiltroDesplegable, OpcionDeFiltro } from '@ds/component/filtros/filtro-desplegable';
@@ -20,12 +19,11 @@ import {
   claveDePeriodo,
   estadoEfectivo,
   periodoDelPlan,
-  suscripcionCoincide,
 } from '../../../domain/gestion/model/facturacion';
 import { FacturacionEditorDePlan } from '../component/facturacion-editor-de-plan';
 import { Paginacion } from '../component/paginacion';
 
-/** Cuántas suscripciones caben en una pantalla sin que la tabla se vuelva un rollo infinito. */
+/** Cuántas suscripciones pide cada página al servidor. */
 const POR_PAGINA = 25;
 
 /**
@@ -35,9 +33,10 @@ const POR_PAGINA = 25;
  * convertido a la divisa activa por `ImportesStore`. Esta pantalla no calcula nada: el importe que se
  * cobra lo compone el backend.
  *
- * <p>El listado de suscripciones se filtra EN LOCAL —el backend devuelve la lista entera— así que el
- * buscador y el estado no viajan a la red; por eso al cambiar cualquiera de los dos hay que volver a la
- * primera página, o se quedaría mirando una página que ya no existe.
+ * <p>El listado de suscripciones se pagina y se filtra por estado EN EL SERVIDOR: a volumen no se puede
+ * traer la tabla entera para filtrarla en el navegador (era el fallo de escala). Por eso cambiar el
+ * estado o la página vuelve a pedir esa página al backend, y ya no hay buscador por texto —el endpoint
+ * no lo soporta y uno local solo filtraría las 25 filas visibles, que engaña—.
  *
  * <p>MOBILE FIRST: las dos tablas van dentro de su propio contenedor con desplazamiento horizontal, que
  * es lo que permite que en una pantalla estrecha se vean sin encoger la letra ni romper la página.
@@ -48,7 +47,6 @@ const POR_PAGINA = 25;
     FaIconComponent,
     BarraFiltros,
     FiltroDesplegable,
-    CampoBusqueda,
     Paginacion,
     FacturacionEditorDePlan,
   ],
@@ -123,12 +121,6 @@ const POR_PAGINA = 25;
         </div>
       </section>
 
-      <!--
-        SIN DIFERIR, y aquí el comentario anterior decía algo que NO ERA CIERTO: que diferirlas evitaba
-        su lectura al backend. No la evitaba. El constructor pide planes y suscripciones a la vez, con
-        una sola tanda en paralelo, se baje o no se baje; lo único que el diferido retrasaba era pintar
-        lo que ya había llegado. O sea: se pagaba el coste —media pantalla en blanco— sin ahorro.
-      -->
       <section class="card overflow-hidden">
         <div class="card-header"><span>{{ t('admin.billing.subs') }}</span></div>
         <div class="p-3 border-b border-ink-100">
@@ -137,12 +129,6 @@ const POR_PAGINA = 25;
             [hayActivos]="filtrosPuestos() > 0"
             (limpia)="limpiaFiltros()"
           >
-            <nx-campo-busqueda
-              [valor]="texto()"
-              (valorChange)="cambiaTexto($event)"
-              [marcador]="t('admin.billing.subs_search')"
-              clase="w-full sm:min-w-[280px]"
-            />
             <nx-filtro-desplegable
               [etiqueta]="t('admin.billing.col.status')"
               [valor]="estado()"
@@ -151,8 +137,8 @@ const POR_PAGINA = 25;
               [marcador]="t('filters.all')"
             />
             <span class="text-[11px] text-ink-400 ml-auto">
-              {{ t('pagination.showing') }} <strong>{{ trozo().length }}</strong> /
-              {{ filtradas().length }}
+              {{ t('pagination.showing') }} <strong>{{ suscripciones().length }}</strong> /
+              {{ total() }}
             </span>
           </nx-barra-filtros>
         </div>
@@ -169,7 +155,7 @@ const POR_PAGINA = 25;
               </tr>
             </thead>
             <tbody>
-              @for (suscripcion of trozo(); track suscripcion.id) {
+              @for (suscripcion of suscripciones(); track suscripcion.id) {
                 <tr class="border-t border-ink-100">
                   <td class="px-4 py-2 text-xs">{{ suscripcion.emailUsuario }}</td>
                   <td class="px-4 py-2 font-medium">{{ suscripcion.plan }}</td>
@@ -200,7 +186,7 @@ const POR_PAGINA = 25;
             </tbody>
           </table>
         </div>
-        <nx-paginacion [pagina]="pagina()" [paginas]="paginas()" (cambia)="pagina.set($event)" />
+        <nx-paginacion [pagina]="pagina()" [paginas]="paginas()" (cambia)="vasALaPagina($event)" />
       </section>
 
       @if (editando(); as plan) {
@@ -231,23 +217,15 @@ export class FacturacionPage {
   protected readonly editando = signal<Plan | null>(null);
   protected readonly guardando = signal(false);
 
-  protected readonly texto = signal('');
   protected readonly estado = signal<string | null>(null);
   protected readonly pagina = signal(0);
+  protected readonly total = signal(0);
+  protected readonly totalPaginas = signal(0);
 
-  protected readonly filtradas = computed(() =>
-    this.suscripciones().filter((s) => suscripcionCoincide(s, this.estado(), this.texto())),
-  );
-  protected readonly paginas = computed(() =>
-    Math.max(1, Math.ceil(this.filtradas().length / POR_PAGINA)),
-  );
-  protected readonly trozo = computed(() =>
-    this.filtradas().slice(this.pagina() * POR_PAGINA, (this.pagina() + 1) * POR_PAGINA),
-  );
+  // El paginador nunca muestra menos de una página aunque el listado esté vacío.
+  protected readonly paginas = computed(() => Math.max(1, this.totalPaginas()));
 
-  protected readonly filtrosPuestos = computed(
-    () => (this.texto().trim() ? 1 : 0) + (this.estado() ? 1 : 0),
-  );
+  protected readonly filtrosPuestos = computed(() => (this.estado() ? 1 : 0));
 
   protected readonly opcionesDeEstado = computed<readonly OpcionDeFiltro[]>(() =>
     ESTADOS_DE_SUSCRIPCION.map((codigo) => ({
@@ -263,18 +241,30 @@ export class FacturacionPage {
   }
 
   private async carga(): Promise<void> {
-    const [planes, suscripciones] = await Promise.all([
-      this.consultaPlanes.ejecuta(),
-      this.consultaSuscripciones.ejecuta(),
-    ]);
+    const [planes] = await Promise.all([this.consultaPlanes.ejecuta(), this.recargaSuscripciones()]);
     if (planes.ok) {
       this.planes.set(planes.valor);
     }
-    if (suscripciones.ok) {
-      this.suscripciones.set(suscripciones.valor);
-    }
     // Un fallo de lectura deja la tabla vacía con su rótulo de «aún no hay»: no hay nada que reintentar
     // desde aquí y un aviso rojo al abrir la pantalla no ayudaría a quien administra.
+  }
+
+  /** Pide al servidor la página actual con el estado filtrado. El filtro y la paginación son suyos. */
+  private async recargaSuscripciones(): Promise<void> {
+    const resultado = await this.consultaSuscripciones.ejecuta({
+      estado: this.estado() ?? undefined,
+      pagina: this.pagina(),
+      tamano: POR_PAGINA,
+    });
+    if (resultado.ok) {
+      this.suscripciones.set(resultado.valor.items);
+      this.total.set(resultado.valor.total);
+      this.totalPaginas.set(resultado.valor.totalPaginas);
+    } else {
+      this.suscripciones.set([]);
+      this.total.set(0);
+      this.totalPaginas.set(0);
+    }
   }
 
   /**
@@ -304,20 +294,22 @@ export class FacturacionPage {
     }
   }
 
-  protected cambiaTexto(texto: string): void {
-    this.texto.set(texto);
-    this.pagina.set(0);
-  }
-
   protected cambiaEstado(estado: string | null): void {
     this.estado.set(estado);
+    // Cambiar el filtro empieza por la primera página: quedarse en la 4 miraría una página que ya no existe.
     this.pagina.set(0);
+    void this.recargaSuscripciones();
   }
 
   protected limpiaFiltros(): void {
-    this.texto.set('');
     this.estado.set(null);
     this.pagina.set(0);
+    void this.recargaSuscripciones();
+  }
+
+  protected vasALaPagina(pagina: number): void {
+    this.pagina.set(pagina);
+    void this.recargaSuscripciones();
   }
 
   protected cicloDe(plan: Plan): Periodo {

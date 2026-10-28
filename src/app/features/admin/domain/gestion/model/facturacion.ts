@@ -28,6 +28,20 @@ export interface Suscripcion {
   readonly finDelPeriodo?: string;
 }
 
+/**
+ * Una página de suscripciones tal como la pagina el servidor (`PageResponse`).
+ *
+ * <p>El listado se pagina y se filtra por estado EN EL SERVIDOR: a volumen no se puede traer la tabla
+ * entera para filtrarla en el navegador. Por eso ya no existe un filtro local de suscripciones.
+ */
+export interface PaginaDeSuscripciones {
+  readonly items: readonly Suscripcion[];
+  readonly pagina: number;
+  readonly tamano: number;
+  readonly total: number;
+  readonly totalPaginas: number;
+}
+
 export const ESTADOS_DE_SUSCRIPCION: readonly string[] = [
   'ACTIVE', 'TRIALING', 'PAST_DUE', 'PAUSED', 'CANCELLED',
 ];
@@ -86,23 +100,4 @@ export function periodoDelPlan(plan: Plan): Periodo {
  */
 export function estadoEfectivo(plan: string, estado: string): string {
   return plan === 'FREE' && estado === 'TRIALING' ? 'ACTIVE' : estado;
-}
-
-/** ¿Casa esta suscripción con lo que se ha filtrado? El filtrado del listado es local, no del servidor. */
-export function suscripcionCoincide(
-  suscripcion: Suscripcion,
-  estado: string | null,
-  texto: string,
-): boolean {
-  if (estado && suscripcion.estado !== estado) {
-    return false;
-  }
-  const buscado = texto.trim().toLowerCase();
-  if (!buscado) {
-    return true;
-  }
-  return (
-    suscripcion.emailUsuario.toLowerCase().includes(buscado) ||
-    suscripcion.plan.toLowerCase().includes(buscado)
-  );
 }

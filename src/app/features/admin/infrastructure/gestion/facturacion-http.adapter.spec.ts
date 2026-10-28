@@ -129,27 +129,40 @@ describe('FacturacionHttpAdapter', () => {
   describe('suscripciones', () => {
     const enLista = () => (p: { url: string }) => p.url === '/api/admin/billing/subscriptions';
 
-    it('traduce la suscripción y sus fechas de periodo', async () => {
+    const pagina = (items: unknown[]) => ({
+      items,
+      page: 0,
+      size: 25,
+      totalElements: items.length,
+      totalPages: 1,
+    });
+
+    it('manda estado, página y tamaño, y traduce la suscripción y sus fechas de periodo', async () => {
       const { adaptador, red } = monta();
 
-      const enCurso = adaptador.suscripciones('ACTIVE');
+      const enCurso = adaptador.suscripciones({ estado: 'ACTIVE', pagina: 2, tamano: 50 });
       const peticion = red.expectOne(enLista());
+      // El filtro y la paginación viajan al SERVIDOR: no se filtra en el navegador.
       expect(peticion.request.params.get('status')).toBe('ACTIVE');
-      peticion.flush([
-        {
-          id: 's1',
-          userId: 'u1',
-          userEmail: 'ana@nx036.com',
-          plan: 'PRO',
-          status: 'ACTIVE',
-          billingPeriod: 'MONTHLY',
-          currentPeriodStart: '2026-09-01',
-          currentPeriodEnd: '2026-10-01',
-        },
-      ]);
+      expect(peticion.request.params.get('page')).toBe('2');
+      expect(peticion.request.params.get('size')).toBe('50');
+      peticion.flush(
+        pagina([
+          {
+            id: 's1',
+            userId: 'u1',
+            userEmail: 'ana@nx036.com',
+            plan: 'PRO',
+            status: 'ACTIVE',
+            billingPeriod: 'MONTHLY',
+            currentPeriodStart: '2026-09-01',
+            currentPeriodEnd: '2026-10-01',
+          },
+        ]),
+      );
 
       const resultado = await enCurso;
-      expect(resultado.ok && resultado.valor[0]).toEqual({
+      expect(resultado.ok && resultado.valor.items[0]).toEqual({
         id: 's1',
         idUsuario: 'u1',
         emailUsuario: 'ana@nx036.com',
@@ -159,19 +172,23 @@ describe('FacturacionHttpAdapter', () => {
         inicioDelPeriodo: '2026-09-01',
         finDelPeriodo: '2026-10-01',
       });
+      expect(resultado.ok && resultado.valor.total).toBe(1);
     });
 
-    /** Una fecha ausente no se inventa: sin ella la pantalla enseña un guion, no un «1970». */
-    it('sin fechas de periodo, esos campos no viajan', async () => {
+    /** Sin estado, ese parámetro no viaja; la página cae a sus valores por defecto (0, 25). */
+    it('sin estado no manda el parámetro de estado y usa la página por defecto', async () => {
       const { adaptador, red } = monta();
 
-      const enCurso = adaptador.suscripciones();
-      red
-        .expectOne(enLista())
-        .flush([{ id: 's1', userId: 'u1', userEmail: 'a@b.c', plan: 'FREE', status: 'TRIAL' }]);
+      const enCurso = adaptador.suscripciones({});
+      const peticion = red.expectOne(enLista());
+      expect(peticion.request.params.has('status')).toBe(false);
+      expect(peticion.request.params.get('page')).toBe('0');
+      expect(peticion.request.params.get('size')).toBe('25');
+      peticion.flush(pagina([{ id: 's1', userId: 'u1', userEmail: 'a@b.c', plan: 'FREE', status: 'TRIAL' }]));
 
       const resultado = await enCurso;
-      const fila = resultado.ok ? resultado.valor[0] : null;
+      const fila = resultado.ok ? resultado.valor.items[0] : null;
+      // Una fecha ausente no se inventa: sin ella la pantalla enseña un guion, no un «1970».
       expect(fila?.periodo).toBe('');
       expect(fila && 'inicioDelPeriodo' in fila).toBe(false);
       expect(fila && 'finDelPeriodo' in fila).toBe(false);
@@ -180,7 +197,7 @@ describe('FacturacionHttpAdapter', () => {
     it('un fallo vuelve como error, no como excepción', async () => {
       const { adaptador, red } = monta();
 
-      const enCurso = adaptador.suscripciones();
+      const enCurso = adaptador.suscripciones({});
       red.expectOne(enLista()).error(new ProgressEvent('error'));
 
       expect((await enCurso).ok).toBe(false);

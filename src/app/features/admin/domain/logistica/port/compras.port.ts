@@ -1,7 +1,7 @@
 import { InjectionToken } from '@angular/core';
 import { Result } from '@shared/result/result';
 import { AppError } from '@shared/error/app-error';
-import { AvanceDeHoja, CompraAProveedor } from '../model/compra';
+import { AvanceDeHoja, CompraAProveedor, EstadoDeCompra, PaginaDeCompras } from '../model/compra';
 
 /** Lo que se manda al marcar una compra como hecha. Todo opcional: a veces se registra después. */
 export interface DatosDeCompraHecha {
@@ -24,9 +24,19 @@ export interface DatosDeReempaquetado {
   readonly tipoDeServicio?: string;
 }
 
+/** El filtro del tablero: un estado (lo que eran las columnas del Kanban) y la página pedida. */
+export interface FiltroDeColaDeCompras {
+  readonly estado?: EstadoDeCompra;
+  readonly pagina?: number;
+  readonly tamano?: number;
+}
+
 /** Consultar la cola de compras al proveedor. */
 export interface ComprasPort {
-  cola(): Promise<Result<readonly CompraAProveedor[], AppError>>;
+  /** Una página de la cola, opcionalmente filtrada por estado. Paginada en servidor. */
+  cola(filtro: FiltroDeColaDeCompras): Promise<Result<PaginaDeCompras, AppError>>;
+  /** Los bultos en riesgo de destrucción: consulta acotada aparte, no depende de la página mostrada. */
+  enRiesgo(): Promise<Result<readonly CompraAProveedor[], AppError>>;
 }
 
 export const COMPRAS_PORT = new InjectionToken<ComprasPort>('ComprasPort');

@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { render, screen, waitFor } from '@testing-library/angular';
+import { render, screen, waitFor, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { COOKIE_IDIOMA } from '@core/preferences/preferencias';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
@@ -23,7 +23,7 @@ import {
   PORTAPAPELES_PORT,
 } from '../../../domain/logistica/port/navegador.port';
 import { FichaDePedido } from '../../../domain/logistica/model/pedido';
-import { CompraAProveedor } from '../../../domain/logistica/model/compra';
+import { CompraAProveedor, enRiesgo } from '../../../domain/logistica/model/compra';
 import {
   CambiaEstadoDePedido,
   ConsultaPedido,
@@ -233,7 +233,12 @@ describe('ComprasPage', () => {
 
   function dobles(compras: readonly CompraAProveedor[], exportables = 1) {
     return {
-      cola: { cola: vi.fn().mockResolvedValue(exito(compras)) },
+      cola: {
+        cola: vi.fn().mockResolvedValue(
+          exito({ items: compras, pagina: 0, tamano: 25, total: compras.length, totalPaginas: 1 }),
+        ),
+        enRiesgo: vi.fn().mockResolvedValue(exito(enRiesgo(compras))),
+      },
       avance: {
         marcaComprada: vi.fn().mockResolvedValue(exito(undefined)),
         marcaEnviada: vi.fn().mockResolvedValue(exito(undefined)),
@@ -285,8 +290,11 @@ describe('ComprasPage', () => {
   it('cada tarjeta ofrece solo el paso que toca', async () => {
     await monta([compra({ estado: 'IN_TRANSIT' })]);
 
-    expect(await screen.findByRole('button', { name: /recibid/i })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /comprad/i })).toBeNull();
+    // Se mira DENTRO de la tarjeta: la cabecera lleva filtros de estado que también nombran «Comprado».
+    const tarjeta = (await screen.findByRole('button', { name: /recibid/i })).closest(
+      'nx-tarjeta-de-compra',
+    ) as HTMLElement;
+    expect(within(tarjeta).queryByRole('button', { name: /comprad/i })).toBeNull();
   });
 
   it('marcar recibida recarga la cola', async () => {

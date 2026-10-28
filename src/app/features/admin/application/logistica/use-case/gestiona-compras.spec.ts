@@ -116,7 +116,12 @@ describe('avance de una compra', () => {
 
 describe('cola de compras', () => {
   it('lee la cola y el avance de la hoja por separado', async () => {
-    const compras = { cola: vi.fn().mockResolvedValue(exito([])) };
+    const compras = {
+      cola: vi.fn().mockResolvedValue(
+        exito({ items: [], pagina: 0, tamano: 25, total: 0, totalPaginas: 0 }),
+      ),
+      enRiesgo: vi.fn().mockResolvedValue(exito([])),
+    };
     const hoja = {
       avance: vi.fn().mockResolvedValue(exito({ exportables: 3, incidencias: [] })),
       descarga: vi.fn(),
@@ -130,11 +135,32 @@ describe('cola de compras', () => {
     });
     const caso = TestBed.inject(ConsultaCompras);
 
-    await caso.cola();
+    await caso.cola({});
     const avance = await caso.avanceDeLaHoja();
 
     expect(compras.cola).toHaveBeenCalled();
     expect(avance.ok && avance.valor.exportables).toBe(3);
+  });
+
+  /** Los bultos en riesgo son una consulta ACOTADA aparte, no la página del tablero. */
+  it('pide los bultos en riesgo por su propia vía', async () => {
+    const compras = {
+      cola: vi.fn().mockResolvedValue(
+        exito({ items: [], pagina: 0, tamano: 25, total: 0, totalPaginas: 0 }),
+      ),
+      enRiesgo: vi.fn().mockResolvedValue(exito([])),
+    };
+    TestBed.configureTestingModule({
+      providers: [
+        ConsultaCompras,
+        { provide: COMPRAS_PORT, useValue: compras },
+        { provide: HOJA_DE_EMPAQUETADO_PORT, useValue: { avance: vi.fn(), descarga: vi.fn() } },
+      ],
+    });
+
+    await TestBed.inject(ConsultaCompras).enRiesgo();
+
+    expect(compras.enRiesgo).toHaveBeenCalled();
   });
 });
 

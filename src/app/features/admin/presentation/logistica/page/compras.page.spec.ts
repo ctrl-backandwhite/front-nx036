@@ -4,7 +4,11 @@ import { AvisosStore } from '@ds/component/avisos/avisos.store';
 import { DialogoStore } from '@ds/component/dialogo/dialogo.store';
 import { AppError, creaError } from '@shared/error/app-error';
 import { Result, exito, fallo } from '@shared/result/result';
-import { AvanceDeHoja, CompraAProveedor } from '../../../domain/logistica/model/compra';
+import {
+  AvanceDeHoja,
+  CompraAProveedor,
+  PaginaDeCompras,
+} from '../../../domain/logistica/model/compra';
 import {
   AnulaCompra,
   ConsultaCompras,
@@ -48,6 +52,7 @@ interface Opciones {
   compras?: readonly CompraAProveedor[];
   avanzar?: 'falla' | 'desaparecida';
   descargar?: 'falla';
+  totalPaginas?: number;
 }
 
 async function monta(opciones: Opciones = {}) {
@@ -62,9 +67,18 @@ async function monta(opciones: Opciones = {}) {
   };
 
   const consulta = {
-    cola: vi.fn(
-      async (): Promise<Result<readonly CompraAProveedor[], AppError>> =>
-        exito(opciones.compras ?? [compra()]),
+    cola: vi.fn(async (): Promise<Result<PaginaDeCompras, AppError>> => {
+      const items = opciones.compras ?? [compra()];
+      return exito({
+        items,
+        pagina: 0,
+        tamano: 25,
+        total: items.length,
+        totalPaginas: opciones.totalPaginas ?? 1,
+      });
+    }),
+    enRiesgo: vi.fn(
+      async (): Promise<Result<readonly CompraAProveedor[], AppError>> => exito([]),
     ),
     avanceDeLaHoja: vi.fn(async (): Promise<Result<AvanceDeHoja, AppError>> => exito(AVANCE)),
   };
@@ -143,6 +157,7 @@ describe('ComprasPage', () => {
 
     expect(consulta.cola).toHaveBeenCalled();
     expect(consulta.avanceDeLaHoja).toHaveBeenCalled();
+    expect(consulta.enRiesgo).toHaveBeenCalled();
     expect(screen.getByRole('button', { name: /Descargar fichero/ })).toBeInTheDocument();
   });
 
@@ -299,5 +314,44 @@ describe('ComprasPage', () => {
     await asienta();
 
     expect(avisos.avisos()).toEqual([]);
+  });
+
+  describe('escala: filtro y paginación en servidor', () => {
+    it('filtrar por un estado recarga desde la primera página con ese filtro', async () => {
+      const { pantalla, consulta, asienta } = await monta();
+      consulta.cola.mockClear();
+
+      pantalla['filtra']('AT_WAREHOUSE' as never);
+      await asienta();
+
+      expect(consulta.cola).toHaveBeenCalledWith(
+        expect.objectContaining({ estado: 'AT_WAREHOUSE', pagina: 0 }),
+      );
+    });
+
+    it('volver a pulsar el estado activo quita el filtro', async () => {
+      const { pantalla, consulta, asienta } = await monta();
+      pantalla['filtra']('AT_WAREHOUSE' as never);
+      await asienta();
+      consulta.cola.mockClear();
+
+      pantalla['filtra']('AT_WAREHOUSE' as never);
+      await asienta();
+
+      expect(consulta.cola).toHaveBeenCalledWith(
+        expect.objectContaining({ estado: undefined, pagina: 0 }),
+      );
+    });
+
+    /** Con varias páginas, "siguiente" pide al SERVIDOR la página siguiente, no filtra en cliente. */
+    it('siguiente pide la página siguiente al servidor', async () => {
+      const { pantalla, consulta, asienta } = await monta({ totalPaginas: 3 });
+      consulta.cola.mockClear();
+
+      pantalla['siguiente']();
+      await asienta();
+
+      expect(consulta.cola).toHaveBeenCalledWith(expect.objectContaining({ pagina: 1 }));
+    });
   });
 });

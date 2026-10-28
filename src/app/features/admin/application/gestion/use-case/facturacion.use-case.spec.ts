@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { exito, fallo } from '@shared/result/result';
 import { creaError } from '@shared/error/app-error';
-import { Plan } from '../../../domain/gestion/model/facturacion';
+import { PaginaDeSuscripciones, Plan } from '../../../domain/gestion/model/facturacion';
 import { FACTURACION_PORT, FacturacionPort } from '../../../domain/gestion/port/facturacion.port';
 import { ActualizaElPlan, ConsultaSuscripciones } from './facturacion.use-case';
 
@@ -10,13 +10,17 @@ const PLAN: Plan = {
   divisa: 'USD', activo: true, posicion: 1,
 };
 
+const PAGINA_VACIA: PaginaDeSuscripciones = {
+  items: [], pagina: 0, tamano: 25, total: 0, totalPaginas: 0,
+};
+
 function doble(sobrescribe: Partial<FacturacionPort> = {}): FacturacionPort & { codigos: string[] } {
   const codigos: string[] = [];
   return {
     codigos,
     planes: async () => exito([PLAN]),
     actualizaPlan: async (codigo) => (codigos.push(codigo), exito(undefined)),
-    suscripciones: async () => exito([]),
+    suscripciones: async () => exito(PAGINA_VACIA),
     ...sobrescribe,
   };
 }
@@ -59,11 +63,24 @@ describe('ActualizaElPlan', () => {
 });
 
 describe('ConsultaSuscripciones', () => {
-  it('admite pedirlas sin filtro de estado', async () => {
+  it('pide la página con el filtro que le llega y devuelve lo paginado', async () => {
+    const filtros: unknown[] = [];
     TestBed.configureTestingModule({
-      providers: [{ provide: FACTURACION_PORT, useValue: doble() }, ConsultaSuscripciones],
+      providers: [
+        {
+          provide: FACTURACION_PORT,
+          useValue: doble({
+            suscripciones: async (filtro) => (filtros.push(filtro), exito(PAGINA_VACIA)),
+          }),
+        },
+        ConsultaSuscripciones,
+      ],
     });
 
-    expect((await TestBed.inject(ConsultaSuscripciones).ejecuta()).ok).toBe(true);
+    const resultado = await TestBed.inject(ConsultaSuscripciones).ejecuta({ estado: 'ACTIVE', pagina: 2 });
+
+    expect(resultado.ok).toBe(true);
+    // El caso de uso no reinterpreta el filtro: lo pasa tal cual al puerto (el servidor es quien filtra).
+    expect(filtros).toEqual([{ estado: 'ACTIVE', pagina: 2 }]);
   });
 });
