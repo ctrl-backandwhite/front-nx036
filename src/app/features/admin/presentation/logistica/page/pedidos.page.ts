@@ -9,10 +9,10 @@ import { BarraFiltros } from '@ds/component/filtros/barra-filtros';
 import { CampoBusqueda } from '@ds/component/campo-busqueda/campo-busqueda';
 import {
   AccionSobrePedido,
+  CriterioDePedidos,
   ESTADOS_DE_PEDIDO,
   Pedido,
-  aniosDe,
-  filtraPorFecha,
+  aniosDisponibles,
 } from '../../../domain/logistica/model/pedido';
 import { Seleccion } from '../../../application/logistica/state/seleccion';
 import {
@@ -122,15 +122,15 @@ const POR_PAGINA = 25;
           [(dia)]="dia"
           [(rango)]="rango"
           [estados]="estados"
-          [anios]="anios()"
+          [anios]="anios"
         />
         <span class="text-[11px] text-ink-400 ml-auto">
-          {{ t('pagination.showing') }} <strong>{{ visibles().length }}</strong> / {{ total() }}
+          {{ t('pagination.showing') }} <strong>{{ pedidos().length }}</strong> / {{ total() }}
         </span>
       </nx-barra-filtros>
 
       <nx-tabla-de-pedidos
-        [pedidos]="visibles()"
+        [pedidos]="pedidos()"
         [seleccion]="seleccion"
         [resaltado]="focus() ?? null"
         (pide)="aplicaAUno($event)"
@@ -176,22 +176,13 @@ export class PedidosPage {
   protected readonly creando = signal(false);
   protected readonly importando = signal(false);
 
-  private readonly pedidos = signal<readonly Pedido[]>([]);
+  protected readonly pedidos = signal<readonly Pedido[]>([]);
   protected readonly total = signal(0);
   protected readonly paginas = signal(1);
 
-  protected readonly anios = computed(() => aniosDe(this.pedidos()));
-
-  /** El filtro de fechas se aplica sobre lo traído: afina la página que se está mirando. */
-  protected readonly visibles = computed(() =>
-    filtraPorFecha(this.pedidos(), {
-      desde: this.rango().desde,
-      hasta: this.rango().hasta,
-      anio: this.anio() ?? undefined,
-      mes: this.mes() ?? undefined,
-      dia: this.dia() ?? undefined,
-    }),
-  );
+  // Los años del filtro NO salen de la página cargada (a volumen dejaría fuera años sin pedidos en las
+  // 25 filas visibles): se generan hasta el año en curso. El filtrado por fecha va en el servidor.
+  protected readonly anios = aniosDisponibles(new Date().getFullYear());
 
   protected readonly cuantosFiltros = computed(
     () =>
@@ -207,25 +198,30 @@ export class PedidosPage {
   );
 
   constructor() {
-    // Volver a pedir cuando cambia lo que el SERVIDOR filtra. Las fechas no están: se recortan aquí,
-    // y meterlas provocaría una petición por cada tecla del selector de día.
+    // Volver a pedir cuando cambia cualquier filtro. Las fechas TAMBIÉN van al servidor (año/mes/día son
+    // desplegables y el rango son campos de fecha: cada cambio es una sola petición, no una por tecla),
+    // porque recortarlas en el navegador solo afinaba las 25 filas visibles y fallaba a volumen.
     effect(() => {
-      const criterio = {
-        estado: this.estado() ?? undefined,
-        texto: this.texto() || undefined,
-        pagina: this.pagina(),
-        tamano: POR_PAGINA,
-      };
-      void this.pide(criterio);
+      void this.pide(this.criterioActual());
     });
   }
 
-  private async pide(criterio: {
-    estado?: string;
-    texto?: string;
-    pagina: number;
-    tamano: number;
-  }): Promise<void> {
+  /** El criterio que define la vista actual: lo que se pide al servidor y lo que se repite al recargar. */
+  private criterioActual(): CriterioDePedidos {
+    return {
+      estado: this.estado() ?? undefined,
+      texto: this.texto() || undefined,
+      desde: this.rango().desde || undefined,
+      hasta: this.rango().hasta || undefined,
+      anio: this.anio() ?? undefined,
+      mes: this.mes() ?? undefined,
+      dia: this.dia() ?? undefined,
+      pagina: this.pagina(),
+      tamano: POR_PAGINA,
+    };
+  }
+
+  private async pide(criterio: CriterioDePedidos): Promise<void> {
     const resultado = await this.buscador.ejecuta(criterio);
     if (!resultado.ok) {
       this.avisos.error(resultado.error.mensaje || this.t('errors.generic'));
@@ -237,12 +233,7 @@ export class PedidosPage {
   }
 
   protected recarga(): void {
-    void this.pide({
-      estado: this.estado() ?? undefined,
-      texto: this.texto() || undefined,
-      pagina: this.pagina(),
-      tamano: POR_PAGINA,
-    });
+    void this.pide(this.criterioActual());
   }
 
   protected limpiaFiltros(): void {
@@ -270,7 +261,7 @@ export class PedidosPage {
   }
 
   protected async aplicaEnLote(accion: AccionSobrePedido): Promise<void> {
-    const marcados = this.seleccion.filasDe(this.visibles());
+    const marcados = this.seleccion.filasDe(this.pedidos());
     const elegibles = this.cambiaEnLote.cuantosElegibles(marcados, accion);
     if (elegibles === 0) {
       this.avisos.muestra({

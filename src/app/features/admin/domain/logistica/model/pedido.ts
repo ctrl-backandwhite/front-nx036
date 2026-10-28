@@ -156,6 +156,13 @@ export interface PaginaDePedidos {
 export interface CriterioDePedidos {
   readonly estado?: string;
   readonly texto?: string;
+  // Fechas: el servidor las filtra con la misma semántica que el panel (ver el backend). `desde`/`hasta`
+  // acotan un intervalo; `anio`/`mes`/`dia` filtran cada componente de forma independiente.
+  readonly desde?: string;
+  readonly hasta?: string;
+  readonly anio?: string;
+  readonly mes?: string;
+  readonly dia?: string;
   readonly pagina: number;
   readonly tamano: number;
 }
@@ -208,60 +215,6 @@ export function faltanDatosDeEnvio(direccion: DireccionDeEnvio): boolean {
   );
 }
 
-/** El filtro de fechas del listado. Todo opcional: lo que no se rellena no filtra. */
-export interface FiltroDeFechas {
-  readonly desde?: string;
-  readonly hasta?: string;
-  readonly anio?: string;
-  readonly mes?: string;
-  readonly dia?: string;
-}
-
-export function filtroDeFechasVacio(filtro: FiltroDeFechas): boolean {
-  return !filtro.desde && !filtro.hasta && !filtro.anio && !filtro.mes && !filtro.dia;
-}
-
-/**
- * Recorta el listado por fecha, sobre lo que ya se ha traído.
- *
- * <p>Se hace aquí y no en el servidor porque el backend pagina por otros criterios: son afinados sobre
- * la página que se está mirando, para responder «de este lote, cuáles fueron en marzo». Un pedido SIN
- * fecha se descarta cuando hay filtro puesto: no se puede afirmar que caiga dentro.
- *
- * <p>El «hasta» incluye el día entero. Sin sumarle las veinticuatro horas, filtrar «hasta el 3» dejaba
- * fuera todo lo del día 3 salvo lo ocurrido a las cero horas en punto.
- */
-export function filtraPorFecha(
-  pedidos: readonly Pedido[],
-  filtro: FiltroDeFechas,
-): readonly Pedido[] {
-  if (filtroDeFechasVacio(filtro)) {
-    return pedidos;
-  }
-  const desdeMs = filtro.desde ? new Date(filtro.desde).getTime() : Number.NEGATIVE_INFINITY;
-  const hastaMs = filtro.hasta
-    ? new Date(filtro.hasta).getTime() + 86_400_000
-    : Number.POSITIVE_INFINITY;
-
-  return pedidos.filter((pedido) => {
-    if (!pedido.realizadoEl) {
-      return false;
-    }
-    const fecha = new Date(pedido.realizadoEl);
-    const instante = fecha.getTime();
-    if (Number.isNaN(instante) || instante < desdeMs || instante > hastaMs) {
-      return false;
-    }
-    if (filtro.anio && String(fecha.getFullYear()) !== filtro.anio) {
-      return false;
-    }
-    if (filtro.mes && String(fecha.getMonth() + 1) !== filtro.mes) {
-      return false;
-    }
-    return !filtro.dia || String(fecha.getDate()) === filtro.dia;
-  });
-}
-
 /**
  * La fecha de un pedido, escrita para leerla.
  *
@@ -290,16 +243,19 @@ export function fechaDelPedido(iso: string | undefined, idioma: string): string 
   });
 }
 
-/** Los años presentes en el listado, del más reciente al más antiguo, para poder elegir uno. */
-export function aniosDe(pedidos: readonly Pedido[]): readonly string[] {
-  const anios = new Set<string>();
-  for (const pedido of pedidos) {
-    if (pedido.realizadoEl) {
-      const fecha = new Date(pedido.realizadoEl);
-      if (!Number.isNaN(fecha.getTime())) {
-        anios.add(String(fecha.getFullYear()));
-      }
-    }
+/**
+ * Los años elegibles en el filtro, del más reciente al más antiguo.
+ *
+ * <p>A diferencia del listado, NO salen de la página cargada: con filtrado en servidor, derivar los años
+ * de las 25 filas visibles dejaba fuera cualquier año que no estuviera en esa página, y entonces no se
+ * podía filtrar por él. Se generan desde el primer año con actividad ({@code desdeAnio}) hasta el año en
+ * curso, que llega como parámetro para que la función siga siendo pura y verificable.
+ */
+export function aniosDisponibles(hastaAnio: number, desdeAnio = 2024): readonly string[] {
+  const fin = Math.max(hastaAnio, desdeAnio);
+  const anios: string[] = [];
+  for (let anio = fin; anio >= desdeAnio; anio--) {
+    anios.push(String(anio));
   }
-  return [...anios].sort((a, b) => b.localeCompare(a));
+  return anios;
 }

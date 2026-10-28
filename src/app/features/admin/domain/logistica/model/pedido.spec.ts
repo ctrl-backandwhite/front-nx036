@@ -1,27 +1,14 @@
 import {
   accionesPermitidas,
   admiteSeguimiento,
-  aniosDe,
+  aniosDisponibles,
   cantidadValida,
-  filtraPorFecha,
-  filtroDeFechasVacio,
   faltanDatosDeEnvio,
   importeLegible,
   permite,
   tieneFactura,
   type DireccionDeEnvio,
-  type Pedido,
 } from './pedido';
-
-function pedido(parcial: Partial<Pedido> = {}): Pedido {
-  return {
-    id: 'p1',
-    numero: 'NX-1',
-    estado: 'PAID',
-    articulos: 1,
-    ...parcial,
-  };
-}
 
 function direccion(parcial: Partial<DireccionDeEnvio> = {}): DireccionDeEnvio {
   return {
@@ -123,57 +110,18 @@ describe('qué se ofrece según el estado', () => {
   });
 });
 
-describe('filtro de fechas', () => {
-  const marzo = pedido({ id: 'a', realizadoEl: '2026-03-15T10:00:00Z' });
-  const abril = pedido({ id: 'b', realizadoEl: '2026-04-02T10:00:00Z' });
-  const anterior = pedido({ id: 'c', realizadoEl: '2025-03-15T10:00:00Z' });
-  const sinFecha = pedido({ id: 'd' });
-  const todos = [marzo, abril, anterior, sinFecha];
-
-  it('sin ningún criterio no recorta nada', () => {
-    expect(filtroDeFechasVacio({})).toBe(true);
-    expect(filtraPorFecha(todos, {})).toBe(todos);
+describe('años disponibles en el filtro', () => {
+  // El filtrado por fecha vive ahora en el servidor (ver el backend); el selector solo necesita ofrecer
+  // los años elegibles, generados hasta el año en curso y NO derivados de la página cargada.
+  it('van del año en curso hacia atrás hasta el primer año con actividad', () => {
+    expect(aniosDisponibles(2026)).toEqual(['2026', '2025', '2024']);
   });
 
-  it('recorta por año', () => {
-    expect(filtraPorFecha(todos, { anio: '2026' }).map((p) => p.id)).toEqual(['a', 'b']);
+  it('nunca quedan vacíos: si el año en curso es anterior al inicio, al menos sale el inicio', () => {
+    expect(aniosDisponibles(2023)).toEqual(['2024']);
   });
 
-  it('recorta por mes y por día', () => {
-    expect(filtraPorFecha(todos, { mes: '3' }).map((p) => p.id)).toEqual(['a', 'c']);
-    expect(filtraPorFecha(todos, { dia: '2' }).map((p) => p.id)).toEqual(['b']);
-  });
-
-  /** El «hasta» incluye el día entero: sin eso, filtrar «hasta el 15» dejaba fuera el propio día 15. */
-  it('el límite superior incluye el día completo', () => {
-    expect(filtraPorFecha(todos, { hasta: '2026-03-15' }).map((p) => p.id)).toEqual(['a', 'c']);
-  });
-
-  it('el límite inferior deja fuera lo anterior', () => {
-    expect(filtraPorFecha(todos, { desde: '2026-04-01' }).map((p) => p.id)).toEqual(['b']);
-  });
-
-  it('un pedido SIN fecha se descarta cuando hay filtro: no se puede afirmar que caiga dentro', () => {
-    expect(filtraPorFecha(todos, { anio: '2026' }).map((p) => p.id)).not.toContain('d');
-  });
-
-  it('una fecha ilegible se descarta en vez de tumbar el listado', () => {
-    const roto = pedido({ id: 'e', realizadoEl: 'no-es-una-fecha' });
-    expect(filtraPorFecha([roto], { anio: '2026' })).toEqual([]);
-  });
-});
-
-describe('años presentes en el listado', () => {
-  it('sin repetir y del más reciente al más antiguo', () => {
-    const filas = [
-      pedido({ id: 'a', realizadoEl: '2025-01-01T00:00:00Z' }),
-      pedido({ id: 'b', realizadoEl: '2026-01-01T00:00:00Z' }),
-      pedido({ id: 'c', realizadoEl: '2026-06-01T00:00:00Z' }),
-    ];
-    expect(aniosDe(filas)).toEqual(['2026', '2025']);
-  });
-
-  it('ignora los que no traen fecha y las fechas ilegibles', () => {
-    expect(aniosDe([pedido(), pedido({ realizadoEl: 'x' })])).toEqual([]);
+  it('admite adelantar el primer año con actividad', () => {
+    expect(aniosDisponibles(2027, 2026)).toEqual(['2027', '2026']);
   });
 });

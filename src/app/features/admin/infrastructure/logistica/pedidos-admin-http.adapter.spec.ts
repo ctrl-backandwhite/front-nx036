@@ -60,6 +60,30 @@ describe('PedidosAdminHttpAdapter', () => {
     });
   });
 
+  it('traslada los filtros de fecha al servidor (intervalo y componentes)', async () => {
+    // Antes esto se recortaba en el navegador sobre las 25 filas visibles. Ahora viaja al backend,
+    // que lo filtra sobre todo el dataset con la misma semántica que el panel.
+    const promesa = adaptador.busca({
+      desde: '2026-10-01',
+      hasta: '2026-10-21',
+      anio: '2026',
+      mes: '3',
+      dia: '15',
+      pagina: 0,
+      tamano: 25,
+    });
+
+    const peticion = http.expectOne((r) => r.url === '/api/admin/orders');
+    expect(peticion.request.params.get('from')).toBe('2026-10-01');
+    expect(peticion.request.params.get('to')).toBe('2026-10-21');
+    expect(peticion.request.params.get('year')).toBe('2026');
+    expect(peticion.request.params.get('month')).toBe('3');
+    expect(peticion.request.params.get('day')).toBe('15');
+    peticion.flush({ items: [], totalElements: 0, totalPages: 1, page: 0 });
+
+    expect((await promesa).ok).toBe(true);
+  });
+
   it('una respuesta sin lista no revienta: devuelve una página vacía', async () => {
     const promesa = adaptador.busca({ pagina: 0, tamano: 25 });
 
