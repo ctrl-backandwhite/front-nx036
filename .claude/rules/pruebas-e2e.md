@@ -31,3 +31,21 @@ mismas familias; un término con 51 fichas en PRE puede tener cero en PRO, y ent
 por falta de catálogo mientras parece que se rompió la funcionalidad.
 
 `ng lint` **no mira esta carpeta**: si tocas algo aquí, pásale `npx eslint e2e/` tú.
+
+## Certificar un cobro
+
+`pago-tarjeta.spec.ts` paga un pedido con tarjeta en el Checkout hospedado de Stripe. Dos cosas que
+no son evidentes:
+
+6. **El backend puede tener Stripe en modo SIMULADO** (`STRIPE_ENABLED=false`, que es el valor por
+   defecto). Entonces no hay redirección a la pasarela: vuelve directo a `/checkout/return?…&mock=1`
+   y el pedido se da por pagado. Una prueba que solo mire «¿acabó PAID?» sale **verde sin haber
+   certificado nada**. Por eso el caso se declara SIN EJECUTAR cuando detecta `mock=1`.
+7. **Antes de teclear una tarjeta hay que comprobar que la sesión es de prueba.** El identificador
+   empieza por `cs_test_`. Las claves de producción y las de prueba viven en la misma variable, así
+   que un despliegue con la clave cambiada convertiría la certificación en una compra real. La
+   comprobación va **antes** de rellenar el formulario, no después.
+
+Y los selectores de la página de Stripe son suyos, no nuestros: `#cardNumber`, `#cardExpiry`,
+`#cardCvc` y `.SubmitButton`. Si Stripe los cambia, esta prueba se rompe sin que nuestro código
+tenga nada que ver.

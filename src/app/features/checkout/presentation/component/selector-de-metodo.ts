@@ -54,6 +54,7 @@ export interface MetodoElegido {
               [class.font-medium]="clave() === 'guardado:' + metodo.id"
               [class.border-base-300]="clave() !== 'guardado:' + metodo.id"
               [attr.aria-pressed]="clave() === 'guardado:' + metodo.id"
+              [attr.data-testid]="'metodo-guardado-' + metodo.id"
               (click)="eligeGuardado(metodo)"
             >
               <fa-icon [icon]="metodo.clase === 'CARD' ? iconoTarjeta : iconoPaypal" />
@@ -76,6 +77,7 @@ export interface MetodoElegido {
           [class.font-medium]="clave() === 'new-card'"
           [class.border-base-300]="clave() !== 'new-card'"
           [attr.aria-pressed]="clave() === 'new-card'"
+          data-testid="metodo-tarjeta"
           (click)="elige.emit({ clave: 'new-card', metodo: 'CARD', idDeTarjeta: null })"
         >
           <fa-icon [icon]="iconoTarjeta" />
@@ -90,6 +92,7 @@ export interface MetodoElegido {
           [class.font-medium]="clave() === 'paypal'"
           [class.border-base-300]="clave() !== 'paypal'"
           [attr.aria-pressed]="clave() === 'paypal'"
+          data-testid="metodo-paypal"
           (click)="elige.emit({ clave: 'paypal', metodo: 'PAYPAL', idDeTarjeta: null })"
         >
           <fa-icon [icon]="iconoPaypal" />
@@ -104,6 +107,7 @@ export interface MetodoElegido {
           [class.font-medium]="clave() === 'wallet'"
           [class.border-base-300]="clave() !== 'wallet'"
           [attr.aria-pressed]="clave() === 'wallet'"
+          data-testid="metodo-monedero"
           (click)="elige.emit({ clave: 'wallet', metodo: 'WALLET', idDeTarjeta: null })"
         >
           <fa-icon [icon]="iconoMonedero" />
