@@ -481,11 +481,20 @@ export class ListadoPage {
   }
 
   private async recarga(huella: string): Promise<void> {
+    // «cargando» se activa YA, antes de vaciar el listado y del await de la referencia. Si no, entre
+    // `empieza` (pone total a 0) y `pide` (que activa cargando) queda un hueco en el que el contador
+    // enseña «0 / 0» —parece «sin resultados»— durante toda la espera de la red. Medido en PRE.
+    this.cargando.set(true);
     this.listado.empieza(huella);
-    // La referencia del arancel solo se refresca con el listado en su primera página: cambiarla más
-    // abajo tiraría todo lo cargado y devolvería al comprador al principio.
-    await this.busca.refrescaLaReferencia();
-    await this.pide(0, huella);
+    try {
+      // La referencia del arancel solo se refresca con el listado en su primera página: cambiarla más
+      // abajo tiraría todo lo cargado y devolvería al comprador al principio.
+      await this.busca.refrescaLaReferencia();
+    } finally {
+      // Aunque la referencia falle, se pide la primera página: `pide` reactiva cargando y su `finally`
+      // lo apaga, así el contador nunca se queda colgado en «…».
+      await this.pide(0, huella);
+    }
   }
 
   private async pide(pagina: number, huella: string): Promise<void> {
