@@ -214,8 +214,17 @@ const ORDENES: readonly OrdenDelCatalogo[] = [
             leerlo de la pantalla. Sin él habría que agarrarse a las clases de Tailwind, que cambian
             con cualquier retoque visual.
           -->
+          <!--
+            Mientras carga y aún no hay nada, se muestra «Mostrando …» en vez de «0 / 0»: ese cero
+            parecía «sin resultados» en el parpadeo tras pulsar un filtro. Un resultado REALMENTE
+            vacío (ya cargado) sí enseña 0 / 0, porque el guardia exige que esté cargando.
+          -->
           <span class="text-[11px] text-ink-400 ml-auto" data-testid="contador-del-catalogo">
-            {{ t('pagination.showing') }} <strong>{{ mostrados() }}</strong> / {{ total() }}
+            @if (cargando() && total() === 0) {
+              {{ t('pagination.showing') }} <strong>…</strong>
+            } @else {
+              {{ t('pagination.showing') }} <strong>{{ mostrados() }}</strong> / {{ total() }}
+            }
           </span>
 
           @if (cuantos() > 0) {
@@ -239,6 +248,8 @@ export class BarraDeFiltros {
   readonly esAdministrador = input(false);
   readonly mostrados = input(0);
   readonly total = input(0);
+  /** Está cargando el listado: con esto el contador evita el falso «0 / 0» mientras llegan los datos. */
+  readonly cargando = input(false);
   readonly limpia = output<void>();
 
   protected readonly t = inject(TraduccionService).t;

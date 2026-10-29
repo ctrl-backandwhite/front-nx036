@@ -174,6 +174,7 @@ let barajaDeLaVisita: number | null = null;
         [esAdministrador]="sesion.esAdministrador()"
         [mostrados]="productos().length"
         [total]="total()"
+        [cargando]="cargando()"
         (limpia)="limpiaTodo()"
       />
 
