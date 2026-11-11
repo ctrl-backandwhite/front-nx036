@@ -57,7 +57,7 @@ describe('límites del transportista', () => {
   it('guarda un límite con clave completa', async () => {
     const puerto = dobleDeLimites();
     monta(puerto);
-    const limite = { ...limiteEnBlanco(), canal: 'FZZXR' };
+    const limite = { ...limiteEnBlanco(), carrier: 'YUNEXPRESS', canal: 'FZZXR' };
 
     const resultado = await TestBed.inject(GuardaLimiteDeTransportista).ejecuta(limite);
 
@@ -79,24 +79,31 @@ describe('límites del transportista', () => {
   it('alternar la vigencia conserva el resto de la fila', async () => {
     const puerto = dobleDeLimites();
     monta(puerto);
-    const limite = { ...limiteEnBlanco(), canal: 'FZZXR', pesoMaximoGramos: 2000, activo: true };
+    const limite = {
+      ...limiteEnBlanco(),
+      carrier: 'YUNEXPRESS',
+      canal: 'FZZXR',
+      pesoMaximoGramos: 2000,
+      activo: true,
+    };
 
     await TestBed.inject(AlternaLimiteDeTransportista).ejecuta(limite);
 
     expect(puerto.guarda).toHaveBeenCalledWith({ ...limite, activo: false });
   });
 
-  it('borrar usa el par canal más país, que es la clave', async () => {
+  it('borrar usa la terna transportista+canal+país, que es la clave', async () => {
     const puerto = dobleDeLimites();
     monta(puerto);
 
     await TestBed.inject(BorraLimiteDeTransportista).ejecuta({
       ...limiteEnBlanco(),
+      carrier: 'YUNEXPRESS',
       canal: 'FZZXR',
       pais: 'ES',
     });
 
-    expect(puerto.borra).toHaveBeenCalledWith('FZZXR', 'ES');
+    expect(puerto.borra).toHaveBeenCalledWith('YUNEXPRESS', 'FZZXR', 'ES');
   });
 
   it('la lista propaga el fallo del backend', async () => {

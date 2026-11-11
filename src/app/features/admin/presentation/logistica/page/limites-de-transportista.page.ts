@@ -97,6 +97,7 @@ import { FormularioDeLimite } from '../component/formulario-de-limite';
           <table class="table table-zebra table-sm">
             <thead class="bg-ink-50 text-ink-500 text-left text-[12px]">
               <tr>
+                <th class="px-4 py-2 font-medium">{{ t('admin.carrier_limits.col.carrier') }}</th>
                 <th class="px-4 py-2 font-medium">{{ t('admin.carrier_limits.col.channel') }}</th>
                 <th class="px-4 py-2 font-medium">{{ t('admin.carrier_limits.col.country') }}</th>
                 <th class="px-4 py-2 font-medium">
@@ -122,6 +123,7 @@ import { FormularioDeLimite } from '../component/formulario-de-limite';
             <tbody>
               @for (limite of visibles(); track clave(limite)) {
                 <tr>
+                  <td class="px-4 py-2 font-mono text-[12px]">{{ limite.carrier }}</td>
                   <td class="px-4 py-2 font-mono text-[13px]">{{ limite.canal }}</td>
                   <td class="px-4 py-2 text-[13px]">
                     @if (limite.pais === comodin) {

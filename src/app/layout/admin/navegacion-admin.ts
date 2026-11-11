@@ -2,6 +2,7 @@ import {
   IconDefinition,
   faBell,
   faBoxesPacking,
+  faEarthAmericas,
   faMoneyBillWave,
   faBoxesStacked,
   faCartShopping,
@@ -102,6 +103,13 @@ export const SECCIONES_ADMIN: readonly SeccionAdmin[] = [
     opciones: [
       { destino: '/admin/orders', clave: 'admin.nav.orders', icono: faTruck, permitidaAOperador: true },
       { destino: '/admin/purchases', clave: 'admin.nav.purchases', icono: faCartShopping },
+      {
+        // Va ANTES de los límites y la tarifa porque es el paso previo: sin cobertura, un destino no
+        // se puede ni cotizar.
+        destino: '/admin/carrier-coverage',
+        clave: 'admin.nav.carrier_coverage',
+        icono: faEarthAmericas,
+      },
       { destino: '/admin/carrier-limits', clave: 'admin.nav.carrier_limits', icono: faBoxesPacking },
       { destino: '/admin/carrier-rates', clave: 'admin.nav.carrier_rates', icono: faMoneyBillWave },
       {

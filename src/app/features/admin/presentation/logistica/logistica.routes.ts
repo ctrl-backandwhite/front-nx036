@@ -57,6 +57,17 @@ export const rutas: Routes = [
           import('./page/tarifas-de-transportista.page').then((m) => m.TarifasDeTransportistaPage),
       },
       {
+        // La cobertura decide a qué países se puede vender: es lo que permite encender uno de los
+        // destinos que solo cubre el segundo transportista sin pasar por una migración. Solo ADMIN,
+        // como la tarifa y los límites.
+        path: 'carrier-coverage',
+        canActivate: [exigeRol('ADMIN')],
+        loadComponent: () =>
+          import('./page/cobertura-de-transportista.page').then(
+            (m) => m.CoberturaDeTransportistaPage,
+          ),
+      },
+      {
         path: 'carrier-limits',
         canActivate: [exigeRol('ADMIN')],
         loadComponent: () =>

@@ -133,7 +133,32 @@ export interface FichaDePedido extends Pedido {
   /** Ausente mientras no se haya cotizado: un «0,00 €» de envío se lee como envío gratis. */
   readonly envioFormateado?: string;
   readonly impuestosFormateado?: string;
+  /**
+   * El transportista por el que se COBRÓ el envío, con su canal.
+   *
+   * <p>No es el de la guía ya emitida, que es lo único que se veía antes: es el que eligió quien
+   * compró y el que decide a quién se le pide la guía al despachar. Con dos transportistas, sin esto
+   * no hay forma de saber por qué un pedido salió por donde salió — ni de ver que salió por el que no
+   * tocaba.
+   */
+  readonly transportista?: string;
+  readonly canalDeEnvio?: string;
+  readonly nombreDelCanal?: string;
   readonly lineas: readonly LineaDePedido[];
+}
+
+/**
+ * El transportista y el canal en una línea, o nada si el pedido no los lleva.
+ *
+ * <p>Los pedidos anteriores a que hubiera más de un transportista no los tienen, y ahí no se enseña un
+ * hueco: se omite la fila entera, porque entonces no había nada que elegir.
+ */
+export function envioElegido(ficha: FichaDePedido): string | undefined {
+  if (!ficha.transportista) {
+    return undefined;
+  }
+  const canal = ficha.nombreDelCanal || ficha.canalDeEnvio;
+  return canal ? `${ficha.transportista} · ${canal}` : ficha.transportista;
 }
 
 /** La factura solo existe una vez que el pedido dejó de ser una intención. */

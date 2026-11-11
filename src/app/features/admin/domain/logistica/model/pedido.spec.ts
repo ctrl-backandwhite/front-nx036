@@ -1,7 +1,9 @@
 import {
+  FichaDePedido,
   accionesPermitidas,
   admiteSeguimiento,
   aniosDisponibles,
+  envioElegido,
   cantidadValida,
   faltanDatosDeEnvio,
   importeLegible,
@@ -123,5 +125,46 @@ describe('años disponibles en el filtro', () => {
 
   it('admite adelantar el primer año con actividad', () => {
     expect(aniosDisponibles(2027, 2026)).toEqual(['2027', '2026']);
+  });
+});
+
+describe('el transportista cobrado de un pedido', () => {
+  function ficha(parcial: Partial<FichaDePedido> = {}): FichaDePedido {
+    return {
+      id: 'x',
+      numero: 'NX-1',
+      estado: 'FORWARDED',
+      articulos: 1,
+      lineas: [],
+      ...parcial,
+    };
+  }
+
+  /**
+   * Es el dato que explica por qué un pedido salió por donde salió. Antes solo se veía el
+   * transportista de la GUÍA ya emitida, que es otra cosa: con dos transportistas hace falta saber
+   * cuál se cobró para poder ver que salió por el que no tocaba.
+   */
+  it('junta el transportista con el nombre del canal', () => {
+    expect(
+      envioElegido(ficha({ transportista: 'FOURPX', nombreDelCanal: 'LYT GH' })),
+    ).toBe('FOURPX · LYT GH');
+  });
+
+  it('sin nombre de canal usa el código, que es lo que se puede buscar en el panel del carrier', () => {
+    expect(envioElegido(ficha({ transportista: 'FOURPX', canalDeEnvio: 'QC' }))).toBe('FOURPX · QC');
+  });
+
+  it('con transportista y sin canal enseña solo el transportista', () => {
+    expect(envioElegido(ficha({ transportista: 'YUNEXPRESS' }))).toBe('YUNEXPRESS');
+  });
+
+  /**
+   * Los pedidos anteriores a que hubiera más de un transportista no lo llevan, y ahí NO se enseña un
+   * hueco: se omite la fila entera, porque entonces no había nada que elegir.
+   */
+  it('sin transportista no hay nada que enseñar', () => {
+    expect(envioElegido(ficha())).toBeUndefined();
+    expect(envioElegido(ficha({ nombreDelCanal: 'LYT GH' }))).toBeUndefined();
   });
 });

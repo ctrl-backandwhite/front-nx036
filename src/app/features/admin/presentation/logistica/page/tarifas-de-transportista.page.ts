@@ -133,6 +133,7 @@ import {
           <table class="w-full text-left text-[13px]">
             <thead class="border-b border-ink-100 text-[11px] uppercase tracking-wider text-ink-400">
               <tr>
+                <th class="px-4 py-2 font-medium">{{ t('admin.carrier_rates.col.carrier') }}</th>
                 <th class="px-4 py-2 font-medium">{{ t('admin.carrier_rates.col.country') }}</th>
                 <th class="px-4 py-2 font-medium">{{ t('admin.carrier_rates.col.channel') }}</th>
                 <th class="px-4 py-2 font-medium text-right">
@@ -145,8 +146,9 @@ import {
               </tr>
             </thead>
             <tbody>
-              @for (grupo of grupos(); track grupo.pais + grupo.canal) {
+              @for (grupo of grupos(); track grupo.carrier + grupo.pais + grupo.canal) {
                 <tr class="border-b border-ink-50 hover:bg-ink-50/40">
+                  <td class="px-4 py-2 font-mono text-[12px] whitespace-nowrap">{{ grupo.carrier }}</td>
                   <td class="px-4 py-2 whitespace-nowrap">{{ nombreDePais(grupo.pais) }}</td>
                   <td class="px-4 py-2">
                     <span class="font-medium">{{ grupo.canal }}</span>
@@ -314,7 +316,7 @@ export class TarifasDeTransportistaPage {
   }
 
   protected clave(grupo: GrupoDeTarifas): string {
-    return `${grupo.pais}|${grupo.canal}`;
+    return `${grupo.carrier}|${grupo.pais}|${grupo.canal}`;
   }
 
   protected alternaDetalle(grupo: GrupoDeTarifas): void {

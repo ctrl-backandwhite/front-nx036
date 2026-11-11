@@ -15,7 +15,15 @@
 export const PAIS_COMODIN = '*';
 
 export interface LimiteDeTransportista {
-  /** Canal del transportista (p. ej. `FZZXR`, la línea de ropa). Identificador interno del carrier. */
+  /**
+   * Transportista dueño del límite (`YUNEXPRESS`, `FOURPX`).
+   *
+   * Entra en la CLAVE junto al canal y el país: lo que se configura aquí decide en cuántos bultos se
+   * parte un pedido, y cada bulto son 3 EUR de arancel en la UE. Coger el tope del otro transportista
+   * parte de más o de menos, y no da ningún error.
+   */
+  readonly carrier: string;
+  /** Canal del transportista (p. ej. FZZXR, la línea de ropa). Identificador interno del carrier. */
   readonly canal: string;
   /** Destino ISO-2, o el comodín para «el resto de países de ese canal». */
   readonly pais: string;
@@ -40,6 +48,7 @@ export interface LimiteDeTransportista {
  */
 export function limiteEnBlanco(): LimiteDeTransportista {
   return {
+    carrier: '',
     canal: '',
     pais: PAIS_COMODIN,
     pesoMaximoGramos: 0,
@@ -80,15 +89,25 @@ export function canalesDe(limites: readonly LimiteDeTransportista[]): readonly s
   return [...new Set(limites.map((l) => l.canal))].sort((a, b) => a.localeCompare(b));
 }
 
-/**
- * El par canal+país ES la clave del registro. Guardar una fila que ya existe la sustituye; por eso al
- * editar esos dos campos quedan bloqueados, o en vez de cambiar la fila se crearía otra distinta.
- */
-export function claveDe(limite: LimiteDeTransportista): string {
-  return `${limite.canal}|${limite.pais}`;
+/** Los transportistas presentes, sin repetir y en orden, para poder filtrar por uno. */
+export function transportistasDe(limites: readonly LimiteDeTransportista[]): readonly string[] {
+  return [...new Set(limites.map((l) => l.carrier))].sort((a, b) => a.localeCompare(b));
 }
 
-/** Sin canal y sin destino no hay clave, así que no se puede guardar. */
+/**
+ * La terna transportista+canal+país ES la clave del registro. Guardar una fila que ya existe la
+ * sustituye; por eso al editar esos tres campos quedan bloqueados, o en vez de cambiar la fila se
+ * crearía otra distinta.
+ */
+export function claveDe(limite: LimiteDeTransportista): string {
+  return `${limite.carrier}|${limite.canal}|${limite.pais}`;
+}
+
+/** Sin transportista, sin canal o sin destino no hay clave, así que no se puede guardar. */
 export function limiteGuardable(limite: LimiteDeTransportista): boolean {
-  return limite.canal.trim().length > 0 && limite.pais.trim().length > 0;
+  return (
+    limite.carrier.trim().length > 0 &&
+    limite.canal.trim().length > 0 &&
+    limite.pais.trim().length > 0
+  );
 }

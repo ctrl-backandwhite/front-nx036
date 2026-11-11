@@ -22,6 +22,7 @@ import {
   accionesPermitidas,
   admiteSeguimiento,
   tieneFactura,
+  envioElegido,
 } from '../../../domain/logistica/model/pedido';
 import { Seguimiento } from '../../../domain/logistica/model/seguimiento';
 import {
@@ -141,15 +142,28 @@ const SUFIJO_DE_AVISO: Readonly<Record<AccionSobrePedido, string>> = {
 
         <nx-resumen-de-pedido [pedido]="p" />
 
-        @if (p.numeroDeSeguimiento; as guia) {
-          <section class="card p-4 flex items-center gap-3 text-sm">
+        <!-- El transportista COBRADO y la guía son dos datos distintos, y hasta ahora solo se veía el
+             segundo. Con dos transportistas el primero es el que explica por qué el pedido salió por
+             donde salió — y el que delata que salió por el que no tocaba. -->
+        @if (p.numeroDeSeguimiento || envioCobrado(p)) {
+          <section class="card p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 text-sm">
             <fa-icon [icon]="iconos.ship" class="text-brand-600" />
-            <div>
-              <div class="text-[11px] uppercase tracking-wider text-ink-600">
-                {{ t('admin.orders.detail.tracking') }}
+            @if (envioCobrado(p); as elegido) {
+              <div>
+                <div class="text-[11px] uppercase tracking-wider text-ink-600">
+                  {{ t('admin.orders.detail.carrier') }}
+                </div>
+                <div class="font-mono">{{ elegido }}</div>
               </div>
-              <div class="font-mono">{{ guia }}</div>
-            </div>
+            }
+            @if (p.numeroDeSeguimiento; as guia) {
+              <div>
+                <div class="text-[11px] uppercase tracking-wider text-ink-600">
+                  {{ t('admin.orders.detail.tracking') }}
+                </div>
+                <div class="font-mono">{{ guia }}</div>
+              </div>
+            }
           </section>
         }
 
@@ -242,6 +256,14 @@ export class FichaDePedidoPage {
   };
 
   protected readonly t = inject(TraduccionService).t;
+  /**
+   * El transportista y el canal COBRADOS, en una línea. Nada si el pedido es anterior a que hubiera dos.
+   *
+   * <p>No se llama `envio` porque ese nombre ya lo tiene el rastro del envío de este mismo componente
+   * —y pisarlo no da un error que lo diga: el fallo sale como «Property declaraciones does not exist
+   * on type string» en una línea treinta más arriba—.
+   */
+  protected readonly envioCobrado = envioElegido;
 
   private readonly consulta = inject(ConsultaPedido);
   private readonly cambia = inject(CambiaEstadoDePedido);

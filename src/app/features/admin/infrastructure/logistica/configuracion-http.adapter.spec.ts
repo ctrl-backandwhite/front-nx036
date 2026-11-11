@@ -36,12 +36,18 @@ describe('LimitesTransportistaHttpAdapter', () => {
     http.verify();
   });
 
-  it('guarda contra la ruta canal+país y sube el canal a mayúsculas', async () => {
+  it('guarda contra la ruta transportista+canal+país y lo sube todo a mayúsculas', async () => {
     const { instancia, http } = monta(LimitesTransportistaHttpAdapter);
-    const promesa = instancia.guarda({ ...limiteEnBlanco(), canal: ' fzzxr ', pais: 'ES' });
+    const promesa = instancia.guarda({
+      ...limiteEnBlanco(),
+      carrier: ' yunexpress ',
+      canal: ' fzzxr ',
+      pais: 'ES',
+    });
 
-    const peticion = http.expectOne('/api/admin/carrier-limits/FZZXR/ES');
+    const peticion = http.expectOne('/api/admin/carrier-limits/YUNEXPRESS/FZZXR/ES');
     expect(peticion.request.body.channelCode).toBe('FZZXR');
+    expect(peticion.request.body.carrier).toBe('YUNEXPRESS');
     peticion.flush({});
 
     expect((await promesa).ok).toBe(true);
@@ -51,9 +57,9 @@ describe('LimitesTransportistaHttpAdapter', () => {
   /** El asterisco es un carácter válido en una ruta: se manda tal cual. */
   it('el comodín viaja sin escapar', async () => {
     const { instancia, http } = monta(LimitesTransportistaHttpAdapter);
-    const promesa = instancia.borra('FZZXR', PAIS_COMODIN);
+    const promesa = instancia.borra('YUNEXPRESS', 'FZZXR', PAIS_COMODIN);
 
-    http.expectOne('/api/admin/carrier-limits/FZZXR/*').flush({});
+    http.expectOne('/api/admin/carrier-limits/YUNEXPRESS/FZZXR/*').flush({});
 
     expect((await promesa).ok).toBe(true);
     http.verify();

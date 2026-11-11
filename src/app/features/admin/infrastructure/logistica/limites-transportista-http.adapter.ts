@@ -7,6 +7,7 @@ import { LimitesDeTransportistaPort } from '../../domain/logistica/port/configur
 
 /** La forma en que el backend habla de un límite. No sale de este fichero. */
 interface LimiteDto {
+  carrier: string;
   channelCode: string;
   countryCode: string;
   maxWeightGrams?: number;
@@ -22,6 +23,7 @@ interface LimiteDto {
 
 function aLimite(dto: LimiteDto): LimiteDeTransportista {
   return {
+    carrier: dto.carrier,
     canal: dto.channelCode,
     pais: dto.countryCode,
     pesoMaximoGramos: dto.maxWeightGrams ?? 0,
@@ -40,6 +42,7 @@ function aLimite(dto: LimiteDto): LimiteDeTransportista {
 
 function aDto(limite: LimiteDeTransportista, canal: string): LimiteDto {
   return {
+    carrier: limite.carrier.trim().toUpperCase(),
     channelCode: canal,
     countryCode: limite.pais,
     maxWeightGrams: limite.pesoMaximoGramos,
@@ -57,9 +60,9 @@ function aDto(limite: LimiteDeTransportista, canal: string): LimiteDto {
 /**
  * Los límites del transportista contra nuestro backend.
  *
- * <p>Alta y edición son la MISMA llamada: la clave del registro es canal+país, así que guardar una fila
- * que ya existe la sustituye. El asterisco del comodín es un carácter válido en una ruta y
- * `encodeURIComponent` lo deja pasar tal cual.
+ * <p>Alta y edición son la MISMA llamada: la clave del registro es transportista+canal+país, así que
+ * guardar una fila que ya existe la sustituye. El asterisco del comodín es un carácter válido en una
+ * ruta y `encodeURIComponent` lo deja pasar tal cual.
  */
 @Injectable()
 export class LimitesTransportistaHttpAdapter implements LimitesDeTransportistaPort {
@@ -71,13 +74,14 @@ export class LimitesTransportistaHttpAdapter implements LimitesDeTransportistaPo
   }
 
   async guarda(limite: LimiteDeTransportista): Promise<Result<void, AppError>> {
+    const transportista = limite.carrier.trim().toUpperCase();
     const canal = limite.canal.trim().toUpperCase();
-    const ruta = `/admin/carrier-limits/${encodeURIComponent(canal)}/${encodeURIComponent(limite.pais)}`;
+    const ruta = `/admin/carrier-limits/${encodeURIComponent(transportista)}/${encodeURIComponent(canal)}/${encodeURIComponent(limite.pais)}`;
     return mapea(await this.api.put<unknown>(ruta, aDto(limite, canal)), () => undefined);
   }
 
-  async borra(canal: string, pais: string): Promise<Result<void, AppError>> {
-    const ruta = `/admin/carrier-limits/${encodeURIComponent(canal)}/${encodeURIComponent(pais)}`;
+  async borra(carrier: string, canal: string, pais: string): Promise<Result<void, AppError>> {
+    const ruta = `/admin/carrier-limits/${encodeURIComponent(carrier)}/${encodeURIComponent(canal)}/${encodeURIComponent(pais)}`;
     return mapea(await this.api.delete<unknown>(ruta), () => undefined);
   }
 }

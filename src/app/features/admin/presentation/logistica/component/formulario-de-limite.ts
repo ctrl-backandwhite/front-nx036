@@ -27,6 +27,7 @@ import { TEXTO_CON_CONTENIDO, claveDeError } from '../form/reglas-de-formulario'
  * está marcada. Separarlos aquí evita que el campo tenga que enseñar una cosa y valer otra.
  */
 interface BorradorDeLimite {
+  carrier: string;
   canal: string;
   pais: string;
   comodin: boolean;
@@ -86,6 +87,22 @@ const MEDIDA_MAXIMA_RAZONABLE_MM = 2_000;
 
         <!-- Móvil primero: una columna, y dos a partir de la anchura pequeña. -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+          <div>
+            <label class="text-xs text-ink-500" for="limite-transportista">
+              {{ t('admin.carrier_limits.col.carrier') }}
+            </label>
+            <input
+              id="limite-transportista"
+              class="input font-mono w-full"
+              placeholder="YUNEXPRESS"
+              [formField]="formulario.carrier"
+              (input)="pasaAMayusculas(formulario.carrier, $event)"
+            />
+            @if (formulario.carrier().touched() && errorDe(formulario.carrier().errors()); as clave) {
+              <p class="text-[11px] text-error mt-1" role="alert">{{ t(clave) }}</p>
+            }
+          </div>
+
           <div>
             <label class="text-xs text-ink-500" for="limite-canal">
               {{ t('admin.carrier_limits.col.channel') }}
@@ -240,6 +257,7 @@ export class FormularioDeLimite {
     const limite = this.limite();
     const comodin = limite.pais === PAIS_COMODIN;
     return {
+      carrier: limite.carrier,
       canal: limite.canal,
       pais: comodin ? '' : limite.pais,
       comodin,
@@ -264,6 +282,12 @@ export class FormularioDeLimite {
    * justo lo que hace falta: un destino vacío pero bloqueado por el comodín no puede impedir guardar.
    */
   protected readonly formulario = form(this.modelo, (ruta) => {
+    // El transportista forma parte de la CLAVE, así que al editar se bloquea igual que el canal y el
+    // país: cambiarlo no movería la fila, crearía otra.
+    apply(ruta.carrier, TEXTO_CON_CONTENIDO);
+    maxLength(ruta.carrier, 32);
+    disabled(ruta.carrier, { when: () => !this.esAlta() });
+
     apply(ruta.canal, TEXTO_CON_CONTENIDO);
     maxLength(ruta.canal, 16);
     disabled(ruta.canal, { when: () => !this.esAlta() });
@@ -310,6 +334,7 @@ export class FormularioDeLimite {
   protected readonly loEditado = computed<LimiteDeTransportista>(() => {
     const borrador = this.modelo();
     return {
+      carrier: borrador.carrier,
       canal: borrador.canal,
       pais: borrador.comodin ? PAIS_COMODIN : borrador.pais,
       pesoMaximoGramos: borrador.pesoMaximoGramos ?? 0,

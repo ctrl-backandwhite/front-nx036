@@ -58,6 +58,9 @@ export interface FichaDePedidoDto extends PedidoDto {
   source?: string;
   notes?: string;
   trackingNumber?: string;
+  shippingCarrier?: string;
+  shippingChannelCode?: string;
+  shippingChannelName?: string;
   shippingAddress?: DireccionDto;
   subtotalCents?: number;
   subtotalFormatted?: string;
@@ -128,6 +131,9 @@ export function aFicha(dto: FichaDePedidoDto): FichaDePedido {
     origen: aOrigen(dto.source),
     notas: dto.notes,
     numeroDeSeguimiento: dto.trackingNumber,
+    transportista: dto.shippingCarrier,
+    canalDeEnvio: dto.shippingChannelCode,
+    nombreDelCanal: dto.shippingChannelName,
     direccionDeEnvio: dto.shippingAddress ? aDireccion(dto.shippingAddress) : undefined,
     subtotalFormateado: importeLegible(dto.subtotalFormatted, dto.subtotalCents, moneda),
     // Envío e impuestos quedan SIN VALOR mientras no se hayan cotizado: un «0,00 €» de envío se lee

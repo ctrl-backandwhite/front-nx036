@@ -19,6 +19,13 @@
  */
 export interface TarifaDeTransportista {
   readonly id: string;
+  /**
+   * Transportista dueño de la fila (`YUNEXPRESS`, `FOURPX`).
+   *
+   * Desde que conviven dos, el canal suelto NO identifica una tarifa: sus códigos no se parecen hoy
+   * por casualidad, y si coincidieran esta pantalla enseñaría dos filas indistinguibles.
+   */
+  readonly carrier: string;
   /** Canal del transportista (p. ej. `FZZXR`, la línea de ropa). */
   readonly canal: string;
   /** Destino ISO-2. */
@@ -94,6 +101,7 @@ export function canalesDe(tarifas: readonly TarifaDeTransportista[]): readonly s
  * los tramos solo cuando se abre uno.
  */
 export interface GrupoDeTarifas {
+  readonly carrier: string;
   readonly canal: string;
   readonly pais: string;
   readonly nombreCanal?: string;
@@ -114,7 +122,9 @@ export function agrupaTarifas(
 ): readonly GrupoDeTarifas[] {
   const porClave = new Map<string, TarifaDeTransportista[]>();
   for (const tarifa of tarifas) {
-    const clave = `${tarifa.pais}|${tarifa.canal}`;
+    // El transportista entra en la clave: sin él, dos transportistas con el mismo código de canal
+    // se fusionarían en una sola fila con los tramos de los dos mezclados.
+    const clave = `${tarifa.carrier}|${tarifa.pais}|${tarifa.canal}`;
     const grupo = porClave.get(clave);
     if (grupo) {
       grupo.push(tarifa);
@@ -131,6 +141,7 @@ export function agrupaTarifas(
     // con tramos de cien gramos el primero llega a diez y su precio no dice nada del envío normal.
     const deMedioKilo = ordenados.find((t) => t.hastaGramos >= 500) ?? ordenados[ordenados.length - 1];
     grupos.push({
+      carrier: primero.carrier,
       canal: primero.canal,
       pais: primero.pais,
       nombreCanal: primero.nombreCanal,

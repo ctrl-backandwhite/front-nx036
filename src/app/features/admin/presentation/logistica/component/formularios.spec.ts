@@ -128,7 +128,10 @@ describe('FormularioDeLimite', () => {
 
   it('desmarcar el comodín vacía el destino para poder escribir uno concreto', async () => {
     const { fixture } = await render(FormularioDeLimite, {
-      inputs: { limite: { ...limiteEnBlanco(), canal: 'FZZXR' }, esAlta: true },
+      inputs: {
+        limite: { ...limiteEnBlanco(), carrier: 'YUNEXPRESS', canal: 'FZZXR' },
+        esAlta: true,
+      },
     });
 
     const comodin = screen.getAllByRole('checkbox')[0];
@@ -146,7 +149,10 @@ describe('FormularioDeLimite', () => {
    */
   it('un peso máximo disparatado no deja guardar', async () => {
     await render(FormularioDeLimite, {
-      inputs: { limite: { ...limiteEnBlanco(), canal: 'FZZXR' }, esAlta: true },
+      inputs: {
+        limite: { ...limiteEnBlanco(), carrier: 'YUNEXPRESS', canal: 'FZZXR' },
+        esAlta: true,
+      },
     });
 
     const peso = screen.getByLabelText(/Peso máximo/i);
@@ -159,7 +165,10 @@ describe('FormularioDeLimite', () => {
   /** Un número que se queda a medias no es un cero: no se puede mandar como si lo fuera. */
   it('un número borrado del todo no deja guardar', async () => {
     await render(FormularioDeLimite, {
-      inputs: { limite: { ...limiteEnBlanco(), canal: 'FZZXR' }, esAlta: true },
+      inputs: {
+        limite: { ...limiteEnBlanco(), carrier: 'YUNEXPRESS', canal: 'FZZXR' },
+        esAlta: true,
+      },
     });
 
     await userEvent.clear(screen.getByLabelText(/Mínimo facturable/i));
@@ -170,7 +179,10 @@ describe('FormularioDeLimite', () => {
   /** El comodín bloquea el destino: bloqueado y vacío NO puede contar como «falta rellenarlo». */
   it('con el comodín marcado el destino vacío no impide guardar', async () => {
     await render(FormularioDeLimite, {
-      inputs: { limite: { ...limiteEnBlanco(), canal: 'FZZXR' }, esAlta: true },
+      inputs: {
+        limite: { ...limiteEnBlanco(), carrier: 'YUNEXPRESS', canal: 'FZZXR' },
+        esAlta: true,
+      },
     });
 
     expect(screen.getByLabelText(/Destino/i)).toBeDisabled();
@@ -180,14 +192,17 @@ describe('FormularioDeLimite', () => {
   it('publica el límite editado al guardar', async () => {
     const guarda = vi.fn();
     await render(FormularioDeLimite, {
-      inputs: { limite: { ...limiteEnBlanco(), canal: 'FZZXR' }, esAlta: true },
+      inputs: {
+        limite: { ...limiteEnBlanco(), carrier: 'YUNEXPRESS', canal: 'FZZXR' },
+        esAlta: true,
+      },
       on: { guarda },
     });
 
     await userEvent.click(screen.getByRole('button', { name: /Guardar/i }));
 
     expect(guarda).toHaveBeenCalledWith(
-      expect.objectContaining({ canal: 'FZZXR', pais: PAIS_COMODIN }),
+      expect.objectContaining({ carrier: 'YUNEXPRESS', canal: 'FZZXR', pais: PAIS_COMODIN }),
     );
   });
 });

@@ -18,9 +18,14 @@ import {
 } from '../../../domain/logistica/model/almacen';
 import {
   ALMACENES_ADMIN_PORT,
+  COBERTURA_DE_TRANSPORTISTA_PORT,
   LIMITES_DE_TRANSPORTISTA_PORT,
   TARIFAS_DE_TRANSPORTISTA_PORT,
 } from '../../../domain/logistica/port/configuracion-logistica.port';
+import {
+  CoberturaDeTransportista,
+  coberturaGuardable,
+} from '../../../domain/logistica/model/cobertura-transportista';
 
 /** Lo que se rechaza sin llegar al servidor: falta la clave con la que se identifica la fila. */
 export type SinClave = 'sin-clave';
@@ -69,7 +74,77 @@ export class BorraLimiteDeTransportista {
   private readonly limites = inject(LIMITES_DE_TRANSPORTISTA_PORT);
 
   ejecuta(limite: LimiteDeTransportista): Promise<Result<void, AppError>> {
-    return this.limites.borra(limite.canal, limite.pais);
+    return this.limites.borra(limite.carrier, limite.canal, limite.pais);
+  }
+}
+
+/** Consulta a qué países llega cada transportista, destinos apagados incluidos. */
+@Injectable()
+export class ConsultaCoberturaDeTransportista {
+  private readonly cobertura = inject(COBERTURA_DE_TRANSPORTISTA_PORT);
+
+  ejecuta(): Promise<Result<readonly CoberturaDeTransportista[], AppError>> {
+    return this.cobertura.lista();
+  }
+}
+
+/**
+ * Los transportistas a los que se les puede declarar cobertura.
+ *
+ * <p>Salen del backend y no de una constante del front: la lista es la de los proveedores REGISTRADOS,
+ * y una copia aquí se quedaría vieja el día que se añada o se retire uno — con el agravante de que la
+ * fila mal escrita se guardaría igual y el destino seguiría sin servirse.
+ */
+@Injectable()
+export class ConsultaTransportistasDisponibles {
+  private readonly cobertura = inject(COBERTURA_DE_TRANSPORTISTA_PORT);
+
+  ejecuta(): Promise<Result<readonly string[], AppError>> {
+    return this.cobertura.transportistas();
+  }
+}
+
+/**
+ * Guarda la cobertura de un destino. Alta y edición son lo mismo: la clave es transportista+país.
+ *
+ * <p>Es la operación que permite encender uno de los destinos que solo cubre el segundo transportista
+ * sin pasar por una migración, que es para lo que existe la pantalla.
+ */
+@Injectable()
+export class GuardaCoberturaDeTransportista {
+  private readonly cobertura = inject(COBERTURA_DE_TRANSPORTISTA_PORT);
+
+  async ejecuta(
+    cobertura: CoberturaDeTransportista,
+  ): Promise<Result<void, AppError | SinClave>> {
+    if (!coberturaGuardable(cobertura)) {
+      return fallo<SinClave>('sin-clave');
+    }
+    return this.cobertura.guarda(cobertura);
+  }
+}
+
+/**
+ * Enciende o apaga un destino sin abrir el formulario.
+ *
+ * <p>Es la acción normal, y por eso está separada del borrado: apagar conserva la tarifa de reserva y
+ * el plazo ya medidos para cuando el destino vuelva; borrar los pierde y hay que averiguarlos otra vez.
+ */
+@Injectable()
+export class AlternaCoberturaDeTransportista {
+  private readonly cobertura = inject(COBERTURA_DE_TRANSPORTISTA_PORT);
+
+  ejecuta(cobertura: CoberturaDeTransportista): Promise<Result<void, AppError>> {
+    return this.cobertura.guarda({ ...cobertura, habilitado: !cobertura.habilitado });
+  }
+}
+
+@Injectable()
+export class BorraCoberturaDeTransportista {
+  private readonly cobertura = inject(COBERTURA_DE_TRANSPORTISTA_PORT);
+
+  ejecuta(cobertura: CoberturaDeTransportista): Promise<Result<void, AppError>> {
+    return this.cobertura.borra(cobertura.carrier, cobertura.pais);
   }
 }
 
