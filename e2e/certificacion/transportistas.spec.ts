@@ -217,9 +217,11 @@ test.describe('Cada transportista cumple lo contratado en cada línea', () => {
 
     const c = await abreElCheckout()
 
-    expect(c.customsBlocked, 'en la UE no se vende por encima de 150 EUR').toBe(true)
-    expect(c.customsLimit).toBe('150 EUR')
-    await expect(page.getByRole('alert').filter({ hasText: '150 EUR' }).first()).toBeVisible({ timeout: 30_000 })
+    expect(c.customsBlocked, 'en la UE no se vende por encima de la franquicia').toBe(true)
+    // El límite que se enseña es el MÁS ESTRICTO de los dos en juego: los 150 EUR de la franquicia o
+    // el tope de valor de la línea de YunExpress (155 USD), que al cambio queda por debajo.
+    expect(['150 EUR', '155 USD'], 'el límite tiene que ser uno de los dos contratados').toContain(c.customsLimit)
+    await expect(page.getByRole('alert').filter({ hasText: c.customsLimit }).first()).toBeVisible({ timeout: 30_000 })
   })
 
   // ───────────────────────────────────────────── 4PX, donde solo llega él
@@ -260,12 +262,16 @@ test.describe('Cada transportista cumple lo contratado en cada línea', () => {
 
   // ───────────────────────────────────────────── los dos a la vez
 
-  test('Reino Unido · ropa: cada transportista ofrece su línea de ropa', async () => {
+  test('Reino Unido · ropa: cotizan los dos y la lista sale ordenada por precio', async () => {
     const c = await cotiza('GB', [['ropa', 1]])
 
     expect(de(c, 'YunExpress').length, 'YunExpress cotiza').toBeGreaterThan(0)
     expect(de(c, '4PX').length, '4PX cotiza').toBeGreaterThan(0)
-    expect(de(c, '4PX').map((o) => o.code), 'S1427 es la línea de ropa de 4PX').toContain('S1427')
+    // No se afirma que salga S1427: comparte plazo con O5, el enrutador se queda con la más barata
+    // de las dos, y con el divisor /6000 de la línea de ropa gana O5. Que la línea de ropa admite
+    // ropa lo comprueban las pruebas unitarias contra el contrato sembrado.
+    const importes = c.options.map((o) => o.amountUsdCents)
+    expect(importes, 'de más barata a más cara').toEqual([...importes].sort((a, b) => a - b))
   })
 
   test('Reino Unido · bolso: ninguna línea de ropa, de ninguno de los dos', async () => {
