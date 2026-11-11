@@ -27,6 +27,11 @@ export interface LimiteDeTransportista {
   readonly canal: string;
   /** Destino ISO-2, o el comodín para «el resto de países de ese canal». */
   readonly pais: string;
+  /**
+   * El nombre del destino, ya en el idioma de quien mira. Lo manda el backend: la lista del front
+   * (`REGIONS`) son 26 mercados y dejaba 64 de 90 destinos pintados como código.
+   */
+  readonly nombreDelPais?: string;
   /** Peso máximo por bulto, en gramos. 0 = sin límite conocido. */
   readonly pesoMaximoGramos: number;
   /** Divisor del peso volumétrico. 0 = el canal NO factura por volumen. */

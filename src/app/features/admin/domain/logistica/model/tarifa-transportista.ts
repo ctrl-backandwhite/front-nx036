@@ -30,6 +30,11 @@ export interface TarifaDeTransportista {
   readonly canal: string;
   /** Destino ISO-2. */
   readonly pais: string;
+  /**
+   * El nombre del destino, ya en el idioma de quien mira. Lo manda el backend: la lista del front
+   * (`REGIONS`) son 26 mercados y dejaba 64 de 90 destinos pintados como código.
+   */
+  readonly nombreDelPais?: string;
   /** Nombre comercial del canal, el que se le enseña al comprador. */
   readonly nombreCanal?: string;
   /** Techo del tramo en gramos; el tramo empieza donde acaba el anterior. */

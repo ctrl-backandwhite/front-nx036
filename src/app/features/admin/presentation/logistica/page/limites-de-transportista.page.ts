@@ -12,7 +12,6 @@ import {
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
 import { DialogoStore } from '@ds/component/dialogo/dialogo.store';
-import { REGIONS } from '@shared/i18n/regions';
 import {
   LimiteDeTransportista,
   PAIS_COMODIN,
@@ -297,7 +296,7 @@ export class LimitesDeTransportistaPage {
     const filas = canal ? this.limites().filter((l) => l.canal === canal) : this.limites();
     return filas.map((limite) => ({
       ...limite,
-      nombreDelPais: this.nombreDePais(limite.pais),
+      nombreDelPais: limite.nombreDelPais ?? this.nombreDePais(limite.pais),
       pesoLegible: formateaGramos(limite.pesoMaximoGramos),
       minimoLegible: formateaGramos(limite.minimoFacturableGramos),
       medidasLegibles: medidasLegibles(limite),
@@ -319,7 +318,7 @@ export class LimitesDeTransportistaPage {
 
   /** El comodín se NOMBRA; nunca se enseña el asterisco a pelo, que no se entiende. */
   protected nombreDePais(codigo: string): string {
-    return REGIONS.find((r) => r.countryCode === codigo)?.countryLabel ?? codigo;
+    return this.limites().find((l) => l.pais === codigo)?.nombreDelPais ?? codigo;
   }
 
   protected abreAlta(): void {

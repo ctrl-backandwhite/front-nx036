@@ -14,6 +14,7 @@ interface TarifaDto {
   id: string;
   channelCode: string;
   countryCode: string;
+  countryName?: string;
   nombreCanal?: string;
   hastaGramos: number;
   registroRmb: number;
@@ -41,6 +42,7 @@ function aTarifa(dto: TarifaDto): TarifaDeTransportista {
     carrier: dto.carrier,
     canal: dto.channelCode,
     pais: dto.countryCode,
+    nombreDelPais: dto.countryName,
     nombreCanal: dto.nombreCanal,
     hastaGramos: dto.hastaGramos,
     registroRmb: Number(dto.registroRmb ?? 0),

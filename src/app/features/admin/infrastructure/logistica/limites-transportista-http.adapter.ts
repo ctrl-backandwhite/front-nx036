@@ -10,6 +10,7 @@ interface LimiteDto {
   carrier: string;
   channelCode: string;
   countryCode: string;
+  countryName?: string;
   maxWeightGrams?: number;
   volumetricDivisor?: number;
   minBillableGrams?: number;
@@ -26,6 +27,7 @@ function aLimite(dto: LimiteDto): LimiteDeTransportista {
     carrier: dto.carrier,
     canal: dto.channelCode,
     pais: dto.countryCode,
+    nombreDelPais: dto.countryName,
     pesoMaximoGramos: dto.maxWeightGrams ?? 0,
     divisorVolumetrico: dto.volumetricDivisor ?? 0,
     minimoFacturableGramos: dto.minBillableGrams ?? 0,

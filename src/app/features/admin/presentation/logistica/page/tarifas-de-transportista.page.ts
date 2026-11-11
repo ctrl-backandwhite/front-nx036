@@ -11,7 +11,6 @@ import { AvisosStore } from '@ds/component/avisos/avisos.store';
 import { DialogoStore } from '@ds/component/dialogo/dialogo.store';
 import { BarraFiltros } from '@ds/component/filtros/barra-filtros';
 import { FiltroDesplegable } from '@ds/component/filtros/filtro-desplegable';
-import { REGIONS } from '@shared/i18n/regions';
 import {
   FILTRO_DE_TARIFAS_VACIO,
   FiltroDeTarifas,
@@ -291,8 +290,21 @@ export class TarifasDeTransportistaPage {
     void this.carga();
   }
 
+  /** Código → nombre, de lo que el backend mandó con las filas. Se calcula una vez por carga. */
+  private readonly nombres = computed(() => {
+    const mapa = new Map<string, string>();
+    for (const tarifa of this.tarifas()) {
+      if (tarifa.nombreDelPais) mapa.set(tarifa.pais, tarifa.nombreDelPais);
+    }
+    return mapa;
+  });
+
+  /**
+   * El nombre lo manda el backend. Antes salía de `REGIONS`, que son 26 mercados: con 90 destinos en
+   * la tabla, 64 se pintaban como código y Emiratos en árabe. El código queda solo como reserva.
+   */
   protected nombreDePais(iso: string): string {
-    return REGIONS.find((r) => r.countryCode === iso)?.countryLabel ?? iso;
+    return this.nombres().get(iso) ?? iso;
   }
 
   /** En yuanes y con dos decimales, que es como los pasa el transportista. */
