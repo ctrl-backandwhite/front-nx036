@@ -2164,6 +2164,7 @@ const diccionario: Record<string, string> = {
   'checkout.shipping_option.express': 'Expresverzending',
   'checkout.shipping_option.standard': 'Standaardverzending',
   'checkout.shipping_option.economy': 'Voordelige verzending',
+  'checkout.taxes_on_delivery': 'Belastingen niet inbegrepen: de douane van je land kan ze bij ontvangst van het pakket in rekening brengen.',
   'checkout.shipping_option.cheapest': 'Goedkoopst',
   'checkout.shipping_option.fastest': 'Snelst',
   'checkout.shipping_option.show_more': 'Meer tonen ({count})',

@@ -62,10 +62,11 @@ import { ResumenDeLaCompra } from '../component/resumen-de-la-compra';
               (cambiaGuardado)="estado.fijaGuardarDireccion($event)"
             />
 
-            <!-- Las formas de envío aparecen bajo la dirección porque dependen de ella, y solo cuando el
-                 transportista cotiza más de una: con la tarifa de la tabla de zonas no hay entre qué
-                 elegir y una lista de un elemento solo estorba. -->
-            @if (envio.opciones().length > 1) {
+            <!-- Las formas de envío aparecen bajo la dirección porque dependen de ella. Se pintan
+                 también cuando hay UNA sola: ya no hay entre qué elegir, pero es el único sitio donde
+                 se ve con quién viaja el paquete, y con dos transportistas eso decide el régimen de
+                 impuestos. El componente la enseña entonces como información, sin botón. -->
+            @if (envio.opciones().length > 0) {
               <section class="card p-5">
                 <nx-opciones-de-envio
                   [opciones]="envio.opciones()"

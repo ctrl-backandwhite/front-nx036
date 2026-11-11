@@ -1296,6 +1296,7 @@ const diccionario: Record<string, string> = {
   'checkout.shipping_option.express': '快速配送',
   'checkout.shipping_option.standard': '标准配送',
   'checkout.shipping_option.economy': '经济配送',
+  'checkout.taxes_on_delivery': '不含税费：您所在国家的海关可能会在收到包裹时向您收取。',
   'checkout.shipping_option.cheapest': '最便宜',
   'checkout.shipping_option.fastest': '最快',
   'checkout.shipping_option.show_more': '查看更多 ({count})',

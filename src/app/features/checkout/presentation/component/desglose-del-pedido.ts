@@ -125,6 +125,17 @@ import { InfoDeAranceles } from './info-de-aranceles';
         </div>
       }
 
+      <!-- Cuando el impuesto no va en el total hay que DECIRLO: sin línea de impuesto, quien compra da
+           por hecho que está incluido, y se entera de que no en la puerta de su casa. -->
+      @if (cubierto() && cotizacion()?.impuestosAlRecibir) {
+        <p
+          class="text-[12px] text-warning-content/90 bg-warning/10 border border-warning/30 rounded p-2"
+          data-testid="desglose-impuestos-al-recibir"
+        >
+          {{ t('checkout.taxes_on_delivery') }}
+        </p>
+      }
+
       <!-- Mientras llega la cotización se reservan las líneas que vendrán —arancel e impuesto— en vez
            de dejar el resumen corto y que luego dé un salto. Son barras y no rótulos a propósito: hasta
            que no responde el servidor no se sabe QUÉ conceptos tiene ese destino, y escribir «Aranceles»

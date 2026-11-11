@@ -2164,6 +2164,7 @@ const diccionario: Record<string, string> = {
   'checkout.shipping_option.express': 'Spedizione espressa',
   'checkout.shipping_option.standard': 'Spedizione standard',
   'checkout.shipping_option.economy': 'Spedizione economica',
+  'checkout.taxes_on_delivery': 'Imposte non incluse: la dogana del tuo paese può richiederle alla consegna del pacco.',
   'checkout.shipping_option.cheapest': 'Il più economico',
   'checkout.shipping_option.fastest': 'Il più veloce',
   'checkout.shipping_option.show_more': 'Mostra altre ({count})',

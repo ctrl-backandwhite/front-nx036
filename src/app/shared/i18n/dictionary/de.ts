@@ -2164,6 +2164,7 @@ const diccionario: Record<string, string> = {
   'checkout.shipping_option.express': 'Expressversand',
   'checkout.shipping_option.standard': 'Standardversand',
   'checkout.shipping_option.economy': 'Sparversand',
+  'checkout.taxes_on_delivery': 'Steuern nicht enthalten: Der Zoll Ihres Landes kann sie bei Zustellung des Pakets erheben.',
   'checkout.shipping_option.cheapest': 'Am günstigsten',
   'checkout.shipping_option.fastest': 'Am schnellsten',
   'checkout.shipping_option.show_more': 'Mehr anzeigen ({count})',

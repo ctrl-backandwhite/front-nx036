@@ -94,13 +94,26 @@ describe('OpcionesDeEnvio', () => {
     await monta([opcion('A', 705)]);
 
     expect(screen.queryByText(/m[áa]s barat[oa]|cheapest/i)).toBeNull();
-    expect(screen.getAllByRole('radio')).toHaveLength(1);
+    // Y tampoco hay botón que elegir: una opción no es una elección.
+    expect(screen.queryByRole('radio')).toBeNull();
+  });
+
+  it('con una sola opción SÍ se ve quién lleva el paquete', async () => {
+    // Lo que se rompía: en un destino que solo cubre un transportista —Serbia con 4PX— el comprador
+    // no veía su nombre en ninguna parte, y el transportista decide si los impuestos van incluidos.
+    await monta([{ ...opcion('QC', 1819), transportista: '4PX' }]);
+
+    expect(screen.getByText('4PX')).toBeInTheDocument();
   });
 
   it('sin transportista la fila se pinta igual, sin un hueco raro', async () => {
-    await monta([{ ...opcion('A', 705), transportista: undefined }]);
+    await monta([
+      { ...opcion('A', 705), transportista: undefined },
+      { ...opcion('B', 800), transportista: undefined },
+    ]);
 
     expect(screen.queryByText(/YunExpress/)).toBeNull();
-    expect(screen.getByRole('radio')).toBeInTheDocument();
+    // Dos opciones, para que haya botón: con una sola la fila es informativa y no lo lleva.
+    expect(screen.getAllByRole('radio')).toHaveLength(2);
   });
 });

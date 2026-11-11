@@ -38,6 +38,33 @@ describe('DesgloseDelPedido', () => {
     expect(screen.getByText('—')).toBeInTheDocument();
   });
 
+  /**
+   * Sin línea de impuesto, quien compra da por hecho que va incluido. En un envío DDU no lo va: lo
+   * reclama la aduana al entregar. Medido en Serbia con 4PX el 11-nov-2026: el resumen no decía nada.
+   */
+  it('cuando los impuestos se pagan al recibir, lo avisa', async () => {
+    await monta({
+      cotizacion: cotizacion({ totalFormateado: '21,74 €', impuestosAlRecibir: true }),
+    });
+
+    expect(screen.getByTestId('desglose-impuestos-al-recibir')).toBeInTheDocument();
+    expect(screen.queryByTestId('desglose-iva')).toBeNull();
+  });
+
+  it('con el impuesto incluido NO sale ese aviso', async () => {
+    // El caso normal, y el de la UE entera: avisar aquí sería asustar a quien ya lo ha pagado.
+    await monta({
+      cotizacion: cotizacion({
+        totalFormateado: '129,72 €',
+        impuestoPuntosBasicos: 2100,
+        impuestoFormateado: '20,10 €',
+      }),
+    });
+
+    expect(screen.queryByTestId('desglose-impuestos-al-recibir')).toBeNull();
+    expect(screen.getByTestId('desglose-iva')).toBeInTheDocument();
+  });
+
   it('con la cotización puesta pinta el total que escribe el servidor', async () => {
     await monta({ cotizacion: cotizacion({ totalFormateado: '129,72 €' }) });
 
@@ -145,14 +172,17 @@ describe('DesgloseDelPedido', () => {
 
     // Sin reservarlas, el resumen crece de golpe al llegar la respuesta y lo que estabas mirando se
     // desplaza hacia abajo.
-    expect(vista.fixture.nativeElement.querySelector('[data-testid="desglose-en-espera"]'))
-      .not.toBeNull();
+    expect(
+      vista.fixture.nativeElement.querySelector('[data-testid="desglose-en-espera"]'),
+    ).not.toBeNull();
   });
 
   it('con la cotización ya puesta no queda ninguna línea en espera', async () => {
     const vista = await monta({ cotizacion: cotizacion({ totalFormateado: '51,27 €' }) });
 
-    expect(vista.fixture.nativeElement.querySelector('[data-testid="desglose-en-espera"]')).toBeNull();
+    expect(
+      vista.fixture.nativeElement.querySelector('[data-testid="desglose-en-espera"]'),
+    ).toBeNull();
     expect(screen.getByText('51,27 €')).toBeInTheDocument();
   });
 });

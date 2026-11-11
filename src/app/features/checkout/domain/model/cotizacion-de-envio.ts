@@ -64,6 +64,13 @@ export interface CotizacionDeEnvio {
   readonly aduanaBloqueada?: boolean;
   /** El umbral en la divisa legal del país («150 EUR»); vacío si no aplica. */
   readonly limiteDeAduana?: string;
+  /**
+   * Los impuestos del destino NO van en este total: los paga quien recibe, si su aduana se los reclama.
+   *
+   * <p>Depende del transportista de la opción cotizada, no solo del país: uno puede llevar un destino
+   * con el impuesto incluido y otro no recaudarlo. Lo decide el servidor; aquí solo se avisa.
+   */
+  readonly impuestosAlRecibir?: boolean;
   readonly diasMinimos?: number;
   readonly diasMaximos?: number;
   /** Eco del cupón aceptado y, si se rechazó, el motivo para enseñarlo bajo el campo. */

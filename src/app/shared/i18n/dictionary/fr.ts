@@ -2165,6 +2165,7 @@ const diccionario: Record<string, string> = {
   'checkout.shipping_option.express': 'Livraison express',
   'checkout.shipping_option.standard': 'Livraison standard',
   'checkout.shipping_option.economy': 'Livraison économique',
+  'checkout.taxes_on_delivery': 'Taxes non incluses : la douane de votre pays peut vous les réclamer à la réception du colis.',
   'checkout.shipping_option.cheapest': 'Le moins cher',
   'checkout.shipping_option.fastest': 'Le plus rapide',
   'checkout.shipping_option.show_more': 'Voir plus ({count})',

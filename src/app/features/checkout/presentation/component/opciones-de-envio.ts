@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import {
@@ -31,26 +32,53 @@ const VISIBLES_POR_DEFECTO = 3;
   // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
   host: { class: 'block' },
   selector: 'nx-opciones-de-envio',
+  imports: [NgTemplateOutlet],
   template: `
     <section class="space-y-2" role="radiogroup" [attr.aria-label]="t('checkout.shipping_option.title')">
       <div class="text-xs font-medium opacity-70">{{ t('checkout.shipping_option.title') }}</div>
       <div class="space-y-1.5">
         @for (opcion of visibles(); track opcion.codigo) {
-          <label
-            class="card p-3 text-sm cursor-pointer transition-colors flex items-start gap-2"
-            [class.border-brand-500]="opcion.codigo === seleccionada()"
-            [class.ring-2]="opcion.codigo === seleccionada()"
-            [class.ring-brand-100]="opcion.codigo === seleccionada()"
-            [class.hover:border-ink-300]="opcion.codigo !== seleccionada()"
-          >
-            <input
-              type="radio"
-              name="forma-de-envio"
-              class="mt-1"
-              [value]="opcion.codigo"
-              [checked]="opcion.codigo === seleccionada()"
-              (change)="elige.emit(opcion.codigo)"
-            />
+          @if (unica()) {
+            <!-- Una sola forma de envío: es información, no una elección. Sin botón, y por eso no es
+                 una etiqueta de formulario. -->
+            <div class="card p-3 text-sm flex items-start gap-2">
+              <ng-container [ngTemplateOutlet]="fila" [ngTemplateOutletContext]="{ $implicit: opcion }" />
+            </div>
+          } @else {
+            <label
+              class="card p-3 text-sm cursor-pointer transition-colors flex items-start gap-2"
+              [class.border-brand-500]="opcion.codigo === seleccionada()"
+              [class.ring-2]="opcion.codigo === seleccionada()"
+              [class.ring-brand-100]="opcion.codigo === seleccionada()"
+              [class.hover:border-ink-300]="opcion.codigo !== seleccionada()"
+            >
+              <input
+                type="radio"
+                name="forma-de-envio"
+                class="mt-1"
+                [value]="opcion.codigo"
+                [checked]="opcion.codigo === seleccionada()"
+                (change)="elige.emit(opcion.codigo)"
+              />
+              <ng-container [ngTemplateOutlet]="fila" [ngTemplateOutletContext]="{ $implicit: opcion }" />
+            </label>
+          }
+        }
+      </div>
+      @if (escondidas().length > 0 && !seleccionEscondida()) {
+        <button
+          type="button"
+          class="text-xs font-medium text-brand-600 hover:text-brand-700 hover:underline"
+          (click)="alterna()"
+        >
+          {{
+            abierto()
+              ? t('checkout.shipping_option.show_less')
+              : tCon('checkout.shipping_option.show_more', { count: escondidas().length })
+          }}
+        </button>
+      }
+      <ng-template #fila let-opcion>
             <div class="flex-1 min-w-0">
               <div class="flex items-center justify-between gap-2">
                 <span class="font-medium">{{
@@ -67,7 +95,7 @@ const VISIBLES_POR_DEFECTO = 3;
                 }
                 {{ plazo(opcion) }}
               </div>
-              @if (opcion.codigo === codigoMasBarata() || opcion.codigo === codigoMasRapida()) {
+              @if (!unica() && (opcion.codigo === codigoMasBarata() || opcion.codigo === codigoMasRapida())) {
                 <div class="mt-1 flex flex-wrap gap-1">
                   @if (opcion.codigo === codigoMasBarata()) {
                     <span class="badge bg-brand-50 text-brand-700">{{
@@ -82,22 +110,7 @@ const VISIBLES_POR_DEFECTO = 3;
                 </div>
               }
             </div>
-          </label>
-        }
-      </div>
-      @if (escondidas().length > 0 && !seleccionEscondida()) {
-        <button
-          type="button"
-          class="text-xs font-medium text-brand-600 hover:text-brand-700 hover:underline"
-          (click)="alterna()"
-        >
-          {{
-            abierto()
-              ? t('checkout.shipping_option.show_less')
-              : tCon('checkout.shipping_option.show_more', { count: escondidas().length })
-          }}
-        </button>
-      }
+      </ng-template>
     </section>
   `,
 })
@@ -106,6 +119,19 @@ export class OpcionesDeEnvio {
   /** El canal con el que el SERVIDOR está cotizando, que no siempre es el que se pulsó. */
   readonly seleccionada = input<string | undefined>(undefined);
   readonly elige = output<string>();
+
+  /**
+   * Una sola forma de envío no es una elección, pero SÍ es información.
+   *
+   * <p>Hasta el 11-nov-2026 la página ni montaba este componente con una opción: «una lista de un
+   * elemento solo estorba». Era cierto con un transportista. Con dos, esa fila es el único sitio donde
+   * el comprador ve QUIÉN lleva su paquete — y el transportista decide si los impuestos van incluidos
+   * o se pagan en la puerta. Medido en Serbia, que solo cubre 4PX: el nombre no salía en ninguna parte.
+   *
+   * <p>Por eso se pinta, pero sin botón que elegir ni insignias de «más barata» y «más rápida», que
+   * con una sola fila no comparan con nada.
+   */
+  protected readonly unica = computed(() => this.opciones().length === 1);
 
   private readonly traduccion = inject(TraduccionService);
   protected readonly t = this.traduccion.t;

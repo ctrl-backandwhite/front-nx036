@@ -100,6 +100,23 @@ describe('EnvioHttpAdapter', () => {
     expect(resultado.ok && resultado.valor.cubierto).toBe(false);
   });
 
+  it('el régimen DDU llega como impuestos que se pagan al recibir', async () => {
+    // Lo decide el servidor según el transportista de la opción cotizada. Si este campo se perdiera
+    // en el adaptador, el resumen dejaría de avisar justo donde el impuesto no va en el total.
+    const http = monta();
+    const adaptador = TestBed.inject(EnvioHttpAdapter);
+
+    const ddu = adaptador.cotiza({ pais: 'RS', items: [] });
+    http.expectOne((r) => r.url.endsWith('/api/shipping/quote')).flush({ supported: true, taxMode: 'DDU' });
+    const conDdu = await ddu;
+    expect(conDdu.ok && conDdu.valor.impuestosAlRecibir).toBe(true);
+
+    const ddp = adaptador.cotiza({ pais: 'ES', items: [] });
+    http.expectOne((r) => r.url.endsWith('/api/shipping/quote')).flush({ supported: true, taxMode: 'DDP' });
+    const conDdp = await ddp;
+    expect(conDdp.ok && conDdp.valor.impuestosAlRecibir).toBe(false);
+  });
+
   it('un fallo del servidor cruza como AppError', async () => {
     const http = monta();
     const promesa = TestBed.inject(EnvioHttpAdapter).cotiza({ pais: 'ES', items: [] });

@@ -725,6 +725,7 @@ const diccionario: Record<string, string> = {
   'checkout.shipping_option.express': 'Express shipping',
   'checkout.shipping_option.standard': 'Standard shipping',
   'checkout.shipping_option.economy': 'Economy shipping',
+  'checkout.taxes_on_delivery': 'Taxes not included: your country’s customs may charge them when the parcel arrives.',
   'checkout.shipping_option.cheapest': 'Cheapest',
   'checkout.shipping_option.fastest': 'Fastest',
   'checkout.shipping_option.show_more': 'Show more ({count})',

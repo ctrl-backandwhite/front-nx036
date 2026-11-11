@@ -41,6 +41,7 @@ interface CotizacionDto {
   customsThresholdExceeded?: boolean;
   customsBlocked?: boolean;
   customsLimit?: string;
+  taxMode?: string;
   etaMinDays?: number;
   etaMaxDays?: number;
   couponCode?: string;
@@ -104,6 +105,7 @@ export class EnvioHttpAdapter implements EnvioPort {
       umbralDeAduanaSuperado: dto.customsThresholdExceeded,
       aduanaBloqueada: dto.customsBlocked,
       limiteDeAduana: dto.customsLimit,
+      impuestosAlRecibir: dto.taxMode === 'DDU',
       diasMinimos: dto.etaMinDays,
       diasMaximos: dto.etaMaxDays,
       codigoDeCupon: dto.couponCode,
