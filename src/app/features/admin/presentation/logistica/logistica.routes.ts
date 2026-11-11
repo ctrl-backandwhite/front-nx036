@@ -117,6 +117,7 @@ export const rutasDeServidor: ServerRoute[] = [
   'admin/orders/:id',
   'admin/ordenes',
   'admin/purchases',
+  'admin/carrier-coverage',
   'admin/carrier-limits',
   'admin/carrier-rates',
   'admin/warehouses',
