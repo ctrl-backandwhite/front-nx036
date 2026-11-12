@@ -19,7 +19,7 @@ export interface LimiteDeTransportista {
    * Transportista dueño del límite (`YUNEXPRESS`, `FOURPX`).
    *
    * Entra en la CLAVE junto al canal y el país: lo que se configura aquí decide en cuántos bultos se
-   * parte un pedido, y cada bulto son 3 EUR de arancel en la UE. Coger el tope del otro transportista
+   * parte un pedido, y cada bulto son 5 EUR por línea en la UE. Coger el tope del otro transportista
    * parte de más o de menos, y no da ningún error.
    */
   readonly carrier: string;

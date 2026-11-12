@@ -12,7 +12,7 @@ import { aceptaCookies, BASE, consienteCookies, entra, ponElIdioma } from './ses
  *
  * <p>Lo que se afirma de cada país:
  *   IVA        el importe cuadra con el tipo del país aplicado a (subtotal + envío).
- *   ARANCEL    3 EUR por línea de declaración en la UE, y CERO fuera.
+ *   ARANCEL    5 EUR por línea de declaración en la UE (3 de derecho + 2 de gestión), y CERO fuera.
  *   ENVÍO      hay un importe y no es cero.
  */
 
@@ -128,12 +128,12 @@ test.describe('Envío e impuestos por país', () => {
       const total = await importeDe(page, 'desglose-total')
       expect(total, 'el checkout tiene que dar un total').toBeGreaterThan(0)
 
-      // ARANCEL: 3 EUR por línea de declaración dentro de la UE, y nada fuera.
+      // ARANCEL: 5 EUR por línea de declaración dentro de la UE, y nada fuera.
       const arancel = page.getByTestId('desglose-aranceles')
       if (p.ue) {
         await expect(arancel, `${p.nombre} es UE y debe declarar arancel`).toBeVisible()
         expect(await importeDe(page, 'desglose-aranceles'),
-          'el derecho de la UE es de 3 EUR por línea').toBeGreaterThanOrEqual(3)
+          'en la UE se cobran 5 EUR por línea').toBeGreaterThanOrEqual(5)
       } else {
         expect(await arancel.count(), `${p.nombre} NO es UE y no debe cobrar arancel de la UE`).toBe(0)
       }
