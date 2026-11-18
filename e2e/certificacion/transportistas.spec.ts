@@ -123,11 +123,14 @@ async function preparaElCheckout(pais: string, lineas: Linea[]) {
 
 /** Abre el checkout y espera a la RESPUESTA de la cotización, no a que aparezca una fila. */
 async function abreElCheckout(): Promise<Cotizacion> {
-  const respuesta = page.waitForResponse(
-    (r) => r.url().includes('/shipping/quote') && r.status() === 200, { timeout: 60_000 })
+  // El cuerpo se lee EN CUANTO llega: leerlo después de aceptar las cookies perdía la carrera, de
+  // forma intermitente, contra una navegación posterior («No data found for resource»).
+  const cuerpo = page
+    .waitForResponse((r) => r.url().includes('/shipping/quote') && r.status() === 200, { timeout: 60_000 })
+    .then((r) => r.json() as Promise<Cotizacion>)
   await page.goto(`${BASE}/checkout`, { waitUntil: 'domcontentloaded' })
   await aceptaCookies(page)
-  return (await (await respuesta).json()) as Cotizacion
+  return await cuerpo
 }
 
 /** Las direcciones `cert-…` de tandas anteriores: se acumulan y acaban tapando el checkout. */
