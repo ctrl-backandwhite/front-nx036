@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test'
 
-import { aceptaCookies, BASE, consienteCookies, entra, ponElIdioma } from './sesion-certificada'
+import { aceptaCookies, BASE, consienteCookies, cotizacionDelCheckout, entra, ponElIdioma } from './sesion-certificada'
 
 /**
  * Certificación de que la tarifa de 4PX que usa la tienda es la de la hoja vigente (报价表).
@@ -106,13 +106,7 @@ test.describe('La tarifa de 4PX es la de la hoja vigente', () => {
     })
     expect(alta.ok(), `no se pudo crear la dirección: ${alta.status()}`).toBe(true)
 
-    // El cuerpo se lee en cuanto llega; después de una navegación ya no está.
-    const cuerpo = page
-      .waitForResponse((r) => r.url().includes('/shipping/quote') && r.status() === 200, { timeout: 60_000 })
-      .then((r) => r.json() as Promise<Cotizacion>)
-    await page.goto(`${BASE}/checkout`, { waitUntil: 'domcontentloaded' })
-    await aceptaCookies(page)
-    const c = await cuerpo
+    const c = await cotizacionDelCheckout<Cotizacion>(page)
     await page.getByTestId('desglose-envio').waitFor({ state: 'visible', timeout: 60_000 })
     await page.screenshot({ path: 'e2e/resultados/tarifa-4px-checkout-RS.png', fullPage: true })
 
