@@ -254,7 +254,7 @@ export class FichaDePedidoPage {
   });
   protected readonly conFactura = computed(() => {
     const actual = this.pedido();
-    return !!actual && tieneFactura(actual.estado);
+    return !!actual && (actual.conFactura ?? tieneFactura(actual.estado));
   });
   protected readonly conSeguimiento = computed(() => {
     const actual = this.pedido();

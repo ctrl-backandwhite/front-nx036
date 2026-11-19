@@ -164,6 +164,8 @@ export interface BultoDePedido {
 }
 
 export interface FichaDePedido extends Pedido {
+  /** Lo que dice el servidor sobre la factura; ausente en un backend antiguo (entonces, {@link tieneFactura}). */
+  readonly conFactura?: boolean;
   readonly origen?: OrigenDePedido;
   readonly notas?: string;
   readonly numeroDeSeguimiento?: string;
@@ -210,7 +212,7 @@ export function hayBultoPorOtroCanal(ficha: FichaDePedido): boolean {
   return ficha.bultos.some((bulto) => bulto.coincideConElCanal === false);
 }
 
-/** La factura solo existe una vez que el pedido dejó de ser una intención. */
+/** RESERVA por estado, para cuando el servidor no manda `conFactura`: la factura existe una vez que el pedido dejó de ser una intención. */
 export function tieneFactura(estado: string): boolean {
   return !['PENDING', 'AWAITING_PAYMENT', 'CANCELLED'].includes(estado);
 }

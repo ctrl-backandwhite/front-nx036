@@ -119,6 +119,31 @@ describe('PedidoPage', () => {
     expect(screen.queryByRole('button', { name: 'Descargar factura' })).toBeNull();
   });
 
+  it('un pedido cancelado con factura la sigue ofreciendo', async () => {
+    consulta.ejecuta.mockResolvedValue(exito(pedido({ estado: 'CANCELLED', conFactura: true })));
+
+    await monta();
+
+    expect(await screen.findByRole('button', { name: 'Descargar factura' })).toBeInTheDocument();
+  });
+
+  it('un pedido cancelado que nunca se cobró no la ofrece', async () => {
+    consulta.ejecuta.mockResolvedValue(exito(pedido({ estado: 'CANCELLED', conFactura: false })));
+
+    await monta();
+    await screen.findByText('NX-0001');
+
+    expect(screen.queryByRole('button', { name: 'Descargar factura' })).toBeNull();
+  });
+
+  it('sin el dato del servidor cae a la regla por estado: pagado la ofrece', async () => {
+    consulta.ejecuta.mockResolvedValue(exito(pedido({ estado: 'PAID', conFactura: undefined })));
+
+    await monta();
+
+    expect(await screen.findByRole('button', { name: 'Descargar factura' })).toBeInTheDocument();
+  });
+
   it('avisa cuando la factura no se puede descargar', async () => {
     consulta.ejecuta.mockResolvedValue(exito(pedido()));
     descarga.ejecuta.mockResolvedValue(fallo(creaError('error-del-servidor', 'No disponible')));

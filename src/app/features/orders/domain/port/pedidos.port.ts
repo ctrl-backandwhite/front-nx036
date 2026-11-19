@@ -23,11 +23,8 @@ export const PEDIDOS_PORT = new InjectionToken<PedidosPort>('PedidosPort');
 
 /** Cancelar un pedido y recuperar el dinero. Es otra capacidad, y mueve dinero: es otro puerto. */
 export interface CancelacionDePedidoPort {
-  /**
-   * @param aLaCartera cierto para abonar al instante en la cartera; falso para devolver al medio de pago
-   *        original, con los plazos de la pasarela.
-   */
-  cancela(id: string, idioma: string, aLaCartera: boolean): Promise<Result<void, AppError>>;
+  /** El reembolso lo decide el servidor: siempre al método de pago original. */
+  cancela(id: string, idioma: string): Promise<Result<void, AppError>>;
 }
 
 export const CANCELACION_DE_PEDIDO_PORT = new InjectionToken<CancelacionDePedidoPort>(

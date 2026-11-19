@@ -127,6 +127,20 @@ describe('PedidosHttpAdapter', () => {
     expect(resultado.ok && resultado.valor.arancelFormateado).toBe('5,00 €');
   });
 
+  it('lee si el pedido tiene factura, y sin el dato queda sin decidir', async () => {
+    const con = adaptador.consulta('o1', 'es');
+    red
+      .expectOne((r) => r.url === '/api/me/orders/o1')
+      .flush({ id: 'o1', orderNumber: 'NX-1', status: 'CANCELLED', invoiceAvailable: true, items: [] });
+    const resultadoCon = await con;
+    expect(resultadoCon.ok && resultadoCon.valor.conFactura).toBe(true);
+
+    const sin = adaptador.consulta('o1', 'es');
+    red.expectOne((r) => r.url === '/api/me/orders/o1').flush({ id: 'o1', orderNumber: 'NX-1', status: 'PAID', items: [] });
+    const resultadoSin = await sin;
+    expect(resultadoSin.ok && resultadoSin.valor.conFactura).toBeUndefined();
+  });
+
   it('sin arancel no enseña una fila a cero', async () => {
     const promesa = adaptador.consulta('o1', 'es');
     red
@@ -168,12 +182,10 @@ describe('PedidosHttpAdapter', () => {
     expect(resultado.ok && resultado.valor[0].totalFormateado).toBe('');
   });
 
-  it('cancela diciendo idioma y destino del reembolso', async () => {
-    const promesa = adaptador.cancela('o1', 'es', false);
+  it('cancela diciendo solo el idioma: el reembolso no lleva destino', async () => {
+    const promesa = adaptador.cancela('o1', 'es');
 
-    const peticion = red.expectOne(
-      '/api/me/orders/o1/cancel?lang=es&refundToWallet=false',
-    );
+    const peticion = red.expectOne('/api/me/orders/o1/cancel?lang=es');
     expect(peticion.request.method).toBe('POST');
     peticion.flush({});
 

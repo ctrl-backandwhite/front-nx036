@@ -74,6 +74,8 @@ interface LineaDto {
 }
 
 export interface FichaDePedidoDto extends PedidoDto {
+  /** Si el pedido tiene factura; ausente en un backend antiguo. */
+  invoiceAvailable?: boolean;
   source?: string;
   notes?: string;
   trackingNumber?: string;
@@ -188,6 +190,7 @@ export function aFicha(dto: FichaDePedidoDto): FichaDePedido {
   return {
     ...aPedido(dto),
     origen: aOrigen(dto.source),
+    conFactura: dto.invoiceAvailable,
     notas: dto.notes,
     numeroDeSeguimiento: dto.trackingNumber,
     // El nombre visible si el servidor lo manda; si no, el identificador, que al menos se reconoce.

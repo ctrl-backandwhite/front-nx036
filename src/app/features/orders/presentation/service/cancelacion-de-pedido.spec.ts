@@ -22,7 +22,7 @@ describe('CancelacionDePedido', () => {
         { provide: CancelaPedido, useValue: cancela },
         {
           provide: TraduccionService,
-          useValue: { t: (clave: string) => clave, tCon: (clave: string) => clave },
+          useValue: { t: (clave: string) => clave },
         },
       ],
     });
@@ -36,23 +36,43 @@ describe('CancelacionDePedido', () => {
     expect(cancela.ejecuta).not.toHaveBeenCalled();
   });
 
-  /** Lo pagado con la cartera vuelve a la cartera: preguntar sobraría. */
-  it('con pago por cartera solo pregunta una vez y devuelve a la cartera', async () => {
+  /** Ya no se pregunta adónde va el dinero: un solo diálogo y el servidor devuelve al método original. */
+  it('con tarjeta confirma una sola vez y avisa del reembolso al método original', async () => {
+    dialogo.confirma.mockResolvedValue(true);
+    cancela.ejecuta.mockResolvedValue(exito(undefined));
+
+    expect(await servicio.pide('o1', 'CARD')).toBe(true);
+    expect(dialogo.confirma).toHaveBeenCalledTimes(1);
+    expect(dialogo.confirma).toHaveBeenCalledWith('order.detail.cancel_confirm');
+    expect(cancela.ejecuta).toHaveBeenCalledWith('o1');
+    expect(dialogo.alerta).toHaveBeenCalledWith('order.detail.cancel_ok_original', undefined, 'success');
+  });
+
+  it('con PayPal avisa también del reembolso al método original', async () => {
+    dialogo.confirma.mockResolvedValue(true);
+    cancela.ejecuta.mockResolvedValue(exito(undefined));
+
+    await servicio.pide('o1', 'PAYPAL');
+    expect(dialogo.confirma).toHaveBeenCalledTimes(1);
+    expect(dialogo.alerta).toHaveBeenCalledWith('order.detail.cancel_ok_original', undefined, 'success');
+  });
+
+  it('con billetera confirma una vez y avisa del reembolso inmediato a la billetera', async () => {
     dialogo.confirma.mockResolvedValue(true);
     cancela.ejecuta.mockResolvedValue(exito(undefined));
 
     expect(await servicio.pide('o1', 'WALLET')).toBe(true);
     expect(dialogo.confirma).toHaveBeenCalledTimes(1);
-    expect(cancela.ejecuta).toHaveBeenCalledWith('o1', true);
+    expect(cancela.ejecuta).toHaveBeenCalledWith('o1');
+    expect(dialogo.alerta).toHaveBeenCalledWith('order.detail.cancel_ok', undefined, 'success');
   });
 
-  it('con tarjeta pregunta adónde va el reembolso y respeta la respuesta', async () => {
-    dialogo.confirma.mockResolvedValueOnce(true).mockResolvedValueOnce(false);
+  it('sin método de pago conocido avisa como de billetera', async () => {
+    dialogo.confirma.mockResolvedValue(true);
     cancela.ejecuta.mockResolvedValue(exito(undefined));
 
-    expect(await servicio.pide('o1', 'CARD')).toBe(true);
-    expect(dialogo.confirma).toHaveBeenCalledTimes(2);
-    expect(cancela.ejecuta).toHaveBeenCalledWith('o1', false);
+    await servicio.pide('o1');
+    expect(dialogo.alerta).toHaveBeenCalledWith('order.detail.cancel_ok', undefined, 'success');
   });
 
   /** Un fallo silencioso deja creer que el pedido se canceló: el aviso es obligatorio. */

@@ -94,10 +94,10 @@ describe('casos de uso de pedidos', () => {
     expect((await TestBed.inject(SiguePedido).ejecuta('o1')).ok).toBe(false);
   });
 
-  it('CancelaPedido traslada el destino del reembolso tal cual se decidió', async () => {
+  it('CancelaPedido cancela con el idioma activo y sin destino de reembolso', async () => {
     cancelacion.cancela.mockResolvedValue(exito(undefined));
-    await TestBed.inject(CancelaPedido).ejecuta('o1', false);
-    expect(cancelacion.cancela).toHaveBeenCalledWith('o1', 'pt', false);
+    await TestBed.inject(CancelaPedido).ejecuta('o1');
+    expect(cancelacion.cancela).toHaveBeenCalledWith('o1', 'pt');
   });
 
   it('DescargaFactura pide el archivo con el número del pedido y el idioma', async () => {

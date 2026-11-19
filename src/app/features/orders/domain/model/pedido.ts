@@ -76,6 +76,11 @@ export interface Pedido {
   readonly estado: EstadoDePedido;
   readonly metodoDePago?: MetodoDePago;
   readonly cancelable: boolean;
+  /**
+   * Si el servidor dice que el pedido tiene factura. Ausente en un backend antiguo: entonces se cae a
+   * {@link tieneFactura}, la regla por estado.
+   */
+  readonly conFactura?: boolean;
   readonly subtotalFormateado: string;
   readonly envioFormateado: string;
   /**
@@ -151,20 +156,22 @@ export function tieneEnvioEnCurso(estado: EstadoDePedido): boolean {
 /**
  * ¿Hay factura que descargar?
  *
- * <p>No la hay mientras el pedido no se ha cobrado ni cuando se anuló: facturar algo que nadie pagó
- * dejaría un documento con validez fiscal sin operación detrás.
+ * <p>RESERVA por estado: la verdad la dice el servidor (`Pedido.conFactura`, que incluye al pedido
+ * cancelado que se llegó a cobrar). Esta regla solo se usa si el backend no manda el dato (despliegue
+ * antiguo) y en el listado, que no lo recibe. No la hay mientras el pedido no se ha cobrado: facturar
+ * algo que nadie pagó dejaría un documento con validez fiscal sin operación detrás.
  */
 export function tieneFactura(estado: EstadoDePedido): boolean {
   return estado !== 'PENDING' && estado !== 'AWAITING_PAYMENT' && estado !== 'CANCELLED';
 }
 
 /**
- * ¿Hay que preguntar adónde va el reembolso?
+ * ¿El reembolso sale por una pasarela externa (con sus plazos) en vez de volver a la billetera?
  *
- * <p>Solo cuando se pagó con tarjeta o PayPal: ahí el cliente elige entre recuperarlo al instante en la
- * cartera o esperar los plazos de su banco. Lo pagado con la cartera vuelve a la cartera y no hay nada
- * que preguntar.
+ * <p>Ya no se pregunta adónde va el dinero: el servidor lo devuelve SIEMPRE al método de pago original.
+ * Esto solo decide qué aviso se enseña: tarjeta o PayPal se devuelven por la pasarela, con los plazos de
+ * su banco; lo pagado con la billetera (o sin método conocido) vuelve a la billetera al instante.
  */
-export function permiteElegirDestinoDelReembolso(metodo?: MetodoDePago): boolean {
+export function reembolsaPorPasarelaExterna(metodo?: MetodoDePago): boolean {
   return metodo === 'CARD' || metodo === 'PAYPAL';
 }

@@ -166,6 +166,17 @@ describe('FichaDePedidoPage', () => {
     expect(screen.queryByRole('button', { name: /factura/i })).toBeNull();
   });
 
+  it('un pedido cancelado con factura la ofrece; sin ella, no', async () => {
+    await monta(ficha({ estado: 'CANCELLED', conFactura: true }));
+    expect(await screen.findByRole('button', { name: /factura/i })).toBeInTheDocument();
+  });
+
+  it('un pedido cancelado sin factura no la ofrece', async () => {
+    await monta(ficha({ estado: 'CANCELLED', conFactura: false }));
+    await screen.findByText('NX-1');
+    expect(screen.queryByRole('button', { name: /factura/i })).toBeNull();
+  });
+
   it('un pedido cobrado sí la ofrece, y descargarla la guarda', async () => {
     const { puertos } = await monta(ficha({ estado: 'PAID' }));
 

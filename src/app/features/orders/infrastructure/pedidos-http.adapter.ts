@@ -51,6 +51,8 @@ interface PedidoDto {
   status: EstadoDePedido;
   paymentMethod?: MetodoDePago;
   cancellable?: boolean;
+  /** Si el pedido tiene factura (también la de un pedido cancelado que se llegó a cobrar). Ausente en backends antiguos. */
+  invoiceAvailable?: boolean;
   subtotalFormatted?: string;
   shippingFormatted?: string;
   taxFormatted?: string;
@@ -128,6 +130,7 @@ function aPedido(dto: PedidoDto): Pedido {
     estado: dto.status,
     metodoDePago: dto.paymentMethod,
     cancelable: !!dto.cancellable,
+    conFactura: dto.invoiceAvailable,
     subtotalFormateado: importe(dto.subtotalFormatted),
     envioFormateado: importe(dto.shippingFormatted),
     // Igual que el descuento: el backend manda «0» cuando no hay arancel (todo destino fuera de la UE),
@@ -171,11 +174,11 @@ export class PedidosHttpAdapter implements PedidosPort, CancelacionDePedidoPort 
     return mapea(respuesta, aPedido);
   }
 
-  async cancela(id: string, idioma: string, aLaCartera: boolean): Promise<Result<void, AppError>> {
-    // Los dos datos van en la consulta y no en el cuerpo porque así lo espera el backend: el cuerpo de
-    // esta llamada es vacío a propósito.
+  async cancela(id: string, idioma: string): Promise<Result<void, AppError>> {
+    // El idioma va en la consulta y no en el cuerpo porque así lo espera el backend: el cuerpo de esta
+    // llamada es vacío a propósito. Adónde va el dinero no se manda: siempre al método original.
     const respuesta = await this.api.post<unknown>(
-      `/me/orders/${id}/cancel?lang=${encodeURIComponent(idioma)}&refundToWallet=${aLaCartera}`,
+      `/me/orders/${id}/cancel?lang=${encodeURIComponent(idioma)}`,
     );
     return mapea(respuesta, () => undefined);
   }
