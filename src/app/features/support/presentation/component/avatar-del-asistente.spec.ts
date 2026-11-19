@@ -221,6 +221,39 @@ describe('AvatarDelAsistente', () => {
       expect(consulta).toHaveBeenCalled();
     });
 
+    /**
+     * En el checkout de un móvil el asistente desplegado tapaba el precio de las opciones de envío.
+     * Entra recogido, y al salir del pago vuelve a estar como estaba.
+     */
+    it('en el pago de una pantalla estrecha se recoge solo, y al salir se despliega', async () => {
+      const estrecha = vi
+        .spyOn(globalThis, 'matchMedia')
+        .mockReturnValue({ matches: true } as MediaQueryList);
+      const { anfitrion, avatar, asienta } = await monta({ cestaAlMontar: [LINEA(1)] });
+
+      anfitrion.enElPago.set(true);
+      await asienta();
+      expect(avatar.estado()).toBe('mini');
+
+      anfitrion.enElPago.set(false);
+      await asienta();
+      expect(avatar.estado()).toBe('activo');
+      estrecha.mockRestore();
+    });
+
+    it('en el pago de una pantalla ancha sigue desplegado', async () => {
+      const ancha = vi
+        .spyOn(globalThis, 'matchMedia')
+        .mockReturnValue({ matches: false } as MediaQueryList);
+      const { anfitrion, avatar, asienta } = await monta({ cestaAlMontar: [LINEA(1)] });
+
+      anfitrion.enElPago.set(true);
+      await asienta();
+
+      expect(avatar.estado()).toBe('activo');
+      ancha.mockRestore();
+    });
+
     it('oculto no consulta nada aunque cambie la cesta', async () => {
       const { anfitrion, avatar, consulta, asienta } = await monta({ cestaAlMontar: [LINEA(1)] });
       avatar.cambiaEstado('oculto');
