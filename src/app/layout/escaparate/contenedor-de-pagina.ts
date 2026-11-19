@@ -13,6 +13,8 @@
  * separación. El tope se mantiene a propósito —sin él, en un monitor de 3.440 px una fila se estira
  * de lado a lado y el ojo pierde el renglón—.
  */
-// Ancho unificado a 1.440 px (el del proyecto Ecomerce, `wide`), con su mismo relleno lateral
-// progresivo px-4/sm:px-6/lg:px-8. Antes el cuerpo iba a 1.680.
-export const CONTENEDOR_DE_PAGINA = 'w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8';
+// FLUIDO (decisión del titular, 19-nov-2026): el contenido ocupa el ancho de la ventana y lo que
+// crece con ella es el margen lateral —1rem en un móvil, hasta 3,5rem en un monitor—, no un tope en
+// píxeles. Con el tope de 1.440 px un monitor de 1.840 dejaba 200 px vacíos a cada lado. El único
+// límite que queda, 120rem, es el de arriba y solo actúa en pantallas ultrapanorámicas.
+export const CONTENEDOR_DE_PAGINA = 'w-full max-w-[120rem] mx-auto px-[clamp(1rem,3vw,3.5rem)]';

@@ -27,7 +27,7 @@ import { Component, signal, viewChild, ElementRef } from '@angular/core';
       (scroll)="mide()"
       (window:resize)="mide()"
       class="flex snap-x snap-mandatory overflow-x-auto gap-3 -mx-4 px-4 pb-1
-             md:grid md:grid-cols-4 lg:grid-cols-6 md:overflow-visible md:mx-0 md:px-0
+             md:rejilla-productos md:rejilla-una-fila md:mx-0 md:px-0 md:pb-0
              [&>*]:w-[43%] [&>*]:shrink-0 [&>*]:snap-start
              md:[&>*]:w-auto md:[&>*]:shrink"
     >

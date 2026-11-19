@@ -124,8 +124,13 @@ const RUTA_DE_FICHA = /^\/(catalog|admin\/browse)\/[^/]+$/;
           </div>
           @if (usuario(); as quien) {
             @if (quien.esPersonal) {
-              <a routerLink="/admin" class="btn btn-primary btn-sm text-[12px] hidden sm:inline-flex">
-                <fa-icon [icon]="iconoPanel" /> {{ t('nav.admin') }}
+              <a routerLink="/admin" class="btn btn-primary btn-sm text-[12px] hidden sm:inline-flex"
+                 [attr.aria-label]="t('nav.admin')">
+                <!-- Entre md y xl la cabecera lleva a la vez el menú central y los botones de cuenta, y
+                     con los dos rótulos escritos no cabían: a 768 y a 1.024 px se montaban sobre «Inicio» y
+                     «Catálogo». En esa franja quedan los iconos solos, con su nombre accesible. -->
+                <fa-icon [icon]="iconoPanel" />
+                <span class="inline md:hidden xl:inline">{{ t('nav.admin') }}</span>
               </a>
             }
             <div class="dropdown dropdown-end hidden sm:block">
@@ -133,11 +138,14 @@ const RUTA_DE_FICHA = /^\/(catalog|admin\/browse)\/[^/]+$/;
                 tabindex="0"
                 type="button"
                 class="btn btn-sm text-[12px]"
+                [attr.aria-label]="quien.nombre || t('nav.profile')"
                 [class.btn-outline]="quien.esPersonal"
                 [class.btn-primary]="!quien.esPersonal"
               >
                 <fa-icon [icon]="iconoPersona" />
-                <span class="max-w-30 truncate">{{ quien.nombre || t('nav.profile') }}</span>
+                <span class="max-w-30 truncate inline md:hidden xl:inline">{{
+                  quien.nombre || t('nav.profile')
+                }}</span>
               </button>
               <ul
                 tabindex="0"
@@ -266,7 +274,7 @@ const RUTA_DE_FICHA = /^\/(catalog|admin\/browse)\/[^/]+$/;
       <!-- El hueco para la barra de pestañas lo reserva el PIE, que va siempre debajo y en móvil lleva
            «pb-24». Reservarlo también aquí dejaba una franja en blanco entre el contenido y el pie. -->
       <!--
-        El ancho máximo (1.440 px, el «wide» del proyecto Ecomerce) y el relleno lateral viven en
+        El ancho (fluido, con tope solo en ultrapanorámicas) y el relleno lateral viven en
         CONTENEDOR_DE_PAGINA, compartidos con el pie para que los bordes coincidan. Sigue habiendo
         TOPE a propósito: sin él, en un monitor de 3.440 px la fila se estira de lado a lado y leer un
         listado obliga a barrer la cabeza; el ojo pierde el renglón mucho antes de eso.
