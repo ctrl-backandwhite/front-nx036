@@ -126,11 +126,11 @@ const RUTA_DE_FICHA = /^\/(catalog|admin\/browse)\/[^/]+$/;
             @if (quien.esPersonal) {
               <a routerLink="/admin" class="btn btn-primary btn-sm text-[12px] hidden sm:inline-flex"
                  [attr.aria-label]="t('nav.admin')">
-                <!-- Entre md y lg la cabecera lleva a la vez el menú central y los botones de cuenta, y
-                     con los dos rótulos escritos no cabían: a 768 px se montaban sobre «Inicio» y
+                <!-- Entre md y xl la cabecera lleva a la vez el menú central y los botones de cuenta, y
+                     con los dos rótulos escritos no cabían: a 768 y a 1.024 px se montaban sobre «Inicio» y
                      «Catálogo». En esa franja quedan los iconos solos, con su nombre accesible. -->
                 <fa-icon [icon]="iconoPanel" />
-                <span class="inline md:hidden lg:inline">{{ t('nav.admin') }}</span>
+                <span class="inline md:hidden xl:inline">{{ t('nav.admin') }}</span>
               </a>
             }
             <div class="dropdown dropdown-end hidden sm:block">
@@ -143,7 +143,7 @@ const RUTA_DE_FICHA = /^\/(catalog|admin\/browse)\/[^/]+$/;
                 [class.btn-primary]="!quien.esPersonal"
               >
                 <fa-icon [icon]="iconoPersona" />
-                <span class="max-w-30 truncate inline md:hidden lg:inline">{{
+                <span class="max-w-30 truncate inline md:hidden xl:inline">{{
                   quien.nombre || t('nav.profile')
                 }}</span>
               </button>
