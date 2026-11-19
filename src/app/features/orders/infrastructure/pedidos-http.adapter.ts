@@ -54,6 +54,8 @@ interface PedidoDto {
   subtotalFormatted?: string;
   shippingFormatted?: string;
   taxFormatted?: string;
+  customsDuty?: string | number;
+  customsDutyFormatted?: string;
   discountFormatted?: string;
   totalFormatted?: string;
   discount?: string;
@@ -128,6 +130,9 @@ function aPedido(dto: PedidoDto): Pedido {
     cancelable: !!dto.cancellable,
     subtotalFormateado: importe(dto.subtotalFormatted),
     envioFormateado: importe(dto.shippingFormatted),
+    // Igual que el descuento: el backend manda «0» cuando no hay arancel (todo destino fuera de la UE),
+    // y una fila a cero haría pensar que se cobró algo.
+    arancelFormateado: Number(dto.customsDuty ?? 0) > 0 ? importe(dto.customsDutyFormatted) : '',
     impuestosFormateado: importe(dto.taxFormatted),
     // El descuento solo se enseña si de verdad lo hubo: el backend manda «0» cuando no aplica y una
     // línea «Descuento −0,00 €» hace pensar que se perdió una promoción por el camino.

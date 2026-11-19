@@ -19,6 +19,7 @@ const pedido = (parcial: Partial<Pedido> = {}): Pedido => ({
   cancelable: false,
   subtotalFormateado: '10,00 €',
   envioFormateado: '2,00 €',
+  arancelFormateado: '',
   impuestosFormateado: '1,00 €',
   descuentoFormateado: '',
   totalFormateado: '13,00 €',
@@ -80,6 +81,24 @@ describe('PedidoPage', () => {
     expect(await screen.findByText('NX-0001')).toBeInTheDocument();
     expect(screen.getByText('13,00 €')).toBeInTheDocument();
     expect(screen.getByText('Gorro de lana')).toBeInTheDocument();
+  });
+
+  it('enseña el arancel cobrado, para que el desglose sume el total', async () => {
+    consulta.ejecuta.mockResolvedValue(exito(pedido({ arancelFormateado: '5,00 €' })));
+
+    await monta();
+
+    const fila = await screen.findByTestId('pedido-arancel');
+    expect(fila).toHaveTextContent('5,00 €');
+  });
+
+  it('sin arancel no pinta su fila', async () => {
+    consulta.ejecuta.mockResolvedValue(exito(pedido()));
+
+    await monta();
+
+    expect(await screen.findByText('NX-0001')).toBeInTheDocument();
+    expect(screen.queryByTestId('pedido-arancel')).not.toBeInTheDocument();
   });
 
   it('un pedido que no existe lo dice, en vez de dejar la pantalla en blanco', async () => {

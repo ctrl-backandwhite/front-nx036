@@ -78,6 +78,11 @@ export interface Pedido {
   readonly cancelable: boolean;
   readonly subtotalFormateado: string;
   readonly envioFormateado: string;
+  /**
+   * Arancel cobrado (en la UE, el cargo por partida y bulto). Cadena vacía cuando no lo hubo. Va
+   * aparte del envío y del IVA: sin esta línea el desglose del comprador no sumaba el total.
+   */
+  readonly arancelFormateado: string;
   readonly impuestosFormateado: string;
   /** Descuento de referido del comprador. Cadena vacía cuando no hay ninguno que enseñar. */
   readonly descuentoFormateado: string;
