@@ -56,6 +56,15 @@ async function importeDe(page: Page, testid: string): Promise<number> {
  * comprobar el camino real.
  */
 async function llenaLaCesta(page: Page) {
+  // La cesta se VACÍA antes: es de la cuenta, no de la prueba, y cada caso añadía una unidad sobre
+  // las de todos los anteriores. El 19-nov-2026 llevaba 30 unidades y 158 USD tras un día de tandas,
+  // por encima del tope de valor de Chile, y Chile respondía «envío no disponible» —lo correcto—
+  // mientras la prueba acusaba al checkout de no cobrar el IVA.
+  const testigo = await page.evaluate(() => window.localStorage.getItem('nx-access-token'))
+  expect(testigo, 'no hay testigo de sesión: ¿falló el acceso?').toBeTruthy()
+  const vaciado = await page.request.delete(`${BASE}/api/me/cart`, { headers: { Authorization: `Bearer ${testigo}` } })
+  expect(vaciado.ok(), `no se pudo vaciar la cesta: ${vaciado.status()}`).toBe(true)
+
   const r = await page.request.get(`${BASE}/api/catalog/welcome/examples?lang=es`)
   expect(r.ok(), 'no se pudieron leer los productos de la guía').toBe(true)
   const cuerpo = await r.json() as { examples?: { slug?: string; titulo?: string; title?: string }[] }
