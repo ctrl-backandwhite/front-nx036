@@ -88,7 +88,7 @@ export interface ColorElegido {
                   />
                 } @else {
                   <span
-                    class="flex items-center justify-center w-full h-full text-[10px] px-1 text-center"
+                    class="flex items-center justify-center w-full h-full text-xs px-1 text-center"
                   >
                     {{ etiqueta(valor) }}
                   </span>
@@ -110,7 +110,7 @@ export interface ColorElegido {
                   type="button"
                   (click)="borra.emit(valor.id); $event.stopPropagation()"
                   [title]="t('admin.catalog.variant.delete')"
-                  class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-error text-white text-[10px] flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 transition-opacity shadow z-10"
+                  class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-error text-white text-xs flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 transition-opacity shadow z-10"
                 >
                   <fa-icon [icon]="iconos.papelera" />
                 </button>
@@ -122,7 +122,7 @@ export interface ColorElegido {
               <!-- Sin «title» propio: el nombre completo ya lo lleva la miniatura de encima, y
                    repetirlo aquí deja DOS elementos con el mismo título por cada color. -->
               <span
-                class="text-[10px] leading-tight text-center line-clamp-2 w-full"
+                class="text-xs leading-tight text-center line-clamp-2 w-full"
                 [class]="elegido() === etiqueta(valor) ? 'font-semibold' : 'opacity-70'"
               >
                 {{ etiqueta(valor) }}

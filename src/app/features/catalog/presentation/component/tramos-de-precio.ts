@@ -35,7 +35,7 @@ interface Escalon {
   template: `
     @if (escalones().length > 1) {
       <div class="mt-3 pt-3 border-t border-base-300">
-        <div class="text-[11px] opacity-70 mb-1.5">{{ t('pdp.tiers.title') }}</div>
+        <div class="text-xs opacity-70 mb-1.5">{{ t('pdp.tiers.title') }}</div>
         <div class="flex flex-wrap gap-2">
           @for (escalon of escalones(); track escalon.rango) {
             <div
@@ -46,7 +46,7 @@ interface Escalon {
                   : 'border-base-300'
               "
             >
-              <div class="text-[10px] opacity-70">{{ escalon.rango }}</div>
+              <div class="text-xs opacity-70">{{ escalon.rango }}</div>
               <div class="text-[13px] font-semibold">{{ escalon.precio }}</div>
 
               <!--
@@ -54,7 +54,7 @@ interface Escalon {
                 panel porque se decide mirando la tabla: es donde se ve lo que cobra cada tramo.
               -->
               @if (puedeEditar()) {
-                <div class="mt-1 pt-1 border-t border-base-300/70 text-[10px] flex items-center gap-1">
+                <div class="mt-1 pt-1 border-t border-base-300/70 text-xs flex items-center gap-1">
                   @if (editando() === escalon.cantidadMinima) {
                     <input
                       type="number"

@@ -38,7 +38,7 @@ export interface CambioDeTalla {
         <div class="card-body p-3">
           <div class="flex items-baseline justify-between mb-2 px-1">
             <h3 class="text-[13px] font-medium">{{ rotulo() }}</h3>
-            <span class="text-[11px] opacity-70">
+            <span class="text-xs opacity-70">
               {{ valores().length }} · {{ t('pdp.size.stock') }}
             </span>
           </div>
@@ -78,7 +78,7 @@ export interface CambioDeTalla {
                 }
 
                 <span
-                  class="text-[11px] shrink-0 w-20 text-right"
+                  class="text-xs shrink-0 w-20 text-right"
                   [class]="existencias <= 0 ? 'text-error' : 'opacity-60'"
                 >
                   {{ existencias <= 0 ? t('product.out_of_stock') : tCon('pdp.size.left', { n: existencias }) }}
@@ -92,7 +92,7 @@ export interface CambioDeTalla {
                     (click)="cambia.emit({ talla: etiqueta, cantidad: cantidad - 1 })"
                     [attr.aria-label]="t('common.prev')"
                   >
-                    <fa-icon [icon]="iconos.menos" class="text-[10px]" />
+                    <fa-icon [icon]="iconos.menos" class="text-xs" />
                   </button>
                   <!-- Ni el mínimo, ni el tope de existencias, ni el bloqueo van en el marcado: los
                        declara el esquema del formulario, que es quien los conoce por talla. -->
@@ -110,7 +110,7 @@ export interface CambioDeTalla {
                     (click)="cambia.emit({ talla: etiqueta, cantidad: cantidad + 1 })"
                     [attr.aria-label]="t('common.next')"
                   >
-                    <fa-icon [icon]="iconos.mas" class="text-[10px]" />
+                    <fa-icon [icon]="iconos.mas" class="text-xs" />
                   </button>
                 </div>
               </div>

@@ -40,17 +40,19 @@ const VISIBLES_POR_DEFECTO = 3;
   template: `
     <section class="space-y-2" role="radiogroup" [attr.aria-label]="t('checkout.shipping_option.title')">
       <div class="text-xs font-medium opacity-70">{{ t('checkout.shipping_option.title') }}</div>
-      <div class="space-y-1.5">
+      <!-- En pantalla estrecha las tarjetas dejan libre la franja derecha (pr-12): es donde flotan los
+           acompañantes de la tienda, y el precio alineado al borde quedaba debajo. -->
+      <div class="space-y-2">
         @for (opcion of visibles(); track clave(opcion)) {
           @if (unica()) {
             <!-- Una sola forma de envío: es información, no una elección. Sin botón, y por eso no es
                  una etiqueta de formulario. -->
-            <div class="card p-3 text-sm flex items-start gap-2">
+            <div class="card flex-row p-4 pr-12 md:pr-4 text-sm flex items-start gap-3">
               <ng-container [ngTemplateOutlet]="fila" [ngTemplateOutletContext]="{ $implicit: opcion }" />
             </div>
           } @else {
             <label
-              class="card p-3 text-sm cursor-pointer transition-colors flex items-start gap-2"
+              class="card flex-row p-4 pr-12 md:pr-4 text-sm cursor-pointer transition-colors flex items-start gap-3"
               [class.border-brand-500]="esLaSeleccionada(opcion)"
               [class.ring-2]="esLaSeleccionada(opcion)"
               [class.ring-brand-100]="esLaSeleccionada(opcion)"
@@ -88,7 +90,7 @@ const VISIBLES_POR_DEFECTO = 3;
                 <span class="font-medium">{{
                   t('checkout.shipping_option.' + categoria(opcion))
                 }}</span>
-                <span class="font-medium whitespace-nowrap">{{ opcion.importeFormateado }}</span>
+                <span class="font-semibold whitespace-nowrap">{{ opcion.importeFormateado }}</span>
               </div>
               <div class="text-xs text-ink-500 mt-0.5">
                 <!-- Con quién viaja el paquete. El nombre llega ya presentable del backend para que se
@@ -100,7 +102,7 @@ const VISIBLES_POR_DEFECTO = 3;
                 {{ plazo(opcion) }}
               </div>
               @if (!unica() && (clave(opcion) === claveMasBarata() || clave(opcion) === claveMasRapida())) {
-                <div class="mt-1 flex flex-wrap gap-1">
+                <div class="mt-2 flex flex-wrap gap-1.5">
                   @if (clave(opcion) === claveMasBarata()) {
                     <span class="badge bg-brand-50 text-brand-700">{{
                       t('checkout.shipping_option.cheapest')

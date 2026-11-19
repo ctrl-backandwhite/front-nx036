@@ -22,7 +22,7 @@ import { CobroIniciado } from '../../domain/model/pago';
       <div class="flex items-center gap-1">
         <fa-icon [icon]="iconoCripto" /> {{ t('checkout.send_usdt') }}
       </div>
-      <code class="font-mono text-[11px] break-all">{{ cobro().deposito?.direccion }}</code>
+      <code class="font-mono text-xs break-all">{{ cobro().deposito?.direccion }}</code>
       <div class="opacity-70">
         {{ t('checkout.chain') }}: {{ cobro().deposito?.red }} · {{ t('checkout.expires') }}:
         {{ cobro().deposito?.caducaEl }}

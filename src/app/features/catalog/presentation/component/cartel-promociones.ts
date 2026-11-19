@@ -61,7 +61,7 @@ const ENTRADA_MS = 250;
 
         <div class="animate-nx-fade relative flex flex-col gap-4 p-5 sm:p-6 lg:flex-row lg:items-center lg:gap-8">
           <div class="min-w-0 lg:w-72 lg:shrink-0">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">
+            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
               {{ t('promo.banner.kicker') }}
             </p>
             <!-- «text-white!»: la regla global de los encabezados gana a las utilidades, y sin la
@@ -102,13 +102,13 @@ const ENTRADA_MS = 250;
                       clase="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                     />
                   </div>
-                  <p class="mt-1.5 line-clamp-2 text-[11px] leading-tight text-ink-600">
+                  <p class="mt-1.5 line-clamp-2 text-xs leading-tight text-ink-600">
                     {{ producto.titulo }}
                   </p>
                   <div class="mt-0.5 flex items-baseline gap-1.5">
                     <p class="text-sm font-bold text-ink-900">{{ producto.precio.formateado }}</p>
                     @if (producto.precio.anteriorFormateado) {
-                      <p class="text-[10px] text-ink-400 line-through">
+                      <p class="text-xs text-ink-400 line-through">
                         {{ producto.precio.anteriorFormateado }}
                       </p>
                     }

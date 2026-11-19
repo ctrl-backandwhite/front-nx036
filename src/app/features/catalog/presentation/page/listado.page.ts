@@ -100,7 +100,7 @@ let barajaDeLaVisita: number | null = null;
           fondo de la página, y no compite con las fotos de producto que van justo debajo.
         -->
         <section class="rounded-xl bg-brand-50 border border-ink-100 px-6 py-8 lg:px-10 lg:py-10">
-          <div class="text-[11px] uppercase tracking-wider text-brand-700 font-medium">
+          <div class="text-xs uppercase tracking-wider text-brand-700 font-medium">
             {{ t('catalog.category_hero.label') }}
           </div>
           <h1 class="display-title mt-1 text-3xl">{{ categoria.nombre }}</h1>

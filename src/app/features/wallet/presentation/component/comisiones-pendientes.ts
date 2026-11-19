@@ -46,7 +46,7 @@ import {
                     +{{ comision.importeFormateado }}
                   </div>
                   @if (comision.creadaEl; as fecha) {
-                    <div class="text-[11px] text-ink-400">{{ soloFecha(fecha) }}</div>
+                    <div class="text-xs text-ink-400">{{ soloFecha(fecha) }}</div>
                   }
                 </div>
                 <div class="flex items-center gap-1.5 text-[12px] text-amber-600 shrink-0">

@@ -40,7 +40,7 @@ import { TraduccionService } from '@core/i18n/traduccion.service';
               [routerLink]="pestana.destino"
               routerLinkActive="text-primary font-medium"
               [routerLinkActiveOptions]="{ exact: pestana.exacta }"
-              class="relative flex min-h-14 flex-col items-center justify-center gap-0.5 text-[10px] text-ink-500"
+              class="relative flex min-h-14 flex-col items-center justify-center gap-0.5 text-xs text-ink-500"
             >
               <!-- El identificador marca el destino del efecto de «volar al carrito». En el móvil el
                    icono de la barra de arriba no se pinta, así que sin esto la imagen volaría hacia un

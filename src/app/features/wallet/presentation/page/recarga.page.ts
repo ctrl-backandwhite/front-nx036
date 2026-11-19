@@ -52,7 +52,7 @@ const ICONOS: Readonly<Record<MetodoDeRecarga, IconDefinition>> = {
         @for (rotulo of rotulos(); track rotulo; let i = $index) {
           <li class="flex items-center gap-2">
             <span
-              class="w-6 h-6 rounded-full inline-flex items-center justify-center text-[11px] font-medium"
+              class="w-6 h-6 rounded-full inline-flex items-center justify-center text-xs font-medium"
               [class.bg-emerald-500]="paso() > i + 1"
               [class.text-white]="paso() >= i + 1"
               [class.bg-brand-600]="paso() === i + 1"

@@ -168,7 +168,7 @@ export class PerfilPage {
 
   protected clase(entrada: EntradaDeMenu): string {
     const base =
-      'w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm text-left transition-colors';
+      'w-full min-h-11 flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm text-left transition-colors';
     const activa = entrada.clave === this.seccion();
     const peligro = entrada.clave === 'danger';
     if (activa) {

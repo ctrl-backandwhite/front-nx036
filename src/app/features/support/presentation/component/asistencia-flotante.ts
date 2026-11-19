@@ -25,6 +25,12 @@ import { WidgetDeChat } from './widget-de-chat';
   selector: 'nx-asistencia-flotante',
   imports: [AvatarDelAsistente, WidgetDeChat],
   template: `
+    <!-- En el checkout de una pantalla estrecha NO se enseñan (decisión del titular, 19-nov-2026):
+         flotan pegados al borde derecho, justo donde va alineado el precio de cada opción de envío, y
+         tapaban sus últimas cifras. Recoger el asistente no bastaba —seguía tapando— y es la pantalla
+         donde menos conviene distraer. Desde md hay sitio y vuelven. Se hace con clases y no quitándolos
+         del árbol para no perder la conversación abierta al pasar por el pago. -->
+    <div data-testid="asistencia-flotante" [class]="enElPago() ? 'hidden md:contents' : 'contents'">
     @defer (on idle) {
       <nx-avatar-del-asistente
         [lineasDeLaCesta]="lineasDeLaCesta()"
@@ -39,6 +45,7 @@ import { WidgetDeChat } from './widget-de-chat';
     @defer (on idle) {
       <nx-widget-de-chat (abreFichaRapida)="abreFichaRapida.emit($event)" />
     }
+    </div>
   `,
 })
 export class AsistenciaFlotante {

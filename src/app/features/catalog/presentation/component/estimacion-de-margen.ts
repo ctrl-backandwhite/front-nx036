@@ -113,7 +113,7 @@ const PAISES = ['ES', 'US', 'MX', 'BR', 'GB', 'DE', 'FR', 'IT'];
         </dl>
 
         <!-- Trazabilidad de lo que se usó para calcular: sin ella, un margen raro no se puede explicar. -->
-        <div class="mt-3 text-[11px] text-ink-400 space-y-0.5">
+        <div class="mt-3 text-xs text-ink-400 space-y-0.5">
           @if (estimacion.reglaAplicadaPorcentaje !== undefined) {
             <div>
               {{ t('catalog.detail.margin.applied_rule') }}:

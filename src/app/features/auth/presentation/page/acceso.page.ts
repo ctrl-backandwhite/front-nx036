@@ -79,7 +79,7 @@ import { PanelDeMarca } from '../component/panel-de-marca';
               </button>
             </div>
 
-            <div class="divider text-[11px] uppercase tracking-wider opacity-70 my-5">{{ t('login.or_email') }}</div>
+            <div class="divider text-xs uppercase tracking-wider opacity-70 my-5">{{ t('login.or_email') }}</div>
 
             <form (submit)="envia($event)" class="mt-2 space-y-4">
               <div>
@@ -116,7 +116,7 @@ import { PanelDeMarca } from '../component/panel-de-marca';
                   <input id="acceso-codigo" type="text" inputmode="numeric" autocomplete="one-time-code"
                          class="input input-bordered w-full tracking-[0.3em] text-center"
                          [formField]="formulario.codigo" [placeholder]="t('login.otp.placeholder')" />
-                  <p class="text-[11px] opacity-70 mt-1">{{ t('login.otp.hint') }}</p>
+                  <p class="text-xs opacity-70 mt-1">{{ t('login.otp.hint') }}</p>
                 </div>
               }
 

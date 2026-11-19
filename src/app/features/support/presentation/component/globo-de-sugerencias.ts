@@ -40,7 +40,7 @@ import { esPorEnvio } from '../../domain/model/asistente';
         hasta ese peso, añadir no cuesta aduana nueva; un gramo más, sí.
       -->
       @if (hueco(); as libre) {
-        <p class="mt-1 rounded-lg bg-base-200 px-2 py-1 text-[11px] opacity-80">
+        <p class="mt-1 rounded-lg bg-base-200 px-2 py-1 text-xs opacity-80">
           {{ t('avatar.parcel_room_pre') }} <strong>{{ libre.gramos }} g</strong>
           {{ t('avatar.parcel_room_post') }}{{ libre.otroBulto ? ' ' + libre.otroBulto + '.' : '.' }}
         </p>
@@ -59,7 +59,7 @@ import { esPorEnvio } from '../../domain/model/asistente';
               }
               <span class="min-w-0 flex-1">
                 <span class="line-clamp-2 block text-[12px]">{{ sugerencia.titulo }}</span>
-                <span class="text-[11px] text-success">{{ porQue(sugerencia) }}</span>
+                <span class="text-xs text-success">{{ porQue(sugerencia) }}</span>
               </span>
             </a>
             <button type="button" class="btn btn-ghost btn-sm shrink-0 text-primary sm:btn-xs"

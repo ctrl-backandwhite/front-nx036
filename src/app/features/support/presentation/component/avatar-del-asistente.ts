@@ -74,10 +74,10 @@ const SALUDO_MS = 7000;
                                     border-base-300 bg-base-100 p-4 shadow-2xl">
             <p class="text-[12px]">{{ t('avatar.guide_offer') }}</p>
             <div class="mt-2 flex gap-2">
-              <button type="button" class="btn btn-primary btn-xs flex-1 text-[11px]" (click)="abreGuia()">
+              <button type="button" class="btn btn-primary btn-xs flex-1 text-xs" (click)="abreGuia()">
                 {{ t('avatar.guide_yes') }}
               </button>
-              <button type="button" class="btn btn-ghost btn-xs text-[11px]"
+              <button type="button" class="btn btn-ghost btn-xs text-xs"
                       (click)="avatar.descartaLaGuia()">
                 {{ t('avatar.guide_no') }}
               </button>
@@ -125,32 +125,32 @@ const SALUDO_MS = 7000;
                 da el área con min-w-6 y min-h-6 sin tocar el icono, que es lo que fija el diseño.
               -->
               @if (hayVoz()) {
-                <button type="button" class="opacity-70 hover:opacity-100 inline-flex items-center justify-center min-w-6 min-h-6"
+                <button type="button" class="opacity-70 hover:opacity-100 inline-flex items-center justify-center min-w-8 min-h-8"
                         [class.text-primary]="avatar.voz()"
                         [attr.aria-pressed]="avatar.voz()"
                         [attr.aria-label]="t(avatar.voz() ? 'avatar.voice_off' : 'avatar.voice_on')"
                         [title]="t(avatar.voz() ? 'avatar.voice_off' : 'avatar.voice_on')"
                         (click)="alternaLaVoz()">
-                  <fa-icon [icon]="avatar.voz() ? iconos.vozAlta : iconos.vozMuda" class="text-[11px]" />
+                  <fa-icon [icon]="avatar.voz() ? iconos.vozAlta : iconos.vozMuda" class="text-xs" />
                 </button>
               }
               <!-- Repetir: cada cosa se dice una sola vez, así que para volver a oírla se pide. -->
               @if (hayVoz() && avatar.voz()) {
-                <button type="button" class="opacity-70 hover:opacity-100 inline-flex items-center justify-center min-w-6 min-h-6"
+                <button type="button" class="opacity-70 hover:opacity-100 inline-flex items-center justify-center min-w-8 min-h-8"
                         [attr.aria-label]="t('avatar.repeat')" [title]="t('avatar.repeat')"
                         (click)="repite()">
-                  <fa-icon [icon]="iconos.repetir" class="text-[11px]" />
+                  <fa-icon [icon]="iconos.repetir" class="text-xs" />
                 </button>
               }
-              <button type="button" class="opacity-70 hover:opacity-100 inline-flex items-center justify-center min-w-6 min-h-6"
+              <button type="button" class="opacity-70 hover:opacity-100 inline-flex items-center justify-center min-w-8 min-h-8"
                       [attr.aria-label]="t('avatar.minimize')" [title]="t('avatar.minimize')"
                       (click)="cambiaEstado('mini')">
-                <fa-icon [icon]="iconos.encoger" class="text-[11px]" />
+                <fa-icon [icon]="iconos.encoger" class="text-xs" />
               </button>
-              <button type="button" class="opacity-70 hover:opacity-100 inline-flex items-center justify-center min-w-6 min-h-6"
+              <button type="button" class="opacity-70 hover:opacity-100 inline-flex items-center justify-center min-w-8 min-h-8"
                       [attr.aria-label]="t('avatar.hide')" [title]="t('avatar.hide')"
                       (click)="cambiaEstado('oculto')">
-                <fa-icon [icon]="iconos.ocultar" class="text-[11px]" />
+                <fa-icon [icon]="iconos.ocultar" class="text-xs" />
               </button>
             </span>
           }

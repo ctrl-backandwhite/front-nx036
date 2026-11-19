@@ -29,7 +29,7 @@ import { PasosDeSeguimiento } from './pasos-de-seguimiento';
           }
         </span>
         @if (bulto().numeroDeSeguimiento) {
-          <span class="text-[11px] font-mono bg-base-200 rounded px-2 py-1">
+          <span class="text-xs font-mono bg-base-200 rounded px-2 py-1">
             {{ bulto().numeroDeSeguimiento }}
           </span>
         }

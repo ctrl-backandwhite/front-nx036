@@ -35,7 +35,7 @@ import { TraduccionService } from '@core/i18n/traduccion.service';
 
     @if (faltas().length > 0 && !cobrando()) {
       <div
-        class="text-[11px] text-warning-content/80 bg-warning/10 border border-warning/30 rounded p-2 space-y-0.5"
+        class="text-xs text-warning-content/80 bg-warning/10 border border-warning/30 rounded p-2 space-y-0.5"
       >
         @for (falta of faltas(); track falta) {
           <div>• {{ falta }}</div>
@@ -43,7 +43,7 @@ import { TraduccionService } from '@core/i18n/traduccion.service';
       </div>
     }
 
-    <p class="text-[11px] text-ink-500 leading-relaxed">
+    <p class="text-xs text-ink-500 leading-relaxed">
       {{ t('checkout.legal.before') }}
       <a routerLink="/legal/terms" class="link" target="_blank" rel="noreferrer">{{
         t('footer.link.terms')
@@ -55,7 +55,7 @@ import { TraduccionService } from '@core/i18n/traduccion.service';
       >. {{ t('checkout.legal.withdrawal_note') }}
     </p>
 
-    <button type="submit" class="btn btn-primary w-full" data-testid="confirmar-y-pagar"
+    <button type="submit" class="btn btn-primary w-full h-12 mt-4" data-testid="confirmar-y-pagar"
             [disabled]="!sePuedePagar()">
       @if (cobrando()) {
         {{ t('common.processing') }}
@@ -63,7 +63,7 @@ import { TraduccionService } from '@core/i18n/traduccion.service';
         <fa-icon [icon]="iconoOk" /> {{ t('checkout.confirm_order_pay') }}
       }
     </button>
-    <a routerLink="/cart" class="btn btn-ghost block text-center text-sm">{{
+    <a routerLink="/cart" class="btn btn-ghost w-full mt-3 font-normal text-ink-600">{{
       t('checkout.back_to_cart')
     }}</a>
   `,

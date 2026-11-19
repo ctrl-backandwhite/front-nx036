@@ -63,10 +63,10 @@ import { AltaDeTarjetaModal } from './alta-de-tarjeta-modal';
               <div class="font-semibold text-sm">{{ nombre(plan) }}</div>
               <div class="text-xl font-bold mt-1">
                 {{ precio(plan) }}
-                <span class="text-[11px] opacity-70 ml-1">{{ sufijo(plan) }}</span>
+                <span class="text-xs opacity-70 ml-1">{{ sufijo(plan) }}</span>
               </div>
               @if (esGratis(plan)) {
-                <div class="text-[11px] text-brand-600 font-medium mt-1">{{ t('plans.free_trial_note') }}</div>
+                <div class="text-xs text-brand-600 font-medium mt-1">{{ t('plans.free_trial_note') }}</div>
               }
               <div class="mt-auto pt-3">
                 @if (esDeEmpresa(plan)) {
@@ -94,7 +94,7 @@ import { AltaDeTarjetaModal } from './alta-de-tarjeta-modal';
           }
         </div>
 
-        <p class="text-[11px] text-ink-400 mt-3">{{ t('profile.plans.hint') }}</p>
+        <p class="text-xs text-ink-400 mt-3">{{ t('profile.plans.hint') }}</p>
       </section>
 
       @if (planPendiente()) {

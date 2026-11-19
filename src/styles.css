@@ -523,7 +523,14 @@
    ═══════════════════════════════════════════════════════════════════════════════ */
 
 html, body, nx-root { height: 100%; }
-html { font-size: 16px; }
+html {
+  font-size: 16px;
+  /* El lienzo lleva el MISMO fondo que el cuerpo. El cuerpo mide exactamente la ventana
+   * (height: 100%, arriba), así que en una página más alta su gris se acababa a esa altura y el resto
+   * de la página —las notas del checkout, media ficha, el catálogo desde la segunda hilera— quedaba
+   * sobre el blanco del lienzo, con un corte horizontal a media pantalla. */
+  background-color: var(--color-base-200);
+}
 body {
   font-family: var(--font-sans);
   font-weight: 300;
@@ -944,7 +951,7 @@ aside .menu .menu-title {
 /* Rótulo "eyebrow" en mayúsculas sobre los títulos de sección (lenguaje Ecomerce). */
 @utility eyebrow {
   display: inline-block;
-  font-size: 0.6875rem;        /* ~11px */
+  font-size: 0.75rem;        /* ~11px */
   line-height: 1;
   text-transform: uppercase;
   letter-spacing: 0.12em;
@@ -1003,6 +1010,25 @@ aside .menu .menu-title {
                    border-color var(--motion-base) var(--motion-easing-standard); }
 /* Sin "lift" (Ecomerce): el botón responde con color, no desplazándose. */
 .btn:active { transform: translateY(0); transition-duration: 60ms; }
+
+/* Tamaños táctiles del ESCAPARATE (19-nov-2026). El comprador veía botones de 24 y 32 px —«Aplicar»,
+ * los iconos de la cabecera, «Añadir al carrito» de cada tarjeta— porque casi todo se escribió con
+ * btn-sm y btn-xs, que son tamaños de panel denso. Aquí suben al mínimo táctil en pantalla estrecha y
+ * a un tamaño cómodo en escritorio, cambiando la variable de tamaño de daisyUI para que los botones
+ * cuadrados sigan siendo cuadrados. Va acotado al armazón del escaparate: el panel de administración,
+ * que sí es una herramienta densa, no cambia. Mobile first: la base es la del móvil. */
+.escaparate .btn-sm { --size: 2.75rem; --fontsize: 0.8125rem; }
+.escaparate .btn-xs { --size: 2.25rem; --fontsize: 0.75rem; }
+.escaparate .input-sm, .escaparate .select-sm { --size: 2.75rem; font-size: 0.875rem; }
+.escaparate .input-xs, .escaparate .select-xs { --size: 2.25rem; font-size: 0.8125rem; }
+@media (min-width: 768px) {
+  .escaparate .btn-sm { --size: 2.25rem; }
+  .escaparate .btn-xs { --size: 2rem; }
+  .escaparate .input-sm, .escaparate .select-sm { --size: 2.25rem; }
+  .escaparate .input-xs, .escaparate .select-xs { --size: 2rem; }
+}
+/* Dos botones apilados a todo el ancho no se tocan: el de pago y «volver» iban pegados. */
+.escaparate .btn.w-full + .btn.w-full { margin-top: 0.75rem; }
 /* El primary se oscurece hacia negro en hover (hover:bg-black de Ecomerce). */
 .btn-primary:hover { background-color: color-mix(in oklch, var(--color-primary) 82%, #000); }
 

@@ -104,7 +104,7 @@ const CONFIRMACION_MS = 1400;
                  se vuelve casi blanco en oscuro y dejaba blanco sobre blanco. neutral existe en
                  ambos temas y trae su propio neutral-content, así que la pareja viaja junta. -->
             <span
-              class="w-[140%] -rotate-12 bg-neutral/55 py-1.5 text-center text-[11px] font-semibold
+              class="w-[140%] -rotate-12 bg-neutral/55 py-1.5 text-center text-xs font-semibold
                      uppercase tracking-wider text-neutral-content backdrop-blur-[1px]"
             >
               {{ t('product.out_of_stock') }}
@@ -116,14 +116,14 @@ const CONFIRMACION_MS = 1400;
           @if (agotado()) {
             <!-- Misma razón que la banda de arriba: la pareja fondo/texto va con neutral. -->
             <span
-              class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-neutral text-neutral-content shadow-sm"
+              class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-neutral text-neutral-content shadow-sm"
             >
               {{ t('product.out_of_stock') }}
             </span>
           }
           @if (superventas()) {
             <span
-              class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500 text-white shadow-sm"
+              class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-amber-500 text-white shadow-sm"
             >
               <fa-icon [icon]="iconos.fuego" class="text-[9px]" />
               {{ t('product.badge.bestseller') }}
@@ -131,7 +131,7 @@ const CONFIRMACION_MS = 1400;
           }
           @if (etiquetas().includes('ready')) {
             <span
-              class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-base-100/95 text-ink-700 border border-ink-200 shadow-sm"
+              class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-base-100/95 text-ink-700 border border-ink-200 shadow-sm"
             >
               <fa-icon [icon]="iconos.rayo" class="text-[9px] text-amber-500" />
               {{ t('product.badge.ready') }}
@@ -139,7 +139,7 @@ const CONFIRMACION_MS = 1400;
           }
           @if (etiquetas().includes('free_shipping')) {
             <span
-              class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-success text-success-content shadow-sm"
+              class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-success text-success-content shadow-sm"
               [attr.aria-label]="t('catalog.filters.free_shipping')"
             >
               <fa-icon [icon]="iconos.camion" class="text-[9px]" />
@@ -238,10 +238,12 @@ const CONFIRMACION_MS = 1400;
           (click)="compraRapida($event)"
           [disabled]="anadiendo()"
           [class]="anadido() ? 'btn-success' : 'btn-primary'"
-          class="btn btn-sm sm:btn-xs w-full mt-2"
+          class="btn btn-sm w-full mt-2 px-2 gap-1.5"
         >
-          <fa-icon [icon]="anadido() ? iconos.hecho : iconos.anadir" class="text-[11px]" />
-          {{ anadido() ? t('product.added') : t('product.add_to_cart') }}
+          <fa-icon [icon]="anadido() ? iconos.hecho : iconos.anadir" class="text-xs" />
+          <!-- En una tarjeta de media pantalla el rótulo no cabía y se partía en dos líneas dentro de un
+               botón de alto fijo; se recorta con puntos suspensivos antes que desbordar. -->
+          <span class="truncate">{{ anadido() ? t('product.added') : t('product.add_to_cart') }}</span>
         </button>
       </div>
     </a>

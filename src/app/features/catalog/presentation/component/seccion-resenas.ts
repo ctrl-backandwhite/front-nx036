@@ -74,7 +74,7 @@ const BORRADOR_VACIO: BorradorDeResena = { nota: '5', autor: '', titulo: '', cue
           <div class="grid sm:grid-cols-[10rem_1fr] gap-6">
             <div class="text-center">
               <div class="text-4xl font-medium text-primary">{{ media() }}</div>
-              <div class="text-[11px] opacity-70 mt-1">
+              <div class="text-xs opacity-70 mt-1">
                 {{ total() }} {{ t('reviews.reviews') }}
               </div>
             </div>

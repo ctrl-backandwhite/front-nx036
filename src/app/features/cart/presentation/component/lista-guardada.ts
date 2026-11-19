@@ -30,7 +30,7 @@ import { AccionesDeLinea } from '../acciones-de-linea';
           {{ t('cart.saved_title') }}
           <span class="text-[12px] opacity-70 font-normal">({{ lineas().length }})</span>
         </h2>
-        <span class="text-[11px] opacity-70">
+        <span class="text-xs opacity-70">
           {{ enLaCuenta() ? t('cart.saved_hint_account') : t('cart.saved_hint_guest') }}
         </span>
       </div>
@@ -52,9 +52,9 @@ import { AccionesDeLinea } from '../acciones-de-linea';
                       >{{ linea.titulo }}</a
                     >
                     @if (linea.etiquetaDeVariante) {
-                      <div class="text-[11px] opacity-70">{{ linea.etiquetaDeVariante }}</div>
+                      <div class="text-xs opacity-70">{{ linea.etiquetaDeVariante }}</div>
                     }
-                    <div class="text-[11px] opacity-70">
+                    <div class="text-xs opacity-70">
                       {{ cotizacion().unitario(linea) }} · {{ t('cart.col.qty') }}:
                       {{ linea.cantidad }}
                     </div>

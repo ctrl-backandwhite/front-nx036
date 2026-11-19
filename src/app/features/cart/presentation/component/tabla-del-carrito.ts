@@ -27,8 +27,12 @@ import { AccionesDeLinea } from '../acciones-de-linea';
   imports: [RouterLink, FaIconComponent, ImagenSegura],
   template: `
     <div class="card overflow-hidden bg-base-100">
-      <table class="table table-zebra table-sm">
-        <thead class="bg-base-200 text-base-content/70 text-left text-[12px]">
+      <!-- En pantalla estrecha cada línea es una FICHA apilada —producto arriba; cantidad, subtotal y
+           borrar debajo— y solo desde sm vuelve a ser una tabla. Con cuatro columnas a 390 px el título
+           se quedaba en «Certificac», «Guardar para más tarde» se partía en cuatro líneas y la columna
+           de borrar se salía de la pantalla. -->
+      <table class="table table-zebra table-sm block sm:table">
+        <thead class="hidden sm:table-header-group bg-base-200 text-base-content/70 text-left text-[12px]">
           <tr>
             <th class="px-4 py-2 font-medium">{{ t('cart.col.product') }}</th>
             <th class="px-4 py-2 font-medium hidden sm:table-cell">{{ t('cart.col.price') }}</th>
@@ -37,35 +41,35 @@ import { AccionesDeLinea } from '../acciones-de-linea';
             <th class="px-4 py-2 w-10"></th>
           </tr>
         </thead>
-        <tbody>
+        <tbody class="block sm:table-row-group">
           @for (linea of lineas(); track clave(linea)) {
-            <tr>
-              <td class="px-4 py-3">
-                <div class="flex items-center gap-3">
+            <tr class="grid grid-cols-[auto_1fr_auto] items-center sm:table-row">
+              <td class="col-span-3 block sm:table-cell px-4 py-3">
+                <div class="flex items-start sm:items-center gap-3">
                   <nx-imagen-segura
                     [src]="linea.imagen"
                     [alt]="linea.titulo"
-                    clase="w-12 h-12 rounded object-cover"
+                    clase="w-16 h-16 sm:w-12 sm:h-12 shrink-0 rounded object-cover"
                   />
-                  <div class="min-w-0">
+                  <div class="min-w-0 flex-1">
                     <a
                       [routerLink]="['/catalog', linea.slug]"
                       class="text-sm font-medium hover:text-primary line-clamp-2"
                       >{{ linea.titulo }}</a
                     >
                     @if (linea.etiquetaDeVariante) {
-                      <div class="text-[11px] opacity-70">{{ linea.etiquetaDeVariante }}</div>
+                      <div class="text-xs opacity-70">{{ linea.etiquetaDeVariante }}</div>
                     }
-                    <div class="text-[11px] opacity-70">
+                    <div class="text-xs opacity-70">
                       SKU: <code class="font-mono">{{ sku(linea) }}</code>
                     </div>
                     <!-- Peso NETO de la variante; si la ficha no lo declara se dice, no se rellena. -->
-                    <div class="text-[11px] opacity-70">
+                    <div class="text-xs opacity-70">
                       {{ cotizacion().pesoDeLinea(linea) ?? t('cart.weight_pending') }}
                     </div>
                     <button
                       type="button"
-                      class="text-[11px] text-primary hover:underline mt-1 inline-flex items-center gap-1 min-h-11 sm:min-h-0"
+                      class="text-xs text-primary hover:underline mt-1 inline-flex items-center gap-1 min-h-11 sm:min-h-0"
                       (click)="acciones.saca(linea, 'apartar')"
                     >
                       <fa-icon [icon]="iconoGuardar" /> {{ t('cart.save_for_later') }}
@@ -74,7 +78,7 @@ import { AccionesDeLinea } from '../acciones-de-linea';
                 </div>
               </td>
               <td class="px-4 py-3 hidden sm:table-cell">{{ cotizacion().unitario(linea) }}</td>
-              <td class="px-4 py-3">
+              <td class="block sm:table-cell px-4 pt-0 pb-3 sm:py-3">
                 <!-- Los botones de cantidad solo llevan un icono: sin nombre accesible, quien navega con
                      lector de pantalla oye «botón, botón» y no puede cambiar lo que compra. -->
                 <div class="join">
@@ -99,8 +103,10 @@ import { AccionesDeLinea } from '../acciones-de-linea';
                   </button>
                 </div>
               </td>
-              <td class="px-4 py-3 font-medium">{{ cotizacion().totalDeLinea(linea) }}</td>
-              <td class="px-4 py-3">
+              <td class="block sm:table-cell px-2 sm:px-4 pt-0 pb-3 sm:py-3 font-medium text-right sm:text-left">
+                {{ cotizacion().totalDeLinea(linea) }}
+              </td>
+              <td class="block sm:table-cell px-4 pt-0 pb-3 sm:py-3">
                 <button
                   type="button"
                   class="btn btn-ghost btn-xs btn-square text-error"

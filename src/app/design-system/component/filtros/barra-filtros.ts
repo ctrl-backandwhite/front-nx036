@@ -39,14 +39,14 @@ import { TraduccionService } from '@core/i18n/traduccion.service';
           type="button"
           (click)="alterna()"
           [attr.aria-expanded]="abierto()"
-          class="md:pointer-events-none inline-flex items-center gap-1.5 min-h-11 md:min-h-0 text-[11px]
+          class="md:pointer-events-none inline-flex items-center gap-1.5 min-h-11 md:min-h-0 text-xs
                  text-ink-500 uppercase tracking-wider font-medium pr-2 md:border-r md:border-ink-100"
         >
-          <fa-icon [icon]="iconoFiltro" class="text-[10px]" />
+          <fa-icon [icon]="iconoFiltro" class="text-xs" />
           {{ t('filters.label') }}
           @if (activos() > 0) {
             <span
-              class="ml-1 inline-flex items-center justify-center w-4 h-4 rounded-full bg-brand-600 text-white text-[10px] font-medium"
+              class="ml-1 inline-flex items-center justify-center w-4 h-4 rounded-full bg-brand-600 text-white text-xs font-medium"
             >
               {{ activos() }}
             </span>
@@ -68,7 +68,7 @@ import { TraduccionService } from '@core/i18n/traduccion.service';
               (click)="limpia.emit()"
               class="md:ml-auto inline-flex items-center gap-1 text-[12px] text-ink-500 hover:text-red-600"
             >
-              <fa-icon [icon]="iconoAspa" class="text-[10px]" /> {{ t('filters.clear') }}
+              <fa-icon [icon]="iconoAspa" class="text-xs" /> {{ t('filters.clear') }}
             </button>
           }
         </div>

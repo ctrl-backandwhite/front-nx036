@@ -24,7 +24,7 @@ import { comprobacionesContrasena } from '@shared/validation/politica-contrasena
             [class.col-span-2]="requisito.centrado"
             [class.justify-center]="requisito.centrado"
           >
-            <fa-icon [icon]="requisito.cumple ? iconoHecho : iconoPendiente" class="text-[11px]" />
+            <fa-icon [icon]="requisito.cumple ? iconoHecho : iconoPendiente" class="text-xs" />
             {{ t('profile.pwd_req_' + requisito.clave) }}
           </li>
         }

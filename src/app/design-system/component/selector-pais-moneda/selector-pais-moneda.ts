@@ -37,7 +37,7 @@ import { EnfocaAlAparecer } from '../../directive/enfoca-al-aparecer.directive';
         (click)="alterna()"
         [attr.aria-expanded]="abierto()"
         aria-haspopup="listbox"
-        class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-ink-200 hover:border-ink-300 text-[13px] transition-colors"
+        class="flex items-center gap-1.5 min-h-9 px-2.5 py-1.5 rounded-md border border-ink-200 hover:border-ink-300 text-[13px] transition-colors"
         [class.w-full]="anchoCompleto()"
         [title]="titulo()"
       >
@@ -50,14 +50,14 @@ import { EnfocaAlAparecer } from '../../directive/enfoca-al-aparecer.directive';
         <!-- La variante «sm:» lleva dos puntos y no cabe en un «[class.x]»: va en una cadena entera. -->
         <span
           [class]="
-            'font-mono text-[11px] text-ink-700 font-medium ' +
+            'font-mono text-xs text-ink-700 font-medium ' +
             (anchoCompleto() ? 'inline' : 'hidden sm:inline')
           "
         >
           {{ activa().currency }}
         </span>
-        <span class="hidden md:inline text-[11px] text-ink-400">·</span>
-        <span class="hidden md:inline font-mono text-[11px] text-ink-700 font-medium">
+        <span class="hidden md:inline text-xs text-ink-400">·</span>
+        <span class="hidden md:inline font-mono text-xs text-ink-700 font-medium">
           {{ activa().locale.toUpperCase() }}
         </span>
         <fa-icon
@@ -78,7 +78,7 @@ import { EnfocaAlAparecer } from '../../directive/enfoca-al-aparecer.directive';
         >
           <div class="px-2 py-2 border-b border-ink-100">
             <div class="flex items-center gap-1.5 bg-ink-50 rounded px-2 py-1">
-              <fa-icon [icon]="iconoBuscar" class="text-[10px] text-ink-400" />
+              <fa-icon [icon]="iconoBuscar" class="text-xs text-ink-400" />
               <input
                 nxEnfocaAlAparecer
                 [value]="consulta()"
@@ -91,11 +91,11 @@ import { EnfocaAlAparecer } from '../../directive/enfoca-al-aparecer.directive';
           </div>
           <!-- Un único contenedor con desplazamiento: dos anidados hacen imposible llegar al final. -->
           <div class="max-h-[60vh] overflow-y-auto py-1">
-            <div class="px-3 py-1 text-[10px] uppercase tracking-wide text-ink-400">
+            <div class="px-3 py-1 text-xs uppercase tracking-wide text-ink-400">
               {{ t('picker.country_currency') }}
             </div>
             @if (filtradas().length === 0) {
-              <div class="px-3 py-4 text-center text-[11px] text-ink-400">
+              <div class="px-3 py-4 text-center text-xs text-ink-400">
                 {{ t('picker.no_results') }}
               </div>
             }
@@ -110,10 +110,10 @@ import { EnfocaAlAparecer } from '../../directive/enfoca-al-aparecer.directive';
               >
                 <span class="text-base leading-none">{{ region.flag }}</span>
                 <span class="flex-1 truncate">{{ region.countryLabel }}</span>
-                <span class="font-mono text-[11px] text-ink-700 font-medium">
+                <span class="font-mono text-xs text-ink-700 font-medium">
                   {{ region.currency }}
                 </span>
-                <span class="font-mono text-[11px] text-ink-600 font-medium">
+                <span class="font-mono text-xs text-ink-600 font-medium">
                   {{ region.locale.toUpperCase() }}
                 </span>
               </button>

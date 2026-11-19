@@ -3,8 +3,8 @@ import { PrecioParaMostrar, estaRebajado } from '../../domain/model/producto';
 
 /** Los tres tamaños en los que aparece el precio: tarjeta, ficha rápida y encabezado de la ficha. */
 const TAMANOS = {
-  sm: { ahora: 'text-sm font-bold', antes: 'text-[11px]', distintivo: 'text-[10px] px-1 py-px' },
-  md: { ahora: 'text-lg font-semibold', antes: 'text-xs', distintivo: 'text-[11px] px-1.5 py-0.5' },
+  sm: { ahora: 'text-sm font-bold', antes: 'text-xs', distintivo: 'text-xs px-1 py-px' },
+  md: { ahora: 'text-lg font-semibold', antes: 'text-xs', distintivo: 'text-xs px-1.5 py-0.5' },
   lg: { ahora: 'text-3xl font-bold', antes: 'text-sm', distintivo: 'text-xs px-2 py-0.5' },
 } as const;
 

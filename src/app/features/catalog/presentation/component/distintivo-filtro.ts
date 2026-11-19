@@ -16,7 +16,7 @@ import { TraduccionService } from '@core/i18n/traduccion.service';
         type="button"
         (click)="quita.emit()"
         [attr.aria-label]="etiquetaDeQuitar() || t('catalog.clear')"
-        class="hover:text-red-700 text-[10px] min-w-11 sm:min-w-0 text-center"
+        class="hover:text-red-700 text-xs min-w-11 sm:min-w-0 text-center"
       >
         ✕
       </button>

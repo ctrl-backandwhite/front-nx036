@@ -72,7 +72,7 @@ const TRAMOS: readonly { readonly limite: number; readonly unidad: Intl.Relative
                 <div class="flex items-center gap-2 flex-wrap">
                   <span class="text-[13px] font-medium truncate">{{ sesion.dispositivo }}</span>
                   @if (sesion.actual) {
-                    <span class="badge bg-emerald-100 text-emerald-700 text-[10px] shrink-0">
+                    <span class="badge bg-emerald-100 text-emerald-700 text-xs shrink-0">
                       {{ t('admin.profile.sessions.current') }}
                     </span>
                   }
