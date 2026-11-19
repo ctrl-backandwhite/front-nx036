@@ -124,8 +124,13 @@ const RUTA_DE_FICHA = /^\/(catalog|admin\/browse)\/[^/]+$/;
           </div>
           @if (usuario(); as quien) {
             @if (quien.esPersonal) {
-              <a routerLink="/admin" class="btn btn-primary btn-sm text-[12px] hidden sm:inline-flex">
-                <fa-icon [icon]="iconoPanel" /> {{ t('nav.admin') }}
+              <a routerLink="/admin" class="btn btn-primary btn-sm text-[12px] hidden sm:inline-flex"
+                 [attr.aria-label]="t('nav.admin')">
+                <!-- Entre md y lg la cabecera lleva a la vez el menú central y los botones de cuenta, y
+                     con los dos rótulos escritos no cabían: a 768 px se montaban sobre «Inicio» y
+                     «Catálogo». En esa franja quedan los iconos solos, con su nombre accesible. -->
+                <fa-icon [icon]="iconoPanel" />
+                <span class="inline md:hidden lg:inline">{{ t('nav.admin') }}</span>
               </a>
             }
             <div class="dropdown dropdown-end hidden sm:block">
@@ -133,11 +138,14 @@ const RUTA_DE_FICHA = /^\/(catalog|admin\/browse)\/[^/]+$/;
                 tabindex="0"
                 type="button"
                 class="btn btn-sm text-[12px]"
+                [attr.aria-label]="quien.nombre || t('nav.profile')"
                 [class.btn-outline]="quien.esPersonal"
                 [class.btn-primary]="!quien.esPersonal"
               >
                 <fa-icon [icon]="iconoPersona" />
-                <span class="max-w-30 truncate">{{ quien.nombre || t('nav.profile') }}</span>
+                <span class="max-w-30 truncate inline md:hidden lg:inline">{{
+                  quien.nombre || t('nav.profile')
+                }}</span>
               </button>
               <ul
                 tabindex="0"
