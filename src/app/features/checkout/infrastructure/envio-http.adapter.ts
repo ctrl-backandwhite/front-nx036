@@ -16,6 +16,8 @@ interface OpcionDto {
   code: string;
   amountUsdCents: number;
   amountFormatted: string;
+  /** Lo que se paga por la opción. Ausente en un servidor anterior al 19-nov-2026. */
+  netAmountFormatted?: string;
   carrierName?: string;
   carrier?: string;
   lineType?: string;
@@ -26,15 +28,9 @@ interface OpcionDto {
 interface CotizacionDto {
   supported: boolean;
   shippingFormatted?: string;
-  shippingBaseFormatted?: string;
   shippingNetFormatted?: string;
-  shippingSubsidyFormatted?: string;
-  shippingSubsidyPercent?: number;
-  freeShipping?: boolean;
   customsHandlingFormatted?: string;
   customsHandlingUsdCents?: number;
-  customsSubsidyFormatted?: string;
-  customsSubsidyPercent?: number;
   customsNetFormatted?: string;
   taxFormatted?: string;
   taxRateBps?: number;
@@ -74,7 +70,7 @@ function aOpcion(dto: OpcionDto): OpcionDeEnvio {
     idDeTransportista: dto.carrier || undefined,
     tipoDeLinea: dto.lineType ? TIPOS_DE_LINEA[dto.lineType] : undefined,
     importeParaComparar: dto.amountUsdCents,
-    importeFormateado: dto.amountFormatted,
+    importeFormateado: dto.netAmountFormatted ?? dto.amountFormatted,
     transportista: dto.carrierName,
     diasMinimos: dto.etaMinDays,
     diasMaximos: dto.etaMaxDays,
@@ -107,15 +103,9 @@ export class EnvioHttpAdapter implements EnvioPort {
     return mapea(respuesta, (dto) => ({
       cubierto: dto.supported === true,
       envioFormateado: dto.shippingFormatted,
-      envioBaseFormateado: dto.shippingBaseFormatted,
       envioNetoFormateado: dto.shippingNetFormatted,
-      subvencionDeEnvioFormateada: dto.shippingSubsidyFormatted,
-      subvencionDeEnvioPorciento: dto.shippingSubsidyPercent,
-      envioGratis: dto.freeShipping,
       recargoDeAduanaFormateado: dto.customsHandlingFormatted,
       recargoDeAduanaCentimos: dto.customsHandlingUsdCents,
-      subvencionDeAranceLFormateada: dto.customsSubsidyFormatted,
-      subvencionDeArancelPorciento: dto.customsSubsidyPercent,
       aranceLNetoFormateado: dto.customsNetFormatted,
       impuestoFormateado: dto.taxFormatted,
       impuestoPuntosBasicos: dto.taxRateBps,

@@ -11,9 +11,9 @@ import { rotuloDelCanal } from './rotulo-del-canal';
  * <p>TODOS los importes llegan escritos por el servidor. Aquí no hay una sola operación con dinero: ni
  * para el total, ni para restar la subvención, ni «para enseñar un aproximado».
  *
- * <p>Cada concepto que subvencionamos se enseña en TRES líneas —la tarifa, lo que ponemos y lo que se
- * paga—, y la tercera existe porque sin ella el resumen dejaba la resta a quien compra: «Envío 13,30 €» y
- * «Subsidio −12,37 €» sin decir en ninguna línea que pagaba 0,93 €.
+ * <p>Cada concepto se enseña en UNA línea y con lo que se paga, ya descontado lo que ponemos nosotros
+ * (decisión del titular, 19-nov-2026). Antes eran tres —la tarifa, el descuento y «a pagar»— mientras la
+ * tarjeta de la opción de envío enseñaba la tarifa íntegra: dos precios distintos para el mismo envío.
  *
  * <p>Sin país no se finge un total. Enseñar el subtotal como total decía un precio final que no era: en un
  * pedido de prueba pasó de 6,20 € a 14,06 € al elegir España.
@@ -56,62 +56,11 @@ import { rotuloDelCanal } from './rotulo-del-canal';
         <span>{{ importeDelEnvio() }}</span>
       </div>
 
-      @if (cubierto() && (cotizacion()?.subvencionDeEnvioPorciento ?? 0) > 0) {
-        <div class="flex items-baseline text-emerald-600 text-[12px]">
-          <!-- El porcentaje va DENTRO del texto y no en una etiqueta contigua: como dos elementos
-               seguidos se leía «Envío que cubrimosSubsidio 93 %» de corrido. -->
-          <span class="pl-3">
-            {{
-              cotizacion()?.envioGratis
-                ? t('checkout.free_shipping')
-                : tCon('checkout.shipping_subsidy_pct', {
-                    p: cotizacion()?.subvencionDeEnvioPorciento ?? 0
-                  })
-            }}
-          </span>
-          <nx-guia-puntos />
-          <span>−{{ cotizacion()?.subvencionDeEnvioFormateada }}</span>
-        </div>
-      }
-
-      @if (cubierto() && cotizacion()?.envioNetoFormateado) {
-        <div class="flex items-baseline text-[12px]">
-          <span class="pl-3 text-ink-500">{{ t('checkout.shipping_to_pay') }}</span>
-          <nx-guia-puntos />
-          <span>{{ cotizacion()?.envioNetoFormateado }}</span>
-        </div>
-      }
-
       @if (hayArancel()) {
         <div class="flex items-baseline text-ink-500" data-testid="desglose-aranceles">
           <span>{{ t('checkout.customs_eu') }}<nx-info-de-aranceles /></span>
           <nx-guia-puntos />
-          <span>{{ cotizacion()?.recargoDeAduanaFormateado }}</span>
-        </div>
-      }
-
-      <!-- Lo que ponemos del ARANCEL va debajo del suyo. Son dos bolsas INDEPENDIENTES —una por concepto,
-           asignadas por producto—: lo que sobre de la del envío NO llega hasta aquí, así que cada
-           porcentaje se lee por separado. -->
-      @if (cubierto() && (cotizacion()?.subvencionDeArancelPorciento ?? 0) > 0) {
-        <div class="flex items-baseline text-emerald-600 text-[12px]">
-          <span class="pl-3">{{
-            tCon('checkout.customs_subsidy_pct', {
-              p: cotizacion()?.subvencionDeArancelPorciento ?? 0
-            })
-          }}</span>
-          <nx-guia-puntos />
-          <span>−{{ cotizacion()?.subvencionDeAranceLFormateada }}</span>
-        </div>
-      }
-
-      <!-- Solo cuando hay arancel: en los destinos sin derecho por artículo no existe la línea de arriba,
-           y un «a pagar» huérfano no diría de qué. -->
-      @if (hayArancel() && cotizacion()?.aranceLNetoFormateado) {
-        <div class="flex items-baseline text-[12px]">
-          <span class="pl-3 text-ink-500">{{ t('checkout.customs_to_pay') }}</span>
-          <nx-guia-puntos />
-          <span>{{ cotizacion()?.aranceLNetoFormateado }}</span>
+          <span>{{ importeDelArancel() }}</span>
         </div>
       }
 
@@ -187,7 +136,6 @@ export class DesgloseDelPedido {
 
   private readonly traduccion = inject(TraduccionService);
   protected readonly t = this.traduccion.t;
-  protected readonly tCon = this.traduccion.tCon;
 
   protected cubierto(): boolean {
     return this.cotizacion()?.cubierto === true;
@@ -230,7 +178,13 @@ export class DesgloseDelPedido {
       return '…';
     }
     return cotizacion.cubierto
-      ? (cotizacion.envioBaseFormateado ?? cotizacion.envioFormateado ?? '…')
+      ? (cotizacion.envioNetoFormateado ?? cotizacion.envioFormateado ?? '…')
       : this.t('checkout.ship_unsupported_short');
+  }
+
+  /** Lo que se paga de arancel; el íntegro solo si el servidor no mandó el neto. */
+  protected importeDelArancel(): string {
+    const cotizacion = this.cotizacion();
+    return cotizacion?.aranceLNetoFormateado ?? cotizacion?.recargoDeAduanaFormateado ?? '';
   }
 }

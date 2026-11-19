@@ -32,8 +32,12 @@ export interface OpcionDeEnvio {
   readonly idDeTransportista?: string;
   /** La clase de línea del canal. Es lo que le dice a quien compra qué admite su paquete. */
   readonly tipoDeLinea?: TipoDeLinea;
-  /** Solo para comparar entre opciones y nombrarlas. El importe que se pinta es `importeFormateado`. */
+  /**
+   * Solo para comparar entre opciones y nombrarlas: la tarifa ÍNTEGRA. Con la bolsa de envío dos opciones
+   * pueden quedar las dos a cero, y aun así una sigue siendo «la más barata».
+   */
   readonly importeParaComparar: number;
+  /** Lo que se PAGA por esta opción, con la bolsa de envío ya descontada: el mismo importe del resumen. */
   readonly importeFormateado: string;
   /** Con qué empresa viaja, con el nombre ya presentable que compone el backend. */
   readonly transportista?: string;
@@ -44,19 +48,13 @@ export interface OpcionDeEnvio {
 export interface CotizacionDeEnvio {
   /** Falso cuando el transportista no cubre ese destino: entonces no hay pedido posible. */
   readonly cubierto: boolean;
-  readonly envioBaseFormateado?: string;
   readonly envioFormateado?: string;
   /** Lo que se paga de porte con la subvención ya descontada. Llega siempre, aunque sea cero. */
   readonly envioNetoFormateado?: string;
-  readonly subvencionDeEnvioFormateada?: string;
-  readonly subvencionDeEnvioPorciento?: number;
-  /** La subvención cubre el porte entero: se dice «envío gratis», que es lo que se entiende. */
-  readonly envioGratis?: boolean;
   readonly recargoDeAduanaFormateado?: string;
   /** Céntimos del recargo de aduana. Solo para saber si hay línea que enseñar. */
   readonly recargoDeAduanaCentimos?: number;
-  readonly subvencionDeAranceLFormateada?: string;
-  readonly subvencionDeArancelPorciento?: number;
+  /** Lo que se paga de arancel con su subvención ya descontada. */
   readonly aranceLNetoFormateado?: string;
   readonly impuestoFormateado?: string;
   /** Tipo del impuesto en puntos básicos. Solo decide si hay línea de impuesto que enseñar. */
