@@ -29,7 +29,7 @@ import { TarjetaProducto } from './tarjeta-producto';
   template: `
     @if (cargando() && productos().length === 0) {
       <div
-        class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
+        class="rejilla-productos"
         aria-busy="true"
       >
         @for (hueco of huecos(); track hueco) {
@@ -42,7 +42,7 @@ import { TarjetaProducto } from './tarjeta-producto';
         <ng-content select="[vacio]" />
       </div>
     } @else {
-      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+      <div class="rejilla-productos">
         @for (producto of productos(); track producto.id; let i = $index) {
           <nx-tarjeta-producto
             [producto]="producto"

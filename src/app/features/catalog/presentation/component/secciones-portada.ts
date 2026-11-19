@@ -18,8 +18,12 @@ import { PORTADA_PORT } from '../../domain/port/catalogo.port';
 import { TarjetaProducto } from './tarjeta-producto';
 import { HileraDeslizable } from './hilera-deslizable';
 
-/** Cuántos productos por hilera. Seis = una fila justa en escritorio. */
-const POR_SECCION = 6;
+/**
+ * Cuántos productos se piden por hilera. Más de los que caben: la rejilla es fluida y enseña UNA fila
+ * con las columnas que entren en la ventana (hasta seis), así que con ocho la fila sale siempre llena
+ * y lo que no cabe queda recortado. En el móvil la hilera se desliza y se ven los ocho.
+ */
+const POR_SECCION = 8;
 
 /**
  * Escalón entre una hilera y la siguiente, en milisegundos.
@@ -103,7 +107,7 @@ const TONOS = [
         @for (fila of [0, 1, 2]; track fila) {
           <section>
             <div class="skeleton h-6 w-40 mb-3"></div>
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            <div class="rejilla-productos rejilla-una-fila">
               @for (hueco of huecos; track hueco) {
                 <nx-esqueleto-tarjeta-producto />
               }

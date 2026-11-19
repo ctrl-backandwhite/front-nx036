@@ -266,7 +266,7 @@ const RUTA_DE_FICHA = /^\/(catalog|admin\/browse)\/[^/]+$/;
       <!-- El hueco para la barra de pestañas lo reserva el PIE, que va siempre debajo y en móvil lleva
            «pb-24». Reservarlo también aquí dejaba una franja en blanco entre el contenido y el pie. -->
       <!--
-        El ancho máximo (1.440 px, el «wide» del proyecto Ecomerce) y el relleno lateral viven en
+        El ancho (fluido, con tope solo en ultrapanorámicas) y el relleno lateral viven en
         CONTENEDOR_DE_PAGINA, compartidos con el pie para que los bordes coincidan. Sigue habiendo
         TOPE a propósito: sin él, en un monitor de 3.440 px la fila se estira de lado a lado y leer un
         listado obliga a barrer la cabeza; el ojo pierde el renglón mucho antes de eso.

@@ -21,7 +21,7 @@ compatibilidad con `data-theme` y con `theme.ts`. No te fíes del nombre.
 
 El 24-oct-2026 se adoptó además el **lenguaje visual completo** del proyecto Ecomerce: tipografía
 «display» en Fraunces con rótulos `eyebrow`, tarjetas planas con el borde que se oscurece al pasar por
-encima (nada de sombra dura), sombras muy sutiles, pie oscuro, contenedor a 1.440 px y el acento
+encima (nada de sombra dura), sombras muy sutiles, pie oscuro, contenedor fluido (margen lateral de 1rem a 3,5rem según la ventana; tope de 120rem) y el acento
 **azul** reservado al panel de administración. Todo vive en `styles.css`; los componentes solo usan
 las clases compartidas.
 
