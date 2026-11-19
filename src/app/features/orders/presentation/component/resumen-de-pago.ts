@@ -32,6 +32,12 @@ import { Pedido } from '../../domain/model/pedido';
           <dt class="text-ink-500">{{ t('order.detail.shipping') }}</dt>
           <dd>{{ pedido().envioFormateado || '—' }}</dd>
         </div>
+        @if (pedido().arancelFormateado) {
+          <div class="flex justify-between" data-testid="pedido-arancel">
+            <dt class="text-ink-500">{{ t('checkout.customs_eu') }}</dt>
+            <dd>{{ pedido().arancelFormateado }}</dd>
+          </div>
+        }
         <div class="flex justify-between">
           <dt class="text-ink-500">{{ t('order.detail.tax') }}</dt>
           <dd>{{ pedido().impuestosFormateado || '—' }}</dd>

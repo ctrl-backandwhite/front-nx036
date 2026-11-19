@@ -79,7 +79,7 @@ async function monta(opciones: Opciones = {}) {
     cubierto: true,
     totalFormateado: '129,72 €',
     totalCentimosUsd: 14000,
-    envioBaseFormateado: '13,30 €',
+    envioNetoFormateado: '13,30 €',
     opciones: [],
     opcionCotizada: 'FZZXR',
   };

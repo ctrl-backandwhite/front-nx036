@@ -154,7 +154,7 @@ export class PedidoPage {
   protected readonly pagadoFuera = computed(() => this.paid() === '1');
   protected readonly conFactura = computed(() => {
     const datos = this.pedido();
-    return !!datos && tieneFactura(datos.estado);
+    return !!datos && (datos.conFactura ?? tieneFactura(datos.estado));
   });
 
   private temporizador: ReturnType<typeof setInterval> | undefined;

@@ -113,6 +113,44 @@ describe('PedidosHttpAdapter', () => {
     expect(resultado.ok && resultado.valor.descuentoFormateado).toBe('');
   });
 
+  /**
+   * Visto en preproducción el 19-nov-2026: un pedido a España enseñaba subtotal 4,86, envío 6,90, IVA
+   * 2,47 y total 19,23. Faltaban los 5,00 € de arancel, que el servidor sí mandaba y aquí no se leían.
+   */
+  it('trae el arancel cuando se cobró', async () => {
+    const promesa = adaptador.consulta('o1', 'es');
+    red
+      .expectOne((r) => r.url === '/api/me/orders/o1')
+      .flush({ id: 'o1', orderNumber: 'NX-1', status: 'PAID', customsDuty: '5.00', customsDutyFormatted: '5,00 €', items: [] });
+
+    const resultado = await promesa;
+    expect(resultado.ok && resultado.valor.arancelFormateado).toBe('5,00 €');
+  });
+
+  it('lee si el pedido tiene factura, y sin el dato queda sin decidir', async () => {
+    const con = adaptador.consulta('o1', 'es');
+    red
+      .expectOne((r) => r.url === '/api/me/orders/o1')
+      .flush({ id: 'o1', orderNumber: 'NX-1', status: 'CANCELLED', invoiceAvailable: true, items: [] });
+    const resultadoCon = await con;
+    expect(resultadoCon.ok && resultadoCon.valor.conFactura).toBe(true);
+
+    const sin = adaptador.consulta('o1', 'es');
+    red.expectOne((r) => r.url === '/api/me/orders/o1').flush({ id: 'o1', orderNumber: 'NX-1', status: 'PAID', items: [] });
+    const resultadoSin = await sin;
+    expect(resultadoSin.ok && resultadoSin.valor.conFactura).toBeUndefined();
+  });
+
+  it('sin arancel no enseña una fila a cero', async () => {
+    const promesa = adaptador.consulta('o1', 'es');
+    red
+      .expectOne((r) => r.url === '/api/me/orders/o1')
+      .flush({ id: 'o1', orderNumber: 'NX-1', status: 'PAID', customsDuty: '0', customsDutyFormatted: '0,00 €', items: [] });
+
+    const resultado = await promesa;
+    expect(resultado.ok && resultado.valor.arancelFormateado).toBe('');
+  });
+
   it('enseña el descuento cuando de verdad lo hubo', async () => {
     const promesa = adaptador.consulta('o1', 'es');
     red
@@ -144,12 +182,10 @@ describe('PedidosHttpAdapter', () => {
     expect(resultado.ok && resultado.valor[0].totalFormateado).toBe('');
   });
 
-  it('cancela diciendo idioma y destino del reembolso', async () => {
-    const promesa = adaptador.cancela('o1', 'es', false);
+  it('cancela diciendo solo el idioma: el reembolso no lleva destino', async () => {
+    const promesa = adaptador.cancela('o1', 'es');
 
-    const peticion = red.expectOne(
-      '/api/me/orders/o1/cancel?lang=es&refundToWallet=false',
-    );
+    const peticion = red.expectOne('/api/me/orders/o1/cancel?lang=es');
     expect(peticion.request.method).toBe('POST');
     peticion.flush({});
 

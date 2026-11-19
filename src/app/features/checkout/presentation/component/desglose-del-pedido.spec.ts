@@ -72,35 +72,31 @@ describe('DesgloseDelPedido', () => {
   });
 
   /**
-   * El resumen enseñaba la tarifa y el descuento por separado y dejaba la resta a quien compra: «Envío
-   * 13,30 €» y «Subsidio −12,37 €» sin decir en ninguna línea que pagaba 0,93 €.
+   * Decisión del titular (19-nov-2026): un solo precio de envío, el que se paga. El resumen enseñaba
+   * «Envío 5,61 €», «Subsidio −3,27 €» y «A pagar 2,34 €», y la tarjeta de la opción «5,61 €»: dos
+   * precios para el mismo envío.
    */
-  it('enseña la tarifa, lo que cubrimos y LO QUE SE PAGA, en tres líneas', async () => {
-    await monta({
-      cotizacion: cotizacion({
-        envioBaseFormateado: '13,30 €',
-        subvencionDeEnvioFormateada: '12,37 €',
-        subvencionDeEnvioPorciento: 93,
-        envioNetoFormateado: '0,93 €',
-      }),
+  it('el envío se enseña en UNA línea, con lo que se paga', async () => {
+    const vista = await monta({
+      cotizacion: cotizacion({ envioFormateado: '10,61 €', envioNetoFormateado: '2,34 €' }),
     });
 
-    expect(screen.getByText('13,30 €')).toBeInTheDocument();
-    expect(screen.getByText('−12,37 €')).toBeInTheDocument();
-    expect(screen.getByText('0,93 €')).toBeInTheDocument();
+    expect(screen.getByTestId('desglose-envio')).toHaveTextContent('2,34 €');
+    expect(screen.getAllByText('2,34 €')).toHaveLength(1);
+    expect(vista.fixture.nativeElement.textContent).not.toMatch(/subsid|a pagar por|to pay/i);
   });
 
-  /** Al cien por cien se dice «gratis», que es lo que se entiende, en vez de obligar a restar. */
-  it('con la subvención al completo dice que el envío es gratis', async () => {
-    const vista = await monta({
-      cotizacion: cotizacion({
-        subvencionDeEnvioPorciento: 100,
-        subvencionDeEnvioFormateada: '13,30 €',
-        envioGratis: true,
-      }),
-    });
+  it('con el envío cubierto entero la línea dice cero, igual que la tarjeta de la opción', async () => {
+    await monta({ cotizacion: cotizacion({ envioNetoFormateado: '0,00 €' }) });
 
-    expect(vista.fixture.nativeElement.textContent).toMatch(/gratis|free/i);
+    expect(screen.getByTestId('desglose-envio')).toHaveTextContent('0,00 €');
+  });
+
+  it('si el servidor no manda el neto, pinta el envío que sí manda', async () => {
+    // Un servidor anterior: mejor el importe que hay que un hueco en la línea del envío.
+    await monta({ cotizacion: cotizacion({ envioFormateado: '13,30 €' }) });
+
+    expect(screen.getByTestId('desglose-envio')).toHaveTextContent('13,30 €');
   });
 
   it('el arancel solo aparece cuando lo hay', async () => {
@@ -108,21 +104,28 @@ describe('DesgloseDelPedido', () => {
     expect(screen.queryByText(/arancel|customs/i)).toBeNull();
   });
 
-  it('con arancel, se explica detrás de un icono y se dice lo que se paga', async () => {
-    await monta({
+  it('el arancel también va en UNA línea con lo que se paga, y se explica detrás de un icono', async () => {
+    const vista = await monta({
       cotizacion: cotizacion({
         recargoDeAduanaCentimos: 300,
         recargoDeAduanaFormateado: '3,00 €',
         aranceLNetoFormateado: '1,50 €',
-        subvencionDeArancelPorciento: 50,
-        subvencionDeAranceLFormateada: '1,50 €',
       }),
     });
 
-    expect(screen.getByText('3,00 €')).toBeInTheDocument();
-    expect(screen.getAllByText('1,50 €').length).toBeGreaterThan(0);
+    expect(screen.getByTestId('desglose-aranceles')).toHaveTextContent('1,50 €');
+    expect(screen.queryByText('3,00 €')).toBeNull();
+    expect(vista.fixture.nativeElement.textContent).not.toMatch(/subsid|a pagar por|to pay/i);
     // El icono que abre la explicación tiene nombre accesible.
     expect(screen.getByRole('button')).toBeInTheDocument();
+  });
+
+  it('sin el neto del arancel pinta el íntegro', async () => {
+    await monta({
+      cotizacion: cotizacion({ recargoDeAduanaCentimos: 300, recargoDeAduanaFormateado: '3,00 €' }),
+    });
+
+    expect(screen.getByTestId('desglose-aranceles')).toHaveTextContent('3,00 €');
   });
 
   it('el impuesto solo se pinta cuando el destino lo tiene', async () => {

@@ -56,10 +56,7 @@ describe('EnvioHttpAdapter', () => {
     });
     peticion.flush({
       supported: true,
-      shippingBaseFormatted: '13,30 €',
       shippingNetFormatted: '0,93 €',
-      shippingSubsidyFormatted: '12,37 €',
-      shippingSubsidyPercent: 93,
       customsHandlingUsdCents: 300,
       customsHandlingFormatted: '3,00 €',
       taxRateBps: 2100,
@@ -69,7 +66,7 @@ describe('EnvioHttpAdapter', () => {
       customsBlocked: false,
       selectedShippingOptionCode: 'FZZXR',
       options: [
-        { code: 'FZZXR', amountUsdCents: 705, amountFormatted: '7,05 €', carrierName: 'YunExpress', etaMinDays: 8, etaMaxDays: 15 },
+        { code: 'FZZXR', amountUsdCents: 705, amountFormatted: '7,05 €', netAmountFormatted: '0,93 €', carrierName: 'YunExpress', etaMinDays: 8, etaMaxDays: 15 },
       ],
     });
     const resultado = await promesa;
@@ -81,8 +78,10 @@ describe('EnvioHttpAdapter', () => {
       expect(resultado.valor.totalCentimosUsd).toBe(14000);
       expect(resultado.valor.opciones?.[0]).toEqual({
         codigo: 'FZZXR',
+        // Se COMPARA por la tarifa íntegra y se PINTA lo que se paga: el mismo importe que la línea de
+        // envío del resumen, para que la tarjeta de la opción y el resumen no digan dos precios.
         importeParaComparar: 705,
-        importeFormateado: '7,05 €',
+        importeFormateado: '0,93 €',
         transportista: 'YunExpress',
         diasMinimos: 8,
         diasMaximos: 15,
@@ -123,6 +122,8 @@ describe('EnvioHttpAdapter', () => {
       expect(c.tipoDeLinea).toBe('desconocida');
       expect(d.idDeTransportista).toBeUndefined();
       expect(d.tipoDeLinea).toBeUndefined();
+      // Un servidor que aún no manda el neto: se pinta la tarifa, no un hueco.
+      expect(a.importeFormateado).toBe('9 €');
     }
   });
 

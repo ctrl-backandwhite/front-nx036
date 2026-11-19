@@ -118,6 +118,12 @@ describe('traducción del pedido', () => {
       });
     });
 
+    it('lee si el pedido tiene factura; sin el dato queda sin decidir', () => {
+      expect(aFicha({ ...BASE, status: 'CANCELLED', invoiceAvailable: true }).conFactura).toBe(true);
+      expect(aFicha({ ...BASE, invoiceAvailable: false }).conFactura).toBe(false);
+      expect(aFicha(BASE).conFactura).toBeUndefined();
+    });
+
     it('sin nombre visible del transportista cae al identificador', () => {
       expect(aFicha({ ...BASE, shippingCarrier: 'FOURPX' }).nombreDelTransportista).toBe('FOURPX');
       expect(aFicha(BASE).nombreDelTransportista).toBeUndefined();

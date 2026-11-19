@@ -3,7 +3,7 @@ import {
   EstadoDePedido,
   estaCancelado,
   pasoActivo,
-  permiteElegirDestinoDelReembolso,
+  reembolsaPorPasarelaExterna,
   tieneEnvioEnCurso,
   tieneFactura,
 } from './pedido';
@@ -72,16 +72,16 @@ describe('reglas del pedido', () => {
     });
   });
 
-  describe('permiteElegirDestinoDelReembolso', () => {
-    it('solo hay elección cuando se pagó por una pasarela externa', () => {
-      expect(permiteElegirDestinoDelReembolso('CARD')).toBe(true);
-      expect(permiteElegirDestinoDelReembolso('PAYPAL')).toBe(true);
+  describe('reembolsaPorPasarelaExterna', () => {
+    it('tarjeta y PayPal se devuelven por la pasarela externa', () => {
+      expect(reembolsaPorPasarelaExterna('CARD')).toBe(true);
+      expect(reembolsaPorPasarelaExterna('PAYPAL')).toBe(true);
     });
 
-    it('lo pagado con la cartera vuelve a la cartera, sin preguntar', () => {
-      expect(permiteElegirDestinoDelReembolso('WALLET')).toBe(false);
-      expect(permiteElegirDestinoDelReembolso('USDT')).toBe(false);
-      expect(permiteElegirDestinoDelReembolso(undefined)).toBe(false);
+    it('lo pagado con la billetera vuelve a la billetera', () => {
+      expect(reembolsaPorPasarelaExterna('WALLET')).toBe(false);
+      expect(reembolsaPorPasarelaExterna('USDT')).toBe(false);
+      expect(reembolsaPorPasarelaExterna(undefined)).toBe(false);
     });
   });
 });

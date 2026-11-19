@@ -19,6 +19,7 @@ const pedido = (parcial: Partial<Pedido> = {}): Pedido => ({
   cancelable: false,
   subtotalFormateado: '10,00 €',
   envioFormateado: '2,00 €',
+  arancelFormateado: '',
   impuestosFormateado: '1,00 €',
   descuentoFormateado: '',
   totalFormateado: '13,00 €',
@@ -82,6 +83,24 @@ describe('PedidoPage', () => {
     expect(screen.getByText('Gorro de lana')).toBeInTheDocument();
   });
 
+  it('enseña el arancel cobrado, para que el desglose sume el total', async () => {
+    consulta.ejecuta.mockResolvedValue(exito(pedido({ arancelFormateado: '5,00 €' })));
+
+    await monta();
+
+    const fila = await screen.findByTestId('pedido-arancel');
+    expect(fila).toHaveTextContent('5,00 €');
+  });
+
+  it('sin arancel no pinta su fila', async () => {
+    consulta.ejecuta.mockResolvedValue(exito(pedido()));
+
+    await monta();
+
+    expect(await screen.findByText('NX-0001')).toBeInTheDocument();
+    expect(screen.queryByTestId('pedido-arancel')).not.toBeInTheDocument();
+  });
+
   it('un pedido que no existe lo dice, en vez de dejar la pantalla en blanco', async () => {
     consulta.ejecuta.mockResolvedValue(fallo(creaError('no-encontrado')));
 
@@ -98,6 +117,31 @@ describe('PedidoPage', () => {
     await screen.findByText('NX-0001');
 
     expect(screen.queryByRole('button', { name: 'Descargar factura' })).toBeNull();
+  });
+
+  it('un pedido cancelado con factura la sigue ofreciendo', async () => {
+    consulta.ejecuta.mockResolvedValue(exito(pedido({ estado: 'CANCELLED', conFactura: true })));
+
+    await monta();
+
+    expect(await screen.findByRole('button', { name: 'Descargar factura' })).toBeInTheDocument();
+  });
+
+  it('un pedido cancelado que nunca se cobró no la ofrece', async () => {
+    consulta.ejecuta.mockResolvedValue(exito(pedido({ estado: 'CANCELLED', conFactura: false })));
+
+    await monta();
+    await screen.findByText('NX-0001');
+
+    expect(screen.queryByRole('button', { name: 'Descargar factura' })).toBeNull();
+  });
+
+  it('sin el dato del servidor cae a la regla por estado: pagado la ofrece', async () => {
+    consulta.ejecuta.mockResolvedValue(exito(pedido({ estado: 'PAID', conFactura: undefined })));
+
+    await monta();
+
+    expect(await screen.findByRole('button', { name: 'Descargar factura' })).toBeInTheDocument();
   });
 
   it('avisa cuando la factura no se puede descargar', async () => {
