@@ -54,8 +54,117 @@ describe('traducción del pedido', () => {
     });
   });
 
+  describe('el canal en la fila del listado', () => {
+    const base = { id: 'o1', orderNumber: 'NX-1', status: 'PAID' };
+
+    it('lleva el transportista, el canal y si el pedido saldria hoy por el', () => {
+      expect(
+        aPedido({
+          ...base,
+          shippingCarrier: 'FOURPX',
+          shippingChannelCode: 'S1427',
+          canalAdmisible: false,
+          canalMotivo: 'VALOR_FUERA_DEL_TOPE',
+        }),
+      ).toMatchObject({
+        transportista: 'FOURPX',
+        canalDeEnvio: 'S1427',
+        canalAdmisible: false,
+        motivoDelCanal: 'valor-fuera-del-tope',
+      });
+    });
+
+    it('cada motivo del servidor tiene el suyo y uno nuevo llega como desconocido', () => {
+      const motivo = (canalMotivo: string) => aPedido({ ...base, canalMotivo }).motivoDelCanal;
+
+      expect(motivo('SIN_TRANSPORTISTA')).toBe('sin-transportista');
+      expect(motivo('SIN_CANAL')).toBe('sin-canal');
+      expect(motivo('TRANSPORTISTA_DISTINTO')).toBe('transportista-distinto');
+      expect(motivo('PRODUCTO_NO_LOCALIZABLE')).toBe('producto-no-localizable');
+      expect(motivo('MERCANCIA_NO_ADMITIDA')).toBe('mercancia-no-admitida');
+      expect(motivo('INVENTADO_MAÑANA')).toBe('desconocido');
+      expect(aPedido(base).motivoDelCanal).toBeUndefined();
+    });
+
+    it('sin veredicto del servidor no se afirma nada de la admisibilidad', () => {
+      expect(aPedido(base).canalAdmisible).toBeUndefined();
+    });
+  });
+
   describe('aFicha', () => {
     const BASE = { id: 'o1', orderNumber: 'NX-1', status: 'PAID', currency: 'EUR' };
+
+    it('trae el transportista visible, el canal con su nombre, la clase de linea y el detalle', () => {
+      const ficha = aFicha({
+        ...BASE,
+        shippingCarrier: 'FOURPX',
+        shippingCarrierName: '4PX',
+        shippingChannelCode: 'S1427',
+        shippingChannelName: 'Linea general',
+        shippingLineType: 'GENERAL',
+        canalAdmisible: false,
+        canalMotivo: 'MERCANCIA_NO_ADMITIDA',
+        canalDetalle: 'Calzado de piel no admitido',
+      });
+
+      expect(ficha).toMatchObject({
+        transportista: 'FOURPX',
+        nombreDelTransportista: '4PX',
+        canalDeEnvio: 'S1427',
+        nombreDelCanal: 'Linea general',
+        tipoDeLinea: 'general',
+        detalleDelCanal: 'Calzado de piel no admitido',
+        motivoDelCanal: 'mercancia-no-admitida',
+      });
+    });
+
+    it('sin nombre visible del transportista cae al identificador', () => {
+      expect(aFicha({ ...BASE, shippingCarrier: 'FOURPX' }).nombreDelTransportista).toBe('FOURPX');
+      expect(aFicha(BASE).nombreDelTransportista).toBeUndefined();
+    });
+
+    it('cada clase de linea se traduce y una nueva se lee como desconocida', () => {
+      const tipo = (shippingLineType: string) => aFicha({ ...BASE, shippingLineType }).tipoDeLinea;
+
+      expect(tipo('ROPA')).toBe('ropa');
+      expect(tipo('CON_BATERIA')).toBe('con-bateria');
+      expect(tipo('DESCONOCIDA')).toBe('desconocida');
+      expect(tipo('NUEVA')).toBe('desconocida');
+      expect(aFicha(BASE).tipoDeLinea).toBeUndefined();
+    });
+
+    it('traduce cada bulto con el canal con el que realmente se emitio', () => {
+      const ficha = aFicha({
+        ...BASE,
+        shipments: [
+          {
+            sequenceNo: 2,
+            carrier: 'YUNEXPRESS',
+            productCode: 'FZZXR',
+            trackingNumber: 'T1',
+            waybillNumber: 'W1',
+            status: 'SHIPPED',
+            weightGrams: 450,
+            declaredValueCents: 1200,
+            coincideConElCanal: false,
+          },
+          {},
+        ],
+      });
+
+      expect(ficha.bultos[0]).toEqual({
+        numero: 2,
+        transportista: 'YUNEXPRESS',
+        canalEmitido: 'FZZXR',
+        numeroDeSeguimiento: 'T1',
+        numeroDeGuia: 'W1',
+        estado: 'SHIPPED',
+        pesoEnGramos: 450,
+        coincideConElCanal: false,
+      });
+      expect(ficha.bultos[1].numero).toBe(0);
+      expect(aFicha(BASE).bultos).toEqual([]);
+    });
 
     it('un pedido de integración se distingue del de la plataforma', () => {
       expect(aFicha({ ...BASE, source: 'INTEGRATION' }).origen).toBe('INTEGRATION');

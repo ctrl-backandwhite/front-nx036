@@ -17,6 +17,7 @@ import {
   ALMACENES_ADMIN_PORT,
   CUMPLIMIENTO_PORT,
   IMPUESTOS_PORT,
+  COBERTURA_DE_TRANSPORTISTA_PORT,
   LIMITES_DE_TRANSPORTISTA_PORT,
   TARIFAS_DE_TRANSPORTISTA_PORT,
 } from './domain/logistica/port/configuracion-logistica.port';
@@ -31,6 +32,7 @@ import {
 import { PedidosAdminHttpAdapter } from './infrastructure/logistica/pedidos-admin-http.adapter';
 import { SeguimientoHttpAdapter } from './infrastructure/logistica/seguimiento-http.adapter';
 import { ComprasHttpAdapter } from './infrastructure/logistica/compras-http.adapter';
+import { CoberturaTransportistaHttpAdapter } from './infrastructure/logistica/cobertura-transportista-http.adapter';
 import { LimitesTransportistaHttpAdapter } from './infrastructure/logistica/limites-transportista-http.adapter';
 import { TarifasTransportistaHttpAdapter } from './infrastructure/logistica/tarifas-transportista-http.adapter';
 import { AlmacenesHttpAdapter } from './infrastructure/logistica/almacenes-http.adapter';
@@ -74,15 +76,20 @@ import {
   ReexportaCompra,
 } from './application/logistica/use-case/gestiona-compras.use-case';
 import {
+  AlternaCoberturaDeTransportista,
   AlternaLimiteDeTransportista,
   AplicaLoteDeAlmacenes,
   BorraAlmacen,
+  BorraCoberturaDeTransportista,
   BorraLimiteDeTransportista,
   ConsultaAlmacenes,
+  ConsultaCoberturaDeTransportista,
   ConsultaLimitesDeTransportista,
   BorraTarifaDeTransportista,
   ConsultaTarifasDeTransportista,
   GuardaAlmacen,
+  ConsultaTransportistasDisponibles,
+  GuardaCoberturaDeTransportista,
   GuardaLimiteDeTransportista,
   GuardaTarifaDeTransportista,
   RefrescaTarifasDeTransportista,
@@ -135,6 +142,12 @@ export function proveeAdminLogistica(): EnvironmentProviders {
     { provide: COMPRAS_PORT, useFactory: () => inject(ComprasHttpAdapter) },
     { provide: AVANCE_DE_COMPRA_PORT, useFactory: () => inject(ComprasHttpAdapter) },
     { provide: HOJA_DE_EMPAQUETADO_PORT, useFactory: () => inject(ComprasHttpAdapter) },
+
+    CoberturaTransportistaHttpAdapter,
+    {
+      provide: COBERTURA_DE_TRANSPORTISTA_PORT,
+      useFactory: () => inject(CoberturaTransportistaHttpAdapter),
+    },
 
     LimitesTransportistaHttpAdapter,
     {
@@ -194,6 +207,12 @@ export function proveeAdminLogistica(): EnvironmentProviders {
     ReexportaCompra,
     DescargaHojaDeEmpaquetado,
     CopiaDireccionDeAlmacen,
+    ConsultaCoberturaDeTransportista,
+    ConsultaTransportistasDisponibles,
+    GuardaCoberturaDeTransportista,
+    AlternaCoberturaDeTransportista,
+    BorraCoberturaDeTransportista,
+
     ConsultaLimitesDeTransportista,
     GuardaLimiteDeTransportista,
     AlternaLimiteDeTransportista,

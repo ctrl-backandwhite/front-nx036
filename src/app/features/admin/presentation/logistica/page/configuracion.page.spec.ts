@@ -70,8 +70,14 @@ describe('LimitesDeTransportistaPage', () => {
     return {
       lista: vi.fn().mockResolvedValue(
         exito([
-          { ...limiteEnBlanco(), canal: 'FZZXR', pais: '*', pesoMaximoGramos: 2000 },
-          { ...limiteEnBlanco(), canal: 'OTRO', pais: 'ES', activo: false },
+          {
+            ...limiteEnBlanco(),
+            carrier: 'YUNEXPRESS',
+            canal: 'FZZXR',
+            pais: '*',
+            pesoMaximoGramos: 2000,
+          },
+          { ...limiteEnBlanco(), carrier: 'FOURPX', canal: 'OTRO', pais: 'ES', activo: false },
         ]),
       ),
       guarda: vi.fn().mockResolvedValue(exito(undefined)),
@@ -119,7 +125,7 @@ describe('LimitesDeTransportistaPage', () => {
 
     await userEvent.click(screen.getAllByRole('button', { name: /Eliminar/i })[0]);
 
-    await waitFor(() => expect(puerto.borra).toHaveBeenCalledWith('FZZXR', '*'));
+    await waitFor(() => expect(puerto.borra).toHaveBeenCalledWith('YUNEXPRESS', 'FZZXR', '*'));
   });
 
   it('cancelar la confirmación no borra nada', async () => {

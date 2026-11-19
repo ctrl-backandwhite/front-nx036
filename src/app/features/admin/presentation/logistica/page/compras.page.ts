@@ -1,14 +1,11 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
-  IconDefinition,
-  faBoxOpen,
-  faCartShopping,
+  faChevronLeft,
+  faChevronRight,
   faCircleCheck,
   faFileExcel,
   faTriangleExclamation,
-  faTruck,
-  faWarehouse,
 } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
@@ -18,9 +15,9 @@ import {
   COLUMNAS_DE_COMPRA,
   CompraAProveedor,
   DIAS_HASTA_DESTRUCCION,
+  EstadoDeCompra,
   PasoDeCompra,
   agrupaPorPedido,
-  enRiesgo,
   pedidosBloqueados,
 } from '../../../domain/logistica/model/compra';
 import {
@@ -36,29 +33,19 @@ import {
 } from '../../../application/logistica/use-case/gestiona-compras.use-case';
 import { TarjetaDeCompra } from '../component/tarjeta-de-compra';
 
-/**
- * El icono con el que se reconoce cada columna del tablero.
- *
- * <p>Solo las columnas que se pintan: `CANCELLED` no tiene tablero, y darle un icono sugeriría que sí.
- */
-const ICONO: Readonly<Record<string, IconDefinition>> = {
-  PENDING: faCartShopping,
-  PURCHASED: faTruck,
-  IN_TRANSIT: faTruck,
-  AT_WAREHOUSE: faWarehouse,
-  PACKED: faBoxOpen,
-};
+/** Filas por página. En servidor: el tablero no puede cargar la cola entera a volumen alto. */
+const TAMANO_PAGINA = 25;
 
 /**
  * La mesa de trabajo del tramo chino: qué comprar, qué está de camino al almacén y qué falta por
  * registrar en el sistema de re-empaquetado.
  *
- * <p>El orden de las columnas es el del PROCESO real, no el de la base de datos. Cada tarjeta enseña
- * solo la acción que toca ahora.
+ * <p>Antes era un Kanban que cargaba la cola ENTERA: con miles de pedidos el navegador se arrastraba.
+ * Ahora es una lista PAGINADA en servidor, filtrable por estado (lo que eran las columnas). Los avisos
+ * de «en riesgo» y «bloqueados» se piden aparte, acotados, para que no dependan de la página mirada.
  *
- * <p>Un fallo se explica: enseñar siempre «no se pudo completar» deja sin saber si reintentar, recargar
- * o avisar a alguien. El caso frecuente es que la pantalla lleve rato abierta y la fila ya no exista;
- * entonces se dice eso y se recarga.
+ * <p>Un fallo se explica: el caso frecuente es que la pantalla lleve rato abierta y la fila ya no
+ * exista; entonces se dice eso y se recarga.
  */
 @Component({
   selector: 'nx-compras-page',
@@ -87,9 +74,7 @@ const ICONO: Readonly<Record<string, IconDefinition>> = {
             <fa-icon [icon]="iconos.aviso" />
             {{ rotuloDeRiesgo() }}
           </p>
-          <p class="mt-1 text-sm text-red-700">
-            {{ ayudaDeRiesgo() }}
-          </p>
+          <p class="mt-1 text-sm text-red-700">{{ ayudaDeRiesgo() }}</p>
           <ul class="mt-2 space-y-1 text-sm">
             @for (compra of enPeligro(); track compra.id) {
               <li class="text-red-800">
@@ -103,8 +88,7 @@ const ICONO: Readonly<Record<string, IconDefinition>> = {
 
       @if (bloqueados() > 0) {
         <details class="rounded-xl border border-amber-300 bg-amber-50 p-4">
-          <!-- Se cuentan PEDIDOS, no incidencias: uno solo puede acumular varios motivos, y decir
-               «2 pedidos» cuando es uno con dos fallos hace buscar un pedido que no existe. -->
+          <!-- Se cuentan PEDIDOS, no incidencias: uno solo puede acumular varios motivos. -->
           <summary class="cursor-pointer font-medium text-amber-900">
             {{ rotuloDeIncidencias() }}
           </summary>
@@ -119,52 +103,74 @@ const ICONO: Readonly<Record<string, IconDefinition>> = {
         </details>
       }
 
-      <!-- Móvil primero: una columna; dos a partir de la anchura grande y las cinco en la extra. -->
-      <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-5">
-        @for (columna of tablero(); track columna.estado) {
-          <section class="rounded-xl border-t-4 border-ink-200 bg-base-100 p-3">
-            <h2
-              class="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-ink-600"
-            >
-              <fa-icon [icon]="columna.icono" />
-              {{ t('admin.purchases.status.' + columna.estado.toLowerCase()) }}
-              <span class="ml-auto rounded-full bg-ink-100 px-2 text-xs">
-                {{ columna.cuantas }}
-              </span>
-            </h2>
-            <div class="space-y-4">
-              @for (grupo of columna.grupos; track grupo.pedido) {
-                <div class="rounded-lg border border-ink-200">
-                  <div
-                    class="flex items-center justify-between gap-2 border-b border-ink-200 px-3 py-2"
-                  >
-                    <span class="font-mono text-xs text-ink-500">{{ grupo.pedido }}</span>
-                    @if (grupo.compras.length > 1) {
-                      <span class="rounded-full bg-ink-100 px-2 text-[11px] text-ink-500">
-                        {{ grupo.compras.length }}
-                      </span>
-                    }
-                  </div>
-                  <div class="divide-y divide-ink-200">
-                    @for (compra of grupo.compras; track compra.id) {
-                      <nx-tarjeta-de-compra
-                        [compra]="compra"
-                        [ocupado]="ocupada() === compra.id"
-                        (pide)="avanza(compra, $event)"
-                        (copia)="copiaDireccion(compra)"
-                      />
-                    }
-                  </div>
-                </div>
-              } @empty {
-                <p class="py-6 text-center text-xs text-ink-400">
-                  {{ t('admin.purchases.empty') }}
-                </p>
-              }
-            </div>
-          </section>
+      <!-- Filtro por estado: lo que antes eran las columnas del Kanban. Alterna: volver a pulsar el
+           activo lo quita. Mobile first: las fichas fluyen a varias líneas en pantalla estrecha. -->
+      <div class="flex flex-wrap gap-2">
+        @for (estado of estados; track estado) {
+          <button
+            type="button"
+            (click)="filtra(estado)"
+            class="btn btn-sm"
+            [class.btn-primary]="filtroEstado() === estado"
+            [class.btn-ghost]="filtroEstado() !== estado"
+          >
+            {{ t('admin.purchases.status.' + estado.toLowerCase()) }}
+          </button>
         }
       </div>
+
+      <p class="text-sm text-ink-500">{{ rotuloDeTotal() }}</p>
+
+      <div class="space-y-4">
+        @for (grupo of grupos(); track grupo.pedido) {
+          <div class="rounded-lg border border-ink-200">
+            <div
+              class="flex items-center justify-between gap-2 border-b border-ink-200 px-3 py-2"
+            >
+              <span class="font-mono text-xs text-ink-500">{{ grupo.pedido }}</span>
+              @if (grupo.compras.length > 1) {
+                <span class="rounded-full bg-ink-100 px-2 text-[11px] text-ink-500">
+                  {{ grupo.compras.length }}
+                </span>
+              }
+            </div>
+            <div class="divide-y divide-ink-200">
+              @for (compra of grupo.compras; track compra.id) {
+                <nx-tarjeta-de-compra
+                  [compra]="compra"
+                  [ocupado]="ocupada() === compra.id"
+                  (pide)="avanza(compra, $event)"
+                  (copia)="copiaDireccion(compra)"
+                />
+              }
+            </div>
+          </div>
+        } @empty {
+          <p class="py-10 text-center text-sm text-ink-400">{{ t('admin.purchases.empty') }}</p>
+        }
+      </div>
+
+      @if (totalPaginas() > 1) {
+        <div class="flex items-center justify-center gap-4">
+          <button
+            type="button"
+            (click)="anterior()"
+            [disabled]="!puedeAnterior()"
+            class="btn btn-sm btn-ghost"
+          >
+            <fa-icon [icon]="iconos.anterior" /> {{ t('pagination.previous') }}
+          </button>
+          <span class="text-sm text-ink-600">{{ rotuloDePagina() }}</span>
+          <button
+            type="button"
+            (click)="siguiente()"
+            [disabled]="!puedeSiguiente()"
+            class="btn btn-sm btn-ghost"
+          >
+            {{ t('pagination.next') }} <fa-icon [icon]="iconos.siguiente" />
+          </button>
+        </div>
+      }
 
       <footer class="rounded-xl border border-ink-200 p-4 text-sm">
         <p class="flex items-center gap-2 font-medium">
@@ -174,8 +180,6 @@ const ICONO: Readonly<Record<string, IconDefinition>> = {
         <ol class="mt-2 list-decimal space-y-1 pl-5 text-ink-600">
           <li>{{ t('admin.purchases.howto_1') }}</li>
           <li>{{ t('admin.purchases.howto_2') }}</li>
-          <!-- El paso que faltaba: sin despachar el pedido no hay guía internacional, y sin ella el
-               fichero no se activa nunca. -->
           <li>{{ t('admin.purchases.howto_dispatch') }}</li>
           <li>{{ t('admin.purchases.howto_3') }}</li>
           <li>{{ t('admin.purchases.howto_4') }}</li>
@@ -191,7 +195,12 @@ export class ComprasPage {
     hoja: faFileExcel,
     aviso: faTriangleExclamation,
     correcto: faCircleCheck,
+    anterior: faChevronLeft,
+    siguiente: faChevronRight,
   };
+
+  /** Los estados filtrables, en el orden del proceso (lo que eran las columnas del Kanban). */
+  protected readonly estados = COLUMNAS_DE_COMPRA;
 
   private readonly consulta = inject(ConsultaCompras);
   private readonly comprada = inject(MarcaCompraHecha);
@@ -207,34 +216,23 @@ export class ComprasPage {
 
   protected readonly compras = signal<readonly CompraAProveedor[]>([]);
   protected readonly avance = signal<AvanceDeHoja | null>(null);
+  protected readonly enPeligro = signal<readonly CompraAProveedor[]>([]);
   protected readonly ocupada = signal<string | null>(null);
   protected readonly descargando = signal(false);
+  protected readonly filtroEstado = signal<EstadoDeCompra | null>(null);
+  protected readonly pagina = signal(0);
+  protected readonly total = signal(0);
+  protected readonly totalPaginas = signal(0);
 
-  /**
-   * El tablero entero, calculado UNA vez por cambio de las compras.
-   *
-   * <p>Antes la plantilla llamaba a dos métodos por columna —y el segundo repetía el filtrado del
-   * primero—, así que cada repintado recorría la lista de compras diez veces para dibujar lo mismo.
-   */
-  protected readonly tablero = computed(() =>
-    COLUMNAS_DE_COMPRA.map((estado) => {
-      const deLaColumna = this.compras().filter((compra) => compra.estado === estado);
-      return {
-        estado,
-        icono: ICONO[estado] ?? faCartShopping,
-        cuantas: deLaColumna.length,
-        grupos: agrupaPorPedido(deLaColumna),
-      };
-    }),
-  );
-
+  protected readonly grupos = computed(() => agrupaPorPedido(this.compras()));
   protected readonly exportables = computed(() => this.avance()?.exportables ?? 0);
   protected readonly incidencias = computed(() => this.avance()?.incidencias ?? []);
   protected readonly bloqueados = computed(() => pedidosBloqueados(this.incidencias()));
-  protected readonly enPeligro = computed(() => enRiesgo(this.compras()));
+  protected readonly puedeAnterior = computed(() => this.pagina() > 0);
+  protected readonly puedeSiguiente = computed(() => this.pagina() + 1 < this.totalPaginas());
 
-  // Los rótulos con cifra se arman UNA vez por cambio. En la plantilla se rehacían en cada repintado,
-  // y además escondían el número dentro de una cadena imposible de encontrar buscando por el rótulo.
+  // Los rótulos con cifra se arman UNA vez por cambio, no en cada repintado, y dejan el número fuera
+  // de la cadena traducida para poder encontrarlo.
   protected readonly rotuloDeRiesgo = computed(() =>
     this.t('admin.purchases.at_risk_title').replace('{n}', String(this.enPeligro().length)),
   );
@@ -244,21 +242,60 @@ export class ComprasPage {
   protected readonly rotuloDeIncidencias = computed(() =>
     this.t('admin.purchases.issues_title').replace('{n}', String(this.bloqueados())),
   );
+  protected readonly rotuloDeTotal = computed(
+    () => `${this.t('pagination.showing')} ${this.compras().length} / ${this.total()}`,
+  );
+  protected readonly rotuloDePagina = computed(
+    () =>
+      `${this.t('pagination.page')} ${this.pagina() + 1} ${this.t('pagination.of')} ` +
+      `${Math.max(this.totalPaginas(), 1)}`,
+  );
 
   constructor() {
     void this.recarga();
   }
 
   private async recarga(): Promise<void> {
-    const [cola, avance] = await Promise.all([
-      this.consulta.cola(),
+    const [pagina, avance, riesgo] = await Promise.all([
+      this.consulta.cola({
+        estado: this.filtroEstado() ?? undefined,
+        pagina: this.pagina(),
+        tamano: TAMANO_PAGINA,
+      }),
       this.consulta.avanceDeLaHoja(),
+      this.consulta.enRiesgo(),
     ]);
-    if (cola.ok) {
-      this.compras.set(cola.valor);
+    if (pagina.ok) {
+      this.compras.set(pagina.valor.items);
+      this.total.set(pagina.valor.total);
+      this.totalPaginas.set(pagina.valor.totalPaginas);
     }
     if (avance.ok) {
       this.avance.set(avance.valor);
+    }
+    if (riesgo.ok) {
+      this.enPeligro.set(riesgo.valor);
+    }
+  }
+
+  /** Alterna el filtro de estado: volver a pulsar el activo lo quita. Vuelve a la primera página. */
+  protected filtra(estado: EstadoDeCompra): void {
+    this.filtroEstado.set(this.filtroEstado() === estado ? null : estado);
+    this.pagina.set(0);
+    void this.recarga();
+  }
+
+  protected anterior(): void {
+    if (this.puedeAnterior()) {
+      this.pagina.update((p) => p - 1);
+      void this.recarga();
+    }
+  }
+
+  protected siguiente(): void {
+    if (this.puedeSiguiente()) {
+      this.pagina.update((p) => p + 1);
+      void this.recarga();
     }
   }
 
@@ -388,8 +425,7 @@ export class ComprasPage {
         this.avisos.error(resultado.error.mensaje || this.t('admin.purchases.error'));
         return;
       }
-      // La descarga MARCA las compras como exportadas: hay que recargar para que salgan de la cola y
-      // aparezca su fecha de exportación.
+      // La descarga MARCA las compras como exportadas: hay que recargar para que salgan de la cola.
       await this.recarga();
     } finally {
       this.descargando.set(false);

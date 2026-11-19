@@ -23,7 +23,29 @@
 </head>
 
 <body>
-  <nx-root></nx-root>
+  <nx-root>
+    <!--
+      Pantalla de arranque. Solo se ve mientras el navegador descarga y arranca Angular en las rutas
+      de CLIENTE (cuenta, wallet, panel, carrito, checkout), que se sirven con el shell vacío
+      `index.csr.html`; antes de esto esas páginas se quedaban en blanco 2,5-6 s. En las páginas
+      públicas PRERENDERIZADAS no aparece: el build rellena <nx-root> con su HTML y esta reserva se
+      pierde. Angular la sustituye en cuanto pinta el componente raíz.
+
+      Va con estilos EN LÍNEA (no depende de `styles.css`) y sigue la preferencia de tema del SISTEMA,
+      no la cookie: la cookie de tema la aplica Angular, que en este instante aún no ha arrancado. Los
+      colores son los `base-200` de cada tema, los mismos que el `theme-color` de arriba.
+    -->
+    <div class="nx-boot" aria-hidden="true"><div class="nx-boot__spin"></div></div>
+    <style>
+      .nx-boot { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: #f6f7f9; }
+      .nx-boot__spin { width: 38px; height: 38px; border-radius: 50%; border: 3px solid rgba(15,23,42,.14); border-top-color: #2563eb; animation: nx-boot-spin .7s linear infinite; }
+      @keyframes nx-boot-spin { to { transform: rotate(360deg); } }
+      @media (prefers-color-scheme: dark) {
+        .nx-boot { background: #1f2937; }
+        .nx-boot__spin { border-color: rgba(255,255,255,.16); border-top-color: #60a5fa; }
+      }
+    </style>
+  </nx-root>
 </body>
 
 </html>

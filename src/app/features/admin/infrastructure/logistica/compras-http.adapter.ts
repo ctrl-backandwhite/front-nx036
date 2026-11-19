@@ -11,6 +11,7 @@ import {
   CompraAProveedor,
   EstadoDeCompra,
   LineaDeCompra,
+  PaginaDeCompras,
 } from '../../domain/logistica/model/compra';
 import {
   AvanceDeCompraPort,
@@ -18,6 +19,7 @@ import {
   DatosDeCompraHecha,
   DatosDeEnvioDelProveedor,
   DatosDeReempaquetado,
+  FiltroDeColaDeCompras,
   HojaDeEmpaquetadoPort,
 } from '../../domain/logistica/port/compras.port';
 
@@ -54,6 +56,15 @@ interface CompraDto {
 interface AvanceDto {
   exportable?: number;
   issues?: { orderId: string; orderNumber: string; reason: string }[];
+}
+
+/** La página tal como la devuelve el backend (`PageResponse`). */
+interface PaginaDto {
+  items?: CompraDto[];
+  page?: number;
+  size?: number;
+  totalElements?: number;
+  totalPages?: number;
 }
 
 function aLinea(dto: LineaDto): LineaDeCompra {
@@ -103,8 +114,25 @@ export class ComprasHttpAdapter implements ComprasPort, AvanceDeCompraPort, Hoja
   private readonly http = inject(HttpClient);
   private readonly config = inject(APP_CONFIG);
 
-  async cola(): Promise<Result<readonly CompraAProveedor[], AppError>> {
-    const respuesta = await this.api.get<CompraDto[]>('/admin/purchases');
+  async cola(filtro: FiltroDeColaDeCompras): Promise<Result<PaginaDeCompras, AppError>> {
+    const params = new URLSearchParams();
+    if (filtro.estado) {
+      params.set('status', filtro.estado);
+    }
+    params.set('page', String(filtro.pagina ?? 0));
+    params.set('size', String(filtro.tamano ?? 25));
+    const respuesta = await this.api.get<PaginaDto>(`/admin/purchases?${params.toString()}`);
+    return mapea(respuesta, (dto) => ({
+      items: (dto.items ?? []).map(aCompra),
+      pagina: dto.page ?? 0,
+      tamano: dto.size ?? 25,
+      total: dto.totalElements ?? 0,
+      totalPaginas: dto.totalPages ?? 0,
+    }));
+  }
+
+  async enRiesgo(): Promise<Result<readonly CompraAProveedor[], AppError>> {
+    const respuesta = await this.api.get<CompraDto[]>('/admin/purchases/at-risk');
     return mapea(respuesta, (filas) => (filas ?? []).map(aCompra));
   }
 

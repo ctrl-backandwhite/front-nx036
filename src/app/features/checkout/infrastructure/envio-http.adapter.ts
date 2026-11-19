@@ -4,9 +4,11 @@ import { Result, mapea } from '@shared/result/result';
 import { AppError } from '@shared/error/app-error';
 import {
   CotizacionDeEnvio,
+  MotivoDeBloqueoDeEnvio,
   OpcionDeEnvio,
   PaisDeEnvio,
   RegionDeEnvio,
+  TipoDeLinea,
 } from '../domain/model/cotizacion-de-envio';
 import { CoberturaDeEnvioPort, EnvioPort, PeticionDeEnvio } from '../domain/port/envio.port';
 
@@ -15,6 +17,8 @@ interface OpcionDto {
   amountUsdCents: number;
   amountFormatted: string;
   carrierName?: string;
+  carrier?: string;
+  lineType?: string;
   etaMinDays: number;
   etaMaxDays: number;
 }
@@ -41,17 +45,34 @@ interface CotizacionDto {
   customsThresholdExceeded?: boolean;
   customsBlocked?: boolean;
   customsLimit?: string;
+  taxMode?: string;
   etaMinDays?: number;
   etaMaxDays?: number;
   couponCode?: string;
   couponError?: string;
   options?: OpcionDto[];
   selectedShippingOptionCode?: string;
+  selectedShippingCarrier?: string;
+  shippingBlockedReason?: string;
 }
+
+const TIPOS_DE_LINEA: Readonly<Record<string, TipoDeLinea>> = {
+  ROPA: 'ropa',
+  GENERAL: 'general',
+  CON_BATERIA: 'con-bateria',
+  DESCONOCIDA: 'desconocida',
+};
+
+const MOTIVOS_DE_BLOQUEO: Readonly<Record<string, MotivoDeBloqueoDeEnvio>> = {
+  PRODUCTO_SIN_PARTIDA: 'producto-sin-partida',
+  SIN_CANAL_ADMISIBLE: 'sin-canal-admisible',
+};
 
 function aOpcion(dto: OpcionDto): OpcionDeEnvio {
   return {
     codigo: dto.code,
+    idDeTransportista: dto.carrier || undefined,
+    tipoDeLinea: dto.lineType ? TIPOS_DE_LINEA[dto.lineType] : undefined,
     importeParaComparar: dto.amountUsdCents,
     importeFormateado: dto.amountFormatted,
     transportista: dto.carrierName,
@@ -81,6 +102,7 @@ export class EnvioHttpAdapter implements EnvioPort {
       })),
       couponCode: peticion.codigoDeCupon || undefined,
       shippingOptionCode: peticion.opcionDeEnvio || undefined,
+      shippingCarrier: peticion.transportistaDeEnvio || undefined,
     });
     return mapea(respuesta, (dto) => ({
       cubierto: dto.supported === true,
@@ -104,12 +126,17 @@ export class EnvioHttpAdapter implements EnvioPort {
       umbralDeAduanaSuperado: dto.customsThresholdExceeded,
       aduanaBloqueada: dto.customsBlocked,
       limiteDeAduana: dto.customsLimit,
+      impuestosAlRecibir: dto.taxMode === 'DDU',
       diasMinimos: dto.etaMinDays,
       diasMaximos: dto.etaMaxDays,
       codigoDeCupon: dto.couponCode,
       errorDeCupon: dto.couponError,
       opciones: (dto.options ?? []).map(aOpcion),
       opcionCotizada: dto.selectedShippingOptionCode,
+      transportistaCotizado: dto.selectedShippingCarrier || undefined,
+      motivoDeBloqueo: dto.shippingBlockedReason
+        ? MOTIVOS_DE_BLOQUEO[dto.shippingBlockedReason]
+        : undefined,
     }));
   }
 }

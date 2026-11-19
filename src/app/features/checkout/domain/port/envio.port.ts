@@ -11,6 +11,8 @@ export interface PeticionDeEnvio {
   readonly items: readonly ItemDelPedido[];
   readonly codigoDeCupon?: string;
   readonly opcionDeEnvio?: string;
+  /** El transportista de la opción elegida; con él la opción se casa por (transportista, código). */
+  readonly transportistaDeEnvio?: string;
 }
 
 /**

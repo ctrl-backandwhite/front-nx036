@@ -31,6 +31,7 @@ import { LimitesDeTransportistaPage } from './limites-de-transportista.page';
  */
 function limite(parcial: Partial<LimiteDeTransportista> = {}): LimiteDeTransportista {
   return {
+    carrier: 'YUNEXPRESS',
     canal: 'BPA',
     pais: 'ES',
     pesoMaximoGramos: 2000,

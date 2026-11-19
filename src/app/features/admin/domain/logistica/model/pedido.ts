@@ -106,6 +106,15 @@ export interface Pedido {
   readonly totalCentimos?: number;
   readonly moneda?: string;
   readonly realizadoEl?: string;
+  /** El transportista (identificador) y el canal por los que se cobró el envío; vacíos si no tiene. */
+  readonly transportista?: string;
+  readonly canalDeEnvio?: string;
+  /**
+   * Si el pedido saldría hoy por su canal. Ausente cuando el servidor no lo dice: entonces NO se
+   * avisa de nada, porque «no lo sé» no es «está mal».
+   */
+  readonly canalAdmisible?: boolean;
+  readonly motivoDelCanal?: MotivoDelCanal;
 }
 
 /** Una línea de la ficha. `origenUrl` es la ficha del proveedor, que el operador abre al comprar. */
@@ -124,6 +133,36 @@ export interface LineaDePedido {
 /** De dónde vino el pedido: nuestro escaparate o una tienda integrada (Shopify, WooCommerce). */
 export type OrigenDePedido = 'PLATFORM' | 'INTEGRATION';
 
+/** La clase de mercancía que admite el canal por el que se cobró el envío. */
+export type TipoDeLineaDeCanal = 'ropa' | 'general' | 'con-bateria' | 'desconocida';
+
+/**
+ * Por qué un pedido no saldría hoy por su canal. `desconocido` recoge un motivo que el servidor añada
+ * después: se avisa igual, con un texto genérico, en vez de callar un pedido que no puede salir.
+ */
+export type MotivoDelCanal =
+  | 'sin-transportista'
+  | 'sin-canal'
+  | 'transportista-distinto'
+  | 'producto-no-localizable'
+  | 'mercancia-no-admitida'
+  | 'valor-fuera-del-tope'
+  | 'desconocido';
+
+/** Un bulto del pedido, con el canal por el que REALMENTE se emitió su guía. */
+export interface BultoDePedido {
+  readonly numero: number;
+  readonly transportista?: string;
+  /** El canal con el que se emitió, que puede no ser el cobrado. */
+  readonly canalEmitido?: string;
+  readonly numeroDeSeguimiento?: string;
+  readonly numeroDeGuia?: string;
+  readonly estado?: string;
+  readonly pesoEnGramos?: number;
+  /** Falso: el bulto salió por un canal distinto del cobrado. Ausente: no se sabe. */
+  readonly coincideConElCanal?: boolean;
+}
+
 export interface FichaDePedido extends Pedido {
   readonly origen?: OrigenDePedido;
   readonly notas?: string;
@@ -133,7 +172,42 @@ export interface FichaDePedido extends Pedido {
   /** Ausente mientras no se haya cotizado: un «0,00 €» de envío se lee como envío gratis. */
   readonly envioFormateado?: string;
   readonly impuestosFormateado?: string;
+  /**
+   * El transportista por el que se COBRÓ el envío (nombre visible), con su canal y su clase de línea.
+   *
+   * <p>No es el de la guía ya emitida: es el que eligió quien compró y el que decide a quién se le pide
+   * la guía al despachar. Con dos transportistas, sin esto no hay forma de saber por qué un pedido
+   * salió por donde salió — ni de ver que salió por el que no tocaba.
+   */
+  readonly nombreDelTransportista?: string;
+  readonly nombreDelCanal?: string;
+  readonly tipoDeLinea?: TipoDeLineaDeCanal;
+  /** El detalle que escribe el servidor cuando el canal no es admisible. */
+  readonly detalleDelCanal?: string;
+  readonly bultos: readonly BultoDePedido[];
   readonly lineas: readonly LineaDePedido[];
+}
+
+/**
+ * Qué falla en el canal de un pedido, o nada si está en regla.
+ *
+ * <p>Un pedido SIN canal es un problema aunque el servidor no lo declare inadmisible: ya no hay
+ * transportista por defecto al que caer, así que sin canal no sale. En cambio, si el servidor no dice
+ * nada de admisibilidad y el canal está, no se inventa un fallo.
+ */
+export function problemaDeCanal(pedido: Pedido): MotivoDelCanal | undefined {
+  if (pedido.canalAdmisible === false) {
+    return pedido.motivoDelCanal ?? 'desconocido';
+  }
+  if (!pedido.canalDeEnvio) {
+    return pedido.motivoDelCanal ?? (pedido.transportista ? 'sin-canal' : 'sin-transportista');
+  }
+  return undefined;
+}
+
+/** ¿Algún bulto salió por un canal distinto del cobrado? */
+export function hayBultoPorOtroCanal(ficha: FichaDePedido): boolean {
+  return ficha.bultos.some((bulto) => bulto.coincideConElCanal === false);
 }
 
 /** La factura solo existe una vez que el pedido dejó de ser una intención. */
@@ -156,6 +230,15 @@ export interface PaginaDePedidos {
 export interface CriterioDePedidos {
   readonly estado?: string;
   readonly texto?: string;
+  // Fechas: el servidor las filtra con la misma semántica que el panel (ver el backend). `desde`/`hasta`
+  // acotan un intervalo; `anio`/`mes`/`dia` filtran cada componente de forma independiente.
+  readonly desde?: string;
+  readonly hasta?: string;
+  readonly anio?: string;
+  readonly mes?: string;
+  readonly dia?: string;
+  /** `true`: solo pedidos cuyo canal falta o no admitiría su mercancía; `false`: solo los que están en regla. */
+  readonly canalProblema?: boolean;
   readonly pagina: number;
   readonly tamano: number;
 }
@@ -208,60 +291,6 @@ export function faltanDatosDeEnvio(direccion: DireccionDeEnvio): boolean {
   );
 }
 
-/** El filtro de fechas del listado. Todo opcional: lo que no se rellena no filtra. */
-export interface FiltroDeFechas {
-  readonly desde?: string;
-  readonly hasta?: string;
-  readonly anio?: string;
-  readonly mes?: string;
-  readonly dia?: string;
-}
-
-export function filtroDeFechasVacio(filtro: FiltroDeFechas): boolean {
-  return !filtro.desde && !filtro.hasta && !filtro.anio && !filtro.mes && !filtro.dia;
-}
-
-/**
- * Recorta el listado por fecha, sobre lo que ya se ha traído.
- *
- * <p>Se hace aquí y no en el servidor porque el backend pagina por otros criterios: son afinados sobre
- * la página que se está mirando, para responder «de este lote, cuáles fueron en marzo». Un pedido SIN
- * fecha se descarta cuando hay filtro puesto: no se puede afirmar que caiga dentro.
- *
- * <p>El «hasta» incluye el día entero. Sin sumarle las veinticuatro horas, filtrar «hasta el 3» dejaba
- * fuera todo lo del día 3 salvo lo ocurrido a las cero horas en punto.
- */
-export function filtraPorFecha(
-  pedidos: readonly Pedido[],
-  filtro: FiltroDeFechas,
-): readonly Pedido[] {
-  if (filtroDeFechasVacio(filtro)) {
-    return pedidos;
-  }
-  const desdeMs = filtro.desde ? new Date(filtro.desde).getTime() : Number.NEGATIVE_INFINITY;
-  const hastaMs = filtro.hasta
-    ? new Date(filtro.hasta).getTime() + 86_400_000
-    : Number.POSITIVE_INFINITY;
-
-  return pedidos.filter((pedido) => {
-    if (!pedido.realizadoEl) {
-      return false;
-    }
-    const fecha = new Date(pedido.realizadoEl);
-    const instante = fecha.getTime();
-    if (Number.isNaN(instante) || instante < desdeMs || instante > hastaMs) {
-      return false;
-    }
-    if (filtro.anio && String(fecha.getFullYear()) !== filtro.anio) {
-      return false;
-    }
-    if (filtro.mes && String(fecha.getMonth() + 1) !== filtro.mes) {
-      return false;
-    }
-    return !filtro.dia || String(fecha.getDate()) === filtro.dia;
-  });
-}
-
 /**
  * La fecha de un pedido, escrita para leerla.
  *
@@ -290,16 +319,19 @@ export function fechaDelPedido(iso: string | undefined, idioma: string): string 
   });
 }
 
-/** Los años presentes en el listado, del más reciente al más antiguo, para poder elegir uno. */
-export function aniosDe(pedidos: readonly Pedido[]): readonly string[] {
-  const anios = new Set<string>();
-  for (const pedido of pedidos) {
-    if (pedido.realizadoEl) {
-      const fecha = new Date(pedido.realizadoEl);
-      if (!Number.isNaN(fecha.getTime())) {
-        anios.add(String(fecha.getFullYear()));
-      }
-    }
+/**
+ * Los años elegibles en el filtro, del más reciente al más antiguo.
+ *
+ * <p>A diferencia del listado, NO salen de la página cargada: con filtrado en servidor, derivar los años
+ * de las 25 filas visibles dejaba fuera cualquier año que no estuviera en esa página, y entonces no se
+ * podía filtrar por él. Se generan desde el primer año con actividad ({@code desdeAnio}) hasta el año en
+ * curso, que llega como parámetro para que la función siga siendo pura y verificable.
+ */
+export function aniosDisponibles(hastaAnio: number, desdeAnio = 2024): readonly string[] {
+  const fin = Math.max(hastaAnio, desdeAnio);
+  const anios: string[] = [];
+  for (let anio = fin; anio >= desdeAnio; anio--) {
+    anios.push(String(anio));
   }
-  return [...anios].sort((a, b) => b.localeCompare(a));
+  return anios;
 }

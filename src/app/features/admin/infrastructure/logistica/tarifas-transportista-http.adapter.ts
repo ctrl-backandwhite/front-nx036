@@ -10,9 +10,11 @@ import { TarifasDeTransportistaPort } from '../../domain/logistica/port/configur
 
 /** La forma en que el backend habla de una tarifa. No sale de este fichero. */
 interface TarifaDto {
+  carrier: string;
   id: string;
   channelCode: string;
   countryCode: string;
+  countryName?: string;
   nombreCanal?: string;
   hastaGramos: number;
   registroRmb: number;
@@ -37,8 +39,10 @@ interface RefrescoDto {
 function aTarifa(dto: TarifaDto): TarifaDeTransportista {
   return {
     id: dto.id,
+    carrier: dto.carrier,
     canal: dto.channelCode,
     pais: dto.countryCode,
+    nombreDelPais: dto.countryName,
     nombreCanal: dto.nombreCanal,
     hastaGramos: dto.hastaGramos,
     registroRmb: Number(dto.registroRmb ?? 0),
@@ -100,6 +104,7 @@ export class TarifasTransportistaHttpAdapter implements TarifasDeTransportistaPo
 
   async guarda(tarifa: TarifaDeTransportista): Promise<Result<void, AppError>> {
     const cuerpo = {
+      carrier: tarifa.carrier.trim().toUpperCase(),
       channelCode: tarifa.canal.trim().toUpperCase(),
       countryCode: tarifa.pais.trim().toUpperCase(),
       hastaGramos: tarifa.hastaGramos,

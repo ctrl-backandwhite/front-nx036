@@ -1,6 +1,6 @@
 import { provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
-import { render, screen, waitFor } from '@testing-library/angular';
+import { fireEvent, render, screen, waitFor } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { COOKIE_IDIOMA } from '@core/preferences/preferencias';
 import { APP_CONFIG } from '@core/config/app-config';
@@ -248,5 +248,55 @@ describe('PedidosPage', () => {
     await userEvent.click(screen.getByRole('button', { name: /Crear orden$/i }));
 
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
+  });
+
+  /**
+   * El filtro por fecha se resuelve en el SERVIDOR: cambiar «Desde» vuelve a pedir el listado con la
+   * fecha en el criterio. Antes se recortaba en el navegador sobre las 25 filas visibles, así que a
+   * volumen el filtro dejaba fuera todo lo que no estuviera en la página cargada.
+   */
+  it('un filtro de fecha dispara una recarga con la fecha en el criterio', async () => {
+    const { puertos, container } = await monta([pedido()]);
+    puertos.lectura.busca.mockClear();
+
+    const desde = container.querySelector('input[type="date"]') as HTMLInputElement;
+    fireEvent.input(desde, { target: { value: '2026-10-01' } });
+
+    await waitFor(() =>
+      expect(puertos.lectura.busca).toHaveBeenCalledWith(
+        expect.objectContaining({ desde: '2026-10-01' }),
+      ),
+    );
+  });
+
+  /** Se filtra en el servidor, como las fechas: sobre las 25 filas visibles no serviría a volumen. */
+  it('el filtro de canal con problema va al servidor y se puede quitar', async () => {
+    const { puertos } = await monta([pedido()]);
+    puertos.lectura.busca.mockClear();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Canal' }));
+    await userEvent.click(await screen.findByRole('option', { name: 'Con problema' }));
+
+    await waitFor(() =>
+      expect(puertos.lectura.busca).toHaveBeenCalledWith(
+        expect.objectContaining({ canalProblema: true }),
+      ),
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Canal' }));
+    await userEvent.click(await screen.findByRole('option', { name: 'En regla' }));
+    await waitFor(() =>
+      expect(puertos.lectura.busca).toHaveBeenCalledWith(
+        expect.objectContaining({ canalProblema: false }),
+      ),
+    );
+
+    puertos.lectura.busca.mockClear();
+    await userEvent.click(screen.getByRole('button', { name: /limpiar/i }));
+    await waitFor(() =>
+      expect(puertos.lectura.busca).toHaveBeenCalledWith(
+        expect.objectContaining({ canalProblema: undefined }),
+      ),
+    );
   });
 });

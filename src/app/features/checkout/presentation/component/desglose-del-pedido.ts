@@ -3,6 +3,7 @@ import { TraduccionService } from '@core/i18n/traduccion.service';
 import { GuiaPuntos } from '@ds/component/guia-puntos/guia-puntos';
 import { CotizacionDeEnvio, OpcionDeEnvio } from '../../domain/model/cotizacion-de-envio';
 import { InfoDeAranceles } from './info-de-aranceles';
+import { rotuloDelCanal } from './rotulo-del-canal';
 
 /**
  * El desglose del pedido: subtotal, envío, arancel, impuesto y total.
@@ -47,7 +48,7 @@ import { InfoDeAranceles } from './info-de-aranceles';
           {{ t('order.detail.shipping') }}
           @if (cubierto()) {
             <span class="block text-[11px] opacity-70">
-              {{ t('tracking.carrier_default') }} · {{ plazo() }} {{ t('checkout.ship_days') }}
+              {{ rotuloDelEnvio() }} · {{ plazo() }} {{ t('checkout.ship_days') }}
             </span>
           }
         </span>
@@ -125,6 +126,17 @@ import { InfoDeAranceles } from './info-de-aranceles';
         </div>
       }
 
+      <!-- Cuando el impuesto no va en el total hay que DECIRLO: sin línea de impuesto, quien compra da
+           por hecho que está incluido, y se entera de que no en la puerta de su casa. -->
+      @if (cubierto() && cotizacion()?.impuestosAlRecibir) {
+        <p
+          class="text-[12px] text-warning-content/90 bg-warning/10 border border-warning/30 rounded p-2"
+          data-testid="desglose-impuestos-al-recibir"
+        >
+          {{ t('checkout.taxes_on_delivery') }}
+        </p>
+      }
+
       <!-- Mientras llega la cotización se reservan las líneas que vendrán —arancel e impuesto— en vez
            de dejar el resumen corto y que luego dé un salto. Son barras y no rótulos a propósito: hasta
            que no responde el servidor no se sabe QUÉ conceptos tiene ese destino, y escribir «Aranceles»
@@ -194,6 +206,11 @@ export class DesgloseDelPedido {
 
   protected hayArancel(): boolean {
     return this.cubierto() && (this.cotizacion()?.recargoDeAduanaCentimos ?? 0) > 0;
+  }
+
+  /** La línea y el transportista de la opción cotizada; «Envío estándar» solo si el servidor no los dijo. */
+  protected rotuloDelEnvio(): string {
+    return rotuloDelCanal(this.opcionCotizada(), this.t) ?? this.t('tracking.carrier_default');
   }
 
   protected plazo(): string {

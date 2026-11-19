@@ -90,6 +90,66 @@ describe('EnvioHttpAdapter', () => {
     }
   });
 
+  it('manda el transportista de la opcion elegida y traduce transportista y linea de cada opcion', async () => {
+    const http = monta();
+    const promesa = TestBed.inject(EnvioHttpAdapter).cotiza({
+      pais: 'RS',
+      items: [],
+      opcionDeEnvio: 'S1427',
+      transportistaDeEnvio: 'FOURPX',
+    });
+
+    const peticion = http.expectOne((r) => r.url.endsWith('/api/shipping/quote'));
+    expect(peticion.request.body.shippingCarrier).toBe('FOURPX');
+    peticion.flush({
+      supported: true,
+      selectedShippingOptionCode: 'S1427',
+      selectedShippingCarrier: 'FOURPX',
+      options: [
+        { code: 'S1427', carrier: 'FOURPX', lineType: 'GENERAL', amountUsdCents: 900, amountFormatted: '9 €', carrierName: '4PX', etaMinDays: 6, etaMaxDays: 12 },
+        { code: 'X', carrier: 'YUNEXPRESS', lineType: 'ROPA', amountUsdCents: 700, amountFormatted: '7 €', carrierName: 'YunExpress', etaMinDays: 8, etaMaxDays: 15 },
+        { code: 'Y', carrier: 'YUNEXPRESS', lineType: 'DESCONOCIDA', amountUsdCents: 800, amountFormatted: '8 €', etaMinDays: 8, etaMaxDays: 15 },
+        { code: 'Z', amountUsdCents: 800, amountFormatted: '8 €', etaMinDays: 8, etaMaxDays: 15 },
+      ],
+    });
+    const resultado = await promesa;
+
+    expect(resultado.ok).toBe(true);
+    if (resultado.ok) {
+      expect(resultado.valor.transportistaCotizado).toBe('FOURPX');
+      const [a, b, c, d] = resultado.valor.opciones ?? [];
+      expect(a).toMatchObject({ idDeTransportista: 'FOURPX', tipoDeLinea: 'general' });
+      expect(b).toMatchObject({ idDeTransportista: 'YUNEXPRESS', tipoDeLinea: 'ropa' });
+      expect(c.tipoDeLinea).toBe('desconocida');
+      expect(d.idDeTransportista).toBeUndefined();
+      expect(d.tipoDeLinea).toBeUndefined();
+    }
+  });
+
+  it('el motivo por el que la mercancia no se puede enviar llega como dato, no como destino sin cobertura', async () => {
+    const http = monta();
+    const adaptador = TestBed.inject(EnvioHttpAdapter);
+
+    const sinPartida = adaptador.cotiza({ pais: 'ES', items: [] });
+    http
+      .expectOne((r) => r.url.endsWith('/api/shipping/quote'))
+      .flush({ supported: false, shippingBlockedReason: 'PRODUCTO_SIN_PARTIDA' });
+    const a = await sinPartida;
+    expect(a.ok && a.valor.motivoDeBloqueo).toBe('producto-sin-partida');
+
+    const sinCanal = adaptador.cotiza({ pais: 'ES', items: [] });
+    http
+      .expectOne((r) => r.url.endsWith('/api/shipping/quote'))
+      .flush({ supported: false, shippingBlockedReason: 'SIN_CANAL_ADMISIBLE' });
+    const b = await sinCanal;
+    expect(b.ok && b.valor.motivoDeBloqueo).toBe('sin-canal-admisible');
+
+    const destino = adaptador.cotiza({ pais: 'XX', items: [] });
+    http.expectOne((r) => r.url.endsWith('/api/shipping/quote')).flush({ supported: false });
+    const c = await destino;
+    expect(c.ok && c.valor.motivoDeBloqueo).toBeUndefined();
+  });
+
   it('un destino sin cobertura llega como no cubierto, no como error', async () => {
     const http = monta();
     const promesa = TestBed.inject(EnvioHttpAdapter).cotiza({ pais: 'XX', items: [] });
@@ -98,6 +158,23 @@ describe('EnvioHttpAdapter', () => {
     const resultado = await promesa;
 
     expect(resultado.ok && resultado.valor.cubierto).toBe(false);
+  });
+
+  it('el régimen DDU llega como impuestos que se pagan al recibir', async () => {
+    // Lo decide el servidor según el transportista de la opción cotizada. Si este campo se perdiera
+    // en el adaptador, el resumen dejaría de avisar justo donde el impuesto no va en el total.
+    const http = monta();
+    const adaptador = TestBed.inject(EnvioHttpAdapter);
+
+    const ddu = adaptador.cotiza({ pais: 'RS', items: [] });
+    http.expectOne((r) => r.url.endsWith('/api/shipping/quote')).flush({ supported: true, taxMode: 'DDU' });
+    const conDdu = await ddu;
+    expect(conDdu.ok && conDdu.valor.impuestosAlRecibir).toBe(true);
+
+    const ddp = adaptador.cotiza({ pais: 'ES', items: [] });
+    http.expectOne((r) => r.url.endsWith('/api/shipping/quote')).flush({ supported: true, taxMode: 'DDP' });
+    const conDdp = await ddp;
+    expect(conDdp.ok && conDdp.valor.impuestosAlRecibir).toBe(false);
   });
 
   it('un fallo del servidor cruza como AppError', async () => {
@@ -162,6 +239,26 @@ describe('PedidoHttpAdapter', () => {
     const resultado = await promesa;
 
     expect(resultado.ok && resultado.valor).toEqual({ id: 'o1', numero: 'NX-1' });
+  });
+
+  it('manda el transportista de la opcion junto al codigo', async () => {
+    const http = monta();
+    const promesa = TestBed.inject(PedidoHttpAdapter).crea(
+      {
+        items: [{ productId: 'p1', variantId: '', cantidad: 1 }],
+        metodoDePago: 'WALLET',
+        idDeDireccion: 'd1',
+        opcionDeEnvio: 'S1427',
+        transportistaDeEnvio: 'FOURPX',
+      },
+      'intento-2',
+    );
+
+    const peticion = http.expectOne((r) => r.url.endsWith('/api/me/orders/checkout'));
+    expect(peticion.request.body.shippingOptionCode).toBe('S1427');
+    expect(peticion.request.body.shippingCarrier).toBe('FOURPX');
+    peticion.flush({ id: 'o2' });
+    await promesa;
   });
 
   /**

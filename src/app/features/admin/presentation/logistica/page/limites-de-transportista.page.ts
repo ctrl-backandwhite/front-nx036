@@ -12,7 +12,6 @@ import {
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
 import { DialogoStore } from '@ds/component/dialogo/dialogo.store';
-import { REGIONS } from '@shared/i18n/regions';
 import {
   LimiteDeTransportista,
   PAIS_COMODIN,
@@ -97,6 +96,7 @@ import { FormularioDeLimite } from '../component/formulario-de-limite';
           <table class="table table-zebra table-sm">
             <thead class="bg-ink-50 text-ink-500 text-left text-[12px]">
               <tr>
+                <th class="px-4 py-2 font-medium">{{ t('admin.carrier_limits.col.carrier') }}</th>
                 <th class="px-4 py-2 font-medium">{{ t('admin.carrier_limits.col.channel') }}</th>
                 <th class="px-4 py-2 font-medium">{{ t('admin.carrier_limits.col.country') }}</th>
                 <th class="px-4 py-2 font-medium">
@@ -122,6 +122,7 @@ import { FormularioDeLimite } from '../component/formulario-de-limite';
             <tbody>
               @for (limite of visibles(); track clave(limite)) {
                 <tr>
+                  <td class="px-4 py-2 font-mono text-[12px]">{{ limite.carrier }}</td>
                   <td class="px-4 py-2 font-mono text-[13px]">{{ limite.canal }}</td>
                   <td class="px-4 py-2 text-[13px]">
                     @if (limite.pais === comodin) {
@@ -295,7 +296,7 @@ export class LimitesDeTransportistaPage {
     const filas = canal ? this.limites().filter((l) => l.canal === canal) : this.limites();
     return filas.map((limite) => ({
       ...limite,
-      nombreDelPais: this.nombreDePais(limite.pais),
+      nombreDelPais: limite.nombreDelPais ?? this.nombreDePais(limite.pais),
       pesoLegible: formateaGramos(limite.pesoMaximoGramos),
       minimoLegible: formateaGramos(limite.minimoFacturableGramos),
       medidasLegibles: medidasLegibles(limite),
@@ -317,7 +318,7 @@ export class LimitesDeTransportistaPage {
 
   /** El comodín se NOMBRA; nunca se enseña el asterisco a pelo, que no se entiende. */
   protected nombreDePais(codigo: string): string {
-    return REGIONS.find((r) => r.countryCode === codigo)?.countryLabel ?? codigo;
+    return this.limites().find((l) => l.pais === codigo)?.nombreDelPais ?? codigo;
   }
 
   protected abreAlta(): void {

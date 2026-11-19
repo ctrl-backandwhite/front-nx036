@@ -1,8 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { Result } from '@shared/result/result';
 import { AppError } from '@shared/error/app-error';
-import { Plan, Suscripcion } from '../../../domain/gestion/model/facturacion';
-import { FACTURACION_PORT } from '../../../domain/gestion/port/facturacion.port';
+import { PaginaDeSuscripciones, Plan } from '../../../domain/gestion/model/facturacion';
+import { FACTURACION_PORT, FiltroDeSuscripciones } from '../../../domain/gestion/port/facturacion.port';
 
 @Injectable()
 export class ConsultaPlanes {
@@ -33,7 +33,7 @@ export class ActualizaElPlan {
 export class ConsultaSuscripciones {
   private readonly facturacion = inject(FACTURACION_PORT);
 
-  ejecuta(estado?: string): Promise<Result<readonly Suscripcion[], AppError>> {
-    return this.facturacion.suscripciones(estado);
+  ejecuta(filtro: FiltroDeSuscripciones): Promise<Result<PaginaDeSuscripciones, AppError>> {
+    return this.facturacion.suscripciones(filtro);
   }
 }

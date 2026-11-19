@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { render, screen, waitFor } from '@testing-library/angular';
+import { render, screen, waitFor, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { COOKIE_IDIOMA } from '@core/preferences/preferencias';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
@@ -23,7 +23,7 @@ import {
   PORTAPAPELES_PORT,
 } from '../../../domain/logistica/port/navegador.port';
 import { FichaDePedido } from '../../../domain/logistica/model/pedido';
-import { CompraAProveedor } from '../../../domain/logistica/model/compra';
+import { CompraAProveedor, enRiesgo } from '../../../domain/logistica/model/compra';
 import {
   CambiaEstadoDePedido,
   ConsultaPedido,
@@ -66,6 +66,7 @@ function ficha(parcial: Partial<FichaDePedido> = {}): FichaDePedido {
     articulos: 1,
     totalFormateado: '9,54 €',
     lineas: [],
+    bultos: [],
     ...parcial,
   };
 }
@@ -134,6 +135,29 @@ describe('FichaDePedidoPage', () => {
     await monta(ficha());
 
     expect((await screen.findAllByText(/calcular|pendiente/i)).length).toBeGreaterThan(0);
+  });
+
+  /** La fila del envío ya no desaparece cuando falta el dato: sin canal el pedido no emite guía. */
+  it('un pedido sin canal pinta la seccion del envio con el aviso de error', async () => {
+    await monta(ficha());
+
+    expect(await screen.findByTestId('canal-del-pedido')).toBeInTheDocument();
+    expect(screen.getByTestId('canal-problema')).toBeInTheDocument();
+  });
+
+  it('un pedido con su canal en regla enseña transportista y canal, sin aviso', async () => {
+    await monta(
+      ficha({
+        nombreDelTransportista: '4PX',
+        canalDeEnvio: 'S1427',
+        nombreDelCanal: 'General',
+        tipoDeLinea: 'general',
+        canalAdmisible: true,
+      }),
+    );
+
+    expect(await screen.findByTestId('canal-transportista')).toHaveTextContent('4PX');
+    expect(screen.queryByTestId('canal-problema')).toBeNull();
   });
 
   it('un pedido sin cobrar no ofrece descargar la factura', async () => {
@@ -233,7 +257,12 @@ describe('ComprasPage', () => {
 
   function dobles(compras: readonly CompraAProveedor[], exportables = 1) {
     return {
-      cola: { cola: vi.fn().mockResolvedValue(exito(compras)) },
+      cola: {
+        cola: vi.fn().mockResolvedValue(
+          exito({ items: compras, pagina: 0, tamano: 25, total: compras.length, totalPaginas: 1 }),
+        ),
+        enRiesgo: vi.fn().mockResolvedValue(exito(enRiesgo(compras))),
+      },
       avance: {
         marcaComprada: vi.fn().mockResolvedValue(exito(undefined)),
         marcaEnviada: vi.fn().mockResolvedValue(exito(undefined)),
@@ -285,8 +314,11 @@ describe('ComprasPage', () => {
   it('cada tarjeta ofrece solo el paso que toca', async () => {
     await monta([compra({ estado: 'IN_TRANSIT' })]);
 
-    expect(await screen.findByRole('button', { name: /recibid/i })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /comprad/i })).toBeNull();
+    // Se mira DENTRO de la tarjeta: la cabecera lleva filtros de estado que también nombran «Comprado».
+    const tarjeta = (await screen.findByRole('button', { name: /recibid/i })).closest(
+      'nx-tarjeta-de-compra',
+    ) as HTMLElement;
+    expect(within(tarjeta).queryByRole('button', { name: /comprad/i })).toBeNull();
   });
 
   it('marcar recibida recarga la cola', async () => {

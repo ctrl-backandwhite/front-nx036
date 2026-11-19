@@ -43,6 +43,8 @@ export interface SolicitudDePedido {
    * calculado el total que se está aceptando. El backend lo revalida contra la cotización del momento.
    */
   readonly opcionDeEnvio?: string;
+  /** El transportista de esa opción: sin él, dos canales con el mismo código se confunden. */
+  readonly transportistaDeEnvio?: string;
   readonly idDeDireccion?: string;
   /** Dirección escrita a mano que no se quiere guardar en la cuenta. */
   readonly direccionSuelta?: DireccionDeEnvio;

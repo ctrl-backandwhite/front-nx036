@@ -12,7 +12,7 @@ import { aceptaCookies, BASE, consienteCookies, entra, ponElIdioma } from './ses
  *
  * <p>Lo que se afirma de cada país:
  *   IVA        el importe cuadra con el tipo del país aplicado a (subtotal + envío).
- *   ARANCEL    3 EUR por línea de declaración en la UE, y CERO fuera.
+ *   ARANCEL    5 EUR por línea de declaración en la UE (3 de derecho + 2 de gestión), y CERO fuera.
  *   ENVÍO      hay un importe y no es cero.
  */
 
@@ -56,6 +56,15 @@ async function importeDe(page: Page, testid: string): Promise<number> {
  * comprobar el camino real.
  */
 async function llenaLaCesta(page: Page) {
+  // La cesta se VACÍA antes: es de la cuenta, no de la prueba, y cada caso añadía una unidad sobre
+  // las de todos los anteriores. El 19-nov-2026 llevaba 30 unidades y 158 USD tras un día de tandas,
+  // por encima del tope de valor de Chile, y Chile respondía «envío no disponible» —lo correcto—
+  // mientras la prueba acusaba al checkout de no cobrar el IVA.
+  const testigo = await page.evaluate(() => window.localStorage.getItem('nx-access-token'))
+  expect(testigo, 'no hay testigo de sesión: ¿falló el acceso?').toBeTruthy()
+  const vaciado = await page.request.delete(`${BASE}/api/me/cart`, { headers: { Authorization: `Bearer ${testigo}` } })
+  expect(vaciado.ok(), `no se pudo vaciar la cesta: ${vaciado.status()}`).toBe(true)
+
   const r = await page.request.get(`${BASE}/api/catalog/welcome/examples?lang=es`)
   expect(r.ok(), 'no se pudieron leer los productos de la guía').toBe(true)
   const cuerpo = await r.json() as { examples?: { slug?: string; titulo?: string; title?: string }[] }
@@ -128,12 +137,12 @@ test.describe('Envío e impuestos por país', () => {
       const total = await importeDe(page, 'desglose-total')
       expect(total, 'el checkout tiene que dar un total').toBeGreaterThan(0)
 
-      // ARANCEL: 3 EUR por línea de declaración dentro de la UE, y nada fuera.
+      // ARANCEL: 5 EUR por línea de declaración dentro de la UE, y nada fuera.
       const arancel = page.getByTestId('desglose-aranceles')
       if (p.ue) {
         await expect(arancel, `${p.nombre} es UE y debe declarar arancel`).toBeVisible()
         expect(await importeDe(page, 'desglose-aranceles'),
-          'el derecho de la UE es de 3 EUR por línea').toBeGreaterThanOrEqual(3)
+          'en la UE se cobran 5 EUR por línea').toBeGreaterThanOrEqual(5)
       } else {
         expect(await arancel.count(), `${p.nombre} NO es UE y no debe cobrar arancel de la UE`).toBe(0)
       }

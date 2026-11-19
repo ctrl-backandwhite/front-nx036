@@ -29,7 +29,7 @@ import {
 } from './operador';
 
 function limite(parcial: Partial<LimiteDeTransportista> = {}): LimiteDeTransportista {
-  return { ...limiteEnBlanco(), canal: 'FZZXR', ...parcial };
+  return { ...limiteEnBlanco(), carrier: 'YUNEXPRESS', canal: 'FZZXR', ...parcial };
 }
 
 describe('límites del transportista', () => {
@@ -54,14 +54,19 @@ describe('límites del transportista', () => {
     expect(canalesDe(filas)).toEqual(['AAA', 'ZZZ']);
   });
 
-  it('la clave es canal más país: es lo que decide si se sustituye o se crea otra fila', () => {
-    expect(claveDe(limite({ canal: 'FZZXR', pais: 'ES' }))).toBe('FZZXR|ES');
+  it('la clave es transportista+canal+país: decide si se sustituye o se crea otra fila', () => {
+    expect(claveDe(limite({ canal: 'FZZXR', pais: 'ES' }))).toBe('YUNEXPRESS|FZZXR|ES');
+    // El MISMO canal en dos transportistas son dos filas distintas: es lo que antes se pisaba.
+    expect(claveDe(limite({ carrier: 'FOURPX', canal: 'FZZXR', pais: 'ES' }))).toBe(
+      'FOURPX|FZZXR|ES',
+    );
   });
 
   it('sin canal o sin destino no hay clave, así que no se puede guardar', () => {
     expect(limiteGuardable(limite())).toBe(true);
     expect(limiteGuardable(limite({ canal: '  ' }))).toBe(false);
     expect(limiteGuardable(limite({ pais: '' }))).toBe(false);
+    expect(limiteGuardable(limite({ carrier: '' }))).toBe(false);
   });
 });
 

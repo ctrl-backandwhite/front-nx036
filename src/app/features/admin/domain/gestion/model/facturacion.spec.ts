@@ -1,6 +1,4 @@
-import {
-  Plan, Suscripcion, claveDePeriodo, estadoEfectivo, periodoDelPlan, suscripcionCoincide,
-} from './facturacion';
+import { Plan, claveDePeriodo, estadoEfectivo, periodoDelPlan } from './facturacion';
 
 function plan(cambios: Partial<Plan> = {}): Plan {
   return {
@@ -61,27 +59,5 @@ describe('estadoEfectivo', () => {
   it('el resto de estados pasan sin tocarse', () => {
     expect(estadoEfectivo('PRO', 'TRIALING')).toBe('TRIALING');
     expect(estadoEfectivo('FREE', 'CANCELLED')).toBe('CANCELLED');
-  });
-});
-
-describe('suscripcionCoincide', () => {
-  const suscripcion: Suscripcion = {
-    id: 's1', idUsuario: 'u1', emailUsuario: 'Ana@Nx036.local', plan: 'PRO',
-    estado: 'ACTIVE', periodo: 'MONTHLY',
-  };
-
-  it('filtra por estado', () => {
-    expect(suscripcionCoincide(suscripcion, 'ACTIVE', '')).toBe(true);
-    expect(suscripcionCoincide(suscripcion, 'PAUSED', '')).toBe(false);
-  });
-
-  it('busca en el correo y en el plan sin distinguir mayúsculas', () => {
-    expect(suscripcionCoincide(suscripcion, null, 'ana@')).toBe(true);
-    expect(suscripcionCoincide(suscripcion, null, 'pro')).toBe(true);
-    expect(suscripcionCoincide(suscripcion, null, 'nadie')).toBe(false);
-  });
-
-  it('sin nada escrito, todo coincide', () => {
-    expect(suscripcionCoincide(suscripcion, null, '   ')).toBe(true);
   });
 });

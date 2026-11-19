@@ -48,6 +48,7 @@ export class CompraStore {
   private readonly _guardaLaDireccion = signal(true);
   private readonly _cupon = signal('');
   private readonly _opcionDeEnvio = signal<string | undefined>(undefined);
+  private readonly _transportistaDeEnvio = signal<string | undefined>(undefined);
   private readonly _notas = signal('');
   private readonly _metodoDePago = signal<MetodoDePago>('CARD');
   private readonly _claveDelMetodo = signal('new-card');
@@ -58,6 +59,7 @@ export class CompraStore {
   readonly guardaLaDireccion = this._guardaLaDireccion.asReadonly();
   readonly cupon = this._cupon.asReadonly();
   readonly opcionDeEnvio = this._opcionDeEnvio.asReadonly();
+  readonly transportistaDeEnvio = this._transportistaDeEnvio.asReadonly();
   readonly notas = this._notas.asReadonly();
   readonly metodoDePago = this._metodoDePago.asReadonly();
   readonly claveDelMetodo = this._claveDelMetodo.asReadonly();
@@ -123,8 +125,9 @@ export class CompraStore {
     this._cupon.set(codigo.trim().toUpperCase());
   }
 
-  eligeOpcionDeEnvio(codigo: string): void {
+  eligeOpcionDeEnvio(codigo: string, transportista?: string): void {
     this._opcionDeEnvio.set(codigo);
+    this._transportistaDeEnvio.set(transportista);
   }
 
   escribeNotas(notas: string): void {

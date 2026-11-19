@@ -78,6 +78,18 @@ export interface AvanceDeHoja {
   readonly incidencias: readonly IncidenciaDeHoja[];
 }
 
+/**
+ * Una página de la cola de compras. El tablero se pagina en SERVIDOR: con miles de pedidos no se puede
+ * traer la cola entera. `total` es el total real en el servidor, no el de la página mostrada.
+ */
+export interface PaginaDeCompras {
+  readonly items: readonly CompraAProveedor[];
+  readonly pagina: number;
+  readonly tamano: number;
+  readonly total: number;
+  readonly totalPaginas: number;
+}
+
 /** Los pasos que se pueden dar sobre una compra. Cada uno es un endpoint distinto. */
 export type PasoDeCompra = 'bought' | 'shipped' | 'received' | 'packed' | 'cancel' | 'reexport';
 

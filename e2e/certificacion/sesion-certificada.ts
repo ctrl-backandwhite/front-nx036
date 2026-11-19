@@ -103,3 +103,43 @@ export async function consienteCookies(page: Page) {
 export async function ponElIdioma(page: Page, idioma: string) {
   await page.context().addCookies([{ name: 'nx036-locale', value: idioma, url: BASE }])
 }
+
+/**
+ * Abre el checkout y devuelve la cotización que el servidor le dio.
+ *
+ * <p>Leer el cuerpo de la respuesta del navegador falla de forma intermitente («No data found for
+ * resource»): Chromium tira el cuerpo si el documento cambia entre medias, y pasa aunque la pantalla
+ * acabe pintando la cotización sin volver a pedirla. Medido el 18-nov-2026: uno de cada tres o cuatro
+ * casos, en las dos anchuras. Ni leerlo antes ni escuchar todas las respuestas lo evita.
+ *
+ * <p>Así que se escucha la PETICIÓN, que no se pierde, y si el cuerpo no está se repite tal cual
+ * —misma dirección, mismas cabeceras, mismo cuerpo— fuera de la página. Es la misma cotización: el
+ * servidor la calcula de la cesta y de la dirección, no de quién pregunta.
+ */
+export async function cotizacionDelCheckout<T>(page: Page): Promise<T> {
+  const cuerpos: T[] = []
+  const escucha = (r: import('@playwright/test').Response) => {
+    if (!r.url().includes('/shipping/quote') || r.status() !== 200) return
+    const peticion = r.request()
+    r.json()
+      .catch(async () => {
+        // Sin las pseudocabeceras de HTTP/2 («:authority»…) ni las que calcula el cliente: reenviarlas
+        // hace que la repetición ni salga.
+        const cabeceras = Object.fromEntries(
+          Object.entries(await peticion.allHeaders()).filter(([n]) => !n.startsWith(':') && !['content-length', 'host'].includes(n)))
+        const repetida = await page.request.post(r.url(), { headers: cabeceras, data: peticion.postData() ?? undefined })
+        return repetida.json()
+      })
+      .then((c) => cuerpos.push(c as T))
+      .catch(() => undefined)
+  }
+  page.on('response', escucha)
+  try {
+    await page.goto(`${BASE}/checkout`, { waitUntil: 'domcontentloaded' })
+    await aceptaCookies(page)
+    await expect.poll(() => cuerpos.length, { timeout: 60_000, message: 'el checkout no llegó a cotizar' }).toBeGreaterThan(0)
+    return cuerpos[cuerpos.length - 1]
+  } finally {
+    page.off('response', escucha)
+  }
+}

@@ -11,7 +11,6 @@ import { AvisosStore } from '@ds/component/avisos/avisos.store';
 import { DialogoStore } from '@ds/component/dialogo/dialogo.store';
 import { BarraFiltros } from '@ds/component/filtros/barra-filtros';
 import { FiltroDesplegable } from '@ds/component/filtros/filtro-desplegable';
-import { REGIONS } from '@shared/i18n/regions';
 import {
   FILTRO_DE_TARIFAS_VACIO,
   FiltroDeTarifas,
@@ -133,6 +132,7 @@ import {
           <table class="w-full text-left text-[13px]">
             <thead class="border-b border-ink-100 text-[11px] uppercase tracking-wider text-ink-400">
               <tr>
+                <th class="px-4 py-2 font-medium">{{ t('admin.carrier_rates.col.carrier') }}</th>
                 <th class="px-4 py-2 font-medium">{{ t('admin.carrier_rates.col.country') }}</th>
                 <th class="px-4 py-2 font-medium">{{ t('admin.carrier_rates.col.channel') }}</th>
                 <th class="px-4 py-2 font-medium text-right">
@@ -145,8 +145,9 @@ import {
               </tr>
             </thead>
             <tbody>
-              @for (grupo of grupos(); track grupo.pais + grupo.canal) {
+              @for (grupo of grupos(); track grupo.carrier + grupo.pais + grupo.canal) {
                 <tr class="border-b border-ink-50 hover:bg-ink-50/40">
+                  <td class="px-4 py-2 font-mono text-[12px] whitespace-nowrap">{{ grupo.carrier }}</td>
                   <td class="px-4 py-2 whitespace-nowrap">{{ nombreDePais(grupo.pais) }}</td>
                   <td class="px-4 py-2">
                     <span class="font-medium">{{ grupo.canal }}</span>
@@ -289,8 +290,21 @@ export class TarifasDeTransportistaPage {
     void this.carga();
   }
 
+  /** Código → nombre, de lo que el backend mandó con las filas. Se calcula una vez por carga. */
+  private readonly nombres = computed(() => {
+    const mapa = new Map<string, string>();
+    for (const tarifa of this.tarifas()) {
+      if (tarifa.nombreDelPais) mapa.set(tarifa.pais, tarifa.nombreDelPais);
+    }
+    return mapa;
+  });
+
+  /**
+   * El nombre lo manda el backend. Antes salía de `REGIONS`, que son 26 mercados: con 90 destinos en
+   * la tabla, 64 se pintaban como código y Emiratos en árabe. El código queda solo como reserva.
+   */
   protected nombreDePais(iso: string): string {
-    return REGIONS.find((r) => r.countryCode === iso)?.countryLabel ?? iso;
+    return this.nombres().get(iso) ?? iso;
   }
 
   /** En yuanes y con dos decimales, que es como los pasa el transportista. */
@@ -314,7 +328,7 @@ export class TarifasDeTransportistaPage {
   }
 
   protected clave(grupo: GrupoDeTarifas): string {
-    return `${grupo.pais}|${grupo.canal}`;
+    return `${grupo.carrier}|${grupo.pais}|${grupo.canal}`;
   }
 
   protected alternaDetalle(grupo: GrupoDeTarifas): void {

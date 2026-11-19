@@ -33,6 +33,7 @@ import {
   DescargaFactura,
   SincronizaSeguimiento,
 } from '../../../application/logistica/use-case/sigue-el-envio.use-case';
+import { CanalDelPedido } from '../component/canal-del-pedido';
 import { DeclaracionesDelTransportista } from '../component/declaraciones-del-transportista';
 import { InsigniaEstado } from '../component/insignia-estado';
 import { RastroDelEnvio } from '../component/rastro-del-envio';
@@ -61,6 +62,7 @@ const SUFIJO_DE_AVISO: Readonly<Record<AccionSobrePedido, string>> = {
     RouterLink,
     FaIconComponent,
     LupaImagen,
+    CanalDelPedido,
     DeclaracionesDelTransportista,
     InsigniaEstado,
     RastroDelEnvio,
@@ -141,17 +143,7 @@ const SUFIJO_DE_AVISO: Readonly<Record<AccionSobrePedido, string>> = {
 
         <nx-resumen-de-pedido [pedido]="p" />
 
-        @if (p.numeroDeSeguimiento; as guia) {
-          <section class="card p-4 flex items-center gap-3 text-sm">
-            <fa-icon [icon]="iconos.ship" class="text-brand-600" />
-            <div>
-              <div class="text-[11px] uppercase tracking-wider text-ink-600">
-                {{ t('admin.orders.detail.tracking') }}
-              </div>
-              <div class="font-mono">{{ guia }}</div>
-            </div>
-          </section>
-        }
+        <nx-canal-del-pedido [pedido]="p" />
 
         <section class="card overflow-hidden">
           <div class="card-header"><span>{{ t('admin.orders.detail.items') }}</span></div>
@@ -242,7 +234,6 @@ export class FichaDePedidoPage {
   };
 
   protected readonly t = inject(TraduccionService).t;
-
   private readonly consulta = inject(ConsultaPedido);
   private readonly cambia = inject(CambiaEstadoDePedido);
   private readonly rastro = inject(ConsultaSeguimiento);

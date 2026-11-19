@@ -1,13 +1,19 @@
 import { Injectable, inject } from '@angular/core';
 import { Result, fallo, mapea } from '@shared/result/result';
 import { AppError } from '@shared/error/app-error';
-import { AvanceDeHoja, CompraAProveedor, nombreDeHoja } from '../../../domain/logistica/model/compra';
+import {
+  AvanceDeHoja,
+  CompraAProveedor,
+  PaginaDeCompras,
+  nombreDeHoja,
+} from '../../../domain/logistica/model/compra';
 import {
   AVANCE_DE_COMPRA_PORT,
   COMPRAS_PORT,
   DatosDeCompraHecha,
   DatosDeEnvioDelProveedor,
   DatosDeReempaquetado,
+  FiltroDeColaDeCompras,
   HOJA_DE_EMPAQUETADO_PORT,
 } from '../../../domain/logistica/port/compras.port';
 import {
@@ -21,8 +27,13 @@ export class ConsultaCompras {
   private readonly compras = inject(COMPRAS_PORT);
   private readonly hoja = inject(HOJA_DE_EMPAQUETADO_PORT);
 
-  cola(): Promise<Result<readonly CompraAProveedor[], AppError>> {
-    return this.compras.cola();
+  cola(filtro: FiltroDeColaDeCompras): Promise<Result<PaginaDeCompras, AppError>> {
+    return this.compras.cola(filtro);
+  }
+
+  /** Los bultos en riesgo de destrucción, aparte de la página mostrada. */
+  enRiesgo(): Promise<Result<readonly CompraAProveedor[], AppError>> {
+    return this.compras.enRiesgo();
   }
 
   avanceDeLaHoja(): Promise<Result<AvanceDeHoja, AppError>> {

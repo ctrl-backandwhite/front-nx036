@@ -2,6 +2,7 @@ import { InjectionToken } from '@angular/core';
 import { Result } from '@shared/result/result';
 import { AppError } from '@shared/error/app-error';
 import { LimiteDeTransportista } from '../model/limite-transportista';
+import { CoberturaDeTransportista } from '../model/cobertura-transportista';
 import { FiltroDeTarifas, TarifaDeTransportista } from '../model/tarifa-transportista';
 import { Almacen, DatosDeAlmacen } from '../model/almacen';
 import { DatosDeImpuesto, DatosDeRegion, ImpuestoDePais, RegionFiscal } from '../model/impuesto';
@@ -17,11 +18,31 @@ import { EstadoDeCumplimiento, OperadorEconomico, PapelDeOperador } from '../mod
 export interface LimitesDeTransportistaPort {
   lista(): Promise<Result<readonly LimiteDeTransportista[], AppError>>;
   guarda(limite: LimiteDeTransportista): Promise<Result<void, AppError>>;
-  borra(canal: string, pais: string): Promise<Result<void, AppError>>;
+  borra(carrier: string, canal: string, pais: string): Promise<Result<void, AppError>>;
 }
 
 export const LIMITES_DE_TRANSPORTISTA_PORT = new InjectionToken<LimitesDeTransportistaPort>(
   'LimitesDeTransportistaPort',
+);
+
+/**
+ * La cobertura: a qué países llega cada transportista.
+ *
+ * <p>Alta y edición son la MISMA operación, igual que con los límites: la clave es transportista+país.
+ *
+ * <p>`transportistas` existe para que la pantalla ofrezca un desplegable en vez de pedir texto libre.
+ * Un nombre mal escrito crearía cobertura que nadie consulta nunca: la fila se guarda, la pantalla la
+ * enseña y el destino sigue sin servirse **sin que nada dé error**.
+ */
+export interface CoberturaDeTransportistaPort {
+  lista(): Promise<Result<readonly CoberturaDeTransportista[], AppError>>;
+  transportistas(): Promise<Result<readonly string[], AppError>>;
+  guarda(cobertura: CoberturaDeTransportista): Promise<Result<void, AppError>>;
+  borra(carrier: string, pais: string): Promise<Result<void, AppError>>;
+}
+
+export const COBERTURA_DE_TRANSPORTISTA_PORT = new InjectionToken<CoberturaDeTransportistaPort>(
+  'CoberturaDeTransportistaPort',
 );
 
 /**

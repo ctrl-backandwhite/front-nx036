@@ -23,6 +23,8 @@ export interface VistaDeEnvio {
    * se pulsó: si el elegido dejó de cotizar, aquí llega el que de verdad se cobra.
    */
   readonly opcionCotizada: Signal<string | undefined>;
+  /** El transportista de esa opción cotizada: junto al código identifica la opción sin ambigüedad. */
+  readonly transportistaCotizado: Signal<string | undefined>;
 }
 
 /** La firma de lo que se está cotizando: cambia solo cuando cambia algo que altera el precio. */
@@ -31,10 +33,11 @@ function firma(
   region: string,
   cupon: string,
   opcion: string | undefined,
+  transportista: string | undefined,
   items: readonly ItemDelPedido[],
 ): string {
   const cesta = items.map((item) => `${item.productId}:${item.variantId ?? ''}:${item.cantidad}`).join(',');
-  return `${pais}|${region}|${cupon}|${opcion ?? ''}|${cesta}`;
+  return `${pais}|${region}|${cupon}|${opcion ?? ''}|${transportista ?? ''}|${cesta}`;
 }
 
 /**
@@ -70,6 +73,7 @@ export class CotizaElEnvio {
               this.estado.regionDeEnvio(),
               this.estado.cupon(),
               this.estado.opcionDeEnvio(),
+              this.estado.transportistaDeEnvio(),
               lineas,
             )
           : undefined;
@@ -81,6 +85,7 @@ export class CotizaElEnvio {
           items: untracked(items),
           codigoDeCupon: untracked(this.estado.cupon) || undefined,
           opcionDeEnvio: untracked(this.estado.opcionDeEnvio),
+          transportistaDeEnvio: untracked(this.estado.transportistaDeEnvio),
         });
         return resultado.ok ? resultado.valor : undefined;
       },
@@ -100,6 +105,7 @@ export class CotizaElEnvio {
       cargando: fuente.isLoading,
       opciones: computed(() => cotizacion()?.opciones ?? []),
       opcionCotizada: computed(() => cotizacion()?.opcionCotizada),
+      transportistaCotizado: computed(() => cotizacion()?.transportistaCotizado),
     };
   }
 }

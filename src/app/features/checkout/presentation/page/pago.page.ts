@@ -10,6 +10,7 @@ import { CARRITO_COMPARTIDO_PORT } from '@features/cart/domain/port/carrito-comp
 import { MetodoDePago, elSaldoAlcanza, direccionUtilizable } from '../../domain/model/pedido';
 import { CompraStore, DIRECCION_NUEVA } from '../../application/state/compra.store';
 import { PreparaLaCompra } from '../../application/use-case/prepara-la-compra.use-case';
+import { esLaElegida } from '../../domain/model/cotizacion-de-envio';
 import { CotizaElEnvio } from '../../application/use-case/cotiza-el-envio.use-case';
 import { ValoraLaCompra } from '../../application/use-case/valora-la-compra.use-case';
 import { RealizaElPedido } from '../../application/use-case/realiza-el-pedido.use-case';
@@ -62,15 +63,17 @@ import { ResumenDeLaCompra } from '../component/resumen-de-la-compra';
               (cambiaGuardado)="estado.fijaGuardarDireccion($event)"
             />
 
-            <!-- Las formas de envío aparecen bajo la dirección porque dependen de ella, y solo cuando el
-                 transportista cotiza más de una: con la tarifa de la tabla de zonas no hay entre qué
-                 elegir y una lista de un elemento solo estorba. -->
-            @if (envio.opciones().length > 1) {
+            <!-- Las formas de envío aparecen bajo la dirección porque dependen de ella. Se pintan
+                 también cuando hay UNA sola: ya no hay entre qué elegir, pero es el único sitio donde
+                 se ve con quién viaja el paquete, y con dos transportistas eso decide el régimen de
+                 impuestos. El componente la enseña entonces como información, sin botón. -->
+            @if (envio.opciones().length > 0) {
               <section class="card p-5">
                 <nx-opciones-de-envio
                   [opciones]="envio.opciones()"
                   [seleccionada]="envio.opcionCotizada()"
-                  (elige)="estado.eligeOpcionDeEnvio($event)"
+                  [transportistaSeleccionado]="envio.transportistaCotizado()"
+                  (elige)="estado.eligeOpcionDeEnvio($event.codigo, $event.idDeTransportista)"
                 />
               </section>
             }
@@ -167,7 +170,11 @@ export class PagoPage {
   }
 
   protected readonly opcionCotizada = computed(() =>
-    this.envio.opciones().find((opcion) => opcion.codigo === this.envio.opcionCotizada()),
+    this.envio
+      .opciones()
+      .find((opcion) =>
+        esLaElegida(opcion, this.envio.opcionCotizada(), this.envio.transportistaCotizado()),
+      ),
   );
 
   protected readonly alcanzaElSaldo = computed(() =>

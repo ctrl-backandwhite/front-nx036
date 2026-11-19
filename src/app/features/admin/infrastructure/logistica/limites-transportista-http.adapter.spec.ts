@@ -15,6 +15,7 @@ import { LimitesTransportistaHttpAdapter } from './limites-transportista-http.ad
  */
 describe('LimitesTransportistaHttpAdapter', () => {
   const LIMITE: LimiteDeTransportista = {
+    carrier: 'yunexpress',
     canal: 'bpa',
     pais: 'ES',
     pesoMaximoGramos: 2000,
@@ -84,16 +85,20 @@ describe('LimitesTransportistaHttpAdapter', () => {
     expect(resultado.ok && resultado.valor[0].pesoMaximoGramos).toBe(0);
   });
 
-  it('guardar es un PUT sobre canal y país, con el canal en mayúsculas', async () => {
+  it('guardar es un PUT sobre transportista, canal y país, todo en mayúsculas', async () => {
     const { adaptador, red } = monta();
 
     const enCurso = adaptador.guarda(LIMITE);
-    /* El canal se normaliza porque la ruta ES la clave del registro: «bpa» y «BPA» crearían dos filas
-     * distintas para el mismo canal, y solo una de las dos se aplicaría. */
-    const peticion = red.expectOne('/api/admin/carrier-limits/BPA/ES');
+    /* El transportista y el canal se normalizan porque la ruta ES la clave del registro: «bpa» y «BPA»
+     * crearían dos filas distintas para el mismo canal, y solo una de las dos se aplicaría. */
+    const peticion = red.expectOne('/api/admin/carrier-limits/YUNEXPRESS/BPA/ES');
 
     expect(peticion.request.method).toBe('PUT');
-    expect(peticion.request.body).toMatchObject({ channelCode: 'BPA', maxWeightGrams: 2000 });
+    expect(peticion.request.body).toMatchObject({
+      carrier: 'YUNEXPRESS',
+      channelCode: 'BPA',
+      maxWeightGrams: 2000,
+    });
     peticion.flush({});
     await enCurso;
   });
@@ -103,7 +108,7 @@ describe('LimitesTransportistaHttpAdapter', () => {
     const { adaptador, red } = monta();
 
     const enCurso = adaptador.guarda({ ...LIMITE, pais: '*' });
-    red.expectOne('/api/admin/carrier-limits/BPA/*').flush({});
+    red.expectOne('/api/admin/carrier-limits/YUNEXPRESS/BPA/*').flush({});
 
     await enCurso;
   });
@@ -111,8 +116,8 @@ describe('LimitesTransportistaHttpAdapter', () => {
   it('borrar es un DELETE sobre esa misma clave', async () => {
     const { adaptador, red } = monta();
 
-    const enCurso = adaptador.borra('BPA', 'ES');
-    const peticion = red.expectOne('/api/admin/carrier-limits/BPA/ES');
+    const enCurso = adaptador.borra('YUNEXPRESS', 'BPA', 'ES');
+    const peticion = red.expectOne('/api/admin/carrier-limits/YUNEXPRESS/BPA/ES');
 
     expect(peticion.request.method).toBe('DELETE');
     peticion.flush({});

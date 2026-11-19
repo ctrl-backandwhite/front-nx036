@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/angular';
+import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { creaError } from '@shared/error/app-error';
@@ -10,7 +10,7 @@ import {
   ConsultaPlanes,
   ConsultaSuscripciones,
 } from '../../../application/gestion/use-case/facturacion.use-case';
-import { Plan, Suscripcion } from '../../../domain/gestion/model/facturacion';
+import { PaginaDeSuscripciones, Plan, Suscripcion } from '../../../domain/gestion/model/facturacion';
 import { FACTURACION_PORT } from '../../../domain/gestion/port/facturacion.port';
 import { TIPOS_DE_CAMBIO_PORT } from '../../../domain/gestion/port/tipos-de-cambio.port';
 import { FacturacionPage } from './facturacion.page';
@@ -45,6 +45,18 @@ const suscripcion = (parcial: Partial<Suscripcion> = {}): Suscripcion => ({
   inicioDelPeriodo: '2026-01-01T00:00:00Z',
   finDelPeriodo: '2026-02-01T00:00:00Z',
   ...parcial,
+});
+
+const pagina = (
+  items: Suscripcion[],
+  extra: Partial<PaginaDeSuscripciones> = {},
+): PaginaDeSuscripciones => ({
+  items,
+  pagina: 0,
+  tamano: 25,
+  total: items.length,
+  totalPaginas: items.length ? 1 : 0,
+  ...extra,
 });
 
 /**
@@ -102,7 +114,7 @@ describe('FacturacionPage', () => {
     enEspanolYEnDolares();
     vi.resetAllMocks();
     puerto.planes.mockResolvedValue(exito([plan()]));
-    puerto.suscripciones.mockResolvedValue(exito([suscripcion()]));
+    puerto.suscripciones.mockResolvedValue(exito(pagina([suscripcion()])));
     puerto.actualizaPlan.mockResolvedValue(exito(undefined));
   }, PLAZO);
 
@@ -141,7 +153,7 @@ describe('FacturacionPage', () => {
   /** El plan gratuito no tiene ciclo de cobro: pintarlo haría creer que se eligió una periodicidad. */
   it('la suscripción gratuita no enseña ciclo de cobro', async () => {
     puerto.suscripciones.mockResolvedValue(
-      exito([suscripcion({ plan: 'FREE', estado: 'TRIALING' })]),
+      exito(pagina([suscripcion({ plan: 'FREE', estado: 'TRIALING' })])),
     );
 
     await monta();
@@ -151,22 +163,17 @@ describe('FacturacionPage', () => {
     expect(screen.getByText('Activa')).toBeInTheDocument();
   }, PLAZO);
 
-  it('el buscador deja solo las suscripciones que casan', async () => {
-    puerto.suscripciones.mockResolvedValue(
-      exito([suscripcion(), suscripcion({ id: 's2', emailUsuario: 'luis@ejemplo.com' })]),
+  /**
+   * El fallo de escala que arregla esto: el listado se PAGINA en el servidor. La pantalla pide una
+   * página con su tamaño, no la tabla entera para filtrarla en el navegador.
+   */
+  it('pide al servidor la primera página con su tamaño, no la lista completa', async () => {
+    await monta();
+    await screen.findByText('ana@ejemplo.com');
+
+    expect(puerto.suscripciones).toHaveBeenCalledWith(
+      expect.objectContaining({ pagina: 0, tamano: 25 }),
     );
-
-    const vista = await monta();
-    await screen.findByText('luis@ejemplo.com');
-
-    await userEvent.type(screen.getByRole('searchbox'), 'ana@');
-
-    // El buscador tiene freno: publica lo tecleado tras una pausa, así que se espera al repintado.
-    await waitFor(() => {
-      vista.fixture.detectChanges();
-      expect(screen.queryByText('luis@ejemplo.com')).toBeNull();
-    });
-    expect(screen.getByText('ana@ejemplo.com')).toBeInTheDocument();
   }, PLAZO);
 
   it('si la lectura falla la pantalla sigue en pie con su rótulo de vacío', async () => {

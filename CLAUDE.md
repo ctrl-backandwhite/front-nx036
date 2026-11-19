@@ -181,6 +181,14 @@ recuperan las etiquetas de compartir que se perdieron al apagar el SSR, sin paga
 Regla práctica: lo público se prerenderiza (`RenderMode.Prerender`); lo que exige sesión —cuenta, cesta,
 panel— se marca `RenderMode.Client`, porque su HTML depende de quién mira.
 
+Esas rutas de cliente se sirven con el shell vacío `index.csr.html`, así que mientras el navegador
+descarga y arranca Angular se veían **en blanco 2,5-6 s**. Por eso `index.html` lleva una **pantalla de
+arranque dentro de `<nx-root>`** (un spinner con estilos EN LÍNEA y colores por `prefers-color-scheme`,
+porque la cookie de tema aún no se ha aplicado). Angular la sustituye al pintar; en las páginas
+prerenderizadas no aparece, porque el build rellena `<nx-root>` con su HTML. **No la quites**: sin ella
+vuelve el blanco. Es la única excepción a «nada de CSS fuera de `styles.css`», y a propósito: no puede
+depender de la hoja para poder pintarse antes.
+
 **Al construir hace falta `NEXADROP_API_INTERNA`**, apuntando a un backend accesible desde donde se
 compila. Sin ella, el prerenderizado corre en Node con rutas relativas que no apuntan a ningún host,
 las peticiones fallan **en silencio** y las páginas se escriben con sus marcadores de carga. No falla el

@@ -354,6 +354,38 @@ describe('BarraDeFiltros', () => {
     expect(vista.container.querySelector('[role=alert]')).toBeNull();
   });
 
+  /**
+   * El contador no debe parpadear a «0 / 0» mientras carga: ese cero parece «sin resultados». Van en
+   * tres pruebas porque cada `render` configura su propio TestBed y no se puede reconfigurar dos veces.
+   */
+  const textoContador = (v: { container: HTMLElement }) =>
+    v.container
+      .querySelector('[data-testid=contador-del-catalogo]')!
+      .textContent!.replace(/\s+/g, ' ')
+      .trim();
+
+  it('cargando y sin datos, el contador enseña «…» y no «0 / 0»', async () => {
+    const vista = await render(BarraDeFiltros, {
+      inputs: { criterio: CRITERIO_VACIO, categorias: [], proveedores: [], cargando: true, mostrados: 0, total: 0 },
+    });
+    expect(textoContador(vista)).toContain('…');
+    expect(textoContador(vista)).not.toContain('0 / 0');
+  });
+
+  it('con datos cargados, el contador enseña «mostrados / total»', async () => {
+    const vista = await render(BarraDeFiltros, {
+      inputs: { criterio: CRITERIO_VACIO, categorias: [], proveedores: [], cargando: false, mostrados: 3, total: 5 },
+    });
+    expect(textoContador(vista)).toContain('3 / 5');
+  });
+
+  it('un resultado realmente vacío (ya cargado) sí enseña «0 / 0»', async () => {
+    const vista = await render(BarraDeFiltros, {
+      inputs: { criterio: CRITERIO_VACIO, categorias: [], proveedores: [], cargando: false, mostrados: 0, total: 0 },
+    });
+    expect(textoContador(vista)).toContain('0 / 0');
+  });
+
   it('el interruptor de vídeo también escribe su parte', async () => {
     const { vista } = await monta();
     await userEvent.click(screen.getAllByRole('checkbox')[1]);

@@ -65,6 +65,15 @@ export class PedidosAdminHttpAdapter
     const respuesta = await this.api.get<PaginaDto>('/admin/orders', {
       status: criterio.estado,
       q: criterio.texto,
+      // El servidor filtra por fecha con la misma semántica que el panel: intervalo (from/to) y, de
+      // forma independiente, año/mes/día. Antes esto se recortaba en el navegador sobre las 25 filas
+      // visibles, así que a volumen el filtro se dejaba fuera todo lo que no estuviera en la página.
+      from: criterio.desde,
+      to: criterio.hasta,
+      year: criterio.anio,
+      month: criterio.mes,
+      day: criterio.dia,
+      canalProblema: criterio.canalProblema,
       page: criterio.pagina,
       size: criterio.tamano,
     });

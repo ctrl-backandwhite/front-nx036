@@ -479,6 +479,29 @@ describe('lo que se manda al crear el pedido', () => {
     });
   });
 
+  it('lleva el transportista de la opción elegida junto al código', async () => {
+    const { caso, pedidos, estado } = monta();
+    estado.eligeOpcionDeEnvio('S1427', 'FOURPX');
+
+    await caso.ejecuta(ITEMS);
+
+    expect(pedidos.ultima).toMatchObject({ opcionDeEnvio: 'S1427', transportistaDeEnvio: 'FOURPX' });
+  });
+
+  it('cada rechazo de envio del servidor tiene su propio mensaje', async () => {
+    const { caso, pedidos, estado } = monta();
+
+    pedidos.error = creaError('peticion-invalida', 'x', { codigo: 'SHIPPING_NOT_AVAILABLE' });
+    await caso.ejecuta(ITEMS);
+    expect(estado.error()).toMatch(/carrier can take this order/i);
+
+    pedidos.error = creaError('peticion-invalida', 'x', {
+      codigo: 'SHIPPING_PRODUCT_WITHOUT_CUSTOMS_CODE',
+    });
+    await caso.ejecuta(ITEMS);
+    expect(estado.error()).toMatch(/no customs tariff code/i);
+  });
+
   /** Sin dirección resuelta todavía no hay pedido posible: crearlo sería un pedido sin destino. */
   it('sin dirección decidida no se crea nada', async () => {
     const { caso, pedidos } = monta({ conDireccion: false });
