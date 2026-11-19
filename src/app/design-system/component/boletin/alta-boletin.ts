@@ -46,7 +46,7 @@ import { TraduccionService } from '@core/i18n/traduccion.service';
             [attr.aria-label]="t('newsletter.footer.subscribe')"
             [class]="
               compacto()
-                ? 'input input-bordered input-sm join-item text-[13px]'
+                ? 'input input-bordered input-sm join-item text-[13px] text-base-content'
                 : 'input input-bordered flex-1'
             "
           />

@@ -55,7 +55,7 @@ import { TraduccionService } from '@core/i18n/traduccion.service';
       >. {{ t('checkout.legal.withdrawal_note') }}
     </p>
 
-    <button type="submit" class="btn btn-primary btn-lg w-full" data-testid="confirmar-y-pagar"
+    <button type="submit" class="btn btn-primary w-full h-12 mt-4" data-testid="confirmar-y-pagar"
             [disabled]="!sePuedePagar()">
       @if (cobrando()) {
         {{ t('common.processing') }}

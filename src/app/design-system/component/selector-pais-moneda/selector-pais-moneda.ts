@@ -37,7 +37,7 @@ import { EnfocaAlAparecer } from '../../directive/enfoca-al-aparecer.directive';
         (click)="alterna()"
         [attr.aria-expanded]="abierto()"
         aria-haspopup="listbox"
-        class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-ink-200 hover:border-ink-300 text-[13px] transition-colors"
+        class="flex items-center gap-1.5 min-h-9 px-2.5 py-1.5 rounded-md border border-ink-200 hover:border-ink-300 text-[13px] transition-colors"
         [class.w-full]="anchoCompleto()"
         [title]="titulo()"
       >
