@@ -311,6 +311,27 @@ describe('AvisosDeAduana', () => {
     expect(screen.getByRole('alert')).toBeInTheDocument();
   });
 
+  it('un producto sin partida arancelaria lo dice con su propio motivo', async () => {
+    await render(AvisosDeAduana, {
+      inputs: {
+        cotizacion: { cubierto: false, motivoDeBloqueo: 'producto-sin-partida' },
+        hayPais: true,
+      },
+    });
+    expect(screen.getByRole('alert').textContent).toMatch(/partida arancelaria/i);
+  });
+
+  it('sin canal admisible lo dice y no culpa al pais', async () => {
+    await render(AvisosDeAduana, {
+      inputs: {
+        cotizacion: { cubierto: false, motivoDeBloqueo: 'sin-canal-admisible' },
+        hayPais: true,
+      },
+    });
+    expect(screen.getByRole('alert').textContent).toMatch(/Ningún transportista/i);
+    expect(screen.getByRole('alert').textContent).not.toMatch(/país soportado/i);
+  });
+
   /**
    * Sin límite que enseñar, el destino no admite NINGÚN importe: invitar a «ajustar el pedido para quedar
    * por debajo» sería mandar a una puerta que no existe.

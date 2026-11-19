@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
-import { OpcionDeEnvio } from '../../domain/model/cotizacion-de-envio';
+import { EleccionDeEnvio, OpcionDeEnvio } from '../../domain/model/cotizacion-de-envio';
 import { OpcionesDeEnvio } from './opciones-de-envio';
 
 function opcion(codigo: string, importe: number, diasMaximos = 15): OpcionDeEnvio {
@@ -51,11 +51,58 @@ describe('OpcionesDeEnvio', () => {
   it('al elegir avisa con el código, que es lo que viaja de vuelta', async () => {
     const vista = await monta([opcion('A', 705), opcion('B', 900)]);
     const elegido: string[] = [];
-    vista.fixture.componentInstance.elige.subscribe((c: string) => elegido.push(c));
+    vista.fixture.componentInstance.elige.subscribe((c: EleccionDeEnvio) => elegido.push(c.codigo));
 
     await userEvent.click(screen.getAllByRole('radio')[1]);
 
     expect(elegido).toEqual(['B']);
+  });
+
+  it('al elegir avisa tambien del transportista, porque dos canales pueden compartir codigo', async () => {
+    const vista = await monta([
+      { ...opcion('S1', 705), idDeTransportista: 'YUNEXPRESS' },
+      { ...opcion('S1', 900), idDeTransportista: 'FOURPX' },
+    ]);
+    const elegido: EleccionDeEnvio[] = [];
+    vista.fixture.componentInstance.elige.subscribe((c: EleccionDeEnvio) => elegido.push(c));
+
+    await userEvent.click(screen.getAllByRole('radio')[1]);
+
+    expect(elegido).toEqual([{ codigo: 'S1', idDeTransportista: 'FOURPX' }]);
+  });
+
+  it('con el mismo codigo en dos transportistas solo se marca el que se cotizo', async () => {
+    await render(OpcionesDeEnvio, {
+      inputs: {
+        opciones: [
+          { ...opcion('S1', 705), idDeTransportista: 'YUNEXPRESS' },
+          { ...opcion('S1', 900), idDeTransportista: 'FOURPX' },
+        ],
+        seleccionada: 'S1',
+        transportistaSeleccionado: 'FOURPX',
+      },
+    });
+
+    const [a, b] = screen.getAllByRole('radio') as HTMLInputElement[];
+    expect(a.checked).toBe(false);
+    expect(b.checked).toBe(true);
+  });
+
+  it('dice la clase de linea y el transportista, sin el codigo del canal', async () => {
+    await monta([
+      { ...opcion('FZZXR', 705), tipoDeLinea: 'ropa' },
+      { ...opcion('QC', 900), tipoDeLinea: 'general', transportista: '4PX' },
+    ]);
+
+    const rotulos = screen.getAllByTestId('opcion-canal').map((e) => e.textContent?.trim());
+    expect(rotulos).toEqual(['Línea de ropa · YunExpress', 'Mercancía general · 4PX']);
+    expect(screen.queryByText(/FZZXR|QC/)).toBeNull();
+  });
+
+  it('una linea desconocida se calla y deja solo al transportista', async () => {
+    await monta([{ ...opcion('A', 705), tipoDeLinea: 'desconocida' }]);
+
+    expect(screen.getByTestId('opcion-canal').textContent?.trim()).toBe('YunExpress');
   });
 
   /** Cinco tarjetas abiertas empujan el botón de pagar fuera de la pantalla en un móvil. */

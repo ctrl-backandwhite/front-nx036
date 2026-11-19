@@ -71,6 +71,7 @@ export class PedidoHttpAdapter implements PedidoPort {
         paymentMethod: solicitud.metodoDePago,
         couponCode: solicitud.codigoDeCupon || undefined,
         shippingOptionCode: solicitud.opcionDeEnvio || undefined,
+        shippingCarrier: solicitud.transportistaDeEnvio || undefined,
         shippingAddressId: solicitud.idDeDireccion,
         shippingAddressInline: solicitud.direccionSuelta
           ? aDireccionDto(solicitud.direccionSuelta)

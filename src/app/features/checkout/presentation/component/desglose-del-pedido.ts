@@ -3,6 +3,7 @@ import { TraduccionService } from '@core/i18n/traduccion.service';
 import { GuiaPuntos } from '@ds/component/guia-puntos/guia-puntos';
 import { CotizacionDeEnvio, OpcionDeEnvio } from '../../domain/model/cotizacion-de-envio';
 import { InfoDeAranceles } from './info-de-aranceles';
+import { rotuloDelCanal } from './rotulo-del-canal';
 
 /**
  * El desglose del pedido: subtotal, envío, arancel, impuesto y total.
@@ -47,7 +48,7 @@ import { InfoDeAranceles } from './info-de-aranceles';
           {{ t('order.detail.shipping') }}
           @if (cubierto()) {
             <span class="block text-[11px] opacity-70">
-              {{ t('tracking.carrier_default') }} · {{ plazo() }} {{ t('checkout.ship_days') }}
+              {{ rotuloDelEnvio() }} · {{ plazo() }} {{ t('checkout.ship_days') }}
             </span>
           }
         </span>
@@ -205,6 +206,11 @@ export class DesgloseDelPedido {
 
   protected hayArancel(): boolean {
     return this.cubierto() && (this.cotizacion()?.recargoDeAduanaCentimos ?? 0) > 0;
+  }
+
+  /** La línea y el transportista de la opción cotizada; «Envío estándar» solo si el servidor no los dijo. */
+  protected rotuloDelEnvio(): string {
+    return rotuloDelCanal(this.opcionCotizada(), this.t) ?? this.t('tracking.carrier_default');
   }
 
   protected plazo(): string {

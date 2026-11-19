@@ -16,8 +16,22 @@
  * <p>`codigo` es el canal del transportista: viaja de vuelta al pagar para emitir la guía por el mismo
  * canal que se cotizó, pero NO se le enseña a quien compra —«FZZXR» no le dice nada a nadie—.
  */
+/**
+ * Qué clase de mercancía lleva el canal. `desconocida` no debería llegar a pantalla: significa que el
+ * servidor no pudo clasificar la regla del canal, y entonces solo se nombra al transportista.
+ */
+export type TipoDeLinea = 'ropa' | 'general' | 'con-bateria' | 'desconocida';
+
 export interface OpcionDeEnvio {
   readonly codigo: string;
+  /**
+   * El transportista como IDENTIFICADOR («YUNEXPRESS», «FOURPX»), no como nombre. Viaja de vuelta junto
+   * al código porque dos transportistas pueden usar el mismo código de canal, y casar solo por código
+   * puede dar la opción del otro. Ausente en cotizaciones de un servidor que aún no lo manda.
+   */
+  readonly idDeTransportista?: string;
+  /** La clase de línea del canal. Es lo que le dice a quien compra qué admite su paquete. */
+  readonly tipoDeLinea?: TipoDeLinea;
   /** Solo para comparar entre opciones y nombrarlas. El importe que se pinta es `importeFormateado`. */
   readonly importeParaComparar: number;
   readonly importeFormateado: string;
@@ -83,6 +97,39 @@ export interface CotizacionDeEnvio {
    * cotizar, el servidor cobra el más barato, y el selector debe marcar el que de verdad se paga.
    */
   readonly opcionCotizada?: string;
+  /** El transportista (identificador) de la opción con la que está calculado este desglose. */
+  readonly transportistaCotizado?: string;
+  /**
+   * Por qué no hay envío cuando la culpa es de la MERCANCÍA y no del destino: un producto sin partida
+   * arancelaria, o ningún canal que admita el pedido. Ausente cuando el destino es el problema.
+   */
+  readonly motivoDeBloqueo?: MotivoDeBloqueoDeEnvio;
+}
+
+export type MotivoDeBloqueoDeEnvio = 'producto-sin-partida' | 'sin-canal-admisible';
+
+/** La elección del comprador: el código y el transportista que lo ofrece. */
+export interface EleccionDeEnvio {
+  readonly codigo: string;
+  readonly idDeTransportista?: string;
+}
+
+/**
+ * ¿Es esta la opción elegida?
+ *
+ * <p>Casa por código Y por transportista cuando los dos lados lo traen. Si uno no lo trae —servidor
+ * antiguo, estado sin elegir— se cae a solo el código, que es lo que se hacía antes.
+ */
+export function esLaElegida(opcion: OpcionDeEnvio, codigo?: string, transportista?: string): boolean {
+  if (opcion.codigo !== codigo) {
+    return false;
+  }
+  return !opcion.idDeTransportista || !transportista || opcion.idDeTransportista === transportista;
+}
+
+/** Identificador estable de una opción dentro de la lista, para `track` y para comparar. */
+export function claveDeOpcion(opcion: OpcionDeEnvio): string {
+  return `${opcion.idDeTransportista ?? ''}:${opcion.codigo}`;
 }
 
 /** Cómo se llama cada opción DENTRO de esta cotización. */
@@ -126,10 +173,10 @@ export function categoriaDeOpcion(
   }
   // La más barata manda sobre cualquier otra consideración: quien busca «económico» busca eso. Si además
   // resulta ser la más rápida, la insignia se encarga de decirlo.
-  if (opcion.codigo === laMasBarata(todas).codigo) {
+  if (claveDeOpcion(opcion) === claveDeOpcion(laMasBarata(todas))) {
     return 'economy';
   }
-  return opcion.codigo === laMasRapida(todas).codigo ? 'express' : 'standard';
+  return claveDeOpcion(opcion) === claveDeOpcion(laMasRapida(todas)) ? 'express' : 'standard';
 }
 
 /** Un país al que se puede enviar. */

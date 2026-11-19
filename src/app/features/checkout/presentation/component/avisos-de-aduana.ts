@@ -22,7 +22,9 @@ import { CotizacionDeEnvio } from '../../domain/model/cotizacion-de-envio';
         role="alert"
         class="mt-2 text-[12px] text-warning-content/90 bg-warning/10 border border-warning/30 rounded p-2"
       >
-        {{ t('checkout.ship_unsupported') }}
+        <!-- Si el servidor dice que el problema es la MERCANCIA y no el destino, se dice cual: mandar
+             a elegir otro pais por un producto sin partida arancelaria es mandar al sitio equivocado. -->
+        {{ t(motivo()) }}
       </div>
     }
 
@@ -56,6 +58,18 @@ export class AvisosDeAduana {
   private readonly traduccion = inject(TraduccionService);
   protected readonly t = this.traduccion.t;
   protected readonly tCon = this.traduccion.tCon;
+
+  /** La explicación de por qué no hay envío: la del motivo de la mercancía, o la genérica del destino. */
+  protected motivo(): string {
+    switch (this.cotizacion()?.motivoDeBloqueo) {
+      case 'producto-sin-partida':
+        return 'checkout.ship_blocked.no_customs_code';
+      case 'sin-canal-admisible':
+        return 'checkout.ship_blocked.no_channel';
+      default:
+        return 'checkout.ship_unsupported';
+    }
+  }
 
   protected cubierto(): boolean {
     return this.cotizacion()?.cubierto === true;

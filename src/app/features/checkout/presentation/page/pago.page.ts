@@ -10,6 +10,7 @@ import { CARRITO_COMPARTIDO_PORT } from '@features/cart/domain/port/carrito-comp
 import { MetodoDePago, elSaldoAlcanza, direccionUtilizable } from '../../domain/model/pedido';
 import { CompraStore, DIRECCION_NUEVA } from '../../application/state/compra.store';
 import { PreparaLaCompra } from '../../application/use-case/prepara-la-compra.use-case';
+import { esLaElegida } from '../../domain/model/cotizacion-de-envio';
 import { CotizaElEnvio } from '../../application/use-case/cotiza-el-envio.use-case';
 import { ValoraLaCompra } from '../../application/use-case/valora-la-compra.use-case';
 import { RealizaElPedido } from '../../application/use-case/realiza-el-pedido.use-case';
@@ -71,7 +72,8 @@ import { ResumenDeLaCompra } from '../component/resumen-de-la-compra';
                 <nx-opciones-de-envio
                   [opciones]="envio.opciones()"
                   [seleccionada]="envio.opcionCotizada()"
-                  (elige)="estado.eligeOpcionDeEnvio($event)"
+                  [transportistaSeleccionado]="envio.transportistaCotizado()"
+                  (elige)="estado.eligeOpcionDeEnvio($event.codigo, $event.idDeTransportista)"
                 />
               </section>
             }
@@ -168,7 +170,11 @@ export class PagoPage {
   }
 
   protected readonly opcionCotizada = computed(() =>
-    this.envio.opciones().find((opcion) => opcion.codigo === this.envio.opcionCotizada()),
+    this.envio
+      .opciones()
+      .find((opcion) =>
+        esLaElegida(opcion, this.envio.opcionCotizada(), this.envio.transportistaCotizado()),
+      ),
   );
 
   protected readonly alcanzaElSaldo = computed(() =>

@@ -191,6 +191,7 @@ export class RealizaElPedido {
       metodoDePago: this.estado.metodoDePago(),
       codigoDeCupon: this.estado.cupon() || undefined,
       opcionDeEnvio: this.estado.opcionDeEnvio(),
+      transportistaDeEnvio: this.estado.transportistaDeEnvio(),
       idDeDireccion: 'id' in direccion ? direccion.id : undefined,
       direccionSuelta: 'suelta' in direccion ? direccion.suelta : undefined,
     };
@@ -307,6 +308,12 @@ export class RealizaElPedido {
       // dice que se ha quitado, así que quitarlo de verdad es parte del mensaje.
       void this.retiraLoCaducado.ejecuta();
       return this.traduccion.t('checkout.stale_item');
+    }
+    if (error.codigo === 'SHIPPING_NOT_AVAILABLE') {
+      return this.traduccion.t('checkout.ship_blocked.no_channel');
+    }
+    if (error.codigo === 'SHIPPING_PRODUCT_WITHOUT_CUSTOMS_CODE') {
+      return this.traduccion.t('checkout.ship_blocked.no_customs_code');
     }
     if (/insufficient wallet balance/i.test(error.mensaje)) {
       return this.traduccion.t('checkout.insufficient_long');

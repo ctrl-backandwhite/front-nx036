@@ -143,6 +143,37 @@ describe('DesgloseDelPedido', () => {
     expect(screen.getByText('2,95 €')).toBeInTheDocument();
   });
 
+  it('la linea de envio dice la clase de linea y el transportista de la opcion cotizada', async () => {
+    const vista = await render(DesgloseDelPedido, {
+      inputs: {
+        cotizacion: cotizacion(),
+        subtotal: '100,00 €',
+        hayPais: true,
+        opcionCotizada: {
+          codigo: 'S1427',
+          importeParaComparar: 900,
+          importeFormateado: '9 €',
+          transportista: '4PX',
+          tipoDeLinea: 'general',
+          diasMinimos: 6,
+          diasMaximos: 12,
+        },
+      },
+    });
+
+    const envio = vista.container.querySelector('[data-testid="desglose-envio"]')?.textContent ?? '';
+    expect(envio).toContain('Mercancía general · 4PX');
+    expect(envio).not.toMatch(/estándar/i);
+  });
+
+  it('sin datos de canal conserva el rotulo generico de envio', async () => {
+    const vista = await monta({ cotizacion: cotizacion() });
+
+    expect(vista.container.querySelector('[data-testid="desglose-envio"]')?.textContent).toMatch(
+      /estándar/i,
+    );
+  });
+
   it('un destino sin cobertura lo dice en la línea de envío', async () => {
     const vista = await monta({ cotizacion: cotizacion({ cubierto: false }) });
 
