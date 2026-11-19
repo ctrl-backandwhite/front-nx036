@@ -20,13 +20,13 @@ import { ArancelDelProducto } from '../../domain/model/producto';
     @if (arancel().centimosExtra !== null) {
       <div class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
         @if (arancel().centimosExtra === 0) {
-          <span class="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700">
-            <fa-icon [icon]="iconoSinCoste" class="text-[10px]" />
+          <span class="inline-flex items-center gap-1 text-xs font-medium text-emerald-700">
+            <fa-icon [icon]="iconoSinCoste" class="text-xs" />
             {{ t('catalog.duty.free') }}
           </span>
         } @else {
-          <span class="inline-flex items-center gap-1 text-[11px] text-ink-500">
-            <fa-icon [icon]="iconoConCoste" class="text-[10px]" />
+          <span class="inline-flex items-center gap-1 text-xs text-ink-500">
+            <fa-icon [icon]="iconoConCoste" class="text-xs" />
             {{ textoDelExtra() }}
           </span>
         }
@@ -38,7 +38,7 @@ import { ArancelDelProducto } from '../../domain/model/producto';
           <button
             type="button"
             (click)="filtra.emit(); $event.preventDefault(); $event.stopPropagation()"
-            class="text-[11px] underline text-brand-700 hover:text-brand-800"
+            class="text-xs underline text-brand-700 hover:text-brand-800"
           >
             {{ t('catalog.duty.filter') }}
           </button>

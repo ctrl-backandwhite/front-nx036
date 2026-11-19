@@ -88,7 +88,7 @@ import { VistaDeValoracion } from '../../application/use-case/valora-la-compra.u
                   [title]="t('cart.remove')"
                   (click)="quita.emit(linea)"
                 >
-                  <fa-icon [icon]="iconoBorrar" class="text-[11px]" />
+                  <fa-icon [icon]="iconoBorrar" class="text-xs" />
                 </button>
               </div>
             </div>

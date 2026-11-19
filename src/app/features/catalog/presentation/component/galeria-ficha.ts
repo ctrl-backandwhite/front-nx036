@@ -66,17 +66,17 @@ import { VisorGaleria } from './visor-galeria';
             <div
               class="sticky top-0 z-10 flex flex-col gap-1 rounded-lg border border-primary/30 bg-primary/10 p-1.5"
             >
-              <span class="text-[10px] font-medium">{{ textoDeMarcadas() }}</span>
+              <span class="text-xs font-medium">{{ textoDeMarcadas() }}</span>
               <button
                 type="button"
-                class="btn btn-error btn-xs text-[10px]"
+                class="btn btn-error btn-xs text-xs"
                 (click)="borraLasMarcadas()"
               >
                 <fa-icon [icon]="iconos.papelera" /> {{ t('admin.catalog.images.delete_selected') }}
               </button>
               <button
                 type="button"
-                class="btn btn-ghost btn-xs text-[10px]"
+                class="btn btn-ghost btn-xs text-xs"
                 (click)="limpiaSeleccion()"
               >
                 {{ t('admin.catalog.images.clear_sel') }}
@@ -133,7 +133,7 @@ import { VisorGaleria } from './visor-galeria';
                   type="button"
                   (click)="borraVideo.emit(); $event.stopPropagation()"
                   [title]="t('admin.catalog.video.delete')"
-                  class="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-error text-white text-[10px] flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 transition-opacity shadow z-10"
+                  class="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-error text-white text-xs flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 transition-opacity shadow z-10"
                 >
                   <fa-icon [icon]="iconos.papelera" />
                 </button>
@@ -194,7 +194,7 @@ import { VisorGaleria } from './visor-galeria';
                   type="button"
                   (click)="borraImagen.emit(foto.id); $event.stopPropagation()"
                   [title]="t('admin.catalog.images.delete')"
-                  class="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-error text-white text-[10px] flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 transition-opacity shadow"
+                  class="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-error text-white text-xs flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 transition-opacity shadow"
                 >
                   <fa-icon [icon]="iconos.papelera" />
                 </button>
@@ -323,7 +323,7 @@ import { VisorGaleria } from './visor-galeria';
             <fa-icon [icon]="iconos.derecha" />
           </button>
           <span
-            class="absolute bottom-2 right-3 text-[11px] px-2 py-0.5 rounded-full bg-base-100/80 border border-base-200"
+            class="absolute bottom-2 right-3 text-xs px-2 py-0.5 rounded-full bg-base-100/80 border border-base-200"
           >
             {{ activa() + 1 }} / {{ cuantas() }}
           </span>

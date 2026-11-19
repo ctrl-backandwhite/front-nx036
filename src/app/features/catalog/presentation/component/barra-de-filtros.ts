@@ -78,14 +78,14 @@ const ORDENES: readonly OrdenDelCatalogo[] = [
           (click)="alterna()"
           [attr.aria-expanded]="abierto()"
           aria-controls="filtros-del-catalogo"
-          class="md:pointer-events-none inline-flex items-center gap-1.5 min-h-11 md:min-h-0 text-[11px]
+          class="md:pointer-events-none inline-flex items-center gap-1.5 min-h-11 md:min-h-0 text-xs
                  text-ink-500 uppercase tracking-wider font-medium pr-2 md:border-r md:border-ink-100"
         >
-          <fa-icon [icon]="iconos.embudo" class="text-[10px]" />
+          <fa-icon [icon]="iconos.embudo" class="text-xs" />
           {{ t('filters.label') }}
           @if (cuantos() > 0) {
             <span
-              class="ml-1 inline-flex items-center justify-center w-4 h-4 rounded-full bg-brand-600 text-white text-[10px] font-medium"
+              class="ml-1 inline-flex items-center justify-center w-4 h-4 rounded-full bg-brand-600 text-white text-xs font-medium"
             >
               {{ cuantos() }}
             </span>
@@ -219,7 +219,7 @@ const ORDENES: readonly OrdenDelCatalogo[] = [
             parecía «sin resultados» en el parpadeo tras pulsar un filtro. Un resultado REALMENTE
             vacío (ya cargado) sí enseña 0 / 0, porque el guardia exige que esté cargando.
           -->
-          <span class="text-[11px] text-ink-400 ml-auto" data-testid="contador-del-catalogo">
+          <span class="text-xs text-ink-400 ml-auto" data-testid="contador-del-catalogo">
             @if (cargando() && total() === 0) {
               {{ t('pagination.showing') }} <strong>…</strong>
             } @else {
@@ -233,7 +233,7 @@ const ORDENES: readonly OrdenDelCatalogo[] = [
               (click)="limpia.emit()"
               class="md:ml-auto inline-flex items-center gap-1 min-h-11 md:min-h-0 text-[12px] text-ink-500 hover:text-red-600"
             >
-              <fa-icon [icon]="iconos.aspa" class="text-[10px]" /> {{ t('filters.clear') }}
+              <fa-icon [icon]="iconos.aspa" class="text-xs" /> {{ t('filters.clear') }}
             </button>
           }
         </div>

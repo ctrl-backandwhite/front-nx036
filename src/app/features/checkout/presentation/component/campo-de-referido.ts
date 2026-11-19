@@ -38,14 +38,14 @@ import { TraduccionService } from '@core/i18n/traduccion.service';
           <label class="sr-only" for="codigo-de-referido">{{ t('checkout.referral.label') }}</label>
           <input
             id="codigo-de-referido"
-            class="input input-sm input-bordered flex-1 text-sm"
+            class="input input-bordered flex-1 min-w-0"
             [placeholder]="t('checkout.referral.placeholder')"
             [formField]="formulario"
             (keydown.enter)="envia($event)"
           />
           <button
             type="button"
-            class="btn btn-sm btn-outline"
+            class="btn btn-outline"
             [disabled]="!sePuedeAplicar()"
             (click)="aplica.emit(escritoLimpio())"
           >

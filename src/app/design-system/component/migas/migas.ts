@@ -54,7 +54,7 @@ function legible(trozo: string): string {
       >
         @if (!ocultaInicio()) {
           <a routerLink="/" class="hover:text-brand-700 inline-flex items-center gap-1">
-            <fa-icon [icon]="iconoInicio" class="text-[11px]" />
+            <fa-icon [icon]="iconoInicio" class="text-xs" />
             <span>{{ t('breadcrumb.home') }}</span>
           </a>
           @if (rastro().length > 0) {

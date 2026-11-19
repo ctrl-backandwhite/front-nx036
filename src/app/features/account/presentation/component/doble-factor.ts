@@ -66,7 +66,7 @@ type Paso = 'verificar' | 'codigos' | 'desactivar' | null;
               {{ alta()?.secreto }}
             </div>
           }
-          <div class="flex items-center gap-2 text-[11px] text-ink-500">
+          <div class="flex items-center gap-2 text-xs text-ink-500">
             <span class="font-mono break-all">{{ alta()?.secreto }}</span>
             <button type="button" class="btn btn-xs btn-outline" [attr.aria-label]="t('admin.profile.2fa.copy')"
                     (click)="copia(alta()?.secreto ?? '')">

@@ -133,7 +133,7 @@ const TONOS = [
                   class="text-[12px] text-brand-700 hover:underline"
                 >
                   {{ t('catalog.home.see_all') }}
-                  <fa-icon [icon]="iconoFlecha" class="text-[10px]" />
+                  <fa-icon [icon]="iconoFlecha" class="text-xs" />
                 </a>
               </header>
               <nx-hilera-deslizable>
@@ -208,12 +208,12 @@ const TONOS = [
                     {{ inicial(categoria.nombre) }}
                   </span>
                   <span
-                    class="text-[11px] font-medium leading-tight text-ink-900 line-clamp-2
+                    class="text-xs font-medium leading-tight text-ink-900 line-clamp-2
                            md:text-[13px] md:line-clamp-1 md:group-hover:text-primary-content
                            md:group-focus-visible:text-primary-content"
                     >{{ categoria.nombre }}</span
                   >
-                  <span class="hidden text-[11px] text-ink-500 md:block md:mt-1 md:group-hover:text-primary-content/70
+                  <span class="hidden text-xs text-ink-500 md:block md:mt-1 md:group-hover:text-primary-content/70
                                md:group-focus-visible:text-primary-content/70">
                     {{ categoria.cuantosProductos }}
                   </span>

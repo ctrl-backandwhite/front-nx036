@@ -248,7 +248,7 @@ import { DesgloseEditable } from './admin/desglose-editable';
         }
       </div>
 
-      <p class="order-9 lg:order-0 text-[11px] opacity-70 leading-relaxed">
+      <p class="order-9 lg:order-0 text-xs opacity-70 leading-relaxed">
         {{ t('product.price_disclosure') }}
       </p>
     </aside>

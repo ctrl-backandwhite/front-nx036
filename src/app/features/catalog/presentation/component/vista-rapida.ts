@@ -108,7 +108,7 @@ const MINIATURAS = 8;
                       <fa-icon [icon]="iconos.derecha" class="text-[12px]" />
                     </button>
                     <span
-                      class="absolute bottom-2 right-2 rounded-full bg-black/55 px-2 py-0.5 text-[11px] text-white"
+                      class="absolute bottom-2 right-2 rounded-full bg-black/55 px-2 py-0.5 text-xs text-white"
                     >
                       {{ indice() + 1 }} / {{ cuantas() }}
                     </span>

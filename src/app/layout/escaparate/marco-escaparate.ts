@@ -65,7 +65,7 @@ const RUTA_DE_FICHA = /^\/(catalog|admin\/browse)\/[^/]+$/;
     BarraInferiorMovil,
   ],
   template: `
-    <div class="min-h-full flex flex-col">
+    <div class="escaparate min-h-full flex flex-col">
       <header
         nxSombraAlDesplazar
         class="navbar bg-base-100/95 backdrop-blur border-b border-base-200 sticky top-0 z-30 min-h-14 px-4 lg:px-6"
@@ -88,7 +88,7 @@ const RUTA_DE_FICHA = /^\/(catalog|admin\/browse)\/[^/]+$/;
                   [routerLinkActiveOptions]="{ exact: opcion.exacta }"
                   class="flex items-center gap-1.5"
                 >
-                  <fa-icon [icon]="opcion.icono" class="text-[11px]" />
+                  <fa-icon [icon]="opcion.icono" class="text-xs" />
                   {{ opcion.texto }}
                 </a>
               </li>

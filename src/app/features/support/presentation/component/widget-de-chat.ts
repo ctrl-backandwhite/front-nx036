@@ -130,7 +130,7 @@ const TOPE_DEL_MENSAJE = 1000;
           </button>
         </form>
 
-        <p class="px-3 pb-2 text-[11px] leading-tight opacity-70">{{ t('chat.disclaimer') }}</p>
+        <p class="px-3 pb-2 text-xs leading-tight opacity-70">{{ t('chat.disclaimer') }}</p>
       </div>
     }
   `,

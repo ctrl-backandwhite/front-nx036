@@ -27,13 +27,13 @@ import { TraduccionService } from '@core/i18n/traduccion.service';
       <label class="sr-only" for="codigo-de-cupon">{{ t('checkout.coupon.placeholder') }}</label>
       <input
         id="codigo-de-cupon"
-        class="input input-bordered input-sm flex-1"
+        class="input input-bordered flex-1 min-w-0"
         [placeholder]="t('checkout.coupon.placeholder')"
         [formField]="formulario"
         (input)="aMayusculas($event)"
         (keydown.enter)="envia($event)"
       />
-      <button type="button" class="btn btn-sm" [disabled]="!sePuedeAplicar()" (click)="aplica.emit(codigo())">
+      <button type="button" class="btn" [disabled]="!sePuedeAplicar()" (click)="aplica.emit(codigo())">
         {{ t('checkout.coupon.apply') }}
       </button>
     </div>

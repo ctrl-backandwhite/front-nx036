@@ -48,7 +48,7 @@ import { COLOR_DE_CATEGORIA, COLOR_DE_ESTADO, claveDeEstado } from './colores-de
           <p class="text-sm">{{ t('notif.empty') }}</p>
         </div>
       } @else {
-        <label class="flex items-center gap-2 px-4 py-2 border-b border-base-200 text-[11px] opacity-70
+        <label class="flex items-center gap-2 px-4 py-2 border-b border-base-200 text-xs opacity-70
                       cursor-pointer sticky top-0 bg-base-100 z-10">
           <input type="checkbox" class="checkbox checkbox-xs" [checked]="todosMarcados()"
                  (change)="alternaTodos.emit()" />
@@ -81,7 +81,7 @@ import { COLOR_DE_CATEGORIA, COLOR_DE_ESTADO, claveDeEstado } from './colores-de
             <span class="min-w-0 flex-1">
               <span class="flex items-baseline justify-between gap-2">
                 <span class="truncate text-[13px]" [class.font-semibold]="noLeido(aviso)">{{ aviso.titulo }}</span>
-                <span class="text-[11px] opacity-70 whitespace-nowrap shrink-0 group-hover:opacity-0 transition-opacity">
+                <span class="text-xs opacity-70 whitespace-nowrap shrink-0 group-hover:opacity-0 transition-opacity">
                   {{ cuandoCorto(aviso.creadoEl) }}
                 </span>
               </span>
@@ -94,7 +94,7 @@ import { COLOR_DE_CATEGORIA, COLOR_DE_ESTADO, claveDeEstado } from './colores-de
                 }
               </span>
               @if (remitente(aviso); as correo) {
-                <span class="block truncate text-[11px] opacity-70 mt-0.5">{{ correo }}</span>
+                <span class="block truncate text-xs opacity-70 mt-0.5">{{ correo }}</span>
               }
               @if (aviso.cuerpo) {
                 <span class="block truncate text-[12px] opacity-70 mt-0.5">{{ aviso.cuerpo }}</span>

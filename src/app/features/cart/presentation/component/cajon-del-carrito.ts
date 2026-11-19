@@ -124,7 +124,7 @@ const CIERRE_MS = 500;
                         >{{ linea.titulo }}</a
                       >
                       @if (linea.etiquetaDeVariante || linea.sku) {
-                        <div class="text-[11px] opacity-70 mt-0.5 truncate">
+                        <div class="text-xs opacity-70 mt-0.5 truncate">
                           {{ linea.etiquetaDeVariante }}
                           @if (linea.etiquetaDeVariante && linea.sku) {
                             <span> · </span>
@@ -134,7 +134,7 @@ const CIERRE_MS = 500;
                           }
                         </div>
                       }
-                      <div class="text-[11px] opacity-70 mt-0.5">
+                      <div class="text-xs opacity-70 mt-0.5">
                         {{ cotizacion.pesoDeLinea(linea) ?? t('cart.weight_pending') }}
                       </div>
                       <div class="flex items-center justify-between mt-1.5">
@@ -166,14 +166,14 @@ const CIERRE_MS = 500;
                       <div class="flex items-center gap-3 mt-1">
                         <button
                           type="button"
-                          class="text-[11px] text-primary hover:underline inline-flex items-center gap-1"
+                          class="text-xs text-primary hover:underline inline-flex items-center gap-1"
                           (click)="acciones.saca(linea, 'apartar')"
                         >
                           <fa-icon [icon]="iconoGuardar" /> {{ t('cart.save_for_later') }}
                         </button>
                         <button
                           type="button"
-                          class="text-[11px] text-error hover:underline inline-flex items-center gap-1"
+                          class="text-xs text-error hover:underline inline-flex items-center gap-1"
                           (click)="acciones.saca(linea, 'quitar')"
                         >
                           <fa-icon [icon]="iconoBorrar" /> {{ t('cart.remove') }}
@@ -206,7 +206,7 @@ const CIERRE_MS = 500;
                       </a>
                       <div class="flex-1 min-w-0">
                         <div class="text-[12px] line-clamp-1">{{ linea.titulo }}</div>
-                        <div class="text-[10px] opacity-70">
+                        <div class="text-xs opacity-70">
                           {{ cotizacionGuardadas.totalDeLinea(linea) }}
                         </div>
                       </div>
@@ -228,7 +228,7 @@ const CIERRE_MS = 500;
           @if (estado.lineas().length > 0) {
             <footer class="border-t border-base-200 px-5 py-4 space-y-3">
               <div class="stat px-0 py-1">
-                <div class="stat-title text-[11px]">{{ t('cart.subtotal') }}</div>
+                <div class="stat-title text-xs">{{ t('cart.subtotal') }}</div>
                 <div class="stat-value text-2xl">{{ cotizacion.subtotal() }}</div>
               </div>
               <a routerLink="/checkout" class="btn btn-primary w-full" (click)="cierra()">

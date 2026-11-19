@@ -115,7 +115,7 @@ const ICONO: Record<Paso, IconDefinition> = {
                     />
                     <div class="min-w-0 flex-1">
                       <p class="truncate text-[13px] leading-tight">{{ producto.titulo }}</p>
-                      <p class="text-[11px] text-ink-500">
+                      <p class="text-xs text-ink-500">
                         {{ producto.precioFormateado }} · {{ producto.pesoGramos }} g
                       </p>
                     </div>
@@ -196,7 +196,7 @@ const ICONO: Record<Paso, IconDefinition> = {
             </div>
           }
 
-          <p class="text-[11px] text-ink-500">{{ t('welcome.disclaimer') }}</p>
+          <p class="text-xs text-ink-500">{{ t('welcome.disclaimer') }}</p>
 
           <div class="flex items-center justify-between gap-2 pt-1">
             <div class="flex gap-1" aria-hidden="true">

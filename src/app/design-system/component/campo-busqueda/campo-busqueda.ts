@@ -30,7 +30,7 @@ import { TraduccionService } from '@core/i18n/traduccion.service';
           class="opacity-70 hover:opacity-100"
           [attr.aria-label]="t('common.cancel')"
         >
-          <fa-icon [icon]="iconoAspa" class="text-[11px]" />
+          <fa-icon [icon]="iconoAspa" class="text-xs" />
         </button>
       }
     </label>

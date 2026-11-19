@@ -44,11 +44,11 @@ import { ResumenDeProducto } from '../../domain/model/producto';
           {{ producto().titulo }}
         </div>
         @if (producto().proveedor) {
-          <div class="text-[11px] text-ink-500 truncate">{{ producto().proveedor }}</div>
+          <div class="text-xs text-ink-500 truncate">{{ producto().proveedor }}</div>
         }
         <!-- Los rótulos salen del diccionario: estaban escritos en español dentro del componente, así
              que en inglés o en chino esta vista seguía diciendo «ventas/mes» y «En stock». -->
-        <div class="text-[11px] text-ink-500 mt-1 flex items-center gap-x-3 gap-y-0.5 flex-wrap">
+        <div class="text-xs text-ink-500 mt-1 flex items-center gap-x-3 gap-y-0.5 flex-wrap">
           <span>★ {{ producto().valoracion ?? '—' }}</span>
           <span>· {{ ventas() }}</span>
           @if (producto().enviaDesde) {

@@ -31,7 +31,7 @@ import { PasosDeSeguimiento } from './pasos-de-seguimiento';
               <fa-icon [icon]="iconoCamion" class="text-primary" /> {{ t('tracking.title') }}
             </h3>
             @if (datos.bultos.length === 0 && datos.numeroDeSeguimiento) {
-              <span class="text-[11px] font-mono bg-base-200 rounded px-2 py-1">
+              <span class="text-xs font-mono bg-base-200 rounded px-2 py-1">
                 {{ datos.transportista || t('tracking.carrier_default') }} ·
                 {{ datos.numeroDeSeguimiento }}
               </span>

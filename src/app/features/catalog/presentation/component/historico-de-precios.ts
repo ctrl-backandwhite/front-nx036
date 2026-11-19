@@ -52,7 +52,7 @@ const MARGEN_Y = 14;
           <path [attr.d]="trazoDeExistencias()" fill="none" stroke="var(--color-ink-300)" stroke-width="1" stroke-dasharray="3 3" />
           <path [attr.d]="trazoDePrecio()" fill="none" stroke="var(--color-brand-600)" stroke-width="1.8" />
         </svg>
-        <div class="flex items-center gap-3 text-[11px] text-ink-500 mt-2">
+        <div class="flex items-center gap-3 text-xs text-ink-500 mt-2">
           <span>
             <span class="inline-block w-3 h-[2px] bg-brand-600 align-middle mr-1"></span>
             {{ t('catalog.detail.history.price') }}

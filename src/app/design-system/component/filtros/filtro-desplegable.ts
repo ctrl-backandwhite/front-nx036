@@ -87,7 +87,7 @@ const TECLAS_DE_NAVEGACION = ['ArrowDown', 'ArrowUp', 'Home', 'End'];
         "
       >
         @if (icono(); as adorno) {
-          <fa-icon [icon]="adorno" class="text-[10px] text-ink-400 group-hover:text-ink-600" />
+          <fa-icon [icon]="adorno" class="text-xs text-ink-400 group-hover:text-ink-600" />
         }
         <span class="text-ink-500">{{ etiqueta() }}:</span>
         <span class="font-medium truncate max-w-[140px]">
@@ -114,7 +114,7 @@ const TECLAS_DE_NAVEGACION = ['ArrowDown', 'ArrowUp', 'Home', 'End'];
             <div class="p-2 border-b border-ink-100 relative">
               <fa-icon
                 [icon]="iconoBuscar"
-                class="absolute left-4 top-1/2 -translate-y-1/2 text-[11px] text-ink-400"
+                class="absolute left-4 top-1/2 -translate-y-1/2 text-xs text-ink-400"
               />
               <input
                 type="text"
@@ -142,7 +142,7 @@ const TECLAS_DE_NAVEGACION = ['ArrowDown', 'ArrowUp', 'Home', 'End'];
               >
                 <span>{{ marcador() || t('filters.all') }}</span>
                 @if (valor() === null) {
-                  <fa-icon [icon]="iconoMarca" class="text-[10px]" />
+                  <fa-icon [icon]="iconoMarca" class="text-xs" />
                 }
               </button>
             </li>
@@ -167,7 +167,7 @@ const TECLAS_DE_NAVEGACION = ['ArrowDown', 'ArrowUp', 'Home', 'End'];
                   <span class="flex items-center gap-2 shrink-0">
                     @if (opcion.cuantos !== undefined) {
                       <span
-                        class="text-[10px]"
+                        class="text-xs"
                         [class.text-brand-600]="opcion.valor === valor()"
                         [class.text-ink-400]="opcion.valor !== valor()"
                       >
@@ -175,7 +175,7 @@ const TECLAS_DE_NAVEGACION = ['ArrowDown', 'ArrowUp', 'Home', 'End'];
                       </span>
                     }
                     @if (opcion.valor === valor()) {
-                      <fa-icon [icon]="iconoMarca" class="text-[10px]" />
+                      <fa-icon [icon]="iconoMarca" class="text-xs" />
                     }
                   </span>
                 </button>

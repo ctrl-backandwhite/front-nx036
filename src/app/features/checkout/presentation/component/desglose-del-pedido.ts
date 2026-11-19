@@ -47,7 +47,7 @@ import { rotuloDelCanal } from './rotulo-del-canal';
         <span>
           {{ t('order.detail.shipping') }}
           @if (cubierto()) {
-            <span class="block text-[11px] opacity-70">
+            <span class="block text-xs opacity-70">
               {{ rotuloDelEnvio() }} · {{ plazo() }} {{ t('checkout.ship_days') }}
             </span>
           }

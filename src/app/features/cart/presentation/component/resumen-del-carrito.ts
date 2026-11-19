@@ -38,7 +38,7 @@ import { PreferenciasService } from '@core/preferences/preferencias';
             <dt class="font-medium">{{ t('cart.estimated_total') }} ({{ moneda() }})</dt>
             <dd class="text-2xl font-medium">{{ subtotal() }}</dd>
           </div>
-          <p class="text-[11px] opacity-70 pt-1">{{ t('cart.taxes_note') }}</p>
+          <p class="text-xs opacity-70 pt-1">{{ t('cart.taxes_note') }}</p>
         </dl>
         <div class="card-actions justify-end">
           <a routerLink="/catalog" class="btn btn-outline">{{ t('cart.keep_shopping') }}</a>

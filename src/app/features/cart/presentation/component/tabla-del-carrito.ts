@@ -54,18 +54,18 @@ import { AccionesDeLinea } from '../acciones-de-linea';
                       >{{ linea.titulo }}</a
                     >
                     @if (linea.etiquetaDeVariante) {
-                      <div class="text-[11px] opacity-70">{{ linea.etiquetaDeVariante }}</div>
+                      <div class="text-xs opacity-70">{{ linea.etiquetaDeVariante }}</div>
                     }
-                    <div class="text-[11px] opacity-70">
+                    <div class="text-xs opacity-70">
                       SKU: <code class="font-mono">{{ sku(linea) }}</code>
                     </div>
                     <!-- Peso NETO de la variante; si la ficha no lo declara se dice, no se rellena. -->
-                    <div class="text-[11px] opacity-70">
+                    <div class="text-xs opacity-70">
                       {{ cotizacion().pesoDeLinea(linea) ?? t('cart.weight_pending') }}
                     </div>
                     <button
                       type="button"
-                      class="text-[11px] text-primary hover:underline mt-1 inline-flex items-center gap-1 min-h-11 sm:min-h-0"
+                      class="text-xs text-primary hover:underline mt-1 inline-flex items-center gap-1 min-h-11 sm:min-h-0"
                       (click)="acciones.saca(linea, 'apartar')"
                     >
                       <fa-icon [icon]="iconoGuardar" /> {{ t('cart.save_for_later') }}

@@ -66,7 +66,7 @@ const ESTADOS = ['OPEN', 'RESOLVED', 'CLOSED'] as const;
                   <span class="badge" [class]="colorEstado(ticket)">{{ ticket.estado }}</span>
                   <span class="badge" [class]="colorPrioridad(ticket)">{{ ticket.prioridad }}</span>
                 </div>
-                <span class="text-[11px] opacity-70 whitespace-nowrap">{{ cuando(ticket.creadoEl) }}</span>
+                <span class="text-xs opacity-70 whitespace-nowrap">{{ cuando(ticket.creadoEl) }}</span>
               </div>
               <div class="text-[14px] font-medium mt-2">{{ ticket.asunto }}</div>
               @if (ticket.cuerpo) {

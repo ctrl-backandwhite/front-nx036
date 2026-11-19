@@ -24,7 +24,7 @@ import { TraduccionService } from '@core/i18n/traduccion.service';
       [attr.aria-label]="t('checkout.customs_info.aria')"
       (click)="abre($event)"
     >
-      <fa-icon [icon]="iconoInfo" class="text-[11px] animate-attention" />
+      <fa-icon [icon]="iconoInfo" class="text-xs animate-attention" />
     </button>
 
     @if (abierto()) {

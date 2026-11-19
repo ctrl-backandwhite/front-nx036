@@ -67,11 +67,11 @@ const LARGO_MINIMO = 8;
       -->
       <div class="rounded-box border border-ink-100 bg-ink-50/50 p-4">
         <div class="flex items-baseline justify-between gap-3">
-          <span class="text-[11px] font-medium uppercase tracking-wide text-ink-500">
+          <span class="text-xs font-medium uppercase tracking-wide text-ink-500">
             {{ t('profile.pwd_req_title') }}
           </span>
           @if (modelo().nueva) {
-            <span class="text-[11px] font-medium" [class]="fuerza().color">{{ t(fuerza().clave) }}</span>
+            <span class="text-xs font-medium" [class]="fuerza().color">{{ t(fuerza().clave) }}</span>
           }
         </div>
 

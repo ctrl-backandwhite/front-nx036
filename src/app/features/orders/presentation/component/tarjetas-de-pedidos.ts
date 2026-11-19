@@ -26,13 +26,13 @@ import { InsigniaDeEstado } from './insignia-de-estado';
         <a [routerLink]="['/orders', pedido.id]" class="block p-4 hover:bg-ink-50/50">
           <div class="flex items-center justify-between gap-2">
             <span class="font-mono text-xs">{{ pedido.numero }}</span>
-            <nx-insignia-de-estado [estado]="pedido.estado" clase="text-[10px]" />
+            <nx-insignia-de-estado [estado]="pedido.estado" clase="text-xs" />
           </div>
           <div class="mt-1 flex items-center justify-between text-xs text-ink-500">
             <span>{{ pedido.articulos }} {{ t('orders.items_short') }}</span>
             <span class="text-ink-900 font-medium">{{ pedido.totalFormateado || '—' }}</span>
           </div>
-          <div class="mt-1 flex items-center justify-between text-[11px] text-ink-500">
+          <div class="mt-1 flex items-center justify-between text-xs text-ink-500">
             <span>{{ fecha(pedido.realizadoEl) }}</span>
             <span class="inline-flex items-center gap-3">
               @if (pedido.cancelable) {

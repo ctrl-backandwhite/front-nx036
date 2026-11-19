@@ -24,7 +24,7 @@ import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
       "
     >
       @if (icono(); as adorno) {
-        <fa-icon [icon]="adorno" class="text-[10px] opacity-70" />
+        <fa-icon [icon]="adorno" class="text-xs opacity-70" />
       }
       <span>{{ etiqueta() }}</span>
       <input type="checkbox" class="toggle toggle-primary toggle-xs" [formField]="formulario" />

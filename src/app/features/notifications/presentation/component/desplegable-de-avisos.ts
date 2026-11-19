@@ -61,7 +61,7 @@ const CADA_MS = 60_000;
             <h3 class="font-medium text-sm">{{ t('admin.notifications.title') }}</h3>
             @if (sinLeer() > 0) {
               <button type="button" class="btn btn-xs btn-ghost gap-1" (click)="marcaTodos()">
-                <fa-icon [icon]="iconos.todos" class="text-[11px]" />
+                <fa-icon [icon]="iconos.todos" class="text-xs" />
                 {{ t('admin.notifications.mark_all_read') }}
               </button>
             }
@@ -76,9 +76,9 @@ const CADA_MS = 60_000;
                     <div class="flex-1 min-w-0">
                       <div class="text-[13px] font-medium truncate">{{ aviso.titulo }}</div>
                       @if (aviso.cuerpo) {
-                        <div class="text-[11px] opacity-70 line-clamp-2">{{ aviso.cuerpo }}</div>
+                        <div class="text-xs opacity-70 line-clamp-2">{{ aviso.cuerpo }}</div>
                       }
-                      <div class="text-[10px] opacity-70 mt-0.5">{{ cuando(aviso.creadoEl) }}</div>
+                      <div class="text-xs opacity-70 mt-0.5">{{ cuando(aviso.creadoEl) }}</div>
                     </div>
                     @if (estaSinLeer(aviso)) {
                       <span class="w-1.5 h-1.5 rounded-full bg-primary mt-1.5"
