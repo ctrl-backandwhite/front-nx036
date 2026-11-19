@@ -66,6 +66,7 @@ function ficha(parcial: Partial<FichaDePedido> = {}): FichaDePedido {
     articulos: 1,
     totalFormateado: '9,54 €',
     lineas: [],
+    bultos: [],
     ...parcial,
   };
 }
@@ -134,6 +135,29 @@ describe('FichaDePedidoPage', () => {
     await monta(ficha());
 
     expect((await screen.findAllByText(/calcular|pendiente/i)).length).toBeGreaterThan(0);
+  });
+
+  /** La fila del envío ya no desaparece cuando falta el dato: sin canal el pedido no emite guía. */
+  it('un pedido sin canal pinta la seccion del envio con el aviso de error', async () => {
+    await monta(ficha());
+
+    expect(await screen.findByTestId('canal-del-pedido')).toBeInTheDocument();
+    expect(screen.getByTestId('canal-problema')).toBeInTheDocument();
+  });
+
+  it('un pedido con su canal en regla enseña transportista y canal, sin aviso', async () => {
+    await monta(
+      ficha({
+        nombreDelTransportista: '4PX',
+        canalDeEnvio: 'S1427',
+        nombreDelCanal: 'General',
+        tipoDeLinea: 'general',
+        canalAdmisible: true,
+      }),
+    );
+
+    expect(await screen.findByTestId('canal-transportista')).toHaveTextContent('4PX');
+    expect(screen.queryByTestId('canal-problema')).toBeNull();
   });
 
   it('un pedido sin cobrar no ofrece descargar la factura', async () => {

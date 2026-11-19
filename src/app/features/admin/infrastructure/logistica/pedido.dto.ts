@@ -1,8 +1,11 @@
 import {
+  BultoDePedido,
   DireccionDeEnvio,
   FichaDePedido,
   LineaDePedido,
+  MotivoDelCanal,
   OrigenDePedido,
+  TipoDeLineaDeCanal,
   Pedido,
   importeLegible,
 } from '../../domain/logistica/model/pedido';
@@ -26,6 +29,22 @@ export interface PedidoDto {
   shopName?: string;
   shopHandle?: string;
   supplierName?: string;
+  shippingCarrier?: string;
+  shippingChannelCode?: string;
+  canalAdmisible?: boolean;
+  canalMotivo?: string;
+}
+
+interface BultoDto {
+  sequenceNo?: number;
+  carrier?: string;
+  productCode?: string;
+  trackingNumber?: string;
+  waybillNumber?: string;
+  status?: string;
+  weightGrams?: number;
+  declaredValueCents?: number;
+  coincideConElCanal?: boolean;
 }
 
 interface DireccionDto {
@@ -58,9 +77,11 @@ export interface FichaDePedidoDto extends PedidoDto {
   source?: string;
   notes?: string;
   trackingNumber?: string;
-  shippingCarrier?: string;
-  shippingChannelCode?: string;
+  shippingCarrierName?: string;
   shippingChannelName?: string;
+  shippingLineType?: string;
+  canalDetalle?: string;
+  shipments?: BultoDto[];
   shippingAddress?: DireccionDto;
   subtotalCents?: number;
   subtotalFormatted?: string;
@@ -85,6 +106,44 @@ export function aPedido(dto: PedidoDto): Pedido {
     totalCentimos: dto.totalCents,
     moneda: dto.currency,
     realizadoEl: dto.placedAt,
+    transportista: dto.shippingCarrier,
+    canalDeEnvio: dto.shippingChannelCode,
+    canalAdmisible: dto.canalAdmisible,
+    motivoDelCanal: aMotivo(dto.canalMotivo),
+  };
+}
+
+const MOTIVOS: Readonly<Record<string, MotivoDelCanal>> = {
+  SIN_TRANSPORTISTA: 'sin-transportista',
+  SIN_CANAL: 'sin-canal',
+  TRANSPORTISTA_DISTINTO: 'transportista-distinto',
+  PRODUCTO_NO_LOCALIZABLE: 'producto-no-localizable',
+  MERCANCIA_NO_ADMITIDA: 'mercancia-no-admitida',
+  VALOR_FUERA_DEL_TOPE: 'valor-fuera-del-tope',
+};
+
+/** Un motivo nuevo del servidor no se pierde: llega como `desconocido` y se avisa igual. */
+function aMotivo(valor: string | undefined): MotivoDelCanal | undefined {
+  return valor ? (MOTIVOS[valor] ?? 'desconocido') : undefined;
+}
+
+const TIPOS_DE_LINEA: Readonly<Record<string, TipoDeLineaDeCanal>> = {
+  ROPA: 'ropa',
+  GENERAL: 'general',
+  CON_BATERIA: 'con-bateria',
+  DESCONOCIDA: 'desconocida',
+};
+
+function aBulto(dto: BultoDto): BultoDePedido {
+  return {
+    numero: dto.sequenceNo ?? 0,
+    transportista: dto.carrier,
+    canalEmitido: dto.productCode,
+    numeroDeSeguimiento: dto.trackingNumber,
+    numeroDeGuia: dto.waybillNumber,
+    estado: dto.status,
+    pesoEnGramos: dto.weightGrams,
+    coincideConElCanal: dto.coincideConElCanal,
   };
 }
 
@@ -131,9 +190,12 @@ export function aFicha(dto: FichaDePedidoDto): FichaDePedido {
     origen: aOrigen(dto.source),
     notas: dto.notes,
     numeroDeSeguimiento: dto.trackingNumber,
-    transportista: dto.shippingCarrier,
-    canalDeEnvio: dto.shippingChannelCode,
+    // El nombre visible si el servidor lo manda; si no, el identificador, que al menos se reconoce.
+    nombreDelTransportista: dto.shippingCarrierName ?? dto.shippingCarrier,
     nombreDelCanal: dto.shippingChannelName,
+    tipoDeLinea: dto.shippingLineType ? (TIPOS_DE_LINEA[dto.shippingLineType] ?? 'desconocida') : undefined,
+    detalleDelCanal: dto.canalDetalle,
+    bultos: (dto.shipments ?? []).map(aBulto),
     direccionDeEnvio: dto.shippingAddress ? aDireccion(dto.shippingAddress) : undefined,
     subtotalFormateado: importeLegible(dto.subtotalFormatted, dto.subtotalCents, moneda),
     // Envío e impuestos quedan SIN VALOR mientras no se hayan cotizado: un «0,00 €» de envío se lee

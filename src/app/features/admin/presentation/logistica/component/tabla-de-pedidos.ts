@@ -15,6 +15,8 @@ import {
   Pedido,
   accionesPermitidas,
   fechaDelPedido,
+  problemaDeCanal,
+  MotivoDelCanal,
 } from '../../../domain/logistica/model/pedido';
 import { Seleccion } from '../../../application/logistica/state/seleccion';
 import { InsigniaEstado } from './insignia-estado';
@@ -89,6 +91,17 @@ export interface PeticionSobrePedido {
                     class="text-brand-700 hover:underline"
                     >{{ pedido.numero }}</a
                   >
+                  <!-- La insignia solo sale con un problema declarado o sin canal: un pedido que sale
+                       sin su canal no emite guia, y en la lista era invisible hasta abrir la ficha. -->
+                  @if (fila.problema; as motivo) {
+                    <span
+                      class="badge badge-sm badge-error block mt-1 w-fit"
+                      data-testid="insignia-canal"
+                      [title]="t(claveDeMotivo(motivo))"
+                    >
+                      {{ t('admin.orders.badge.channel_problem') }}
+                    </span>
+                  }
                 </td>
                 <td class="px-4 py-2"><nx-insignia-estado [estado]="pedido.estado" /></td>
                 <td class="px-4 py-2 text-[12px]">{{ pedido.emailCliente || '—' }}</td>
@@ -157,6 +170,10 @@ export class TablaDePedidos {
     return fechaDelPedido(pedido.realizadoEl, this.traduccion.idioma());
   }
 
+  protected claveDeMotivo(motivo: MotivoDelCanal): string {
+    return `admin.orders.channel.reason.${motivo.replaceAll('-', '_')}`;
+  }
+
   protected readonly iconos = {
     ver: faEye,
     forward: faPaperPlane,
@@ -179,6 +196,8 @@ export class TablaDePedidos {
     return this.pedidos().map((pedido) => ({
       pedido,
       acciones: accionesPermitidas(pedido.estado),
+      // Solo se marca lo que el servidor declara inadmisible: sin veredicto, «no lo sé» no es «mal».
+      problema: pedido.canalAdmisible === false ? problemaDeCanal(pedido) : undefined,
       destacado: !!buscado && (buscado === pedido.id || buscado === pedido.numero),
     }));
   });

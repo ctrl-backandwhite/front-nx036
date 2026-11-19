@@ -84,6 +84,27 @@ describe('PedidosAdminHttpAdapter', () => {
     expect((await promesa).ok).toBe(true);
   });
 
+  /** `false` también viaja: «solo los que están en regla» es un filtro, no la ausencia de filtro. */
+  it('el filtro de canal con problema se filtra en el servidor, en sus dos sentidos', async () => {
+    const con = adaptador.busca({ canalProblema: true, pagina: 0, tamano: 25 });
+    const pedidoCon = http.expectOne((r) => r.url === '/api/admin/orders');
+    expect(pedidoCon.request.params.get('canalProblema')).toBe('true');
+    pedidoCon.flush({ items: [], totalElements: 0, totalPages: 1, page: 0 });
+    await con;
+
+    const sin = adaptador.busca({ canalProblema: false, pagina: 0, tamano: 25 });
+    const pedidoSin = http.expectOne((r) => r.url === '/api/admin/orders');
+    expect(pedidoSin.request.params.get('canalProblema')).toBe('false');
+    pedidoSin.flush({ items: [], totalElements: 0, totalPages: 1, page: 0 });
+    await sin;
+
+    const ninguno = adaptador.busca({ pagina: 0, tamano: 25 });
+    const pedidoNinguno = http.expectOne((r) => r.url === '/api/admin/orders');
+    expect(pedidoNinguno.request.params.has('canalProblema')).toBe(false);
+    pedidoNinguno.flush({ items: [], totalElements: 0, totalPages: 1, page: 0 });
+    await ninguno;
+  });
+
   it('una respuesta sin lista no revienta: devuelve una página vacía', async () => {
     const promesa = adaptador.busca({ pagina: 0, tamano: 25 });
 

@@ -73,6 +73,7 @@ export class PedidosAdminHttpAdapter
       year: criterio.anio,
       month: criterio.mes,
       day: criterio.dia,
+      canalProblema: criterio.canalProblema,
       page: criterio.pagina,
       size: criterio.tamano,
     });

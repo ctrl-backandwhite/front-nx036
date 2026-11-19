@@ -127,6 +127,30 @@ describe('TablaDePedidos', () => {
     expect(screen.getByText(/ningún resultado/i)).toBeInTheDocument();
   });
 
+  it('un pedido con el canal inadmisible lleva su insignia, con el motivo', async () => {
+    await monta([
+      pedido({
+        id: 'p1',
+        canalDeEnvio: 'S1427',
+        canalAdmisible: false,
+        motivoDelCanal: 'valor-fuera-del-tope',
+      }),
+    ]);
+
+    const insignia = screen.getByTestId('insignia-canal');
+    expect(insignia).toHaveTextContent('Canal con problema');
+    expect(insignia).toHaveAttribute('title', expect.stringMatching(/tope del canal/i));
+  });
+
+  it('sin veredicto del servidor, o en regla, no hay insignia', async () => {
+    await monta([
+      pedido({ id: 'a' }),
+      pedido({ id: 'b', numero: 'NX-2', canalDeEnvio: 'S1427', canalAdmisible: true }),
+    ]);
+
+    expect(screen.queryByTestId('insignia-canal')).toBeNull();
+  });
+
   it('el número enlaza a la ficha del pedido', async () => {
     await monta([pedido()]);
 

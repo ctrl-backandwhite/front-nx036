@@ -53,6 +53,12 @@ const DIAS: readonly OpcionDeFiltro[] = Array.from({ length: 31 }, (_, indice) =
       [opciones]="dias"
       [marcador]="t('orders.filter.all')"
     />
+    <nx-filtro-desplegable
+      [etiqueta]="t('admin.orders.filter.channel_problem')"
+      [(valor)]="canalProblema"
+      [opciones]="opcionesDeCanal()"
+      [marcador]="t('orders.filter.all')"
+    />
     <label class="text-[11px] text-ink-500 flex items-center gap-1">
       {{ t('admin.orders.filter.from') }}
       <input
@@ -76,6 +82,8 @@ export class FiltrosDePedidos {
   readonly anio = model<string | null>(null);
   readonly mes = model<string | null>(null);
   readonly dia = model<string | null>(null);
+  /** «true» o «false»: lo que se manda al servidor tal cual; vacío, sin filtrar por canal. */
+  readonly canalProblema = model<string | null>(null);
   readonly rango = model<RangoDeFechas>({ desde: '', hasta: '' });
 
   readonly estados = input.required<readonly EstadoPedido[]>();
@@ -102,6 +110,11 @@ export class FiltrosDePedidos {
       return { valor: estado, etiqueta: etiqueta === clave ? estado : etiqueta };
     }),
   );
+
+  protected readonly opcionesDeCanal = computed<readonly OpcionDeFiltro[]>(() => [
+    { valor: 'true', etiqueta: this.t('admin.orders.filter.channel_problem_yes') },
+    { valor: 'false', etiqueta: this.t('admin.orders.filter.channel_problem_no') },
+  ]);
 
   protected readonly opcionesDeAnio = computed<readonly OpcionDeFiltro[]>(() =>
     this.anios().map((anio) => ({ valor: anio, etiqueta: anio })),

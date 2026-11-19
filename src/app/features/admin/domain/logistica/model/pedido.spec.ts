@@ -3,7 +3,8 @@ import {
   accionesPermitidas,
   admiteSeguimiento,
   aniosDisponibles,
-  envioElegido,
+  hayBultoPorOtroCanal,
+  problemaDeCanal,
   cantidadValida,
   faltanDatosDeEnvio,
   importeLegible,
@@ -128,7 +129,7 @@ describe('años disponibles en el filtro', () => {
   });
 });
 
-describe('el transportista cobrado de un pedido', () => {
+describe('el canal cobrado de un pedido', () => {
   function ficha(parcial: Partial<FichaDePedido> = {}): FichaDePedido {
     return {
       id: 'x',
@@ -136,35 +137,42 @@ describe('el transportista cobrado de un pedido', () => {
       estado: 'FORWARDED',
       articulos: 1,
       lineas: [],
+      bultos: [],
       ...parcial,
     };
   }
 
   /**
-   * Es el dato que explica por qué un pedido salió por donde salió. Antes solo se veía el
-   * transportista de la GUÍA ya emitida, que es otra cosa: con dos transportistas hace falta saber
-   * cuál se cobró para poder ver que salió por el que no tocaba.
+   * Es el dato que explica por qué un pedido salió por donde salió. Antes la fila entera desaparecía
+   * justo cuando faltaba el dato, que es cuando más hacía falta verla.
    */
-  it('junta el transportista con el nombre del canal', () => {
+  it('un pedido con canal y sin veredicto del servidor no se acusa de nada', () => {
+    expect(problemaDeCanal(ficha({ transportista: 'YUNEXPRESS', canalDeEnvio: 'FZZXR' }))).toBeUndefined();
+  });
+
+  it('un canal declarado inadmisible lleva el motivo del servidor', () => {
     expect(
-      envioElegido(ficha({ transportista: 'FOURPX', nombreDelCanal: 'LYT GH' })),
-    ).toBe('FOURPX · LYT GH');
+      problemaDeCanal(
+        ficha({ canalDeEnvio: 'QC', canalAdmisible: false, motivoDelCanal: 'valor-fuera-del-tope' }),
+      ),
+    ).toBe('valor-fuera-del-tope');
   });
 
-  it('sin nombre de canal usa el código, que es lo que se puede buscar en el panel del carrier', () => {
-    expect(envioElegido(ficha({ transportista: 'FOURPX', canalDeEnvio: 'QC' }))).toBe('FOURPX · QC');
+  it('un motivo que el servidor no explica se avisa igual, como desconocido', () => {
+    expect(problemaDeCanal(ficha({ canalDeEnvio: 'QC', canalAdmisible: false }))).toBe('desconocido');
   });
 
-  it('con transportista y sin canal enseña solo el transportista', () => {
-    expect(envioElegido(ficha({ transportista: 'YUNEXPRESS' }))).toBe('YUNEXPRESS');
+  /** Sin canal el pedido no sale: ya no cae en un transportista por defecto. */
+  it('un pedido sin canal es un problema aunque el servidor no diga nada', () => {
+    expect(problemaDeCanal(ficha())).toBe('sin-transportista');
+    expect(problemaDeCanal(ficha({ transportista: 'YUNEXPRESS' }))).toBe('sin-canal');
+    expect(problemaDeCanal(ficha({ motivoDelCanal: 'sin-canal' }))).toBe('sin-canal');
   });
 
-  /**
-   * Los pedidos anteriores a que hubiera más de un transportista no lo llevan, y ahí NO se enseña un
-   * hueco: se omite la fila entera, porque entonces no había nada que elegir.
-   */
-  it('sin transportista no hay nada que enseñar', () => {
-    expect(envioElegido(ficha())).toBeUndefined();
-    expect(envioElegido(ficha({ nombreDelCanal: 'LYT GH' }))).toBeUndefined();
+  it('detecta un bulto emitido por un canal distinto del cobrado', () => {
+    expect(hayBultoPorOtroCanal(ficha())).toBe(false);
+    expect(hayBultoPorOtroCanal(ficha({ bultos: [{ numero: 1, coincideConElCanal: true }] }))).toBe(false);
+    expect(hayBultoPorOtroCanal(ficha({ bultos: [{ numero: 1, coincideConElCanal: false }] }))).toBe(true);
+    expect(hayBultoPorOtroCanal(ficha({ bultos: [{ numero: 1 }] }))).toBe(false);
   });
 });

@@ -120,6 +120,7 @@ const POR_PAGINA = 25;
           [(anio)]="anio"
           [(mes)]="mes"
           [(dia)]="dia"
+          [(canalProblema)]="canalProblema"
           [(rango)]="rango"
           [estados]="estados"
           [anios]="anios"
@@ -169,6 +170,7 @@ export class PedidosPage {
   protected readonly anio = signal<string | null>(null);
   protected readonly mes = signal<string | null>(null);
   protected readonly dia = signal<string | null>(null);
+  protected readonly canalProblema = signal<string | null>(null);
   protected readonly pagina = signal(0);
 
   protected readonly enLote = signal(false);
@@ -194,6 +196,7 @@ export class PedidosPage {
         this.anio(),
         this.mes(),
         this.dia(),
+        this.canalProblema(),
       ].filter(Boolean).length,
   );
 
@@ -216,6 +219,8 @@ export class PedidosPage {
       anio: this.anio() ?? undefined,
       mes: this.mes() ?? undefined,
       dia: this.dia() ?? undefined,
+      // Se filtra en el servidor, igual que las fechas: sobre las 25 filas visibles no serviría.
+      canalProblema: this.canalProblema() === null ? undefined : this.canalProblema() === 'true',
       pagina: this.pagina(),
       tamano: POR_PAGINA,
     };
@@ -243,6 +248,7 @@ export class PedidosPage {
     this.anio.set(null);
     this.mes.set(null);
     this.dia.set(null);
+    this.canalProblema.set(null);
     this.pagina.set(0);
   }
 

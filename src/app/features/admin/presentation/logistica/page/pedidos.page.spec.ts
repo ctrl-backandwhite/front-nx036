@@ -268,4 +268,35 @@ describe('PedidosPage', () => {
       ),
     );
   });
+
+  /** Se filtra en el servidor, como las fechas: sobre las 25 filas visibles no serviría a volumen. */
+  it('el filtro de canal con problema va al servidor y se puede quitar', async () => {
+    const { puertos } = await monta([pedido()]);
+    puertos.lectura.busca.mockClear();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Canal' }));
+    await userEvent.click(await screen.findByRole('option', { name: 'Con problema' }));
+
+    await waitFor(() =>
+      expect(puertos.lectura.busca).toHaveBeenCalledWith(
+        expect.objectContaining({ canalProblema: true }),
+      ),
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Canal' }));
+    await userEvent.click(await screen.findByRole('option', { name: 'En regla' }));
+    await waitFor(() =>
+      expect(puertos.lectura.busca).toHaveBeenCalledWith(
+        expect.objectContaining({ canalProblema: false }),
+      ),
+    );
+
+    puertos.lectura.busca.mockClear();
+    await userEvent.click(screen.getByRole('button', { name: /limpiar/i }));
+    await waitFor(() =>
+      expect(puertos.lectura.busca).toHaveBeenCalledWith(
+        expect.objectContaining({ canalProblema: undefined }),
+      ),
+    );
+  });
 });

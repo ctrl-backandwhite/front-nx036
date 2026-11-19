@@ -22,7 +22,6 @@ import {
   accionesPermitidas,
   admiteSeguimiento,
   tieneFactura,
-  envioElegido,
 } from '../../../domain/logistica/model/pedido';
 import { Seguimiento } from '../../../domain/logistica/model/seguimiento';
 import {
@@ -34,6 +33,7 @@ import {
   DescargaFactura,
   SincronizaSeguimiento,
 } from '../../../application/logistica/use-case/sigue-el-envio.use-case';
+import { CanalDelPedido } from '../component/canal-del-pedido';
 import { DeclaracionesDelTransportista } from '../component/declaraciones-del-transportista';
 import { InsigniaEstado } from '../component/insignia-estado';
 import { RastroDelEnvio } from '../component/rastro-del-envio';
@@ -62,6 +62,7 @@ const SUFIJO_DE_AVISO: Readonly<Record<AccionSobrePedido, string>> = {
     RouterLink,
     FaIconComponent,
     LupaImagen,
+    CanalDelPedido,
     DeclaracionesDelTransportista,
     InsigniaEstado,
     RastroDelEnvio,
@@ -142,30 +143,7 @@ const SUFIJO_DE_AVISO: Readonly<Record<AccionSobrePedido, string>> = {
 
         <nx-resumen-de-pedido [pedido]="p" />
 
-        <!-- El transportista COBRADO y la guía son dos datos distintos, y hasta ahora solo se veía el
-             segundo. Con dos transportistas el primero es el que explica por qué el pedido salió por
-             donde salió — y el que delata que salió por el que no tocaba. -->
-        @if (p.numeroDeSeguimiento || envioCobrado(p)) {
-          <section class="card p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 text-sm">
-            <fa-icon [icon]="iconos.ship" class="text-brand-600" />
-            @if (envioCobrado(p); as elegido) {
-              <div>
-                <div class="text-[11px] uppercase tracking-wider text-ink-600">
-                  {{ t('admin.orders.detail.carrier') }}
-                </div>
-                <div class="font-mono">{{ elegido }}</div>
-              </div>
-            }
-            @if (p.numeroDeSeguimiento; as guia) {
-              <div>
-                <div class="text-[11px] uppercase tracking-wider text-ink-600">
-                  {{ t('admin.orders.detail.tracking') }}
-                </div>
-                <div class="font-mono">{{ guia }}</div>
-              </div>
-            }
-          </section>
-        }
+        <nx-canal-del-pedido [pedido]="p" />
 
         <section class="card overflow-hidden">
           <div class="card-header"><span>{{ t('admin.orders.detail.items') }}</span></div>
@@ -256,15 +234,6 @@ export class FichaDePedidoPage {
   };
 
   protected readonly t = inject(TraduccionService).t;
-  /**
-   * El transportista y el canal COBRADOS, en una línea. Nada si el pedido es anterior a que hubiera dos.
-   *
-   * <p>No se llama `envio` porque ese nombre ya lo tiene el rastro del envío de este mismo componente
-   * —y pisarlo no da un error que lo diga: el fallo sale como «Property declaraciones does not exist
-   * on type string» en una línea treinta más arriba—.
-   */
-  protected readonly envioCobrado = envioElegido;
-
   private readonly consulta = inject(ConsultaPedido);
   private readonly cambia = inject(CambiaEstadoDePedido);
   private readonly rastro = inject(ConsultaSeguimiento);

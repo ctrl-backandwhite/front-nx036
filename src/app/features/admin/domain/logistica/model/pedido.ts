@@ -106,6 +106,15 @@ export interface Pedido {
   readonly totalCentimos?: number;
   readonly moneda?: string;
   readonly realizadoEl?: string;
+  /** El transportista (identificador) y el canal por los que se cobró el envío; vacíos si no tiene. */
+  readonly transportista?: string;
+  readonly canalDeEnvio?: string;
+  /**
+   * Si el pedido saldría hoy por su canal. Ausente cuando el servidor no lo dice: entonces NO se
+   * avisa de nada, porque «no lo sé» no es «está mal».
+   */
+  readonly canalAdmisible?: boolean;
+  readonly motivoDelCanal?: MotivoDelCanal;
 }
 
 /** Una línea de la ficha. `origenUrl` es la ficha del proveedor, que el operador abre al comprar. */
@@ -124,6 +133,36 @@ export interface LineaDePedido {
 /** De dónde vino el pedido: nuestro escaparate o una tienda integrada (Shopify, WooCommerce). */
 export type OrigenDePedido = 'PLATFORM' | 'INTEGRATION';
 
+/** La clase de mercancía que admite el canal por el que se cobró el envío. */
+export type TipoDeLineaDeCanal = 'ropa' | 'general' | 'con-bateria' | 'desconocida';
+
+/**
+ * Por qué un pedido no saldría hoy por su canal. `desconocido` recoge un motivo que el servidor añada
+ * después: se avisa igual, con un texto genérico, en vez de callar un pedido que no puede salir.
+ */
+export type MotivoDelCanal =
+  | 'sin-transportista'
+  | 'sin-canal'
+  | 'transportista-distinto'
+  | 'producto-no-localizable'
+  | 'mercancia-no-admitida'
+  | 'valor-fuera-del-tope'
+  | 'desconocido';
+
+/** Un bulto del pedido, con el canal por el que REALMENTE se emitió su guía. */
+export interface BultoDePedido {
+  readonly numero: number;
+  readonly transportista?: string;
+  /** El canal con el que se emitió, que puede no ser el cobrado. */
+  readonly canalEmitido?: string;
+  readonly numeroDeSeguimiento?: string;
+  readonly numeroDeGuia?: string;
+  readonly estado?: string;
+  readonly pesoEnGramos?: number;
+  /** Falso: el bulto salió por un canal distinto del cobrado. Ausente: no se sabe. */
+  readonly coincideConElCanal?: boolean;
+}
+
 export interface FichaDePedido extends Pedido {
   readonly origen?: OrigenDePedido;
   readonly notas?: string;
@@ -134,31 +173,41 @@ export interface FichaDePedido extends Pedido {
   readonly envioFormateado?: string;
   readonly impuestosFormateado?: string;
   /**
-   * El transportista por el que se COBRÓ el envío, con su canal.
+   * El transportista por el que se COBRÓ el envío (nombre visible), con su canal y su clase de línea.
    *
-   * <p>No es el de la guía ya emitida, que es lo único que se veía antes: es el que eligió quien
-   * compró y el que decide a quién se le pide la guía al despachar. Con dos transportistas, sin esto
-   * no hay forma de saber por qué un pedido salió por donde salió — ni de ver que salió por el que no
-   * tocaba.
+   * <p>No es el de la guía ya emitida: es el que eligió quien compró y el que decide a quién se le pide
+   * la guía al despachar. Con dos transportistas, sin esto no hay forma de saber por qué un pedido
+   * salió por donde salió — ni de ver que salió por el que no tocaba.
    */
-  readonly transportista?: string;
-  readonly canalDeEnvio?: string;
+  readonly nombreDelTransportista?: string;
   readonly nombreDelCanal?: string;
+  readonly tipoDeLinea?: TipoDeLineaDeCanal;
+  /** El detalle que escribe el servidor cuando el canal no es admisible. */
+  readonly detalleDelCanal?: string;
+  readonly bultos: readonly BultoDePedido[];
   readonly lineas: readonly LineaDePedido[];
 }
 
 /**
- * El transportista y el canal en una línea, o nada si el pedido no los lleva.
+ * Qué falla en el canal de un pedido, o nada si está en regla.
  *
- * <p>Los pedidos anteriores a que hubiera más de un transportista no los tienen, y ahí no se enseña un
- * hueco: se omite la fila entera, porque entonces no había nada que elegir.
+ * <p>Un pedido SIN canal es un problema aunque el servidor no lo declare inadmisible: ya no hay
+ * transportista por defecto al que caer, así que sin canal no sale. En cambio, si el servidor no dice
+ * nada de admisibilidad y el canal está, no se inventa un fallo.
  */
-export function envioElegido(ficha: FichaDePedido): string | undefined {
-  if (!ficha.transportista) {
-    return undefined;
+export function problemaDeCanal(pedido: Pedido): MotivoDelCanal | undefined {
+  if (pedido.canalAdmisible === false) {
+    return pedido.motivoDelCanal ?? 'desconocido';
   }
-  const canal = ficha.nombreDelCanal || ficha.canalDeEnvio;
-  return canal ? `${ficha.transportista} · ${canal}` : ficha.transportista;
+  if (!pedido.canalDeEnvio) {
+    return pedido.motivoDelCanal ?? (pedido.transportista ? 'sin-canal' : 'sin-transportista');
+  }
+  return undefined;
+}
+
+/** ¿Algún bulto salió por un canal distinto del cobrado? */
+export function hayBultoPorOtroCanal(ficha: FichaDePedido): boolean {
+  return ficha.bultos.some((bulto) => bulto.coincideConElCanal === false);
 }
 
 /** La factura solo existe una vez que el pedido dejó de ser una intención. */
@@ -188,6 +237,8 @@ export interface CriterioDePedidos {
   readonly anio?: string;
   readonly mes?: string;
   readonly dia?: string;
+  /** `true`: solo pedidos cuyo canal falta o no admitiría su mercancía; `false`: solo los que están en regla. */
+  readonly canalProblema?: boolean;
   readonly pagina: number;
   readonly tamano: number;
 }
