@@ -30,38 +30,6 @@ describe('AvatarStore', () => {
     avatar = TestBed.inject(AvatarStore);
   });
 
-  /**
-   * En el checkout de un móvil el asistente desplegado tapaba el precio de las opciones de envío. Se
-   * recoge solo, pero sin tocar lo que la persona tenía elegido: al salir del checkout vuelve a estar
-   * como lo dejó.
-   */
-  it('se recoge por pantalla sin guardar nada y vuelve a su estado al soltarlo', () => {
-    avatar.recogePorPantalla(true);
-
-    expect(avatar.estado()).toBe('mini');
-    expect(almacen.lee('nx036.avatar.state')).toBeNull();
-
-    avatar.recogePorPantalla(false);
-    expect(avatar.estado()).toBe('activo');
-  });
-
-  it('recogido por pantalla, abrirlo a mano manda: no se le vuelve a recoger', () => {
-    avatar.recogePorPantalla(true);
-
-    avatar.cambiaEstado('activo');
-
-    expect(avatar.estado()).toBe('activo');
-  });
-
-  it('recogerlo por pantalla no desentierra a quien lo tenía oculto', () => {
-    avatar.cambiaEstado('oculto');
-
-    avatar.recogePorPantalla(true);
-
-    expect(avatar.estado()).toBe('oculto');
-    expect(avatar.visible()).toBe(false);
-  });
-
   it('arranca activo, en su sitio y CALLADO', () => {
     expect(avatar.estado()).toBe('activo');
     expect(avatar.posicion()).toEqual(POSICION_INICIAL);

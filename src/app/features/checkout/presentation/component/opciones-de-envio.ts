@@ -40,17 +40,19 @@ const VISIBLES_POR_DEFECTO = 3;
   template: `
     <section class="space-y-2" role="radiogroup" [attr.aria-label]="t('checkout.shipping_option.title')">
       <div class="text-xs font-medium opacity-70">{{ t('checkout.shipping_option.title') }}</div>
+      <!-- En pantalla estrecha las tarjetas dejan libre la franja derecha (pr-12): es donde flotan los
+           acompañantes de la tienda, y el precio alineado al borde quedaba debajo. -->
       <div class="space-y-2">
         @for (opcion of visibles(); track clave(opcion)) {
           @if (unica()) {
             <!-- Una sola forma de envío: es información, no una elección. Sin botón, y por eso no es
                  una etiqueta de formulario. -->
-            <div class="card flex-row p-4 text-sm flex items-start gap-3">
+            <div class="card flex-row p-4 pr-12 md:pr-4 text-sm flex items-start gap-3">
               <ng-container [ngTemplateOutlet]="fila" [ngTemplateOutletContext]="{ $implicit: opcion }" />
             </div>
           } @else {
             <label
-              class="card flex-row p-4 text-sm cursor-pointer transition-colors flex items-start gap-3"
+              class="card flex-row p-4 pr-12 md:pr-4 text-sm cursor-pointer transition-colors flex items-start gap-3"
               [class.border-brand-500]="esLaSeleccionada(opcion)"
               [class.ring-2]="esLaSeleccionada(opcion)"
               [class.ring-brand-100]="esLaSeleccionada(opcion)"

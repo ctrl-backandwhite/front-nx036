@@ -30,8 +30,6 @@ import { GloboDeSugerencias } from './globo-de-sugerencias';
 const ALEGRIA_MS = 4000;
 /** Cuánto se queda el saludo en pantalla. */
 const SALUDO_MS = 7000;
-/** Por debajo de md: donde el asistente desplegado ocupa media anchura de la pantalla. */
-const PANTALLA_ESTRECHA = '(max-width: 767px)';
 
 /**
  * El asistente que acompaña la navegación.
@@ -244,18 +242,6 @@ export class AvatarDelAsistente {
         setTimeout(() => this.avatar.dejaDeSaludar(), SALUDO_MS);
       }
     }
-
-    // En el checkout de una pantalla estrecha se recoge solo: desplegado tapaba el precio de las
-    // opciones de envío. La anchura se mira al entrar, que es cuando se decide; no hace falta seguir
-    // el cambio de tamaño de la ventana.
-    effect(() => {
-      const enElPago = this.enElPago();
-      untracked(() =>
-        this.avatar.recogePorPantalla(
-          enElPago && this.plataforma.esNavegador && globalThis.matchMedia?.(PANTALLA_ESTRECHA).matches === true,
-        ),
-      );
-    });
 
     // El disparo: la cesta ha cambiado. CUALQUIER cambio cuenta, no solo añadir — lo que conviene
     // comprar depende de lo que YA se lleva: al quitar algo cambia la partida arancelaria compartida y

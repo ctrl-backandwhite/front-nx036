@@ -47,16 +47,8 @@ export class AvatarStore {
   private readonly _guiaPendiente = signal(false);
   private readonly _guiaAbierta = signal(false);
   private readonly _saludando = signal(false);
-  private readonly _recogidoPorPantalla = signal(false);
 
-  /**
-   * Lo que se VE, que no siempre es lo guardado: una pantalla puede pedir que el asistente se recoja
-   * mientras se está en ella (ver {@link recogePorPantalla}). Solo afecta a quien lo tiene desplegado:
-   * a quien lo ocultó no se le desentierra.
-   */
-  readonly estado = computed<EstadoDelAsistente>(() =>
-    this._recogidoPorPantalla() && this._estado() === 'activo' ? 'mini' : this._estado(),
-  );
+  readonly estado = this._estado.asReadonly();
   readonly posicion = this._posicion.asReadonly();
   /** Si lee en alto. Apagada por defecto: nadie quiere que una tienda le hable sin pedirlo. */
   readonly voz = this._voz.asReadonly();
@@ -79,20 +71,8 @@ export class AvatarStore {
   }
 
   cambiaEstado(estado: EstadoDelAsistente): void {
-    // Lo que la persona elige a mano manda sobre lo que pidió la pantalla.
-    this._recogidoPorPantalla.set(false);
     this._estado.set(estado);
     this.almacen.guarda(CLAVE_ESTADO, JSON.stringify(estado));
-  }
-
-  /**
-   * Recoge el asistente mientras dure una pantalla, SIN guardar nada.
-   *
-   * <p>En el checkout de un móvil, desplegado tapaba el precio de las opciones de envío. Se recoge
-   * solo al entrar y, como no se toca lo guardado, al salir vuelve a estar como la persona lo dejó.
-   */
-  recogePorPantalla(recogido: boolean): void {
-    this._recogidoPorPantalla.set(recogido);
   }
 
   /** Mientras se arrastra NO se guarda: serían decenas de escrituras por gesto. */
