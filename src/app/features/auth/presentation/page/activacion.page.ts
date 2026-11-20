@@ -29,7 +29,7 @@ const ESPERA_ENTRE_REENVIOS_S = 30;
   selector: 'nx-activacion',
   imports: [RouterLink, FaIconComponent],
   template: `
-    <div class="min-h-screen flex items-center justify-center px-4 bg-base-200">
+    <div class="escaparate min-h-screen flex items-center justify-center px-4 bg-base-200">
       <div class="w-full max-w-md">
         <a routerLink="/" class="flex items-center justify-center gap-2 mb-6 font-bold text-lg">
           <fa-icon [icon]="iconos.marca" class="text-primary" />

@@ -33,7 +33,7 @@ import { PanelDeMarca } from '../component/panel-de-marca';
   selector: 'nx-acceso',
   imports: [RouterLink, FaIconComponent, FormField, PanelDeMarca],
   template: `
-    <div class="min-h-screen grid lg:grid-cols-2 bg-base-100">
+    <div class="escaparate min-h-screen grid lg:grid-cols-2 bg-base-100">
       <nx-panel-de-marca [textoDeAlmacenes]="textoDeAlmacenes()" />
 
       <div class="flex items-center justify-center px-4 py-12 lg:px-12 bg-base-100">

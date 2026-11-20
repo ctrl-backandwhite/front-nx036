@@ -27,7 +27,7 @@ const ESPERA_ANTES_DEL_ACCESO_MS = 1800;
   selector: 'nx-restablece-contrasena',
   imports: [RouterLink, FaIconComponent, RequisitosContrasena],
   template: `
-    <div class="min-h-screen flex items-center justify-center px-4 bg-base-200">
+    <div class="escaparate min-h-screen flex items-center justify-center px-4 bg-base-200">
       <div class="w-full max-w-md">
         <a routerLink="/" class="flex items-center justify-center gap-2 mb-6 font-bold text-lg">
           <!-- La marca es «NX036», sin la forma societaria. -->
