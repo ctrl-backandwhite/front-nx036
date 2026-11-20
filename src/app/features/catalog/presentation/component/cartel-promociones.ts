@@ -61,7 +61,7 @@ const ENTRADA_MS = 250;
 
         <div class="animate-nx-fade relative flex flex-col gap-4 p-5 sm:p-6 lg:flex-row lg:items-center lg:gap-8">
           <div class="min-w-0 lg:w-72 lg:shrink-0">
-            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
+            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[color-mix(in_oklch,var(--color-accent)_45%,white)]">
               {{ t('promo.banner.kicker') }}
             </p>
             <!-- «text-white!»: la regla global de los encabezados gana a las utilidades, y sin la

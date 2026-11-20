@@ -1058,6 +1058,8 @@ aside .menu .menu-title {
   .escaparate .input-sm, .escaparate .select-sm { --size: 2.25rem; }
   .escaparate .input-xs, .escaparate .select-xs { --size: 2rem; }
 }
+/* Suelo de 12 px también en las etiquetas mínimas: badge-xs pintaba «Sistema» a 10 px. */
+.escaparate .badge-xs { font-size: 0.75rem; }
 /* Dos botones apilados a todo el ancho no se tocan: el de pago y «volver» iban pegados. */
 .escaparate .btn.w-full + .btn.w-full { margin-top: 0.75rem; }
 /* El primary se oscurece hacia negro en hover (hover:bg-black de Ecomerce). */
