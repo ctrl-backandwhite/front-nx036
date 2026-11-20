@@ -329,7 +329,7 @@
   --color-secondary: #636d80;  /* gris medio (Ecomerce) — botón secundario */
   --color-secondary-content: #ffffff;
 
-  --color-accent:    #8b5cf6;  /* violeta (acento Ecomerce: IA/recompensas/destaques, NO el principal) */
+  --color-accent:    #7c3aed;  /* violeta (acento Ecomerce: IA/recompensas/destaques, NO el principal) */
   --color-accent-content: #ffffff;
 
   --color-neutral:   #1f2937;  /* gris-azulado profundo (superficies oscuras/footer) */
@@ -341,7 +341,7 @@
   --color-success-content: #05231a;
   --color-warning: #f59e0b;    /* ámbar */
   --color-warning-content: #271900;
-  --color-error:   #ef4444;    /* rojo (error/rebajas) */
+  --color-error:   #dc2626;    /* rojo (error/rebajas) */
   --color-error-content: #ffffff;
 
   --radius-selector: 0.5rem;
