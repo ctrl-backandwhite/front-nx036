@@ -103,7 +103,7 @@ const RUTA_DE_FICHA = /^\/(catalog|admin\/browse)\/[^/]+$/;
           <!-- Carrito: en el MÓVIL no se pinta aquí, porque la barra de pestañas de abajo ya tiene el
                suyo —con su contador— y al alcance del pulgar. Tenerlo en las dos barras era repetir el
                mismo destino en la esquina peor. -->
-          <div id="nx-cart-icon" class="hidden md:inline-flex indicator ml-2 mr-5">
+          <div id="nx-cart-icon" class="hidden md:inline-flex indicator ml-1 mr-2 xl:ml-2 xl:mr-5">
             @if (lineasCesta() > 0) {
               <span class="indicator-item badge badge-primary badge-sm">
                 {{ lineasCesta() > 9 ? '9+' : lineasCesta() }}

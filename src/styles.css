@@ -950,14 +950,14 @@ aside .menu .menu-title {
 
 /* Rejilla de tarjetas de producto FLUIDA (decisión del titular, 19-nov-2026): el número de columnas
  * no sale de una lista de puntos de corte sino del ancho disponible. Cada tarjeta pide un mínimo que
- * crece con la ventana —8rem en un móvil, donde caben dos incluso a 320 px; 12vw + 4rem entre medias,
- * que da tres en un móvil apaisado y cuatro en una tableta (con una pendiente más suave entraban cinco
- * de 132 px a 768); hasta 15rem en un monitor grande— y el
+ * crece con la ventana —8rem en un móvil, donde caben dos incluso a 320 px; 14vw + 3,75rem entre
+ * medias, que da tres en un móvil apaisado o una tableta pequeña y cuatro en una tableta (con pendientes
+ * más suaves entraban cinco de 132 px a 768 y cuatro de 140 px a 650); hasta 15rem en un monitor— y el
  * navegador mete las que quepan y reparte el sobrante. Antes eran columnas fijas por anchura (6 desde
  * 1.280 px) y en cualquier pantalla intermedia las tarjetas quedaban pequeñas con hueco a los lados. */
 @utility rejilla-productos {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(clamp(8rem, 12vw + 4rem, 15rem), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(clamp(8rem, 14vw + 3.75rem, 15rem), 1fr));
   gap: clamp(0.75rem, 1.2vw, 1.25rem);
 }
 /* La misma rejilla limitada a UNA fila: las tarjetas que no caben en la primera caen en filas de alto
