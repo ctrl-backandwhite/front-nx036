@@ -4,7 +4,7 @@ Dos listas, y la distinción entre ellas importa: un defecto **del porte** es tr
 defecto **heredado** ya lo sufre quien usa la aplicación hoy, y corregirlo es una decisión de producto,
 no de traducción.
 
-Estado: **abierto**. Última actualización: 6-sep-2026.
+Estado: **abierto**. Última actualización: 20-nov-2026.
 
 ---
 
@@ -138,6 +138,37 @@ Merece la pena tenerlas juntas, porque el patrón se repite:
 4. El detector de «404» buscaba **la cifra en vez del código**: la tasa de la rupia india (94.40425) marcaba la pantalla de monedas como página de error.
 
 La lección común: **cuando una prueba mide el contenedor, la etiqueta o el envoltorio en vez del efecto, falla en silencio justo donde importa.**
+
+## B sexies. Revisión cosmética del escaparate (19 y 20 de noviembre)
+
+Lo que ve el comprador —portada, catálogo, ficha, carrito, checkout, pedidos, cuenta, billetera, acceso
+y registro—, medido en el DOM con un guion (botones bajo el mínimo táctil, letra bajo 12 px, elementos
+pegados, contraste AA, texto cortado, desplazamiento horizontal) a 390 y 1.440 px, tema claro y oscuro,
+y la rejilla a 16 anchos reales de 340 a 3.840 px. El panel de administración queda fuera.
+
+| # | Dónde | Qué pasaba | Estado |
+|---|---|---|---|
+| C-1 | Todo el escaparate | Botones de 24 y 32 px (`btn-xs`, `btn-sm`): «Aplicar», iconos de cabecera, «Añadir al carrito» | **CERRADO** — 44 px en móvil, 36 px en escritorio, en `styles.css` |
+| C-2 | 59 ficheros | Letra de 10 y 11 px escrita a mano (132 usos) | **CERRADO** — suelo de 12 px |
+| C-3 | Checkout | «Volver al carrito» pegado al botón de pago; «Aplicar» más bajo que su campo; el asistente tapaba el precio de la opción de envío en móvil | **CERRADO** — separación entre botones apilados; flotantes ocultos en el pago estrecho |
+| C-4 | Carrito, móvil | La tabla no cabía: filas ilegibles | **CERRADO** — cada línea es una tarjeta apilada |
+| C-5 | Páginas cortas | El fondo no llegaba al final de la ventana | **CERRADO** — fondo en `html` |
+| C-6 | Catálogo y portada | Ancho fijo con márgenes vacíos; tarjetas pequeñas en pantalla grande | **CERRADO** — contenedor y rejilla fluidos (`rejilla-productos`), tope de 120 rem |
+| C-7 | Cabecera, 768–1.024 px | Menú central y cuenta se solapaban con sesión de personal | **CERRADO** — rótulos solo-icono hasta `xl`, margen del menú |
+| C-8 | Acceso, registro, activación, restablecer y aviso de cookies | Fuera del armazón del escaparate: Google/GitHub y los tres botones del aviso a 32 px | **CERRADO** (20-nov) — llevan la clase `escaparate` |
+| C-9 | Todo el escaparate, móvil | El tamaño NORMAL medía 40 px y el `btn-sm` 44: el pequeño era más alto que el normal | **CERRADO** (20-nov) — 44 px en móvil para botón, campo y selector normales |
+| C-10 | Billetera, tema oscuro | Tarjeta de saldo con degradado `brand-600→800` y texto blanco fijo: en oscuro esos tonos se remapean a claro y el saldo quedaba a 1,9:1 | **CERRADO** (20-nov) — `bg-primary` / `text-primary-content` |
+| C-11 | Catálogo, tema oscuro | «Ordenar por:» a 3,7:1 | **CERRADO** (20-nov) — `text-base-content/70` |
+
+**Falsos positivos del guion, comprobados a ojo y que no son defectos:** el contraste «1,2:1» del panel
+de marca de acceso/registro y de la cabecera sobre la portada (el fondo es una FOTO y el guion solo lee
+colores de fondo); los 4 px entre iconos de la cabecera y entre los mandos del asistente (grupos de
+iconos, cada uno ya con su área táctil); el «−1 px» del campo del boletín con su botón y de
+«Cuadrícula/Lista» (van unidos a propósito); y las etiquetas «cortadas» de cupón y referido (son solo
+para lector de pantalla). El navegador sin cabecera informa de 15 px de desplazamiento horizontal que
+no existen: es el hueco de la barra de desplazamiento.
+
+**Queda abierto:** dos notas de 11 px en el panel de origen de la ficha, que solo ve el administrador.
 
 ## C. Pendiente de decisión del titular
 

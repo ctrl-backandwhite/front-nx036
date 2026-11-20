@@ -89,7 +89,7 @@ const TECLAS_DE_NAVEGACION = ['ArrowDown', 'ArrowUp', 'Home', 'End'];
         @if (icono(); as adorno) {
           <fa-icon [icon]="adorno" class="text-xs text-ink-400 group-hover:text-ink-600" />
         }
-        <span class="text-ink-500">{{ etiqueta() }}:</span>
+        <span class="text-base-content/70">{{ etiqueta() }}:</span>
         <span class="font-medium truncate max-w-[140px]">
           {{ elegida()?.etiqueta ?? (marcador() || t('filters.all')) }}
         </span>

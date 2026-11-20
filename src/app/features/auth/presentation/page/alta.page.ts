@@ -51,7 +51,7 @@ const ESPERA_ANTES_DE_ACTIVAR_MS = 2500;
   selector: 'nx-alta',
   imports: [RouterLink, FaIconComponent, FormField, PanelDeAlta, Captcha, RequisitosContrasena],
   template: `
-    <div class="min-h-screen grid lg:grid-cols-2 bg-base-100">
+    <div class="escaparate min-h-screen grid lg:grid-cols-2 bg-base-100">
       <nx-panel-de-alta
         [cuantosPaises]="paises().length"
         [cuantasDivisas]="cuantasDivisas()"

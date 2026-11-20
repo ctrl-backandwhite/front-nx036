@@ -26,17 +26,21 @@ const LATIDO_MS = 60_000;
     <div class="max-w-3xl mx-auto space-y-6">
       <h1>{{ t('wallet.title') }}</h1>
 
-      <div class="card p-6 sm:p-8 bg-gradient-to-br from-brand-600 to-brand-800 text-white">
-        <div class="text-xs uppercase tracking-wider text-brand-100 opacity-80">
+      <!--
+        Sin la clase card a propósito: su regla de styles.css fija el fondo en base-100 y gana a
+        bg-primary, con lo que el texto primary-content quedaba invisible (visto en PRE el 20-nov).
+      -->
+      <div class="rounded-box p-6 sm:p-8 bg-primary text-primary-content">
+        <div class="text-xs uppercase tracking-wider text-primary-content/80">
           {{ t('wallet.balance') }}
         </div>
         <div class="mt-2 text-4xl sm:text-5xl font-medium">
           {{ cartera()?.saldoFormateado ?? '—' }}
-          <span class="ml-2 text-base font-light text-brand-100">
+          <span class="ml-2 text-base font-light text-primary-content/80">
             {{ cartera()?.divisaMostrada }}
           </span>
         </div>
-        <div class="mt-1 text-sm text-brand-100/80">
+        <div class="mt-1 text-sm text-primary-content/80">
           {{ t('wallet.usd_canonical') }}:
           <strong class="font-mono">{{ cartera()?.saldoCanonicoFormateado || '—' }}</strong>
           @if (cartera()?.retenidoFormateado; as retenido) {
@@ -56,7 +60,7 @@ const LATIDO_MS = 60_000;
           </a>
           <a
             routerLink="/orders"
-            class="btn btn-outline border-brand-200/40 text-white hover:bg-white/10"
+            class="btn btn-outline border-primary-content/40 text-primary-content! hover:bg-primary-content/10"
           >
             {{ t('wallet.view_orders') }}
           </a>

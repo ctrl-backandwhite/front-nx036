@@ -29,7 +29,7 @@ import { DecideSobreCookies } from './decide-sobre-cookies';
   template: `
     @if (estado.visible()) {
       @if (!estado.panelAbierto()) {
-        <div class="fixed inset-x-0 bottom-0 z-50 p-3 sm:p-4">
+        <div class="escaparate fixed inset-x-0 bottom-0 z-50 p-3 sm:p-4">
           <div
             role="region"
             [attr.aria-label]="t('cookies.title')"

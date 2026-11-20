@@ -1039,11 +1039,20 @@ aside .menu .menu-title {
  * a un tamaño cómodo en escritorio, cambiando la variable de tamaño de daisyUI para que los botones
  * cuadrados sigan siendo cuadrados. Va acotado al armazón del escaparate: el panel de administración,
  * que sí es una herramienta densa, no cambia. Mobile first: la base es la del móvil. */
+/* El tamaño NORMAL también sube a 44 px en pantalla estrecha (20-nov-2026): con la regla de arriba un
+ * btn-sm medía 44 y el botón principal de acceso, 40 — el pequeño era más alto que el normal. `:where`
+ * no añade especificidad, así que una altura puesta a mano (h-12 del botón de pago) sigue mandando. */
+.escaparate :where(.btn:not(.btn-xs, .btn-sm, .btn-lg, .btn-xl)),
+.escaparate :where(.input:not(.input-xs, .input-sm, .input-lg, .input-xl)),
+.escaparate :where(.select:not(.select-xs, .select-sm, .select-lg, .select-xl)) { --size: 2.75rem; }
 .escaparate .btn-sm { --size: 2.75rem; --fontsize: 0.8125rem; }
 .escaparate .btn-xs { --size: 2.25rem; --fontsize: 0.75rem; }
 .escaparate .input-sm, .escaparate .select-sm { --size: 2.75rem; font-size: 0.875rem; }
 .escaparate .input-xs, .escaparate .select-xs { --size: 2.25rem; font-size: 0.8125rem; }
 @media (min-width: 768px) {
+  .escaparate :where(.btn:not(.btn-xs, .btn-sm, .btn-lg, .btn-xl)),
+  .escaparate :where(.input:not(.input-xs, .input-sm, .input-lg, .input-xl)),
+  .escaparate :where(.select:not(.select-xs, .select-sm, .select-lg, .select-xl)) { --size: 2.5rem; }
   .escaparate .btn-sm { --size: 2.25rem; }
   .escaparate .btn-xs { --size: 2rem; }
   .escaparate .input-sm, .escaparate .select-sm { --size: 2.25rem; }
