@@ -77,7 +77,7 @@ const CLAVE_POR_CODIGO: Readonly<Record<string, string>> = {
               [attr.aria-checked]="+borrador().nota === n"
               [attr.aria-label]="n + ' ★'"
               (click)="fijaNota(n)"
-              class="text-[22px] leading-none px-0.5 transition-colors hover:scale-110"
+              class="grid min-h-11 min-w-9 place-items-center text-[22px] leading-none transition-colors hover:scale-110 md:min-h-9 md:min-w-7"
               [class]="+borrador().nota >= n ? 'text-warning' : 'text-base-300'"
             >
               ★
