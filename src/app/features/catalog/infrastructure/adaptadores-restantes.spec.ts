@@ -8,6 +8,7 @@ import { EdicionDeFichaHttpAdapter } from './edicion-de-ficha-http.adapter';
 import { GuiaDeBienvenidaHttpAdapter } from './guia-de-bienvenida-http.adapter';
 import { AnaliticaHttpAdapter } from './analitica-http.adapter';
 import { ResenasHttpAdapter } from './resenas-http.adapter';
+import { ModeracionDeResenasHttpAdapter } from './moderacion-de-resenas-http.adapter';
 import { FavoritosHttpAdapter } from './favoritos-http.adapter';
 import { PaisesDeEnvioHttpAdapter } from './paises-de-envio-http.adapter';
 import { AltaEnElBoletinHttpAdapter } from './alta-en-el-boletin-http.adapter';
@@ -29,6 +30,7 @@ describe('el resto de los adaptadores', () => {
         GuiaDeBienvenidaHttpAdapter,
         AnaliticaHttpAdapter,
         ResenasHttpAdapter,
+        ModeracionDeResenasHttpAdapter,
         FavoritosHttpAdapter,
         PaisesDeEnvioHttpAdapter,
         AltaEnElBoletinHttpAdapter,
@@ -325,5 +327,67 @@ describe('el resto de los adaptadores', () => {
     const resultado = await promesa;
 
     expect(resultado.ok && resultado.valor.yaEstaba).toBe(false);
+  });
+
+  it('una reseña con fotos viaja en multipart: parte review en JSON y una parte images por foto', async () => {
+    const fotos = [
+      new File([new Uint8Array(3)], 'a.jpg', { type: 'image/jpeg' }),
+      new File([new Uint8Array(3)], 'b.jpg', { type: 'image/jpeg' }),
+    ];
+    void TestBed.inject(ResenasHttpAdapter).publica('p1', {
+      valoracion: 4,
+      cuerpo: 'Bien',
+      idioma: 'es',
+      fotos,
+    });
+    const peticion = http.expectOne(`${BASE}/api/catalog/products/p1/reviews`);
+    const cuerpo = peticion.request.body as FormData;
+    expect(cuerpo).toBeInstanceOf(FormData);
+    const revision = cuerpo.get('review') as Blob;
+    expect(revision.type).toBe('application/json');
+    expect(JSON.parse(await revision.text())).toEqual({ rating: 4, body: 'Bien', language: 'es' });
+    expect(cuerpo.getAll('images')).toHaveLength(2);
+    // Sin Content-Type a mano: lo pone el navegador con su límite.
+    expect(peticion.request.headers.has('Content-Type')).toBe(false);
+    peticion.flush({ id: 'r1' });
+  });
+
+  it('sin fotos, o con la lista vacía, sigue siendo JSON', () => {
+    void TestBed.inject(ResenasHttpAdapter).publica('p1', { valoracion: 5, idioma: 'es', fotos: [] });
+    const peticion = http.expectOne(`${BASE}/api/catalog/products/p1/reviews`);
+    expect(peticion.request.body).not.toBeInstanceOf(FormData);
+    peticion.flush({});
+  });
+
+  it('las reseñas traen sus fotos, y sin el campo se leen como vacías', async () => {
+    const promesa = TestBed.inject(ResenasHttpAdapter).lista('p1', 0, 50);
+    http.expectOne((r) => r.url === `${BASE}/api/catalog/products/p1/reviews`).flush({
+      items: [
+        { id: 'r1', rating: 5, images: [{ id: 'i1', url: 'https://x/1.jpg', width: 800, height: 600 }] },
+        { id: 'r2', rating: 4 },
+      ],
+    });
+    const resultado = await promesa;
+    expect(resultado.ok && resultado.valor.items[0].fotos).toEqual([
+      { id: 'i1', url: 'https://x/1.jpg', ancho: 800, alto: 600 },
+    ]);
+    expect(resultado.ok && resultado.valor.items[1].fotos).toEqual([]);
+  });
+
+  it('ocultar una reseña es un PATCH con approved=false', async () => {
+    const promesa = TestBed.inject(ModeracionDeResenasHttpAdapter).ocultaResena('r1');
+    const peticion = http.expectOne(`${BASE}/api/admin/catalog/reviews/r1`);
+    expect(peticion.request.method).toBe('PATCH');
+    expect(peticion.request.body).toEqual({ approved: false });
+    peticion.flush({});
+    expect((await promesa).ok).toBe(true);
+  });
+
+  it('quitar una foto es un DELETE de esa foto', async () => {
+    const promesa = TestBed.inject(ModeracionDeResenasHttpAdapter).quitaFoto('r1', 'f1');
+    const peticion = http.expectOne(`${BASE}/api/admin/catalog/reviews/r1/images/f1`);
+    expect(peticion.request.method).toBe('DELETE');
+    peticion.flush(null, { status: 204, statusText: 'No Content' });
+    expect((await promesa).ok).toBe(true);
   });
 });

@@ -604,7 +604,9 @@ En todo `src/` hay **423 puntos de llamada** al backend y **todos** tienen la ru
 | `GET` | `/catalog/products/${productId}/margin-estimate` |
 | `GET` | `/catalog/products/${productId}/price-history` |
 | `GET` | `/catalog/products/${productId}/reviews` |
-| `POST` | `/catalog/products/${productId}/reviews` |
+| `POST` | `/catalog/products/${productId}/reviews` (JSON; con fotos, multipart: parte `review` en JSON y hasta 4 partes `images`) |
+| `PATCH` | `/admin/catalog/reviews/${reviewId}` (ocultar: `approved=false`, solo ADMIN) |
+| `DELETE` | `/admin/catalog/reviews/${reviewId}/images/${imageId}` (quitar una foto, solo ADMIN) |
 | `GET` | `/catalog/products/${slug}` |
 | `POST` | `/catalog/products/import-url` |
 | `POST` | `/catalog/products/search-by-image` |

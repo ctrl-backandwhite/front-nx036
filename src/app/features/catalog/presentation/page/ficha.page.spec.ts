@@ -17,6 +17,7 @@ import { ANADIR_AL_CARRITO_PORT } from '@features/cart/domain/port/carrito-compa
 import { FAVORITOS_PORT } from '../../domain/port/favoritos.port';
 import { HISTORIAL_PORT } from '../../domain/port/historial.port';
 import { RESENAS_PORT } from '../../domain/port/resenas.port';
+import { MODERACION_DE_RESENAS_PORT } from '../../domain/port/moderacion-de-resenas.port';
 import { ANALITICA_DE_PRODUCTO_PORT } from '../../domain/port/analitica-de-producto.port';
 import { EDICION_DE_FICHA_PORT } from '../../domain/port/edicion-de-ficha.port';
 import { FichaDeProducto } from '../../domain/model/producto';
@@ -95,6 +96,7 @@ async function monta(
         useValue: { unidades: () => 0, anade, abreElCajon: vi.fn() },
       },
       { provide: FAVORITOS_PORT, useValue: { identificadores: async () => exito([]) } },
+      { provide: MODERACION_DE_RESENAS_PORT, useValue: {} },
       {
         provide: RESENAS_PORT,
         useValue: {
@@ -212,6 +214,7 @@ describe('FichaPage', () => {
           useValue: { unidades: () => 0, anade: vi.fn(), abreElCajon: vi.fn() },
         },
         { provide: FAVORITOS_PORT, useValue: { identificadores: async () => exito([]) } },
+        { provide: MODERACION_DE_RESENAS_PORT, useValue: {} },
         {
           provide: RESENAS_PORT,
           useValue: {
@@ -319,6 +322,7 @@ describe('FichaPage', () => {
             quita: vi.fn(),
           },
         },
+        { provide: MODERACION_DE_RESENAS_PORT, useValue: {} },
         {
           provide: RESENAS_PORT,
           useValue: {
@@ -432,6 +436,7 @@ describe('FichaPage', () => {
           useValue: { unidades: () => 0, anade: vi.fn(), abreElCajon: vi.fn() },
         },
         { provide: FAVORITOS_PORT, useValue: { identificadores: async () => exito([]) } },
+        { provide: MODERACION_DE_RESENAS_PORT, useValue: {} },
         {
           provide: RESENAS_PORT,
           useValue: {

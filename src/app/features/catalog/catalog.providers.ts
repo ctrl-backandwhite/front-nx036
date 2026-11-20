@@ -7,6 +7,8 @@ import {
 import { FAVORITOS_PORT } from './domain/port/favoritos.port';
 import { HISTORIAL_PORT } from './domain/port/historial.port';
 import { RESENAS_PORT } from './domain/port/resenas.port';
+import { MODERACION_DE_RESENAS_PORT } from './domain/port/moderacion-de-resenas.port';
+import { REDUCTOR_DE_FOTOS_PORT } from './domain/port/reductor-de-fotos.port';
 import { PROMOCIONES_PORT } from './domain/port/promociones.port';
 import { CIFRAS_DEL_SITIO_PORT } from './domain/port/cifras-del-sitio.port';
 import { PAISES_DE_ENVIO_PORT } from './domain/port/paises-de-envio.port';
@@ -19,6 +21,8 @@ import { GUIA_DE_BIENVENIDA_PORT } from './domain/port/guia-de-bienvenida.port';
 import { CatalogoHttpAdapter } from './infrastructure/catalogo-http.adapter';
 import { FavoritosHttpAdapter, HistorialHttpAdapter } from './infrastructure/favoritos-http.adapter';
 import { ResenasHttpAdapter } from './infrastructure/resenas-http.adapter';
+import { ModeracionDeResenasHttpAdapter } from './infrastructure/moderacion-de-resenas-http.adapter';
+import { ReductorDeFotosNavegadorAdapter } from './infrastructure/reductor-de-fotos-navegador.adapter';
 import { PromocionesHttpAdapter } from './infrastructure/promociones-http.adapter';
 import { CifrasDelSitioHttpAdapter } from './infrastructure/cifras-del-sitio-http.adapter';
 import { PaisesDeEnvioHttpAdapter } from './infrastructure/paises-de-envio-http.adapter';
@@ -40,6 +44,8 @@ import { BuscaProductos } from './application/use-case/busca-productos.use-case'
 import { EditaLaFicha } from './application/use-case/edita-la-ficha.use-case';
 import { ListaFavoritos, ListaHistorial } from './application/use-case/lista-guardados.use-case';
 import { PublicaResena } from './application/use-case/publica-resena.use-case';
+import { PreparaFotoDeResena } from './application/use-case/prepara-foto-de-resena.use-case';
+import { ModeraResenas } from './application/use-case/modera-resenas.use-case';
 import { ConsultaElPrecioPorCantidad } from './application/use-case/consulta-el-precio-por-cantidad.use-case';
 
 /**
@@ -66,6 +72,8 @@ export const APLICACION_DEL_CATALOGO: Provider[] = [
   ListaFavoritos,
   ListaHistorial,
   PublicaResena,
+  PreparaFotoDeResena,
+  ModeraResenas,
 ];
 
 /**
@@ -131,6 +139,10 @@ export function proveeCatalogo(): EnvironmentProviders {
 
     ResenasHttpAdapter,
     { provide: RESENAS_PORT, useFactory: () => inject(ResenasHttpAdapter) },
+    ModeracionDeResenasHttpAdapter,
+    { provide: MODERACION_DE_RESENAS_PORT, useFactory: () => inject(ModeracionDeResenasHttpAdapter) },
+    ReductorDeFotosNavegadorAdapter,
+    { provide: REDUCTOR_DE_FOTOS_PORT, useFactory: () => inject(ReductorDeFotosNavegadorAdapter) },
 
     PromocionesHttpAdapter,
     { provide: PROMOCIONES_PORT, useFactory: () => inject(PromocionesHttpAdapter) },

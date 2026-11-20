@@ -9,6 +9,8 @@ import { SesionActual } from '@core/auth/sesion-actual';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { CATALOGO_PORT } from '../../domain/port/catalogo.port';
 import { RESENAS_PORT } from '../../domain/port/resenas.port';
+import { MODERACION_DE_RESENAS_PORT } from '../../domain/port/moderacion-de-resenas.port';
+import { REDUCTOR_DE_FOTOS_PORT } from '../../domain/port/reductor-de-fotos.port';
 import { FichaDeProducto } from '../../domain/model/producto';
 import { SeccionResenas } from './seccion-resenas';
 import { TablaAtributos } from './tabla-atributos';
@@ -59,18 +61,24 @@ function ficha(cambios: Partial<FichaDeProducto> = {}): FichaDeProducto {
 }
 
 describe('SeccionResenas', () => {
-  async function monta(lista: () => Promise<unknown>, publica = vi.fn()) {
+  async function monta(
+    lista: () => Promise<unknown>,
+    publica = vi.fn(),
+    moderacion = { ocultaResena: vi.fn(), quitaFoto: vi.fn() },
+  ) {
     const vista = await render(SeccionResenas, {
       inputs: { idDelProducto: 'p1' },
       providers: [
         ...APLICACION_DEL_CATALOGO,
         CESTA_DE_OTRO_CONTEXTO,
         { provide: RESENAS_PORT, useValue: { lista, publica } },
+        { provide: MODERACION_DE_RESENAS_PORT, useValue: moderacion },
+        { provide: REDUCTOR_DE_FOTOS_PORT, useValue: { reduce: async (f: File) => f } },
       ],
     });
     await vista.fixture.whenStable();
     vista.fixture.detectChanges();
-    return { vista, publica };
+    return { vista, publica, moderacion };
   }
 
   /** Cero coma cero estrellas se lee como un producto mal valorado, no como uno sin valorar. */
