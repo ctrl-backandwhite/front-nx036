@@ -60,6 +60,14 @@ export interface Portada {
   readonly totalDeProductos: number;
 }
 
+/** Una foto que quien compra adjuntó a su reseña. */
+export interface FotoDeResena {
+  readonly id: string;
+  readonly url: string;
+  readonly ancho?: number;
+  readonly alto?: number;
+}
+
 export interface Resena {
   readonly id: string;
   readonly autor?: string;
@@ -70,6 +78,8 @@ export interface Resena {
   readonly origen?: 'SUPPLIER' | 'CUSTOMER';
   readonly idioma?: string;
   readonly fecha?: string;
+  /** Vacía si no hay; un backend más viejo que no las manda se lee igual que sin fotos. */
+  readonly fotos?: readonly FotoDeResena[];
 }
 
 export interface ResumenDeResenas {

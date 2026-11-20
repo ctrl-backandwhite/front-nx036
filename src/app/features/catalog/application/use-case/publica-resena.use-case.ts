@@ -22,13 +22,20 @@ export class PublicaResena {
 
   async ejecuta(
     idDelProducto: string,
-    borrador: { valoracion: number; titulo: string; cuerpo: string; autor: string },
+    borrador: {
+      valoracion: number;
+      titulo: string;
+      cuerpo: string;
+      autor: string;
+      fotos?: readonly File[];
+    },
   ): Promise<Result<void, AppError>> {
     return this.puerto.publica(idDelProducto, {
       valoracion: borrador.valoracion,
       titulo: borrador.titulo.trim() || undefined,
       cuerpo: borrador.cuerpo.trim() || undefined,
       idioma: this.preferencias.idioma(),
+      fotos: borrador.fotos?.length ? borrador.fotos : undefined,
       autor: (this.sesion.datos()?.nombreVisible || borrador.autor).trim() || undefined,
     });
   }

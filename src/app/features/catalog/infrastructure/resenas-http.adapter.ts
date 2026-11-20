@@ -14,6 +14,7 @@ interface ResenaDto {
   source?: 'SUPPLIER' | 'CUSTOMER';
   language?: string;
   createdAt?: string;
+  images?: { id: string; url: string; width?: number; height?: number }[];
 }
 
 interface ListaDeResenasDto {
@@ -46,6 +47,7 @@ export class ResenasHttpAdapter implements ResenasPort {
         origen: r.source,
         idioma: r.language,
         fecha: r.createdAt,
+        fotos: (r.images ?? []).map((i) => ({ id: i.id, url: i.url, ancho: i.width, alto: i.height })),
       })),
       total: dto.totalElements ?? 0,
       media: dto.averageRating ?? 0,
@@ -54,16 +56,24 @@ export class ResenasHttpAdapter implements ResenasPort {
   }
 
   async publica(idDelProducto: string, resena: ResenaNueva): Promise<Result<void, AppError>> {
-    const respuesta = await this.api.post<ResenaDto>(
-      `/catalog/products/${idDelProducto}/reviews`,
-      {
-        rating: resena.valoracion,
-        title: resena.titulo || undefined,
-        body: resena.cuerpo || undefined,
-        language: resena.idioma,
-        authorName: resena.autor || undefined,
-      },
-    );
-    return mapea(respuesta, () => undefined);
+    const camino = `/catalog/products/${idDelProducto}/reviews`;
+    const cuerpo = {
+      rating: resena.valoracion,
+      title: resena.titulo || undefined,
+      body: resena.cuerpo || undefined,
+      language: resena.idioma,
+      authorName: resena.autor || undefined,
+    };
+    const fotos = resena.fotos ?? [];
+    if (fotos.length === 0) {
+      return mapea(await this.api.post<ResenaDto>(camino, cuerpo), () => undefined);
+    }
+    // La parte `review` es JSON con su tipo; las fotos repiten la parte `images`.
+    const formulario = new FormData();
+    formulario.append('review', new Blob([JSON.stringify(cuerpo)], { type: 'application/json' }));
+    for (const foto of fotos) {
+      formulario.append('images', foto, foto.name);
+    }
+    return mapea(await this.api.postMultipart<ResenaDto>(camino, formulario), () => undefined);
   }
 }

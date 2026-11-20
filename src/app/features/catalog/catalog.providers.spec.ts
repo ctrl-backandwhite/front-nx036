@@ -8,6 +8,8 @@ import { CATALOGO_PORT, PORTADA_PORT, TAXONOMIA_PORT } from './domain/port/catal
 import { FAVORITOS_PORT } from './domain/port/favoritos.port';
 import { HISTORIAL_PORT } from './domain/port/historial.port';
 import { RESENAS_PORT } from './domain/port/resenas.port';
+import { MODERACION_DE_RESENAS_PORT } from './domain/port/moderacion-de-resenas.port';
+import { REDUCTOR_DE_FOTOS_PORT } from './domain/port/reductor-de-fotos.port';
 import { PROMOCIONES_PORT } from './domain/port/promociones.port';
 import { ANALITICA_DE_PRODUCTO_PORT } from './domain/port/analitica-de-producto.port';
 import { EDICION_DE_FICHA_PORT } from './domain/port/edicion-de-ficha.port';
@@ -39,6 +41,8 @@ describe('proveeCatalogo', () => {
       FAVORITOS_PORT,
       HISTORIAL_PORT,
       RESENAS_PORT,
+      MODERACION_DE_RESENAS_PORT,
+      REDUCTOR_DE_FOTOS_PORT,
       PROMOCIONES_PORT,
       ANALITICA_DE_PRODUCTO_PORT,
       EDICION_DE_FICHA_PORT,

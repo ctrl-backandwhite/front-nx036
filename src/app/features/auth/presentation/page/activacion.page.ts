@@ -67,7 +67,7 @@ const ESPERA_ENTRE_REENVIOS_S = 30;
               <form (submit)="reenvia($event)" class="flex flex-col sm:flex-row gap-2">
                 <label class="sr-only" for="activacion-email">{{ t('activate.email_placeholder') }}</label>
                 <input id="activacion-email" type="email" required autocomplete="email"
-                       class="input input-bordered input-sm flex-1"
+                       class="input input-bordered input-sm w-full sm:flex-1"
                        [placeholder]="t('activate.email_placeholder')"
                        [value]="correo()" (input)="correo.set(valorDe($event))" />
                 <button type="submit" class="btn btn-outline btn-sm whitespace-nowrap"

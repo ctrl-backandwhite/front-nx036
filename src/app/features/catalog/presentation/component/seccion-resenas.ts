@@ -1,35 +1,21 @@
 import { Component, computed, inject, input, linkedSignal, resource, signal } from '@angular/core';
-import { FieldTree, FormField, form, readonly, validate } from '@angular/forms/signals';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { PreferenciasService } from '@core/preferences/preferencias';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
+import { DialogoStore } from '@ds/component/dialogo/dialogo.store';
 import { RESENAS_PORT } from '../../domain/port/resenas.port';
 import {
   hayResenasDelProveedor,
   idiomasDeLasResenas,
   repartoEnPorcentaje,
 } from '../../domain/model/catalogo-auxiliar';
-import { PublicaResena } from '../../application/use-case/publica-resena.use-case';
+import { ModeraResenas } from '../../application/use-case/modera-resenas.use-case';
 import { SesionActual } from '@core/auth/sesion-actual';
+import { FormularioDeResena } from './formulario-de-resena';
+import { FotosDeResena } from './fotos-de-resena';
 
 /** Cuántas se traen de una vez. Cincuenta cubre casi todas las fichas sin paginar. */
 const CUANTAS = 50;
-
-/**
- * Lo que se escribe en el formulario de reseña.
- *
- * <p>Todas las claves están SIEMPRE, aunque vayan vacías: Signal Forms construye un campo por cada
- * clave que existe en el objeto, y una que falte deja la plantilla sin nada a lo que atarse.
- */
-interface BorradorDeResena {
-  readonly nota: string;
-  readonly autor: string;
-  readonly titulo: string;
-  readonly cuerpo: string;
-}
-
-/** Cinco estrellas de salida, como venía siendo: quien escribe suele hacerlo contento. */
-const BORRADOR_VACIO: BorradorDeResena = { nota: '5', autor: '', titulo: '', cuerpo: '' };
 
 /**
  * Las reseñas del producto: nota media, reparto por estrellas, filtro por idioma y formulario.
@@ -47,7 +33,7 @@ const BORRADOR_VACIO: BorradorDeResena = { nota: '5', autor: '', titulo: '', cue
   // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
   host: { class: 'block' },
   selector: 'nx-seccion-resenas',
-  imports: [FormField],
+  imports: [FormularioDeResena, FotosDeResena],
   template: `
     <div class="card card-border bg-base-100">
       <div class="card-body">
@@ -96,83 +82,11 @@ const BORRADOR_VACIO: BorradorDeResena = { nota: '5', autor: '', titulo: '', cue
         }
 
         @if (formularioAbierto()) {
-          <form
-            (submit)="envia($event)"
-            class="mt-4 rounded-box border border-base-200 p-3 space-y-2 bg-base-200/30"
-          >
-            <!--
-              Cinco estrellas, no un desplegable.
-              Puntuar es el gesto más frecuente de este formulario y con un desplegable costaba tres
-              acciones —abrir, buscar la nota, elegir— para algo que en cualquier tienda es un solo
-              toque. Además obligaba a leer «5 ★» para entender qué significa cada opción; con las
-              estrellas a la vista, la escala se ve.
-
-              No se pinta el IDIOMA al lado: la reseña se escribe en el idioma en el que se está
-              navegando, no hay otra opción, y anunciarlo con una píldora hacía pensar que sí la había.
-            -->
-            <div class="flex items-center gap-2">
-              <span id="resena-nota-etiqueta" class="text-[12px]">{{ t('reviews.your_rating') }}:</span>
-              <div
-                class="flex items-center gap-0.5"
-                role="radiogroup"
-                aria-labelledby="resena-nota-etiqueta"
-              >
-                @for (n of [1, 2, 3, 4, 5]; track n) {
-                  <button
-                    type="button"
-                    role="radio"
-                    [attr.aria-checked]="+borrador().nota === n"
-                    [attr.aria-label]="n + ' ★'"
-                    (click)="fijaNota(n)"
-                    class="text-[22px] leading-none px-0.5 transition-colors hover:scale-110"
-                    [class]="+borrador().nota >= n ? 'text-warning' : 'text-base-300'"
-                  >
-                    ★
-                  </button>
-                }
-              </div>
-            </div>
-            <label class="sr-only" for="resena-autor">{{ t('reviews.name') }}</label>
-            <!-- El bloqueo del nombre ya no va en el marcado: lo declara el esquema del formulario,
-                 que es quien sabe si el campo se puede editar. -->
-            <input
-              id="resena-autor"
-              class="input input-bordered input-sm w-full"
-              [class]="nombreDeLaSesion() ? 'bg-base-200 cursor-not-allowed opacity-80' : ''"
-              [placeholder]="t('reviews.name')"
-              [title]="nombreDeLaSesion() ? t('reviews.name_locked') : ''"
-              [formField]="formulario.autor"
-            />
-            <label class="sr-only" for="resena-titulo">{{ t('reviews.title_field') }}</label>
-            <input
-              id="resena-titulo"
-              class="input input-bordered input-sm w-full"
-              [placeholder]="t('reviews.title_field')"
-              [formField]="formulario.titulo"
-            />
-            <label class="sr-only" for="resena-cuerpo">{{ t('reviews.body') }}</label>
-            <textarea
-              id="resena-cuerpo"
-              class="textarea textarea-bordered textarea-sm w-full h-20"
-              [placeholder]="t('reviews.body')"
-              [formField]="formulario.cuerpo"
-            ></textarea>
-            @if (falloDe(formulario); as fallo) {
-              <span role="alert" class="text-xs text-error mt-1 block">{{ fallo }}</span>
-            }
-            <div class="flex justify-end gap-2">
-              <button type="button" (click)="formularioAbierto.set(false)" class="btn btn-ghost btn-sm">
-                {{ t('common.cancel') }}
-              </button>
-              <button
-                type="submit"
-                [disabled]="formulario().invalid() || enviando()"
-                class="btn btn-primary btn-sm"
-              >
-                {{ t('reviews.submit') }}
-              </button>
-            </div>
-          </form>
+          <nx-formulario-de-resena
+            [idDelProducto]="idDelProducto()"
+            (publicada)="alPublicar()"
+            (cierra)="formularioAbierto.set(false)"
+          />
         }
 
         <!--
@@ -231,6 +145,21 @@ const BORRADOR_VACIO: BorradorDeResena = { nota: '5', autor: '', titulo: '', cue
                   @if (resena.cuerpo) {
                     <p class="text-[12px] mt-1 leading-relaxed">{{ resena.cuerpo }}</p>
                   }
+                  <nx-fotos-de-resena
+                    [fotos]="resena.fotos ?? []"
+                    [autor]="resena.autor ?? ''"
+                    [puedeQuitar]="esAdministrador()"
+                    (quita)="quitaFoto(resena.id, $event)"
+                  />
+                  @if (esAdministrador()) {
+                    <button
+                      type="button"
+                      class="btn btn-outline btn-error min-h-11 mt-2 self-start"
+                      (click)="ocultaResena(resena.id)"
+                    >
+                      {{ t('reviews.moderation.hide') }}
+                    </button>
+                  }
                 </div>
               </article>
             }
@@ -244,7 +173,8 @@ export class SeccionResenas {
   readonly idDelProducto = input.required<string>();
 
   private readonly puerto = inject(RESENAS_PORT);
-  private readonly publica = inject(PublicaResena);
+  private readonly moderacion = inject(ModeraResenas);
+  private readonly dialogo = inject(DialogoStore);
   private readonly avisos = inject(AvisosStore);
   private readonly preferencias = inject(PreferenciasService);
   private readonly sesion = inject(SesionActual);
@@ -252,7 +182,6 @@ export class SeccionResenas {
   protected readonly t = inject(TraduccionService).t;
 
   protected readonly formularioAbierto = signal(false);
-  protected readonly enviando = signal(false);
   /**
    * El idioma por el que se filtran las reseñas.
    *
@@ -299,43 +228,6 @@ export class SeccionResenas {
     },
   });
 
-  /**
-   * El borrador de la reseña.
-   *
-   * <p>La nota va como CADENA porque un desplegable nativo solo habla en cadenas; se convierte a número
-   * al publicar, que es donde importa.
-   *
-   * <p>Se DERIVA del nombre de la sesión: en cuanto hay cuenta abierta, el autor es el suyo y deja de
-   * ser editable. Se conserva lo ya escrito —título y texto— para no borrarle la reseña a quien entra
-   * en su cuenta a mitad de redactarla.
-   */
-  protected readonly borrador = linkedSignal<string, BorradorDeResena>({
-    source: () => this.nombreDeLaSesion(),
-    computation: (nombre, previo) => ({
-      ...(previo?.value ?? BORRADOR_VACIO),
-      autor: nombre || previo?.value.autor || '',
-    }),
-  });
-
-  /**
-   * Las reglas de la reseña, en un solo sitio.
-   *
-   * <p>El nombre lo pone la sesión y no se toca: dejar teclearlo con la cuenta abierta permitiría
-   * firmar con el nombre de otro. Antes era un `readOnly` suelto en el marcado.
-   *
-   * <p>Y una reseña sin título NI texto no dice nada. Es la misma regla que ya decidía si el botón se
-   * podía pulsar, pero ahora está DICHA: antes el botón se quedaba apagado sin explicar por qué.
-   */
-  protected readonly formulario = form(this.borrador, (ruta) => {
-    readonly(ruta.autor, () => !!this.nombreDeLaSesion());
-    validate(ruta, ({ value }) => {
-      const { titulo, cuerpo } = value();
-      return titulo.trim() || cuerpo.trim()
-        ? null
-        : { kind: 'sin-texto', message: this.t('dialog.field.required') };
-    });
-  });
-
   private readonly datos = resource({
     params: () => ({ id: this.idDelProducto() }),
     loader: async ({ params }) => {
@@ -359,22 +251,6 @@ export class SeccionResenas {
    */
   protected readonly esAdministrador = this.sesion.esAdministrador;
 
-  protected readonly nombreDeLaSesion = computed(() => this.sesion.datos()?.nombreVisible ?? '');
-  protected readonly idiomaEnMayusculas = computed(() => this.preferencias.idioma().toUpperCase());
-  /** El desplegable devuelve cadenas; la reseña viaja con la nota como número. */
-  /**
-   * Fija la nota al pulsar una estrella.
-   *
-   * <p>Escribe en el BORRADOR y no en el campo del formulario porque ése es quien manda: el esquema
-   * valida sobre el borrador, así que tocar solo el control dejaría la validación mirando el valor
-   * viejo. La nota viaja como cadena porque así la espera el formulario, que nació de un desplegable.
-   */
-  protected fijaNota(nota: number): void {
-    this.borrador.update((previo) => ({ ...previo, nota: String(nota) }));
-  }
-
-  private readonly notaElegida = computed(() => Number(this.borrador().nota));
-
   protected readonly visibles = computed(() => {
     const filtro = this.filtroDeIdioma();
     return filtro ? this.items().filter((r) => (r.idioma ?? '') === filtro) : this.items();
@@ -384,41 +260,34 @@ export class SeccionResenas {
     return '★'.repeat(valoracion).padEnd(5, '☆');
   }
 
-  /**
-   * El mensaje que toca enseñar, o nulo. Se calla hasta que el campo se ha TOCADO: pintar de rojo un
-   * formulario recién abierto acusa a quien todavía no ha escrito nada.
-   */
-  protected falloDe<T>(campo: FieldTree<T>): string | null {
-    const estado = campo();
-    return estado.touched() ? (estado.errors()[0]?.message ?? null) : null;
+  protected alPublicar(): void {
+    this.formularioAbierto.set(false);
+    this.datos.reload();
   }
 
-  protected async envia(evento: Event): Promise<void> {
-    evento.preventDefault();
-    // Un único sitio al que preguntar si se puede enviar, en vez de repetir aquí la condición que ya
-    // apaga el botón.
-    if (this.formulario().invalid() || this.enviando()) {
+  protected async ocultaResena(idDeResena: string): Promise<void> {
+    if (!(await this.dialogo.confirma(this.t('reviews.moderation.hide_confirm')))) {
       return;
     }
-    this.enviando.set(true);
-    try {
-      const borrador = this.borrador();
-      const resultado = await this.publica.ejecuta(this.idDelProducto(), {
-        valoracion: this.notaElegida(),
-        titulo: borrador.titulo,
-        cuerpo: borrador.cuerpo,
-        autor: borrador.autor,
-      });
-      if (!resultado.ok) {
-        this.avisos.error(resultado.error.mensaje || this.t('common.error'));
-        return;
-      }
-      this.formularioAbierto.set(false);
-      // El autor se conserva: es el de la sesión, o el que un invitado ya ha escrito una vez.
-      this.borrador.set({ ...BORRADOR_VACIO, autor: borrador.autor });
-      this.datos.reload();
-    } finally {
-      this.enviando.set(false);
+    const resultado = await this.moderacion.ocultaResena(idDeResena);
+    if (!resultado.ok) {
+      this.avisos.error(resultado.error.mensaje || this.t('common.error'));
+      return;
     }
+    this.avisos.exito(this.t('reviews.moderation.hidden'));
+    this.datos.reload();
+  }
+
+  protected async quitaFoto(idDeResena: string, idDeFoto: string): Promise<void> {
+    if (!(await this.dialogo.confirma(this.t('reviews.moderation.remove_photo_confirm')))) {
+      return;
+    }
+    const resultado = await this.moderacion.quitaFoto(idDeResena, idDeFoto);
+    if (!resultado.ok) {
+      this.avisos.error(resultado.error.mensaje || this.t('common.error'));
+      return;
+    }
+    this.avisos.exito(this.t('reviews.moderation.photo_removed'));
+    this.datos.reload();
   }
 }

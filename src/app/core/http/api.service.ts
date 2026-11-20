@@ -72,6 +72,16 @@ export class ApiService {
     );
   }
 
+  /**
+   * Envía un formulario con ficheros (multipart).
+   *
+   * <p>NO fija el Content-Type: el navegador lo pone él, con el límite entre partes que solo él conoce.
+   * Escribirlo a mano rompe la petición sin que ningún error lo diga.
+   */
+  async postMultipart<T>(camino: string, formulario: FormData): Promise<Result<T, AppError>> {
+    return this.envuelve(firstValueFrom(this.http.post<T>(this.ruta(camino), formulario)));
+  }
+
   async put<T>(camino: string, cuerpo?: unknown, cabeceras?: Cabeceras): Promise<Result<T, AppError>> {
     return this.envuelve(
       firstValueFrom(this.http.put<T>(this.ruta(camino), cuerpo ?? {}, { headers: cabeceras })),

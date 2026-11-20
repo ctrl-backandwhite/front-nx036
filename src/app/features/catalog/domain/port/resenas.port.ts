@@ -9,6 +9,8 @@ export interface ResenaNueva {
   readonly cuerpo?: string;
   readonly idioma: string;
   readonly autor?: string;
+  /** Ya reducidas. Sin ellas viaja JSON; con ellas, multipart. */
+  readonly fotos?: readonly File[];
 }
 
 export interface ResenasPort {
