@@ -17,12 +17,12 @@ import { VisorGaleria } from './visor-galeria';
   imports: [VisorGaleria],
   template: `
     @if (fotos().length > 0) {
-      <ul class="flex flex-wrap gap-2 mt-2" role="list">
+      <ul class="flex flex-wrap gap-3 mt-3" role="list">
         @for (foto of fotos(); track foto.id; let i = $index) {
           <li class="relative">
             <button
               type="button"
-              class="block size-16 rounded-box overflow-hidden border border-base-300 focus-visible:ring-2 focus-visible:ring-primary"
+              class="block size-22 rounded-box overflow-hidden border border-base-300 focus-visible:ring-2 focus-visible:ring-primary"
               [attr.aria-label]="t('reviews.photos.open') + ' ' + (i + 1) + '/' + fotos().length"
               (click)="abierta.set(i)"
             >
@@ -36,11 +36,11 @@ import { VisorGaleria } from './visor-galeria';
             @if (puedeQuitar()) {
               <button
                 type="button"
-                class="btn btn-circle btn-error size-11 min-h-11 absolute -top-3 -right-3"
+                class="absolute -top-4 -right-4 grid size-11 place-items-center rounded-full focus-visible:ring-2 focus-visible:ring-primary"
                 [attr.aria-label]="t('reviews.moderation.remove_photo') + ' ' + (i + 1)"
                 (click)="quita.emit(foto.id)"
               >
-                ×
+                <span aria-hidden="true" class="grid size-6 place-items-center rounded-full bg-error text-sm font-bold leading-none text-error-content shadow">×</span>
               </button>
             }
           </li>

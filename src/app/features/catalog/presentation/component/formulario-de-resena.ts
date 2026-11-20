@@ -152,11 +152,11 @@ const CLAVE_POR_CODIGO: Readonly<Record<string, string>> = {
                 />
                 <button
                   type="button"
-                  class="btn btn-circle btn-neutral size-11 min-h-11 absolute -top-3 -right-3"
+                  class="absolute -top-4 -right-4 grid size-11 place-items-center rounded-full focus-visible:ring-2 focus-visible:ring-primary"
                   [attr.aria-label]="t('reviews.photos.remove') + ' ' + (i + 1)"
                   (click)="quita(i)"
                 >
-                  ×
+                  <span aria-hidden="true" class="grid size-6 place-items-center rounded-full bg-neutral text-sm font-bold leading-none text-neutral-content shadow">×</span>
                 </button>
               </li>
             }
