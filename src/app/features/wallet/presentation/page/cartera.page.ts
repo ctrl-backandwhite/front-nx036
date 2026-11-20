@@ -60,7 +60,7 @@ const LATIDO_MS = 60_000;
           </a>
           <a
             routerLink="/orders"
-            class="btn btn-outline border-primary-content/40 text-primary-content hover:bg-primary-content/10"
+            class="btn btn-outline border-primary-content/40 text-primary-content! hover:bg-primary-content/10"
           >
             {{ t('wallet.view_orders') }}
           </a>
