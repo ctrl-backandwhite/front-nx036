@@ -78,7 +78,10 @@ const RUTA_DE_FICHA = /^\/(catalog|admin\/browse)\/[^/]+$/;
           </a>
         </div>
 
-        <div class="navbar-center hidden md:flex">
+        <!-- mx-3: sin él, cuando la cabecera va justa (tableta, o 1.280 px con cuenta de personal) el menú
+             y los botones de cuenta quedaban pegados, a 0 px. El hueco sale del lado de la marca, que
+             tiene sitio de sobra. -->
+        <div class="navbar-center hidden md:flex mx-3">
           <ul class="menu menu-horizontal gap-1 text-[13px]">
             @for (opcion of navegacion(); track opcion.destino) {
               <li>
