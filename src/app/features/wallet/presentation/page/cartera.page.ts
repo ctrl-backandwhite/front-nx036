@@ -26,7 +26,11 @@ const LATIDO_MS = 60_000;
     <div class="max-w-3xl mx-auto space-y-6">
       <h1>{{ t('wallet.title') }}</h1>
 
-      <div class="card p-6 sm:p-8 bg-primary text-primary-content">
+      <!--
+        Sin la clase card a propósito: su regla de styles.css fija el fondo en base-100 y gana a
+        bg-primary, con lo que el texto primary-content quedaba invisible (visto en PRE el 20-nov).
+      -->
+      <div class="rounded-box p-6 sm:p-8 bg-primary text-primary-content">
         <div class="text-xs uppercase tracking-wider text-primary-content/80">
           {{ t('wallet.balance') }}
         </div>
