@@ -7,6 +7,8 @@ import {
   correoDeRespuesta,
   esAccionable,
   filtraPorCategoria,
+  pedidoDelAviso,
+  rutaDelAviso,
   sinLeer,
 } from './aviso';
 
@@ -113,5 +115,49 @@ describe('filtraPorCategoria y categoriasPresentes', () => {
 
   it('solo ofrece los tipos que hay de verdad, sin repetir', () => {
     expect(categoriasPresentes(bandeja)).toEqual(['order', 'support']);
+  });
+});
+
+describe('el pedido al que apunta un aviso', () => {
+  const base: Aviso = {
+    id: 'a1',
+    tipoDeSuceso: 'ORDER_OUT_FOR_DELIVERY',
+    titulo: 'En reparto',
+    canal: 'INBOX',
+    creadoEl: '2026-11-24T10:00:00Z',
+  };
+
+  it('lee orderId de los datos, sea texto o número', () => {
+    expect(pedidoDelAviso({ ...base, datos: { orderId: 'o1' } })).toBe('o1');
+    expect(pedidoDelAviso({ ...base, datos: { orderId: 42 } })).toBe('42');
+  });
+
+  it('sin orderId, o con uno raro, no hay pedido', () => {
+    expect(pedidoDelAviso(base)).toBeNull();
+    expect(pedidoDelAviso({ ...base, datos: { orderId: '' } })).toBeNull();
+    expect(pedidoDelAviso({ ...base, datos: { orderId: '../admin' } })).toBeNull();
+    expect(pedidoDelAviso({ ...base, datos: { orderId: { x: 1 } } })).toBeNull();
+  });
+
+  it('quien compra va a su pedido', () => {
+    expect(rutaDelAviso({ ...base, datos: { orderId: 'o1' } })).toBe('/orders/o1');
+  });
+
+  it('un aviso sin pedido solo se abre en el buzón', () => {
+    expect(rutaDelAviso(base)).toBeNull();
+  });
+
+  it('la incidencia de envío del personal va a la ficha del panel, y la de quien compra a su pedido', () => {
+    const incidencia = {
+      ...base,
+      tipoDeSuceso: 'ORDER_SHIPMENT_INCIDENT',
+      datos: { orderId: 'o1' },
+    };
+    expect(rutaDelAviso(incidencia, true)).toBe('/admin/orders/o1');
+    expect(rutaDelAviso(incidencia, false)).toBe('/orders/o1');
+  });
+
+  it('un aviso de pedido del personal que no es incidencia sigue yendo al pedido propio', () => {
+    expect(rutaDelAviso({ ...base, datos: { orderId: 'o1' } }, true)).toBe('/orders/o1');
   });
 });

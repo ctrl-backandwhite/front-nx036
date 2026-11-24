@@ -41,6 +41,12 @@ export const rutas: Routes = [
         loadComponent: () =>
           import('./page/ficha-de-pedido.page').then((m) => m.FichaDePedidoPage),
       },
+      {
+        // La bandeja de incidencias es de quien procesa los pedidos, igual que la ficha: ADMIN y OPERATOR.
+        path: 'shipment-incidents',
+        loadComponent: () =>
+          import('./page/incidencias-de-envio.page').then((m) => m.IncidenciasDeEnvioPage),
+      },
       { path: 'ordenes', redirectTo: 'orders', pathMatch: 'full' },
       {
         path: 'purchases',
@@ -115,6 +121,7 @@ export const rutas: Routes = [
 export const rutasDeServidor: ServerRoute[] = [
   'admin/orders',
   'admin/orders/:id',
+  'admin/shipment-incidents',
   'admin/ordenes',
   'admin/purchases',
   'admin/carrier-coverage',

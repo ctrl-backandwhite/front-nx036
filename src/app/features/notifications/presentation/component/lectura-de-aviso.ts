@@ -1,5 +1,6 @@
 import { Component, computed, inject, input, linkedSignal, output } from '@angular/core';
 import { FormatoDeFecha } from '@core/i18n/formato-de-fecha';
+import { RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
   faArrowLeft,
@@ -20,6 +21,7 @@ import {
   categoriaDe,
   correoDeRespuesta,
   esAccionable,
+  rutaDelAviso,
 } from '../../domain/model/aviso';
 import { Movimiento } from '../../application/use-case/mueve-avisos.use-case';
 import {
@@ -43,7 +45,7 @@ import {
   // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
   host: { class: 'block' },
   selector: 'nx-lectura-de-aviso',
-  imports: [FaIconComponent],
+  imports: [FaIconComponent, RouterLink],
   template: `
     <section class="flex-1 flex-col overflow-y-auto bg-base-100"
              [class.flex]="!!aviso()" [class.hidden]="!aviso()" [class.sm:flex]="true">
@@ -136,6 +138,11 @@ import {
           } @else {
             <p class="text-sm opacity-70 italic">{{ t('notif.no_body') }}</p>
           }
+          @if (rutaDelPedido(abierto); as ruta) {
+            <a [routerLink]="ruta" class="btn btn-primary btn-sm mt-4" data-ver-pedido>
+              {{ t('notif.view_order') }}
+            </a>
+          }
         </div>
 
         @if (esDeLaCasa() && remitente()) {
@@ -180,6 +187,10 @@ export class LecturaDeAviso {
   readonly carpeta = input.required<Carpeta>();
   /** Si quien mira es del personal de la casa: solo entonces hay gestión y respuesta. */
   readonly esDeLaCasa = input(false);
+
+  protected rutaDelPedido(aviso: Aviso): string | null {
+    return rutaDelAviso(aviso, this.esDeLaCasa());
+  }
   readonly enviando = input(false);
 
   readonly cierra = output<void>();

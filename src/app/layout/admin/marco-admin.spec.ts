@@ -34,6 +34,7 @@ describe('seccionesPara', () => {
 
     expect(destinos).toEqual([
       '/admin/orders',
+      '/admin/shipment-incidents',
       '/admin/operator/earnings',
       '/admin/profile',
     ]);

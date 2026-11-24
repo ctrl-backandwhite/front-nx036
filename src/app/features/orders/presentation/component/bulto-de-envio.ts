@@ -3,7 +3,8 @@ import { FormatoDeFecha } from '@core/i18n/formato-de-fecha';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faBoxOpen } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
-import { Bulto } from '../../domain/model/seguimiento';
+import { Bulto, enlaceSeguro } from '../../domain/model/seguimiento';
+import { FaseDelEnvio } from './fase-del-envio';
 import { PasosDeSeguimiento } from './pasos-de-seguimiento';
 
 /**
@@ -17,7 +18,7 @@ import { PasosDeSeguimiento } from './pasos-de-seguimiento';
   // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
   host: { class: 'block' },
   selector: 'nx-bulto-de-envio',
-  imports: [FaIconComponent, PasosDeSeguimiento],
+  imports: [FaIconComponent, FaseDelEnvio, PasosDeSeguimiento],
   template: `
     <div class="rounded-lg border border-base-300 p-4">
       <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
@@ -28,12 +29,45 @@ import { PasosDeSeguimiento } from './pasos-de-seguimiento';
             <span class="text-xs text-ink-500">· {{ kilos() }} kg</span>
           }
         </span>
-        @if (bulto().numeroDeSeguimiento) {
-          <span class="text-xs font-mono bg-base-200 rounded px-2 py-1">
-            {{ bulto().numeroDeSeguimiento }}
-          </span>
-        }
+        <nx-fase-del-envio [fase]="bulto().fase" />
       </div>
+
+      @if (bulto().transportista || bulto().numeroDeSeguimiento) {
+        <div class="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+          @if (bulto().transportista) {
+            <span class="text-ink-500">
+              {{ t('tracking.carrier') }}: <strong>{{ bulto().transportista }}</strong>
+            </span>
+          }
+          @if (bulto().numeroDeSeguimiento) {
+            <span class="font-mono bg-base-200 rounded px-2 py-1">
+              {{ bulto().numeroDeSeguimiento }}
+            </span>
+          }
+          @if (enlace(); as url) {
+            <a
+              [href]="url"
+              target="_blank"
+              rel="noopener"
+              class="link link-primary inline-flex min-h-11 items-center"
+              data-enlace-de-seguimiento
+            >
+              {{ t('tracking.follow') }}
+            </a>
+          }
+          @if (prueba(); as url) {
+            <a
+              [href]="url"
+              target="_blank"
+              rel="noopener"
+              class="link link-primary inline-flex min-h-11 items-center"
+              data-prueba-de-entrega
+            >
+              {{ t('tracking.proof') }}
+            </a>
+          }
+        </div>
+      }
 
       <!--
         Qué va dentro. Sin esto, «Paquete 1/2» no decía nada: quien recibe uno no sabe a qué le está
@@ -81,6 +115,14 @@ export class BultoDeEnvio {
   protected readonly iconoBulto = faBoxOpen;
   private readonly fechas = inject(FormatoDeFecha);
   protected readonly t = inject(TraduccionService).t;
+
+  protected enlace(): string | undefined {
+    return enlaceSeguro(this.bulto().urlDeSeguimiento);
+  }
+
+  protected prueba(): string | undefined {
+    return enlaceSeguro(this.bulto().pruebaDeEntregaUrl);
+  }
 
   protected kilos(): string {
     return (this.bulto().pesoGramos / 1000).toFixed(2);

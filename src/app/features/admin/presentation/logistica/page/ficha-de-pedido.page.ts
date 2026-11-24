@@ -29,6 +29,10 @@ import {
   ConsultaPedido,
 } from '../../../application/logistica/use-case/gestiona-pedidos.use-case';
 import {
+  AnulaGuia,
+  DescargaEtiqueta,
+} from '../../../application/logistica/use-case/gestiona-incidencias.use-case';
+import {
   ConsultaSeguimiento,
   DescargaFactura,
   SincronizaSeguimiento,
@@ -111,7 +115,11 @@ const SUFIJO_DE_AVISO: Readonly<Record<AccionSobrePedido, string>> = {
         <div class="text-ink-500 text-sm">{{ t('common.loading') }}</div>
       } @else if (pedido(); as p) {
         @if (envio(); as rastro) {
-          <nx-rastro-del-envio [envio]="rastro" />
+          <nx-rastro-del-envio
+            [envio]="rastro"
+            (descargaEtiqueta)="descargaEtiqueta($event)"
+            (anulaGuia)="anulaGuia($event)"
+          />
           <nx-declaraciones-del-transportista [declaraciones]="rastro.declaraciones" />
         }
 
@@ -233,12 +241,16 @@ export class FichaDePedidoPage {
     cancel: faBan,
   };
 
-  protected readonly t = inject(TraduccionService).t;
+  private readonly traduccion = inject(TraduccionService);
+  protected readonly t = this.traduccion.t;
+  private readonly tCon = this.traduccion.tCon;
   private readonly consulta = inject(ConsultaPedido);
   private readonly cambia = inject(CambiaEstadoDePedido);
   private readonly rastro = inject(ConsultaSeguimiento);
   private readonly sincronizador = inject(SincronizaSeguimiento);
   private readonly factura = inject(DescargaFactura);
+  private readonly etiqueta = inject(DescargaEtiqueta);
+  private readonly anuladora = inject(AnulaGuia);
   private readonly preferencias = inject(PreferenciasService);
   private readonly dialogo = inject(DialogoStore);
   private readonly avisos = inject(AvisosStore);
@@ -317,6 +329,42 @@ export class FichaDePedidoPage {
       this.avisos.exito(this.t('tracking.synced'));
     } finally {
       this.sincronizando.set(false);
+    }
+  }
+
+  /** Abre la etiqueta del bulto. Sin etiqueta disponible lo dice claro en vez de callar. */
+  protected async descargaEtiqueta(secuencia: number): Promise<void> {
+    const resultado = await this.etiqueta.ejecuta(this.id(), secuencia);
+    if (!resultado.ok) {
+      this.avisos.error(
+        resultado.error.tipo === 'no-encontrado'
+          ? this.t('admin.shipment.label_missing')
+          : resultado.error.mensaje || this.t('admin.shipment.action_failed'),
+      );
+    }
+  }
+
+  /**
+   * Anula la guía de un bulto. Se confirma con el diálogo propio —no con el del navegador, que no se
+   * puede traducir ni tematizar— porque el transportista deja de procesarla y no hay vuelta atrás.
+   */
+  protected async anulaGuia(secuencia: number): Promise<void> {
+    const confirmado = await this.dialogo.confirma(
+      this.tCon('admin.shipment.cancel_confirm', { n: secuencia }),
+      this.t('admin.shipment.cancel'),
+    );
+    if (!confirmado) {
+      return;
+    }
+    const resultado = await this.anuladora.ejecuta(this.id(), secuencia);
+    if (!resultado.ok) {
+      this.avisos.error(resultado.error.mensaje || this.t('admin.shipment.action_failed'));
+      return;
+    }
+    this.avisos.exito(this.t('admin.shipment.cancel_done'));
+    const seguimiento = await this.rastro.ejecuta(this.id());
+    if (seguimiento.ok) {
+      this.envio.set(seguimiento.valor);
     }
   }
 

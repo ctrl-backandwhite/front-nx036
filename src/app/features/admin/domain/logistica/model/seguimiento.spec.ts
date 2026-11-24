@@ -1,4 +1,12 @@
-import { nombreDeclarado, pasosDelEnvio, valorDeclarado } from './seguimiento';
+import {
+  enlaceSeguro,
+  faseConocida,
+  formateaCosteReal,
+  guiaAnulable,
+  nombreDeclarado,
+  pasosDelEnvio,
+  valorDeclarado,
+} from './seguimiento';
 
 describe('pasos del envío', () => {
   it('los devuelve del más reciente al más antiguo', () => {
@@ -106,5 +114,33 @@ describe('valor declarado de una línea', () => {
 
   it('sin divisa no deja un espacio colgando', () => {
     expect(valorDeclarado({ cantidad: 1, valorUnitario: 8 })).toBe('8');
+  });
+});
+
+describe('fase, enlace, coste y anulación del bulto', () => {
+  it('solo reconoce las fases del contrato', () => {
+    expect(faseConocida('EN_REPARTO')).toBe('EN_REPARTO');
+    expect(faseConocida('OTRA')).toBeUndefined();
+    expect(faseConocida(null)).toBeUndefined();
+  });
+
+  it('un enlace solo vale si es http o https', () => {
+    expect(enlaceSeguro('https://a.example/x')).toBe('https://a.example/x');
+    expect(enlaceSeguro('javascript:alert(1)')).toBeUndefined();
+    expect(enlaceSeguro('nada')).toBeUndefined();
+    expect(enlaceSeguro(undefined)).toBeUndefined();
+  });
+
+  it('el coste real lleva su divisa, y sin divisa no se inventa una', () => {
+    expect(formateaCosteReal({ importe: 12.5, moneda: 'EUR' })).toBe('12.50 EUR');
+    expect(formateaCosteReal({ importe: 3 })).toBe('3.00');
+  });
+
+  it('la guía solo se anula si existe y el bulto no ha terminado su viaje', () => {
+    expect(guiaAnulable({ numeroDeSeguimiento: 'X', fase: 'EN_TRANSITO' })).toBe(true);
+    expect(guiaAnulable({ numeroDeSeguimiento: 'X' })).toBe(true);
+    expect(guiaAnulable({ numeroDeSeguimiento: 'X', fase: 'ENTREGADO' })).toBe(false);
+    expect(guiaAnulable({ numeroDeSeguimiento: 'X', fase: 'DEVUELTO' })).toBe(false);
+    expect(guiaAnulable({ fase: 'EN_TRANSITO' })).toBe(false);
   });
 });

@@ -200,4 +200,63 @@ describe('PedidoPage', () => {
 
     expect(vista.fixture.componentInstance['seguimiento']()?.numeroDeSeguimiento).toBe('LP1');
   });
+
+  describe('refresco del seguimiento', () => {
+    const MEDIO_MINUTO = 30_000;
+
+    it('sigue preguntando cada medio minuto mientras el pedido viaja', async () => {
+      vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+      consulta.ejecuta.mockResolvedValue(exito(pedido()));
+      await monta();
+      await screen.findByText('NX-0001');
+      const antes = sigue.ejecuta.mock.calls.length;
+
+      await vi.advanceTimersByTimeAsync(MEDIO_MINUTO);
+
+      expect(sigue.ejecuta.mock.calls.length).toBe(antes + 1);
+    });
+
+    it('deja de preguntar cuando el pedido consta entregado', async () => {
+      vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+      consulta.ejecuta.mockResolvedValue(exito(pedido({ estado: 'DELIVERED' })));
+      await monta();
+      await screen.findByText('NX-0001');
+      const antes = sigue.ejecuta.mock.calls.length;
+
+      await vi.advanceTimersByTimeAsync(MEDIO_MINUTO * 3);
+
+      expect(sigue.ejecuta.mock.calls.length).toBe(antes);
+    });
+
+    it('deja de preguntar cuando todos los bultos están entregados', async () => {
+      vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+      consulta.ejecuta.mockResolvedValue(exito(pedido()));
+      sigue.ejecuta.mockResolvedValue(
+        exito({
+          hitos: [],
+          bultos: [{ secuencia: 1, pesoGramos: 1, fase: 'ENTREGADO', hitos: [], contenido: [] }],
+        }),
+      );
+      await monta();
+      await screen.findByText('NX-0001');
+      const antes = sigue.ejecuta.mock.calls.length;
+
+      await vi.advanceTimersByTimeAsync(MEDIO_MINUTO * 3);
+
+      expect(sigue.ejecuta.mock.calls.length).toBe(antes);
+    });
+
+    it('deja de preguntar cuando la fase del pedido es ENTREGADO aunque el estado no se haya movido', async () => {
+      vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+      consulta.ejecuta.mockResolvedValue(exito(pedido()));
+      sigue.ejecuta.mockResolvedValue(exito({ hitos: [], bultos: [], fase: 'ENTREGADO' }));
+      await monta();
+      await screen.findByText('NX-0001');
+      const antes = sigue.ejecuta.mock.calls.length;
+
+      await vi.advanceTimersByTimeAsync(MEDIO_MINUTO * 3);
+
+      expect(sigue.ejecuta.mock.calls.length).toBe(antes);
+    });
+  });
 });

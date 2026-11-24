@@ -11,7 +11,7 @@ import {
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { esNavegador } from '@core/platform/plataforma';
-import { Aviso, categoriaDe, sinLeer } from '../../domain/model/aviso';
+import { Aviso, categoriaDe, rutaDelAviso, sinLeer } from '../../domain/model/aviso';
 import { BuzonStore } from '../../application/state/buzon.store';
 import { ConsultaElBuzon } from '../../application/use-case/consulta-el-buzon.use-case';
 import { LeeUnAviso } from '../../application/use-case/lee-un-aviso.use-case';
@@ -69,7 +69,8 @@ const CADA_MS = 60_000;
 
           <div class="max-h-96 overflow-y-auto -mx-3 mt-2 divide-y divide-base-200">
             @for (aviso of avisos(); track aviso.id) {
-              <a [routerLink]="['/admin/notifications']" [queryParams]="{ n: aviso.id }" (click)="abierto.set(false)">
+              <a [routerLink]="destinoDe(aviso)" [queryParams]="parametrosDe(aviso)"
+                 (click)="alPulsar(aviso)">
                 <div class="px-3 py-2 hover:bg-base-200/50" [class.opacity-70]="!estaSinLeer(aviso)">
                   <div class="flex items-start gap-2">
                     <fa-icon [icon]="iconoDe(aviso)" class="mt-0.5 text-[12px]" [class]="colorDe(aviso)" />
@@ -132,6 +133,23 @@ export class DesplegableDeAvisos {
     void this.consulta.ejecuta('inbox');
     const reloj = setInterval(() => void this.consulta.ejecuta('inbox'), CADA_MS);
     inject(DestroyRef).onDestroy(() => clearInterval(reloj));
+  }
+
+  /** Un aviso de pedido lleva al pedido; el resto, al buzón con ese aviso abierto. */
+  protected destinoDe(aviso: Aviso): string {
+    return rutaDelAviso(aviso, true) ?? '/admin/notifications';
+  }
+
+  protected parametrosDe(aviso: Aviso): Record<string, string> | null {
+    return rutaDelAviso(aviso, true) ? null : { n: aviso.id };
+  }
+
+  /** Cierra el panel y, si el aviso estaba sin leer, lo marca: se va a verlo, así que ya está leído. */
+  protected alPulsar(aviso: Aviso): void {
+    this.abierto.set(false);
+    if (rutaDelAviso(aviso, true) && sinLeer(aviso)) {
+      void this.lee.ejecuta(aviso);
+    }
   }
 
   protected estaSinLeer(aviso: Aviso): boolean {

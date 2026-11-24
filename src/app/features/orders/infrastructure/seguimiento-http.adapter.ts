@@ -7,11 +7,13 @@ import {
   ContenidoDeBulto,
   HitoDeSeguimiento,
   Seguimiento,
+  faseConocida,
 } from '../domain/model/seguimiento';
 import { SeguimientoDePedidoPort } from '../domain/port/pedidos.port';
 
 interface HitoDto {
   status: string;
+  phase?: string | null;
   description?: string;
   location?: string;
   occurredAt?: string;
@@ -30,6 +32,9 @@ interface BultoDto {
   trackingNumber?: string;
   weightGrams: number;
   estimatedDeliveryAt?: string;
+  phase?: string | null;
+  trackingUrl?: string | null;
+  proofOfDeliveryUrl?: string | null;
   events?: HitoDto[];
   items?: ContenidoDto[];
 }
@@ -38,6 +43,9 @@ interface SeguimientoDto {
   carrier?: string;
   trackingNumber?: string;
   estimatedDeliveryAt?: string;
+  phase?: string | null;
+  trackingUrl?: string | null;
+  taxesOnDelivery?: boolean | null;
   events?: HitoDto[];
   shipments?: BultoDto[];
 }
@@ -45,6 +53,7 @@ interface SeguimientoDto {
 function aHito(dto: HitoDto): HitoDeSeguimiento {
   return {
     estado: dto.status,
+    fase: faseConocida(dto.phase),
     descripcion: dto.description,
     ubicacion: dto.location,
     ocurridoEl: dto.occurredAt,
@@ -67,6 +76,9 @@ function aBulto(dto: BultoDto): Bulto {
     numeroDeSeguimiento: dto.trackingNumber,
     pesoGramos: dto.weightGrams,
     entregaEstimadaEl: dto.estimatedDeliveryAt,
+    fase: faseConocida(dto.phase),
+    urlDeSeguimiento: dto.trackingUrl ?? undefined,
+    pruebaDeEntregaUrl: dto.proofOfDeliveryUrl ?? undefined,
     hitos: (dto.events ?? []).map(aHito),
     contenido: (dto.items ?? []).map(aContenido),
   };
@@ -92,6 +104,9 @@ export class SeguimientoHttpAdapter implements SeguimientoDePedidoPort {
       transportista: dto.carrier,
       numeroDeSeguimiento: dto.trackingNumber,
       entregaEstimadaEl: dto.estimatedDeliveryAt,
+      fase: faseConocida(dto.phase),
+      urlDeSeguimiento: dto.trackingUrl ?? undefined,
+      impuestosAlRecibir: dto.taxesOnDelivery === true,
       hitos: (dto.events ?? []).map(aHito),
       bultos: (dto.shipments ?? []).map(aBulto),
     }));

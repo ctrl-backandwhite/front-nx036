@@ -6,8 +6,43 @@
  * bulto: cuando uno se queda parado en aduana, los demás siguen.
  */
 
+/** Las fases del envío tal como las nombra el backend. Pueden faltar en pedidos antiguos. */
+export const FASES_DE_ENVIO = [
+  'EN_ALMACEN',
+  'EN_TRANSITO',
+  'EN_ADUANA',
+  'EN_DESTINO',
+  'EN_REPARTO',
+  'LISTO_PARA_RECOGER',
+  'ENTREGADO',
+  'INCIDENCIA',
+  'DEVUELTO',
+] as const;
+export type FaseDeEnvio = (typeof FASES_DE_ENVIO)[number];
+
+/** Una fase que este panel aún no conoce se trata como ausente, no como un rótulo roto. */
+export function faseConocida(valor?: string | null): FaseDeEnvio | undefined {
+  return (FASES_DE_ENVIO as readonly string[]).includes(valor ?? '')
+    ? (valor as FaseDeEnvio)
+    : undefined;
+}
+
+/** Solo se abren direcciones http(s): el enlace viene del transportista y un `javascript:` no debe pasar. */
+export function enlaceSeguro(url?: string | null): string | undefined {
+  if (!url) {
+    return undefined;
+  }
+  try {
+    const direccion = new URL(url);
+    return direccion.protocol === 'https:' || direccion.protocol === 'http:' ? url : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export interface EventoDeSeguimiento {
   readonly estado: string;
+  readonly fase?: FaseDeEnvio;
   readonly descripcion?: string;
   readonly lugar?: string;
   readonly ocurridoEl?: string;
@@ -20,11 +55,35 @@ export interface ArticuloDelBulto {
   readonly cantidad: number;
 }
 
+export interface CosteReal {
+  readonly importe: number;
+  readonly moneda?: string;
+}
+
+/** El coste real con su divisa. Sin divisa se enseña solo el número: inventarla sería afirmar de más. */
+export function formateaCosteReal(coste: CosteReal): string {
+  return `${coste.importe.toFixed(2)} ${coste.moneda ?? ''}`.trim();
+}
+
+/** ¿Se puede anular la guía? Con guía emitida y sin haberse entregado o devuelto: después ya no tiene sentido. */
+export function guiaAnulable(bulto: Pick<Bulto, 'numeroDeSeguimiento' | 'fase'>): boolean {
+  return !!bulto.numeroDeSeguimiento && bulto.fase !== 'ENTREGADO' && bulto.fase !== 'DEVUELTO';
+}
+
 export interface Bulto {
   readonly secuencia: number;
   readonly transportista?: string;
   readonly numeroDeSeguimiento?: string;
   readonly estado?: string;
+  readonly fase?: FaseDeEnvio;
+  readonly urlDeSeguimiento?: string;
+  readonly pruebaDeEntregaUrl?: string;
+  readonly ultimaConsultaEl?: string;
+  /** Etiqueta ya generada, si el transportista la entregó. Si falta se pide con «descargar etiqueta». */
+  readonly etiquetaUrl?: string;
+  /** Lo que de verdad cobró el transportista, cuando lo informa. */
+  readonly costeReal?: CosteReal;
+  readonly incidenciasAbiertas?: number;
   readonly pesoGramos: number;
   readonly entregaPrevistaEl?: string;
   readonly eventos: readonly EventoDeSeguimiento[];
@@ -71,6 +130,8 @@ export interface DeclaracionDeEnvio {
 
 export interface Seguimiento {
   readonly estado?: string;
+  readonly fase?: FaseDeEnvio;
+  readonly urlDeSeguimiento?: string;
   readonly transportista?: string;
   readonly numeroDeSeguimiento?: string;
   readonly entregaPrevistaEl?: string;

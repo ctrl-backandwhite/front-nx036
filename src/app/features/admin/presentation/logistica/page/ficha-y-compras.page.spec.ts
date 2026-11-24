@@ -13,6 +13,12 @@ import {
   TRANSICIONES_DE_PEDIDO_PORT,
   SEGUIMIENTO_ADMIN_PORT,
 } from '../../../domain/logistica/port/pedidos-admin.port';
+import { GUIAS_DE_ENVIO_PORT } from '../../../domain/logistica/port/incidencias-de-envio.port';
+import {
+  AnulaGuia,
+  DescargaEtiqueta,
+} from '../../../application/logistica/use-case/gestiona-incidencias.use-case';
+import { Seguimiento } from '../../../domain/logistica/model/seguimiento';
 import {
   AVANCE_DE_COMPRA_PORT,
   COMPRAS_PORT,
@@ -90,12 +96,21 @@ describe('FichaDePedidoPage', () => {
         sincroniza: vi.fn().mockResolvedValue(exito(undefined)),
       },
       factura: { descarga: vi.fn().mockResolvedValue(exito(new Blob(['pdf']))) },
-      ficheros: { guarda: vi.fn() },
+      ficheros: { guarda: vi.fn(), abre: vi.fn() },
+      guias: {
+        etiqueta: vi.fn().mockResolvedValue(exito('https://etiquetas.example/1.pdf')),
+        anula: vi.fn().mockResolvedValue(exito(undefined)),
+      },
     };
   }
 
-  async function monta(pedido: FichaDePedido) {
+  async function monta(pedido: FichaDePedido, rastro?: Partial<Seguimiento>) {
     const puertos = dobles(pedido);
+    if (rastro) {
+      puertos.seguimiento.consulta.mockResolvedValue(
+        exito({ eventos: [], bultos: [], declaraciones: [], ...rastro }),
+      );
+    }
     const vista = await render(FichaDePedidoPage, {
       providers: [
         provideRouter([]),
@@ -104,6 +119,9 @@ describe('FichaDePedidoPage', () => {
         ConsultaSeguimiento,
         SincronizaSeguimiento,
         DescargaFactura,
+        DescargaEtiqueta,
+        AnulaGuia,
+        { provide: GUIAS_DE_ENVIO_PORT, useValue: puertos.guias },
         { provide: PEDIDOS_ADMIN_PORT, useValue: puertos.lectura },
         { provide: TRANSICIONES_DE_PEDIDO_PORT, useValue: puertos.transiciones },
         { provide: SEGUIMIENTO_ADMIN_PORT, useValue: puertos.seguimiento },
@@ -200,6 +218,117 @@ describe('FichaDePedidoPage', () => {
     await waitFor(() => expect(puertos.seguimiento.consulta).toHaveBeenCalledTimes(2));
   });
 
+  describe('envío por bulto: fase, etiqueta y anulación', () => {
+    const bulto = {
+      secuencia: 2,
+      transportista: '4PX',
+      numeroDeSeguimiento: 'FPX99',
+      fase: 'EN_ADUANA' as const,
+      ultimaConsultaEl: '2026-11-24T10:00:00Z',
+      incidenciasAbiertas: 3,
+      costeReal: { importe: 12.5, moneda: 'EUR' },
+      urlDeSeguimiento: 'https://track.example/FPX99',
+      pesoGramos: 400,
+      eventos: [],
+      articulos: [],
+    };
+
+    it('enseña fase, transportista, última consulta, incidencias abiertas y coste real', async () => {
+      await monta(ficha({ estado: 'SHIPPED' }), { bultos: [bulto] });
+
+      expect(await screen.findByText('En aduana')).toBeInTheDocument();
+      expect(screen.getByText('4PX')).toBeInTheDocument();
+      expect(screen.getByText(/Última consulta/)).toBeInTheDocument();
+      expect(document.querySelector('[data-incidencias-abiertas]')).toHaveTextContent('3');
+      expect(document.querySelector('[data-coste-real]')).toHaveTextContent('12.50 EUR');
+      expect(screen.getByRole('link', { name: 'Seguir en la web del transportista' })).toHaveAttribute(
+        'rel',
+        'noopener',
+      );
+    });
+
+    it('sin los campos nuevos la ficha se ve como antes, sin pastillas ni botones de anular', async () => {
+      await monta(ficha({ estado: 'SHIPPED' }), {
+        bultos: [{ ...bulto, fase: undefined, incidenciasAbiertas: undefined, costeReal: undefined, ultimaConsultaEl: undefined, urlDeSeguimiento: undefined, numeroDeSeguimiento: undefined }],
+      });
+      await screen.findByText('NX-1');
+
+      expect(document.querySelector('[data-incidencias-abiertas]')).toBeNull();
+      expect(document.querySelector('[data-coste-real]')).toBeNull();
+      expect(screen.queryByRole('button', { name: 'Anular guía' })).toBeNull();
+      expect(screen.queryByRole('button', { name: 'Descargar etiqueta' })).toBeNull();
+    });
+
+    it('descargar etiqueta abre la dirección que devuelve el backend', async () => {
+      const { puertos } = await monta(ficha({ estado: 'SHIPPED' }), { bultos: [bulto] });
+
+      await userEvent.click(await screen.findByRole('button', { name: 'Descargar etiqueta' }));
+
+      await waitFor(() => expect(puertos.guias.etiqueta).toHaveBeenCalledWith('p1', 2));
+      expect(puertos.ficheros.abre).toHaveBeenCalledWith('https://etiquetas.example/1.pdf');
+    });
+
+    it('una etiqueta con una dirección que no es web se descarta y se dice', async () => {
+      const { puertos } = await monta(ficha({ estado: 'SHIPPED' }), { bultos: [bulto] });
+      puertos.guias.etiqueta.mockResolvedValue(exito('javascript:alert(1)'));
+
+      await userEvent.click(await screen.findByRole('button', { name: 'Descargar etiqueta' }));
+
+      await waitFor(() => expect(puertos.guias.etiqueta).toHaveBeenCalled());
+      expect(puertos.ficheros.abre).not.toHaveBeenCalled();
+      await waitFor(() =>
+        expect(TestBed.inject(AvisosStore).avisos().map((a) => a.mensaje)).toContain(
+          'No hay etiqueta disponible para esta guía.',
+        ),
+      );
+    });
+
+    it('anular la guía pide confirmación con el diálogo propio y no anula si se dice que no', async () => {
+      const { puertos } = await monta(ficha({ estado: 'SHIPPED' }), { bultos: [bulto] });
+      const dialogo = TestBed.inject(DialogoStore);
+      const confirma = vi.spyOn(dialogo, 'confirma').mockResolvedValue(false);
+
+      await userEvent.click(await screen.findByRole('button', { name: 'Anular guía' }));
+
+      await waitFor(() => expect(confirma).toHaveBeenCalled());
+      expect(confirma.mock.calls[0][0]).toContain('bulto 2');
+      expect(puertos.guias.anula).not.toHaveBeenCalled();
+    });
+
+    it('confirmada, anula la guía y vuelve a leer el rastro', async () => {
+      const { puertos } = await monta(ficha({ estado: 'SHIPPED' }), { bultos: [bulto] });
+      vi.spyOn(TestBed.inject(DialogoStore), 'confirma').mockResolvedValue(true);
+
+      await userEvent.click(await screen.findByRole('button', { name: 'Anular guía' }));
+
+      await waitFor(() => expect(puertos.guias.anula).toHaveBeenCalledWith('p1', 2));
+      await waitFor(() => expect(puertos.seguimiento.consulta).toHaveBeenCalledTimes(2));
+    });
+
+    it('si anular falla lo cuenta y no vuelve a leer', async () => {
+      const { puertos } = await monta(ficha({ estado: 'SHIPPED' }), { bultos: [bulto] });
+      vi.spyOn(TestBed.inject(DialogoStore), 'confirma').mockResolvedValue(true);
+      puertos.guias.anula.mockResolvedValue(fallo(creaError('conflicto', 'Ya salió del almacén')));
+
+      await userEvent.click(await screen.findByRole('button', { name: 'Anular guía' }));
+
+      await waitFor(() =>
+        expect(TestBed.inject(AvisosStore).avisos().map((a) => a.mensaje)).toContain(
+          'Ya salió del almacén',
+        ),
+      );
+      expect(puertos.seguimiento.consulta).toHaveBeenCalledTimes(1);
+    });
+
+    it('un bulto entregado ya no ofrece anular la guía', async () => {
+      await monta(ficha({ estado: 'DELIVERED' }), { bultos: [{ ...bulto, fase: 'ENTREGADO' }] });
+      await screen.findByText('NX-1');
+
+      expect(screen.queryByRole('button', { name: 'Anular guía' })).toBeNull();
+      expect(screen.getByRole('button', { name: 'Descargar etiqueta' })).toBeInTheDocument();
+    });
+  });
+
   it('una transición se confirma y se avisa del resultado', async () => {
     const { puertos } = await monta(ficha({ estado: 'PAID' }));
     vi.spyOn(TestBed.inject(DialogoStore), 'confirma').mockResolvedValue(true);
@@ -220,6 +349,9 @@ describe('FichaDePedidoPage', () => {
         ConsultaSeguimiento,
         SincronizaSeguimiento,
         DescargaFactura,
+        DescargaEtiqueta,
+        AnulaGuia,
+        { provide: GUIAS_DE_ENVIO_PORT, useValue: puertos.guias },
         { provide: PEDIDOS_ADMIN_PORT, useValue: puertos.lectura },
         { provide: TRANSICIONES_DE_PEDIDO_PORT, useValue: puertos.transiciones },
         { provide: SEGUIMIENTO_ADMIN_PORT, useValue: puertos.seguimiento },

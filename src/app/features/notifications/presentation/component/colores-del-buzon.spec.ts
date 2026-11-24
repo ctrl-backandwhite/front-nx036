@@ -1,3 +1,11 @@
+import es from '@shared/i18n/dictionary/es';
+import en from '@shared/i18n/dictionary/en';
+import pt from '@shared/i18n/dictionary/pt';
+import zh from '@shared/i18n/dictionary/zh';
+import fr from '@shared/i18n/dictionary/fr';
+import de from '@shared/i18n/dictionary/de';
+import italiano from '@shared/i18n/dictionary/it';
+import nl from '@shared/i18n/dictionary/nl';
 import { COLOR_DE_CATEGORIA, COLOR_DE_ESTADO, claveDeEstado, nombreDelSuceso } from './colores-del-buzon';
 import { Categoria } from '../../domain/model/aviso';
 
@@ -62,5 +70,25 @@ describe('colores y nombres del buzón', () => {
     it('sin código no inventa nada', () => {
       expect(nombreDelSuceso(traduce, '')).toBe('');
     });
+  });
+
+  it('los ocho sucesos de seguimiento del contrato tienen nombre traducido en los ocho idiomas', () => {
+    const sucesos = [
+      'ORDER_SHIPPED',
+      'ORDER_IN_CUSTOMS',
+      'ORDER_IN_DESTINATION',
+      'ORDER_OUT_FOR_DELIVERY',
+      'ORDER_READY_FOR_PICKUP',
+      'ORDER_DELIVERED',
+      'ORDER_SHIPMENT_INCIDENT',
+      'ORDER_RETURNED',
+    ];
+    const diccionarios: Record<string, Record<string, string>> = { es, en, pt, zh, fr, de, it: italiano, nl };
+    for (const [idioma, diccionario] of Object.entries(diccionarios)) {
+      for (const suceso of sucesos) {
+        expect(diccionario['notif.type.' + suceso], `${idioma} sin ${suceso}`).toBeTruthy();
+        expect(nombreDelSuceso((c) => diccionario[c] ?? c, suceso)).not.toMatch(/_/);
+      }
+    }
   });
 });

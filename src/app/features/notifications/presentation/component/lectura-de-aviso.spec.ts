@@ -1,4 +1,5 @@
 import { Component, signal } from '@angular/core';
+import { provideRouter } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { Aviso, Carpeta } from '../../domain/model/aviso';
@@ -50,7 +51,7 @@ function aviso(parcial: Partial<Aviso> = {}): Aviso {
 }
 
 async function monta() {
-  const vista = await render(Anfitrion);
+  const vista = await render(Anfitrion, { providers: [provideRouter([])] });
   await vista.fixture.whenStable();
   vista.fixture.detectChanges();
 
@@ -254,5 +255,30 @@ describe('LecturaDeAviso', () => {
 
     const nuevo = screen.getByRole('option', { name: /Nuev/ }) as HTMLOptionElement;
     expect(nuevo.disabled).toBe(true);
+  });
+
+  describe('el pedido del aviso', () => {
+    it('un aviso con orderId ofrece ir al pedido', async () => {
+      const { anfitrion, asienta } = await monta();
+
+      anfitrion.aviso.set(
+        aviso({ tipoDeSuceso: 'ORDER_OUT_FOR_DELIVERY', datos: { orderId: 'o9' } }),
+      );
+      await asienta();
+
+      expect(screen.getByRole('link', { name: 'Ver el pedido' })).toHaveAttribute(
+        'href',
+        '/orders/o9',
+      );
+    });
+
+    it('un aviso sin orderId no ofrece nada', async () => {
+      const { anfitrion, asienta } = await monta();
+
+      anfitrion.aviso.set(aviso());
+      await asienta();
+
+      expect(screen.queryByRole('link', { name: 'Ver el pedido' })).toBeNull();
+    });
   });
 });

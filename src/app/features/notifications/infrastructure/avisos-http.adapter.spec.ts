@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { rutaDelAviso } from '../domain/model/aviso';
 import { AvisosHttpAdapter, DifusionHttpAdapter } from './avisos-http.adapter';
 
 const DTO = {
@@ -51,6 +52,18 @@ describe('AvisosHttpAdapter', () => {
       expect(resultado.valor[0].titulo).toBe('Nuevo contacto');
       expect(resultado.valor[0].datos).toEqual({ email: 'quien@ejemplo.com' });
     }
+  });
+
+  /** El pedido del aviso viaja en payload.orderId y de ahí sale la ruta al pedido. */
+  it('payload.orderId llega como datos.orderId y da la ruta del pedido', async () => {
+    const promesa = adaptador.lista('inbox');
+    http
+      .expectOne((p) => p.url === '/api/me/notifications')
+      .flush([{ ...DTO, eventType: 'ORDER_DELIVERED', payload: { orderId: 'o-9' } }]);
+
+    const resultado = await promesa;
+    expect(resultado.ok && resultado.valor[0].datos?.['orderId']).toBe('o-9');
+    expect(resultado.ok && rutaDelAviso(resultado.valor[0])).toBe('/orders/o-9');
   });
 
   /**

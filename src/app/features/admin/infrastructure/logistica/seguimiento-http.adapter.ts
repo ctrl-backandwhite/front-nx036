@@ -13,6 +13,7 @@ import {
   EventoDeSeguimiento,
   LineaDeclarada,
   Seguimiento,
+  faseConocida,
 } from '../../domain/logistica/model/seguimiento';
 import {
   FacturaDePedidoPort,
@@ -21,6 +22,7 @@ import {
 
 interface EventoDto {
   status: string;
+  phase?: string | null;
   description?: string;
   location?: string;
   occurredAt?: string;
@@ -31,6 +33,13 @@ interface BultoDto {
   carrier?: string;
   trackingNumber?: string;
   status?: string;
+  phase?: string | null;
+  trackingUrl?: string | null;
+  proofOfDeliveryUrl?: string | null;
+  lastTrackedAt?: string;
+  labelUrl?: string | null;
+  actualFreight?: { amount?: number; currency?: string } | null;
+  openIncidents?: number;
   weightGrams?: number;
   estimatedDeliveryAt?: string;
   events?: EventoDto[];
@@ -66,6 +75,8 @@ interface DeclaracionDto {
 
 interface SeguimientoDto {
   status?: string;
+  phase?: string | null;
+  trackingUrl?: string | null;
   carrier?: string;
   trackingNumber?: string;
   estimatedDeliveryAt?: string;
@@ -78,6 +89,7 @@ interface SeguimientoDto {
 function aEvento(dto: EventoDto): EventoDeSeguimiento {
   return {
     estado: dto.status,
+    fase: faseConocida(dto.phase),
     descripcion: dto.description,
     lugar: dto.location,
     ocurridoEl: dto.occurredAt,
@@ -90,6 +102,16 @@ function aBulto(dto: BultoDto): Bulto {
     transportista: dto.carrier,
     numeroDeSeguimiento: dto.trackingNumber,
     estado: dto.status,
+    fase: faseConocida(dto.phase),
+    urlDeSeguimiento: dto.trackingUrl ?? undefined,
+    pruebaDeEntregaUrl: dto.proofOfDeliveryUrl ?? undefined,
+    ultimaConsultaEl: dto.lastTrackedAt,
+    etiquetaUrl: dto.labelUrl ?? undefined,
+    costeReal:
+      dto.actualFreight && typeof dto.actualFreight.amount === 'number'
+        ? { importe: dto.actualFreight.amount, moneda: dto.actualFreight.currency }
+        : undefined,
+    incidenciasAbiertas: dto.openIncidents,
     pesoGramos: dto.weightGrams ?? 0,
     entregaPrevistaEl: dto.estimatedDeliveryAt,
     eventos: (dto.events ?? []).map(aEvento),
@@ -159,6 +181,8 @@ export class SeguimientoHttpAdapter implements SeguimientoAdminPort, FacturaDePe
     const respuesta = await this.api.get<SeguimientoDto>(`/admin/orders/${pedidoId}/tracking`);
     return mapea(respuesta, (dto) => ({
       estado: dto.status,
+      fase: faseConocida(dto.phase),
+      urlDeSeguimiento: dto.trackingUrl ?? undefined,
       transportista: dto.carrier,
       numeroDeSeguimiento: dto.trackingNumber,
       entregaPrevistaEl: dto.estimatedDeliveryAt,

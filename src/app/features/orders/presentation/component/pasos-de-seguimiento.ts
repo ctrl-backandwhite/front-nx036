@@ -1,7 +1,8 @@
-import { Component, input } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
+import { TraduccionService } from '@core/i18n/traduccion.service';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faLocationDot } from '@fortawesome/free-solid-svg-icons';
-import { HitoDeSeguimiento } from '../../domain/model/seguimiento';
+import { HitoDeSeguimiento, claveDeRespaldoDelHito } from '../../domain/model/seguimiento';
 import { nombreDeUbicacion } from './ubicacion';
 
 /**
@@ -25,7 +26,7 @@ import { nombreDeUbicacion } from './ubicacion';
             [class.bg-primary]="$first"
             [class.bg-base-300]="!$first"
           ></span>
-          <div class="text-sm font-medium">{{ hito.descripcion }}</div>
+          <div class="text-sm font-medium">{{ textoDe(hito) }}</div>
           <div class="text-xs text-ink-500 flex flex-wrap gap-x-2">
             @if (hito.ubicacion) {
               <span>
@@ -45,6 +46,21 @@ export class PasosDeSeguimiento {
   readonly hitos = input.required<readonly HitoDeSeguimiento[]>();
 
   protected readonly iconoUbicacion = faLocationDot;
+  private readonly t = inject(TraduccionService).t;
+
+  /**
+   * Lo que se lee en el paso. Un hito que llega sin descripción no puede quedar como una viñeta vacía:
+   * se cuenta con la fase y, si tampoco la trae, con el estado; y si ni eso tiene traducción, con el
+   * estado tal cual.
+   */
+  protected textoDe(hito: HitoDeSeguimiento): string {
+    if (hito.descripcion?.trim()) {
+      return hito.descripcion;
+    }
+    const clave = claveDeRespaldoDelHito(hito);
+    const traducido = this.t(clave);
+    return traducido !== clave ? traducido : hito.estado;
+  }
 
   protected ubicacion(valor?: string): string {
     return nombreDeUbicacion(valor);

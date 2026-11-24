@@ -1,4 +1,5 @@
 import { Component, effect, inject, input, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
   faBoxArchive,
@@ -12,7 +13,7 @@ import {
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
 import { DialogoStore } from '@ds/component/dialogo/dialogo.store';
-import { Aviso, Carpeta, Categoria, EstadoDeGestion } from '../../domain/model/aviso';
+import { Aviso, Carpeta, Categoria, EstadoDeGestion, rutaDelAviso } from '../../domain/model/aviso';
 import { Difusion } from '../../domain/port/avisos.port';
 import { BuzonStore } from '../../application/state/buzon.store';
 import { ConsultaElBuzon } from '../../application/use-case/consulta-el-buzon.use-case';
@@ -167,6 +168,7 @@ export class BuzonPage {
   private readonly difunde_ = inject(DifundeUnAviso);
   private readonly avisosDePantalla = inject(AvisosStore);
   private readonly dialogo = inject(DialogoStore);
+  private readonly router = inject(Router);
 
   protected readonly buzon = inject(BuzonStore);
   protected readonly t = this.traduccion.t;
@@ -207,7 +209,7 @@ export class BuzonPage {
         ? this.buzon.visibles().find((aviso) => aviso.id === pedido)
         : undefined;
       if (encontrado && encontrado.id !== this.buzon.abierto()?.id) {
-        void this.abre(encontrado);
+        void this.lee.ejecuta(encontrado);
       }
     });
   }
@@ -216,8 +218,16 @@ export class BuzonPage {
     return this.traduccion.tCon('admin.bulk.selected', { n: this.buzon.marcados().size });
   }
 
+  /**
+   * Pulsar un aviso lo abre y lo marca; si es de un pedido, además lleva al pedido. Venir con `?n=` solo
+   * lo abre: allí se llega a LEER ese aviso, no a que la pantalla cambie sola.
+   */
   protected async abre(aviso: Aviso): Promise<void> {
     await this.lee.ejecuta(aviso);
+    const ruta = rutaDelAviso(aviso, this.esDeLaCasa());
+    if (ruta) {
+      await this.router.navigateByUrl(ruta);
+    }
   }
 
   protected abreCarpeta(carpeta: Carpeta): void {
