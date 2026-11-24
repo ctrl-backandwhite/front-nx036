@@ -3,8 +3,9 @@ import { FormatoDeFecha } from '@core/i18n/formato-de-fecha';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faTruckFast } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
-import { Seguimiento, tieneAlgoQueContar } from '../../domain/model/seguimiento';
+import { Seguimiento, enlaceSeguro, tieneAlgoQueContar } from '../../domain/model/seguimiento';
 import { BultoDeEnvio } from './bulto-de-envio';
+import { FaseDelEnvio } from './fase-del-envio';
 import { PasosDeSeguimiento } from './pasos-de-seguimiento';
 
 /**
@@ -21,7 +22,7 @@ import { PasosDeSeguimiento } from './pasos-de-seguimiento';
   // los márgenes verticales, así que bajo un contenedor con `space-y` se pega al de al lado.
   host: { class: 'block' },
   selector: 'nx-linea-de-tiempo-de-seguimiento',
-  imports: [FaIconComponent, BultoDeEnvio, PasosDeSeguimiento],
+  imports: [FaIconComponent, BultoDeEnvio, FaseDelEnvio, PasosDeSeguimiento],
   template: `
     @if (seguimiento(); as datos) {
       @if (hayQueContar()) {
@@ -30,13 +31,55 @@ import { PasosDeSeguimiento } from './pasos-de-seguimiento';
             <h3 class="flex items-center gap-2">
               <fa-icon [icon]="iconoCamion" class="text-primary" /> {{ t('tracking.title') }}
             </h3>
-            @if (datos.bultos.length === 0 && datos.numeroDeSeguimiento) {
+            <nx-fase-del-envio [fase]="datos.fase" />
+          </div>
+
+          @if (datos.bultos.length === 0 && datos.numeroDeSeguimiento) {
+            <div class="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1">
               <span class="text-xs font-mono bg-base-200 rounded px-2 py-1">
                 {{ datos.transportista || t('tracking.carrier_default') }} ·
                 {{ datos.numeroDeSeguimiento }}
               </span>
-            }
-          </div>
+              @if (enlace(); as url) {
+                <a
+                  [href]="url"
+                  target="_blank"
+                  rel="noopener"
+                  class="link link-primary inline-flex min-h-11 items-center text-xs"
+                  data-enlace-de-seguimiento
+                >
+                  {{ t('tracking.follow') }}
+                </a>
+              }
+            </div>
+          }
+
+          @if (datos.bultos.length > 0 && (datos.transportista || enlace())) {
+            <div class="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+              @if (datos.transportista) {
+                <span class="text-ink-500">
+                  {{ t('tracking.carrier') }}: <strong>{{ datos.transportista }}</strong>
+                </span>
+              }
+              @if (enlace(); as url) {
+                <a
+                  [href]="url"
+                  target="_blank"
+                  rel="noopener"
+                  class="link link-primary inline-flex min-h-11 items-center"
+                  data-enlace-de-seguimiento
+                >
+                  {{ t('tracking.follow') }}
+                </a>
+              }
+            </div>
+          }
+
+          @if (datos.impuestosAlRecibir) {
+            <div class="alert alert-warning mb-3 text-sm" role="note" data-impuestos-al-recibir>
+              {{ t('tracking.taxes_on_delivery') }}
+            </div>
+          }
 
           @if (datos.bultos.length === 0 && datos.entregaEstimadaEl) {
             <div class="text-xs text-ink-500 mb-3">
@@ -71,6 +114,8 @@ export class LineaDeTiempoDeSeguimiento {
     const datos = this.seguimiento();
     return !!datos && tieneAlgoQueContar(datos);
   });
+
+  protected readonly enlace = computed(() => enlaceSeguro(this.seguimiento()?.urlDeSeguimiento));
 
   protected soloFecha(valor: string): string {
     return this.fechas.soloFecha(valor);

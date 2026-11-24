@@ -32,6 +32,13 @@ export class DescargaDeFicherosAdapter implements DescargaDeFicherosPort {
     // que se recarga la página, y esta pantalla se usa descargando una hoja detrás de otra.
     URL.revokeObjectURL(direccion);
   }
+
+  abre(url: string): void {
+    if (!this.enNavegador) {
+      return;
+    }
+    this.documento.defaultView?.open(url, '_blank', 'noopener');
+  }
 }
 
 /**

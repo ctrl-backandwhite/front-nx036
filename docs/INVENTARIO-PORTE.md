@@ -417,6 +417,10 @@ En todo `src/` hay **423 puntos de llamada** al backend y **todos** tienen la ru
 | `POST` | `/admin/orders/${id}/ship` |
 | `POST` | `/admin/orders/${id}/sync-tracking` |
 | `GET` | `/admin/orders/${id}/tracking` |
+| `GET` | `/admin/orders/${id}/shipments/${secuencia}/label` |
+| `POST` | `/admin/orders/${id}/shipments/${secuencia}/cancel` |
+| `GET` | `/admin/shipments/incidents` |
+| `POST` | `/admin/shipments/incidents/${id}/resolve` |
 | `POST` | `/admin/orders/bulk-cancel` |
 | `POST` | `/admin/orders/bulk-deliver` |
 | `POST` | `/admin/orders/bulk-forward` |

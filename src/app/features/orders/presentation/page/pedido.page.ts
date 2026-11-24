@@ -6,7 +6,7 @@ import { faCircleCheck } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
 import { DialogoStore } from '@ds/component/dialogo/dialogo.store';
 import { Pedido, tieneFactura } from '../../domain/model/pedido';
-import { Seguimiento } from '../../domain/model/seguimiento';
+import { Seguimiento, estaEntregado } from '../../domain/model/seguimiento';
 import { ConsultaPedido } from '../../application/use-case/consulta-pedido.use-case';
 import { SiguePedido } from '../../application/use-case/sigue-pedido.use-case';
 import { DescargaFactura } from '../../application/use-case/descarga-factura.use-case';
@@ -167,9 +167,23 @@ export class PedidoPage {
     });
 
     this.temporizador = setInterval(() => {
+      // Entregado ya no cambia nada: seguir preguntando cada medio minuto solo castiga al backend.
+      // El reloj sigue vivo pero calla, porque la misma pantalla se reutiliza al pasar a otro pedido.
+      if (this.yaEntregado()) {
+        return;
+      }
       void this.cargaSeguimiento(this.id());
     }, REFRESCO_DEL_SEGUIMIENTO_MS);
     this.destruccion.onDestroy(() => clearInterval(this.temporizador));
+  }
+
+  /** El pedido consta entregado, o todos sus bultos lo están. */
+  private yaEntregado(): boolean {
+    const datos = this.pedido();
+    if (datos && (datos.estado === 'DELIVERED' || !!datos.entregadoEl)) {
+      return true;
+    }
+    return estaEntregado(this.seguimiento());
   }
 
   private async carga(id: string): Promise<void> {

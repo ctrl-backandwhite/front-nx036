@@ -9,6 +9,10 @@ import {
   TRANSICIONES_DE_PEDIDO_PORT,
 } from './domain/logistica/port/pedidos-admin.port';
 import {
+  GUIAS_DE_ENVIO_PORT,
+  INCIDENCIAS_DE_ENVIO_PORT,
+} from './domain/logistica/port/incidencias-de-envio.port';
+import {
   AVANCE_DE_COMPRA_PORT,
   COMPRAS_PORT,
   HOJA_DE_EMPAQUETADO_PORT,
@@ -31,6 +35,7 @@ import {
 } from './domain/logistica/port/navegador.port';
 import { PedidosAdminHttpAdapter } from './infrastructure/logistica/pedidos-admin-http.adapter';
 import { SeguimientoHttpAdapter } from './infrastructure/logistica/seguimiento-http.adapter';
+import { IncidenciasDeEnvioHttpAdapter } from './infrastructure/logistica/incidencias-de-envio-http.adapter';
 import { ComprasHttpAdapter } from './infrastructure/logistica/compras-http.adapter';
 import { CoberturaTransportistaHttpAdapter } from './infrastructure/logistica/cobertura-transportista-http.adapter';
 import { LimitesTransportistaHttpAdapter } from './infrastructure/logistica/limites-transportista-http.adapter';
@@ -64,6 +69,12 @@ import {
   DescargaFactura,
   SincronizaSeguimiento,
 } from './application/logistica/use-case/sigue-el-envio.use-case';
+import {
+  AnulaGuia,
+  BuscaIncidencias,
+  DescargaEtiqueta,
+  ResuelveIncidencia,
+} from './application/logistica/use-case/gestiona-incidencias.use-case';
 import {
   AnulaCompra,
   ConsultaCompras,
@@ -138,6 +149,10 @@ export function proveeAdminLogistica(): EnvironmentProviders {
     { provide: SEGUIMIENTO_ADMIN_PORT, useFactory: () => inject(SeguimientoHttpAdapter) },
     { provide: FACTURA_DE_PEDIDO_PORT, useFactory: () => inject(SeguimientoHttpAdapter) },
 
+    IncidenciasDeEnvioHttpAdapter,
+    { provide: INCIDENCIAS_DE_ENVIO_PORT, useFactory: () => inject(IncidenciasDeEnvioHttpAdapter) },
+    { provide: GUIAS_DE_ENVIO_PORT, useFactory: () => inject(IncidenciasDeEnvioHttpAdapter) },
+
     ComprasHttpAdapter,
     { provide: COMPRAS_PORT, useFactory: () => inject(ComprasHttpAdapter) },
     { provide: AVANCE_DE_COMPRA_PORT, useFactory: () => inject(ComprasHttpAdapter) },
@@ -198,6 +213,10 @@ export function proveeAdminLogistica(): EnvironmentProviders {
     ConsultaSeguimiento,
     SincronizaSeguimiento,
     DescargaFactura,
+    BuscaIncidencias,
+    ResuelveIncidencia,
+    DescargaEtiqueta,
+    AnulaGuia,
     ConsultaCompras,
     MarcaCompraHecha,
     MarcaEnvioDelProveedor,

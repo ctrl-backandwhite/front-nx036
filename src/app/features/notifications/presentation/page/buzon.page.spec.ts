@@ -1,4 +1,5 @@
 import { DeferBlockBehavior } from '@angular/core/testing';
+import { Router } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
@@ -294,5 +295,46 @@ describe('BuzonPage', () => {
 
     expect(difusion.envia).toHaveBeenCalled();
     expect(avisosDePantalla.avisos().at(-1)?.mensaje).toContain('12');
+  });
+
+  describe('pulsar un aviso de un pedido', () => {
+    const conPedido = (parcial: Partial<Aviso> = {}) =>
+      aviso({ tipoDeSuceso: 'ORDER_DELIVERED', datos: { orderId: 'o5' }, ...parcial });
+
+    it('lo marca leído y abre el pedido', async () => {
+      const { vista, buzonPuerto, asienta } = await monta({
+        avisos: [conPedido()],
+        esDeLaCasa: false,
+      });
+      const router = vista.fixture.debugElement.injector.get(Router);
+      const navega = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+      await userEvent.click(screen.getByText('Tu pedido va en camino'));
+      await asienta();
+
+      expect(buzonPuerto.marcaLeido).toHaveBeenCalledWith('a1');
+      expect(navega).toHaveBeenCalledWith('/orders/o5');
+    });
+
+    it('un aviso sin pedido solo se abre, sin navegar', async () => {
+      const { vista, asienta } = await monta({ avisos: [aviso()], esDeLaCasa: false });
+      const router = vista.fixture.debugElement.injector.get(Router);
+      const navega = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+      await userEvent.click(screen.getByText('Tu pedido va en camino'));
+      await asienta();
+
+      expect(navega).not.toHaveBeenCalled();
+    });
+
+    it('llegar con ?n= abre el aviso para leerlo y NO cambia de pantalla', async () => {
+      const { vista, buzon, asienta } = await monta({ avisos: [conPedido()], n: 'a1' });
+      const router = vista.fixture.debugElement.injector.get(Router);
+      const navega = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+      await asienta();
+
+      expect(buzon.abierto()?.id).toBe('a1');
+      expect(navega).not.toHaveBeenCalled();
+    });
   });
 });

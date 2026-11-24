@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
   HitoDeSeguimiento,
+  Seguimiento,
+  claveDeFase,
+  claveDeRespaldoDelHito,
+  enlaceSeguro,
+  estaEntregado,
+  faseConProblema,
+  faseConocida,
   esElMismoHito,
   normalizaDescripcion,
   pasosDelEnvio,
@@ -101,6 +108,71 @@ describe('seguimiento del envío', () => {
           bultos: [{ secuencia: 1, pesoGramos: 0, hitos: [], contenido: [] }],
         }),
       ).toBe(true);
+    });
+  });
+
+  describe('fases del envío', () => {
+    const envio = (parcial: Partial<Seguimiento>): Seguimiento => ({
+      hitos: [],
+      bultos: [],
+      ...parcial,
+    });
+
+    it('solo reconoce las fases del contrato; lo demás es ausente', () => {
+      expect(faseConocida('EN_ADUANA')).toBe('EN_ADUANA');
+      expect(faseConocida('INVENTADA')).toBeUndefined();
+      expect(faseConocida(null)).toBeUndefined();
+      expect(faseConocida(undefined)).toBeUndefined();
+    });
+
+    it('la clave de traducción cuelga de tracking.phase', () => {
+      expect(claveDeFase('EN_REPARTO')).toBe('tracking.phase.EN_REPARTO');
+    });
+
+    it('incidencia y devolución son las fases con problema', () => {
+      expect(faseConProblema('INCIDENCIA')).toBe(true);
+      expect(faseConProblema('DEVUELTO')).toBe(true);
+      expect(faseConProblema('EN_TRANSITO')).toBe(false);
+      expect(faseConProblema(undefined)).toBe(false);
+    });
+
+    it('un enlace solo vale si es http o https', () => {
+      expect(enlaceSeguro('https://t.4px.com/x?n=1')).toBe('https://t.4px.com/x?n=1');
+      expect(enlaceSeguro('http://t.example/x')).toBe('http://t.example/x');
+      expect(enlaceSeguro('javascript:alert(1)')).toBeUndefined();
+      expect(enlaceSeguro('data:text/html,hola')).toBeUndefined();
+      expect(enlaceSeguro('no es una url')).toBeUndefined();
+      expect(enlaceSeguro('')).toBeUndefined();
+      expect(enlaceSeguro(undefined)).toBeUndefined();
+    });
+
+    it('está entregado cuando la fase del pedido lo dice', () => {
+      expect(estaEntregado(envio({ fase: 'ENTREGADO' }))).toBe(true);
+    });
+
+    it('está entregado cuando TODOS los bultos lo están, y no si falta uno', () => {
+      const bulto = (fase: 'ENTREGADO' | 'EN_TRANSITO') => ({
+        secuencia: 1,
+        pesoGramos: 0,
+        fase,
+        hitos: [],
+        contenido: [],
+      });
+      expect(estaEntregado(envio({ bultos: [bulto('ENTREGADO'), bulto('ENTREGADO')] }))).toBe(true);
+      expect(estaEntregado(envio({ bultos: [bulto('ENTREGADO'), bulto('EN_TRANSITO')] }))).toBe(
+        false,
+      );
+    });
+
+    it('sin seguimiento, sin fase o sin bultos no está entregado', () => {
+      expect(estaEntregado(null)).toBe(false);
+      expect(estaEntregado(envio({}))).toBe(false);
+      expect(estaEntregado(envio({ fase: 'EN_TRANSITO' }))).toBe(false);
+    });
+
+    it('un hito sin descripción se cuenta con su fase y, sin ella, con el estado', () => {
+      expect(claveDeRespaldoDelHito(hito({ fase: 'EN_ADUANA' }))).toBe('tracking.phase.EN_ADUANA');
+      expect(claveDeRespaldoDelHito(hito({ estado: 'DELIVERED' }))).toBe('orders.status.DELIVERED');
     });
   });
 });

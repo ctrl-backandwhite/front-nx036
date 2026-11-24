@@ -1,8 +1,17 @@
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
+import { FormatoDeFecha } from '@core/i18n/formato-de-fecha';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faBoxOpen, faLocationDot, faTruckFast } from '@fortawesome/free-solid-svg-icons';
 import { TraduccionService } from '@core/i18n/traduccion.service';
-import { Seguimiento, pasosDelEnvio } from '../../../domain/logistica/model/seguimiento';
+import {
+  Bulto,
+  FaseDeEnvio,
+  Seguimiento,
+  enlaceSeguro,
+  formateaCosteReal,
+  guiaAnulable,
+  pasosDelEnvio,
+} from '../../../domain/logistica/model/seguimiento';
 import { InsigniaEstado } from './insignia-estado';
 
 /**
@@ -34,6 +43,19 @@ import { InsigniaEstado } from './insignia-estado';
           @if (envio().numeroDeSeguimiento; as guia) {
             <span class="font-mono text-[12px] text-ink-500">{{ guia }}</span>
           }
+          @if (envio().fase; as fase) {
+            <span class="badge badge-sm badge-primary" data-fase-del-envio>
+              {{ rotuloDeFase(fase) }}
+            </span>
+          }
+          @if (envio().transportista; as transportista) {
+            <span class="text-[12px] text-ink-500">{{ transportista }}</span>
+          }
+          @if (enlace(envio().urlDeSeguimiento); as url) {
+            <a [href]="url" target="_blank" rel="noopener" class="link link-primary text-[12px]">
+              {{ t('tracking.follow') }}
+            </a>
+          }
         </header>
 
         @if (envio().entregaPrevistaEl; as prevista) {
@@ -52,6 +74,67 @@ import { InsigniaEstado } from './insignia-estado';
                   </span>
                   @if (bultoDelEnvio.numeroDeSeguimiento; as guia) {
                     <span class="font-mono text-ink-500">{{ guia }}</span>
+                  }
+                  @if (bultoDelEnvio.fase; as fase) {
+                    <span class="badge badge-sm badge-primary" data-fase-del-envio>
+                      {{ rotuloDeFase(fase) }}
+                    </span>
+                  }
+                </div>
+                <dl class="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-[12px] text-ink-500">
+                  @if (bultoDelEnvio.transportista; as transportista) {
+                    <div>
+                      <dt class="inline">{{ t('tracking.carrier') }}:</dt>
+                      <dd class="inline font-medium text-ink-700">{{ transportista }}</dd>
+                    </div>
+                  }
+                  @if (bultoDelEnvio.ultimaConsultaEl; as consulta) {
+                    <div>
+                      <dt class="inline">{{ t('admin.shipment.last_tracked') }}:</dt>
+                      <dd class="inline">{{ fechaYHora(consulta) }}</dd>
+                    </div>
+                  }
+                  @if (bultoDelEnvio.incidenciasAbiertas; as abiertas) {
+                    <div data-incidencias-abiertas>
+                      <dt class="inline">{{ t('admin.shipment.open_incidents') }}:</dt>
+                      <dd class="inline badge badge-warning badge-sm">{{ abiertas }}</dd>
+                    </div>
+                  }
+                  @if (bultoDelEnvio.costeReal; as costeReal) {
+                    <div data-coste-real>
+                      <dt class="inline">{{ t('admin.shipment.actual_freight') }}:</dt>
+                      <dd class="inline font-medium text-ink-700">{{ coste(costeReal) }}</dd>
+                    </div>
+                  }
+                </dl>
+                <div class="mt-2 flex flex-wrap items-center gap-2">
+                  @if (enlace(bultoDelEnvio.urlDeSeguimiento); as url) {
+                    <a [href]="url" target="_blank" rel="noopener" class="link link-primary text-[12px]">
+                      {{ t('tracking.follow') }}
+                    </a>
+                  }
+                  @if (enlace(bultoDelEnvio.pruebaDeEntregaUrl); as url) {
+                    <a [href]="url" target="_blank" rel="noopener" class="link link-primary text-[12px]">
+                      {{ t('tracking.proof') }}
+                    </a>
+                  }
+                  @if (bultoDelEnvio.numeroDeSeguimiento) {
+                    <button
+                      type="button"
+                      class="btn btn-outline btn-xs min-h-11"
+                      (click)="descargaEtiqueta.emit(bultoDelEnvio.secuencia)"
+                    >
+                      {{ t('admin.shipment.label') }}
+                    </button>
+                  }
+                  @if (anulable(bultoDelEnvio)) {
+                    <button
+                      type="button"
+                      class="btn btn-outline btn-xs min-h-11 hover:border-red-300 hover:text-red-700"
+                      (click)="anulaGuia.emit(bultoDelEnvio.secuencia)"
+                    >
+                      {{ t('admin.shipment.cancel') }}
+                    </button>
                   }
                 </div>
                 <ol class="mt-2 space-y-2">
@@ -97,11 +180,36 @@ import { InsigniaEstado } from './insignia-estado';
 })
 export class RastroDelEnvio {
   readonly envio = input.required<Seguimiento>();
+  /** El número de bulto cuya etiqueta se quiere. La pantalla es la que habla con el backend. */
+  readonly descargaEtiqueta = output<number>();
+  /** El número de bulto cuya guía se quiere anular. La confirmación la pide la pantalla. */
+  readonly anulaGuia = output<number>();
 
   protected readonly iconoCamion = faTruckFast;
   protected readonly iconoLugar = faLocationDot;
   protected readonly iconoCaja = faBoxOpen;
   protected readonly t = inject(TraduccionService).t;
+  private readonly fechas = inject(FormatoDeFecha);
+
+  protected rotuloDeFase(fase: FaseDeEnvio): string {
+    return this.t('tracking.phase.' + fase);
+  }
+
+  protected enlace(url?: string): string | undefined {
+    return enlaceSeguro(url);
+  }
+
+  protected anulable(bulto: Bulto): boolean {
+    return guiaAnulable(bulto);
+  }
+
+  protected coste(valor: NonNullable<Bulto['costeReal']>): string {
+    return formateaCosteReal(valor);
+  }
+
+  protected fechaYHora(valor: string): string {
+    return this.fechas.fechaYHora(valor);
+  }
 
   /**
    * Los bultos con sus pasos ya ordenados. Antes cada repintado volvía a recorrer los sucesos de

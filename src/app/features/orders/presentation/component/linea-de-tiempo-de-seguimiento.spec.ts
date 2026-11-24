@@ -93,4 +93,153 @@ describe('LineaDeTiempoDeSeguimiento', () => {
     expect(screen.getByText('Salida del almacén')).toBeInTheDocument();
     expect(screen.getByText('Aún no hay eventos de seguimiento.')).toBeInTheDocument();
   });
+
+  describe('fase, transportista y enlace', () => {
+    it('destaca la fase actual con su rótulo traducido', async () => {
+      await render(LineaDeTiempoDeSeguimiento, {
+        inputs: {
+          seguimiento: seguimiento({
+            numeroDeSeguimiento: 'LP1',
+            fase: 'EN_ADUANA',
+            hitos: [{ estado: 'SHIPPED', descripcion: 'Despacho' }],
+          }),
+        },
+      });
+
+      expect(screen.getByText('En aduana')).toBeInTheDocument();
+    });
+
+    it('sin fase no pinta pastilla alguna: el pedido se ve como hasta ahora', async () => {
+      const { container } = await render(LineaDeTiempoDeSeguimiento, {
+        inputs: { seguimiento: seguimiento({ numeroDeSeguimiento: 'LP1' }) },
+      });
+
+      expect(container.querySelector('[data-fase-del-envio]')).toBeNull();
+      expect(container.querySelector('[data-enlace-de-seguimiento]')).toBeNull();
+      expect(container.querySelector('[data-impuestos-al-recibir]')).toBeNull();
+    });
+
+    it('el enlace de seguimiento se abre en pestaña nueva con noopener', async () => {
+      await render(LineaDeTiempoDeSeguimiento, {
+        inputs: {
+          seguimiento: seguimiento({
+            numeroDeSeguimiento: 'LP1',
+            transportista: '4PX',
+            urlDeSeguimiento: 'https://track.example/LP1',
+          }),
+        },
+      });
+
+      const enlace = screen.getByRole('link', { name: 'Seguir en la web del transportista' });
+      expect(enlace).toHaveAttribute('href', 'https://track.example/LP1');
+      expect(enlace).toHaveAttribute('target', '_blank');
+      expect(enlace).toHaveAttribute('rel', 'noopener');
+    });
+
+    it('un enlace que no es http(s) no se pinta', async () => {
+      await render(LineaDeTiempoDeSeguimiento, {
+        inputs: {
+          seguimiento: seguimiento({
+            numeroDeSeguimiento: 'LP1',
+            urlDeSeguimiento: 'javascript:alert(1)',
+          }),
+        },
+      });
+
+      expect(screen.queryByRole('link', { name: 'Seguir en la web del transportista' })).toBeNull();
+    });
+
+    it('avisa de que los impuestos se pagan al recibir cuando el envío va DDU', async () => {
+      await render(LineaDeTiempoDeSeguimiento, {
+        inputs: {
+          seguimiento: seguimiento({ numeroDeSeguimiento: 'LP1', impuestosAlRecibir: true }),
+        },
+      });
+
+      expect(screen.getByRole('note')).toHaveTextContent(/impuestos de importación.*al recibir/i);
+    });
+
+    it('un hito sin descripción se cuenta con la fase, no como viñeta vacía', async () => {
+      await render(LineaDeTiempoDeSeguimiento, {
+        inputs: {
+          seguimiento: seguimiento({
+            numeroDeSeguimiento: 'LP1',
+            hitos: [{ estado: 'SHIPPED', fase: 'EN_REPARTO' }],
+          }),
+        },
+      });
+
+      expect(screen.getByText('En reparto')).toBeInTheDocument();
+    });
+
+    it('sin descripción ni fase se cuenta con el estado del pedido', async () => {
+      await render(LineaDeTiempoDeSeguimiento, {
+        inputs: {
+          seguimiento: seguimiento({
+            numeroDeSeguimiento: 'LP1',
+            hitos: [{ estado: 'DELIVERED', descripcion: '  ' }],
+          }),
+        },
+      });
+
+      expect(screen.getByText('Entregado')).toBeInTheDocument();
+    });
+
+    it('sin traducción para el estado enseña el estado tal cual, nunca una clave', async () => {
+      await render(LineaDeTiempoDeSeguimiento, {
+        inputs: {
+          seguimiento: seguimiento({
+            numeroDeSeguimiento: 'LP1',
+            hitos: [{ estado: 'RARO' }],
+          }),
+        },
+      });
+
+      expect(screen.getByText('RARO')).toBeInTheDocument();
+      expect(screen.queryByText(/orders\.status/)).toBeNull();
+    });
+
+    it('con varios bultos enseña el transportista y el enlace de cada uno, y la prueba de entrega', async () => {
+      await render(LineaDeTiempoDeSeguimiento, {
+        inputs: {
+          seguimiento: seguimiento({
+            transportista: '4PX',
+            bultos: [
+              {
+                secuencia: 1,
+                transportista: '4PX',
+                numeroDeSeguimiento: 'LP1',
+                pesoGramos: 500,
+                fase: 'ENTREGADO',
+                urlDeSeguimiento: 'https://track.example/LP1',
+                pruebaDeEntregaUrl: 'https://epod.example/LP1',
+                hitos: [],
+                contenido: [],
+              },
+              {
+                secuencia: 2,
+                pesoGramos: 500,
+                fase: 'INCIDENCIA',
+                hitos: [],
+                contenido: [],
+              },
+            ],
+          }),
+        },
+      });
+
+      expect(screen.getByRole('link', { name: 'Ver la prueba de entrega' })).toHaveAttribute(
+        'href',
+        'https://epod.example/LP1',
+      );
+      expect(screen.getByRole('link', { name: 'Ver la prueba de entrega' })).toHaveAttribute(
+        'rel',
+        'noopener',
+      );
+      expect(screen.getAllByRole('link', { name: 'Seguir en la web del transportista' })).toHaveLength(1);
+      expect(screen.getByText('Entregado')).toBeInTheDocument();
+      expect(screen.getByText('Incidencia en el envío')).toBeInTheDocument();
+      expect(screen.getAllByText('4PX', { selector: 'strong' })).toHaveLength(2);
+    });
+  });
 });

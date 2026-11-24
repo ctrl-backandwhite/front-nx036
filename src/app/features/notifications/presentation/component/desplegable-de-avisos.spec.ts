@@ -171,4 +171,41 @@ describe('DesplegableDeAvisos', () => {
       vi.useRealTimers();
     }
   });
+
+  describe('pulsar un aviso de pedido', () => {
+    it('lleva al pedido y lo marca leído', async () => {
+      const { puerto } = await monta([
+        aviso({ tipoDeSuceso: 'ORDER_OUT_FOR_DELIVERY', datos: { orderId: 'o7' } }),
+      ]);
+      await userEvent.click(campana());
+
+      const fila = screen.getByRole('link', { name: /Tu pedido va en camino/ });
+      expect(fila).toHaveAttribute('href', '/orders/o7');
+      await userEvent.click(fila);
+
+      expect(puerto.marcaLeido).toHaveBeenCalledWith('a1');
+    });
+
+    it('la incidencia de envío lleva a la ficha del panel', async () => {
+      await monta([
+        aviso({ tipoDeSuceso: 'ORDER_SHIPMENT_INCIDENT', datos: { orderId: 'o7' } }),
+      ]);
+      await userEvent.click(campana());
+
+      expect(screen.getByRole('link', { name: /Tu pedido va en camino/ })).toHaveAttribute(
+        'href',
+        '/admin/orders/o7',
+      );
+    });
+
+    it('un aviso sin pedido sigue abriendo el buzón con ese aviso', async () => {
+      await monta([aviso()]);
+      await userEvent.click(campana());
+
+      expect(screen.getByRole('link', { name: /Tu pedido va en camino/ })).toHaveAttribute(
+        'href',
+        '/admin/notifications?n=a1',
+      );
+    });
+  });
 });

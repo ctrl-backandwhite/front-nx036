@@ -88,6 +88,33 @@ export function categoriaDe(tipoDeSuceso: string): Categoria {
   return 'general';
 }
 
+/**
+ * El pedido al que apunta el aviso, si lo lleva. El backend pone `orderId` en el `payload` (aquí `datos`) de todo aviso
+ * de envío; solo se acepta un identificador de aspecto normal para no construir una ruta con basura.
+ */
+export function pedidoDelAviso(aviso: Aviso): string | null {
+  const id = aviso.datos?.['orderId'];
+  const texto = typeof id === 'number' ? String(id) : typeof id === 'string' ? id.trim() : '';
+  return /^[\w-]{1,64}$/.test(texto) ? texto : null;
+}
+
+/**
+ * Adónde lleva pulsar el aviso, o `null` si solo se abre en el buzón.
+ *
+ * <p>Quien compra va a SU pedido. El personal de la casa recibe además el aviso de incidencia de envío,
+ * que no es de su compra sino de una venta ajena: ese va a la ficha del panel, la única que puede
+ * abrir.
+ */
+export function rutaDelAviso(aviso: Aviso, deLaCasa = false): string | null {
+  const pedido = pedidoDelAviso(aviso);
+  if (!pedido) {
+    return null;
+  }
+  return deLaCasa && aviso.tipoDeSuceso === 'ORDER_SHIPMENT_INCIDENT'
+    ? `/admin/orders/${pedido}`
+    : `/orders/${pedido}`;
+}
+
 /** El correo de quien escribió, si el aviso lo lleva. Es a quien se responde. */
 export function correoDeRespuesta(aviso: Aviso): string | null {
   const correo = aviso.datos?.['email'];

@@ -9,6 +9,8 @@ import { InjectionToken } from '@angular/core';
  */
 export interface DescargaDeFicherosPort {
   guarda(nombre: string, contenido: Blob): void;
+  /** Abre una dirección en una pestaña nueva, sin dejar que la página abierta controle a esta. */
+  abre(url: string): void;
 }
 
 export const DESCARGA_DE_FICHEROS_PORT = new InjectionToken<DescargaDeFicherosPort>(

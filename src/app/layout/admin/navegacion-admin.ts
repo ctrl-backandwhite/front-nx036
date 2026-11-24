@@ -32,6 +32,7 @@ import {
   faSwatchbook,
   faTag,
   faTags,
+  faTriangleExclamation,
   faTruck,
   faUsers,
   faWallet,
@@ -102,6 +103,12 @@ export const SECCIONES_ADMIN: readonly SeccionAdmin[] = [
     clave: 'admin.section.operations',
     opciones: [
       { destino: '/admin/orders', clave: 'admin.nav.orders', icono: faTruck, permitidaAOperador: true },
+      {
+        destino: '/admin/shipment-incidents',
+        clave: 'admin.nav.shipment_incidents',
+        icono: faTriangleExclamation,
+        permitidaAOperador: true,
+      },
       { destino: '/admin/purchases', clave: 'admin.nav.purchases', icono: faCartShopping },
       {
         // Va ANTES de los límites y la tarifa porque es el paso previo: sin cobertura, un destino no
