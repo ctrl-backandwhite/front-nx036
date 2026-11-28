@@ -136,6 +136,7 @@ export function proveeAdminGestion(): EnvironmentProviders {
     precios.ConsultaReglas, precios.GuardaLaRegla, precios.AlternaLaRegla, precios.BorraLaRegla,
     precios.AlternaReglasEnLote, precios.BorraReglasEnLote, precios.ConsultaElAjusteDeMoq,
     precios.GuardaElAjusteDeMoq, precios.CargaLosAmbitos,
+    precios.ConsultaLosServiciosDeAlmacen, precios.GuardaLosServiciosDeAlmacen,
 
     promociones.ConsultaPromociones, promociones.GuardaLaPromocion, promociones.AlternaLaPromocion,
     promociones.AnunciaLaPromocion, promociones.BorraLaPromocion,

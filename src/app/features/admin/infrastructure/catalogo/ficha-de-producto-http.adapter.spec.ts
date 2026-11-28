@@ -74,6 +74,29 @@ describe('adaptadores de la ficha de producto', () => {
     expect(resultado.valor.fabricante?.completo).toBe(false);
   });
 
+  it('los servicios de almacén van y vienen por su nombre del backend', async () => {
+    const pendiente = ficha.consulta('p1', 'es');
+    http.expectOne((r) => r.url.endsWith('/api/admin/catalog/products/p1')).flush({
+      id: 'p1',
+      slug: 'a',
+      title: 'A',
+      etiquetadoCny: 0.5,
+      etiquetadoFormatted: '0,07 €',
+      reempaquetadoCny: null,
+      reempaquetadoFormatted: '0,28 €',
+    });
+    const r = await pendiente;
+    expect(r.ok && r.valor.yuanes.etiquetado).toBe(0.5);
+    expect(r.ok && r.valor.yuanes.reempaquetado).toBeNull();
+    expect(r.ok && r.valor.yuanesFormateados.reempaquetado).toBe('0,28 €');
+
+    const guardado = ficha.actualiza('p1', { yuanes: { etiquetado: 1, reempaquetado: 2 } }, 'es');
+    const put = http.expectOne((x) => x.url.includes('/api/admin/catalog/products/p1?lang=es'));
+    expect(put.request.body).toEqual({ etiquetadoCny: 1, reempaquetadoCny: 2 });
+    put.flush({});
+    await guardado;
+  });
+
   /** El backend distingue «no lo mando» de «lo mando vacío»: lo indefinido no puede viajar. */
   it('el guardado parcial solo manda lo que se tocó', async () => {
     const pendiente = ficha.actualiza('p1', { titulo: 'Nuevo', yuanes: { recargo: 0 } }, 'es');

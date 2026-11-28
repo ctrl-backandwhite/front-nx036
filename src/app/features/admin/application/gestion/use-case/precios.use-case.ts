@@ -2,7 +2,9 @@ import { Injectable, inject } from '@angular/core';
 import { Result } from '@shared/result/result';
 import { AppError } from '@shared/error/app-error';
 import { ResultadoMasivo } from '../../../domain/gestion/model/pagina';
-import { AjusteDeMoq, BorradorDeRegla, ReglaDePrecio } from '../../../domain/gestion/model/precios';
+import {
+  AjusteDeMoq, BorradorDeRegla, ReglaDePrecio, ServiciosDeAlmacen,
+} from '../../../domain/gestion/model/precios';
 import {
   AMBITOS_DE_REGLA_PORT, OpcionDeAmbito, PRECIOS_PORT,
 } from '../../../domain/gestion/port/precios.port';
@@ -84,6 +86,25 @@ export class GuardaElAjusteDeMoq {
 
   ejecuta(ajuste: AjusteDeMoq): Promise<Result<AjusteDeMoq, AppError>> {
     return this.precios.guardaAjusteDeMoq(ajuste);
+  }
+}
+
+@Injectable()
+export class ConsultaLosServiciosDeAlmacen {
+  private readonly precios = inject(PRECIOS_PORT);
+
+  ejecuta(): Promise<Result<ServiciosDeAlmacen, AppError>> {
+    return this.precios.serviciosDeAlmacen();
+  }
+}
+
+/** Los dos importes globales de almacén. Se guardan juntos: el backend exige los dos en cada PUT. */
+@Injectable()
+export class GuardaLosServiciosDeAlmacen {
+  private readonly precios = inject(PRECIOS_PORT);
+
+  ejecuta(servicios: ServiciosDeAlmacen): Promise<Result<ServiciosDeAlmacen, AppError>> {
+    return this.precios.guardaServiciosDeAlmacen(servicios);
   }
 }
 

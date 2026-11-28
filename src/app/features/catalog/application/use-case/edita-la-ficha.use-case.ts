@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Result } from '@shared/result/result';
 import { AppError } from '@shared/error/app-error';
-import { CampoEnYuanes, EDICION_DE_FICHA_PORT } from '../../domain/port/edicion-de-ficha.port';
+import { CampoEnYuanes, EDICION_DE_FICHA_PORT, ServicioDeAlmacen } from '../../domain/port/edicion-de-ficha.port';
 import { FichaDeProducto } from '../../domain/model/producto';
 
 /**
@@ -40,6 +40,14 @@ export class EditaLaFicha {
     valor: number,
   ): Promise<Result<FichaDeProducto, AppError>> {
     return this.puerto.guardaImporteEnYuanes(idDelProducto, campo, valor);
+  }
+
+  /** El producto deja de llevar valor propio y hereda el global del servicio de almacén. */
+  heredaServicioDeAlmacen(
+    idDelProducto: string,
+    servicio: ServicioDeAlmacen,
+  ): Promise<Result<FichaDeProducto, AppError>> {
+    return this.puerto.heredaServicioDeAlmacen(idDelProducto, servicio);
   }
 
   /** Los tres importes de una vez: un solo viaje y una sola ficha de vuelta. */

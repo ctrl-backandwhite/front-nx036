@@ -200,7 +200,10 @@ describe('DesgloseEditable', () => {
   /** Lo que ahora devuelve el backend: la ficha ya recalculada, que es lo que evita recargar. */
   const FICHA_RECALCULADA = ficha({ precio: { formateado: '99,00 €' } });
 
-  async function monta(guarda = vi.fn().mockResolvedValue(exito(FICHA_RECALCULADA))) {
+  async function monta(
+    guarda = vi.fn().mockResolvedValue(exito(FICHA_RECALCULADA)),
+    hereda = vi.fn().mockResolvedValue(exito(FICHA_RECALCULADA)),
+  ) {
     const cambiado = vi.fn();
     const vista = await render(DesgloseEditable, {
       inputs: {
@@ -217,16 +220,24 @@ describe('DesgloseEditable', () => {
           precioBaseFormateado: '12,00 €',
           margenDeGananciaFormateado: '3,60 €',
           gananciaFormateada: '6,60 €',
+          // Etiquetado con valor PROPIO; el reempaquetado hereda el global (valor propio nulo).
+          etiquetadoFormateado: '0,07 €',
+          etiquetadoCny: 0.5,
+          reempaquetadoFormateado: '0,28 €',
+          reempaquetadoCny: null,
         },
       },
       on: { cambiado },
       providers: [
         ...APLICACION_DEL_CATALOGO,
         CESTA_DE_OTRO_CONTEXTO,
-        { provide: EDICION_DE_FICHA_PORT, useValue: { guardaImporteEnYuanes: guarda } },
+        {
+          provide: EDICION_DE_FICHA_PORT,
+          useValue: { guardaImporteEnYuanes: guarda, heredaServicioDeAlmacen: hereda },
+        },
       ],
     });
-    return { vista, guarda, cambiado };
+    return { vista, guarda, hereda, cambiado };
   }
 
   /** La fila por su ROTULO: el orden de los importes cambia y buscar por posición se rompe solo. */
@@ -237,6 +248,51 @@ describe('DesgloseEditable', () => {
     expect(fila, `no hay fila editable rotulada «${rotulo}»`).toBeTruthy();
     return fila!;
   }
+
+  /**
+   * Los servicios de almacén: «(global)» solo en el que hereda, y «Heredar global» solo en el que tiene
+   * valor propio. El editable sale en CNY como los subsidios y manda solo su campo.
+   */
+  it('etiquetado y reempaquetado: marca el heredado y deja volver a heredar', async () => {
+    document.cookie = 'nx036-locale=es; Path=/';
+    const { vista, guarda, hereda, cambiado } = await monta();
+    const etiquetado = filaDe(vista, 'Etiquetado');
+    const reempaquetado = filaDe(vista, 'Reempaquetado');
+    expect(etiquetado.textContent).toContain('0,07 €');
+    expect(etiquetado.textContent).not.toContain('(global)');
+    expect(reempaquetado.textContent).toContain('0,28 €');
+    expect(reempaquetado.textContent).toContain('(global)');
+    expect(reempaquetado.querySelector('[data-testid=servicio-hereda]')).toBeNull();
+
+    await userEvent.dblClick(etiquetado);
+    vista.fixture.detectChanges();
+    const campo = vista.container.querySelector<HTMLInputElement>('input[type=number]')!;
+    expect(campo.value).toBe('0.5');
+    await userEvent.clear(campo);
+    await userEvent.type(campo, '1.5{enter}');
+    await vista.fixture.whenStable();
+    expect(guarda).toHaveBeenCalledWith('p1', 'etiquetadoCny', 1.5);
+
+    vista.fixture.detectChanges();
+    await userEvent.click(
+      filaDe(vista, 'Etiquetado').querySelector<HTMLElement>('[data-testid=servicio-hereda]')!,
+    );
+    await vista.fixture.whenStable();
+    expect(hereda).toHaveBeenCalledWith('p1', 'etiquetado');
+    expect(cambiado).toHaveBeenCalledTimes(2);
+  });
+
+  it('si volver a heredar falla, avisa y no emite la ficha', async () => {
+    document.cookie = 'nx036-locale=es; Path=/';
+    const hereda = vi.fn().mockResolvedValue(fallo(creaError('sin-conexion', 'no se pudo')));
+    const { vista, cambiado } = await monta(undefined, hereda);
+    await userEvent.click(
+      filaDe(vista, 'Etiquetado').querySelector<HTMLElement>('[data-testid=servicio-hereda]')!,
+    );
+    await vista.fixture.whenStable();
+    expect(hereda).toHaveBeenCalled();
+    expect(cambiado).not.toHaveBeenCalled();
+  });
 
   it('enseña los conceptos y el total', async () => {
     const { vista } = await monta();

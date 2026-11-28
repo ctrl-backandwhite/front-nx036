@@ -5,7 +5,9 @@ import { BorradorDeRegla } from '../../../domain/gestion/model/precios';
 import {
   AMBITOS_DE_REGLA_PORT, AmbitosDeReglaPort, PRECIOS_PORT, PreciosPort,
 } from '../../../domain/gestion/port/precios.port';
-import { CargaLosAmbitos, GuardaLaRegla } from './precios.use-case';
+import {
+  CargaLosAmbitos, ConsultaLosServiciosDeAlmacen, GuardaLaRegla, GuardaLosServiciosDeAlmacen,
+} from './precios.use-case';
 
 function doblePrecios(): PreciosPort & { llamadas: string[] } {
   const llamadas: string[] = [];
@@ -20,6 +22,8 @@ function doblePrecios(): PreciosPort & { llamadas: string[] } {
     borraEnLote: async () => exito({ correctos: 0, fallidos: 0, errores: [] }),
     ajusteDeMoq: async () => exito({ activo: false, factorPorcentaje: 100 }),
     guardaAjusteDeMoq: async (a) => exito(a),
+    serviciosDeAlmacen: async () => exito({ etiquetadoCny: 0, reempaquetadoCny: 0 }),
+    guardaServiciosDeAlmacen: async (s) => (llamadas.push('guardaServicios'), exito(s)),
   };
 }
 
@@ -108,5 +112,27 @@ describe('CargaLosAmbitos', () => {
 
     expect(ambitos.productos).toEqual([]);
     expect(ambitos.categorias).toHaveLength(1);
+  });
+});
+
+describe('servicios de almacén', () => {
+  it('consulta y guarda por el puerto de precios', async () => {
+    const puerto = doblePrecios();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: PRECIOS_PORT, useValue: puerto },
+        ConsultaLosServiciosDeAlmacen,
+        GuardaLosServiciosDeAlmacen,
+      ],
+    });
+    const leido = await TestBed.inject(ConsultaLosServiciosDeAlmacen).ejecuta();
+    expect(leido.ok && leido.valor).toEqual({ etiquetadoCny: 0, reempaquetadoCny: 0 });
+
+    const guardado = await TestBed.inject(GuardaLosServiciosDeAlmacen).ejecuta({
+      etiquetadoCny: 1,
+      reempaquetadoCny: 2,
+    });
+    expect(guardado.ok && guardado.valor).toEqual({ etiquetadoCny: 1, reempaquetadoCny: 2 });
+    expect(puerto.llamadas).toContain('guardaServicios');
   });
 });

@@ -19,6 +19,8 @@ const NOMBRE_EN_BACKEND: Readonly<Record<ImporteEnYuanes, string>> = {
   recargo: 'surchargePct',
   subvencionDeEnvio: 'shippingUserCny',
   subvencionDeArancel: 'dutyUserCny',
+  etiquetado: 'etiquetadoCny',
+  reempaquetado: 'reempaquetadoCny',
 };
 
 function aEje(dto: EjeDto) {
@@ -100,11 +102,15 @@ function yuanesDe(dto: FichaDto) {
       recargo: dto.surchargePct,
       subvencionDeEnvio: dto.shippingUserCny,
       subvencionDeArancel: dto.dutyUserCny,
+      etiquetado: dto.etiquetadoCny,
+      reempaquetado: dto.reempaquetadoCny,
     },
     yuanesFormateados: {
       recargo: dto.surchargeFormatted,
       subvencionDeEnvio: dto.shippingUserFormatted,
       subvencionDeArancel: dto.dutyUserFormatted,
+      etiquetado: dto.etiquetadoFormatted,
+      reempaquetado: dto.reempaquetadoFormatted,
     },
   };
 }
