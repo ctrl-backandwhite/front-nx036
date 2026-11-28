@@ -79,11 +79,17 @@ async function leeElDesglose(page: Page) {
   }
 }
 
-/** «Total … 7,11 €» → 7.11. Vale para los ocho formatos de moneda que usa la tienda en esta prueba (es). */
+/**
+ * «Total … 7,11 €» o «Total $7.80» → el número. La moneda la decide la geolocalización, no el idioma:
+ * con el idioma en español PRE sirvió la ficha en dólares y con punto decimal. El último separador
+ * seguido de dos cifras es el decimal; cualquier otro punto o coma es de miles.
+ */
 function importeDe(texto: string): number {
-  const cifra = texto.match(/(\d[\d.]*,\d{2})/)
+  const cifra = texto.match(/(\d[\d.,]*[.,]\d{2})(?!\d)/)
   expect(cifra, `no hay importe en «${texto}»`).toBeTruthy()
-  return Number(cifra![1].replace(/\./g, '').replace(',', '.'))
+  const bruto = cifra![1]
+  const entero = bruto.slice(0, -3).replace(/[.,]/g, '')
+  return Number(`${entero}.${bruto.slice(-2)}`)
 }
 
 test.describe('servicios de almacén', () => {
