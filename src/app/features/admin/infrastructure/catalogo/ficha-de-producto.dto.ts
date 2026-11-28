@@ -84,6 +84,10 @@ export interface FichaDto {
   surchargeFormatted?: string;
   shippingUserFormatted?: string;
   dutyUserFormatted?: string;
+  etiquetadoCny?: number | null;
+  reempaquetadoCny?: number | null;
+  etiquetadoFormatted?: string;
+  reempaquetadoFormatted?: string;
   images?: ImagenDto[];
   variants?: VarianteDto[];
   variantOptions?: EjeDto[];

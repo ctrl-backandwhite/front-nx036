@@ -7,7 +7,7 @@ import { TraduccionService } from '@core/i18n/traduccion.service';
 import { GuiaPuntos } from '@ds/component/guia-puntos/guia-puntos';
 import { AvisosStore } from '@ds/component/avisos/avisos.store';
 import { DesgloseDePrecio, FichaDeProducto } from '../../../domain/model/producto';
-import { CampoEnYuanes } from '../../../domain/port/edicion-de-ficha.port';
+import { CampoEnYuanes, ServicioDeAlmacen } from '../../../domain/port/edicion-de-ficha.port';
 import { EditaLaFicha } from '../../../application/use-case/edita-la-ficha.use-case';
 
 interface FilaEditable {
@@ -24,6 +24,33 @@ interface FilaEditable {
    * como cincuenta euros.
    */
   readonly sufijo?: string;
+  /**
+   * Solo los servicios de almacén: el producto puede heredar el valor global. `heredado` es que hoy
+   * lo hereda (valor propio nulo) y `servicio` es el nombre con el que se vuelve a heredar.
+   */
+  readonly servicio?: ServicioDeAlmacen;
+  readonly heredado?: boolean;
+}
+
+/**
+ * La fila de un servicio de almacén. El valor propio nulo significa que el producto hereda el global:
+ * el importe mostrado es igual el aplicado, y lo único que cambia es la etiqueta «(global)».
+ */
+function filaDeServicio(
+  servicio: ServicioDeAlmacen,
+  mostrado: string | undefined,
+  propio: number | null | undefined,
+): FilaEditable {
+  const base = servicio === 'etiquetado' ? 'product.price.labeling' : 'product.price.repacking';
+  return {
+    campo: servicio === 'etiquetado' ? 'etiquetadoCny' : 'reempaquetadoCny',
+    clave: base,
+    claveDeAyuda: `${base}_dbl`,
+    mostrado: mostrado ?? '',
+    crudo: propio ?? null,
+    servicio,
+    heredado: propio === null || propio === undefined,
+  };
 }
 
 /**
@@ -82,6 +109,9 @@ interface FilaEditable {
               }
             } @else {
               <span class="font-mono">{{ fila.mostrado }}</span>
+              @if (fila.heredado) {
+                <span class="ml-1 opacity-70" data-testid="servicio-heredado">{{ t('product.price.inherited') }}</span>
+              }
               @if (fila.sufijo && fila.crudo !== null) {
                 <span class="ml-1 font-mono opacity-70">· {{ fila.crudo }}{{ fila.sufijo }}</span>
               }
@@ -100,6 +130,17 @@ interface FilaEditable {
               >
                 <fa-icon [icon]="iconoDeLapiz" class="text-[10px]" />
               </button>
+              @if (fila.servicio && !fila.heredado) {
+                <button
+                  type="button"
+                  class="ml-1.5 text-[10px] underline opacity-70 hover:opacity-100"
+                  data-testid="servicio-hereda"
+                  [title]="t('product.price.inherit_dbl')"
+                  (click)="heredaElGlobal(fila.servicio)"
+                >
+                  {{ t('product.price.inherit') }}
+                </button>
+              }
             }
           </div>
         }
@@ -249,6 +290,8 @@ export class DesgloseEditable {
         mostrado: desglose.subsidioDeArancelFormateado ?? '',
         crudo: desglose.subsidioDeArancelCny ?? null,
       },
+      filaDeServicio('etiquetado', desglose.etiquetadoFormateado, desglose.etiquetadoCny),
+      filaDeServicio('reempaquetado', desglose.reempaquetadoFormateado, desglose.reempaquetadoCny),
     ];
     return posibles.filter((fila) => fila.mostrado !== '');
   });
@@ -256,6 +299,16 @@ export class DesgloseEditable {
   protected empiezaEdicion(fila: FilaEditable): void {
     this.borrador.set({ importe: fila.crudo ?? 0 });
     this.editando.set(fila.campo);
+  }
+
+  protected async heredaElGlobal(servicio: ServicioDeAlmacen): Promise<void> {
+    const resultado = await this.editor.heredaServicioDeAlmacen(this.idDelProducto(), servicio);
+    if (!resultado.ok) {
+      this.avisos.error(resultado.error.mensaje || this.t('admin.catalog.edit.error'));
+      return;
+    }
+    this.avisos.exito(this.t('admin.catalog.edit.ok'));
+    this.cambiado.emit(resultado.valor);
   }
 
   protected async guarda(campo: CampoEnYuanes): Promise<void> {

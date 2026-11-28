@@ -2,7 +2,7 @@ import { InjectionToken } from '@angular/core';
 import { Result } from '@shared/result/result';
 import { AppError } from '@shared/error/app-error';
 import { ResultadoMasivo } from '../model/pagina';
-import { AjusteDeMoq, BorradorDeRegla, ReglaDePrecio } from '../model/precios';
+import { AjusteDeMoq, BorradorDeRegla, ReglaDePrecio, ServiciosDeAlmacen } from '../model/precios';
 
 /**
  * Las reglas de margen.
@@ -21,6 +21,10 @@ export interface PreciosPort {
   borraEnLote(ids: readonly string[]): Promise<Result<ResultadoMasivo, AppError>>;
   ajusteDeMoq(): Promise<Result<AjusteDeMoq, AppError>>;
   guardaAjusteDeMoq(ajuste: AjusteDeMoq): Promise<Result<AjusteDeMoq, AppError>>;
+  serviciosDeAlmacen(): Promise<Result<ServiciosDeAlmacen, AppError>>;
+  guardaServiciosDeAlmacen(
+    servicios: ServiciosDeAlmacen,
+  ): Promise<Result<ServiciosDeAlmacen, AppError>>;
 }
 
 export const PRECIOS_PORT = new InjectionToken<PreciosPort>('PreciosPort');

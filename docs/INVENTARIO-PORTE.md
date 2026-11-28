@@ -442,6 +442,8 @@ En todo `src/` hay **423 puntos de llamada** al backend y **todos** tienen la ru
 | `POST` | `/admin/pricing/rules` |
 | `PUT` | `/admin/pricing/rules/${id}` |
 | `DELETE` | `/admin/pricing/rules/${id}` |
+| `GET` | `/admin/pricing/warehouse-services` |
+| `PUT` | `/admin/pricing/warehouse-services` |
 | `PUT` | `/admin/pricing/rules/${id}/toggle` |
 | `POST` | `/admin/pricing/rules/bulk-delete` |
 | `PUT` | `/admin/pricing/rules/bulk-toggle` |

@@ -27,7 +27,12 @@ export type CampoEnYuanes =
   | 'surchargePct'
   | 'shippingUserCny'
   | 'dutyUserCny'
-  | 'margenInternoPct';
+  | 'margenInternoPct'
+  | 'etiquetadoCny'
+  | 'reempaquetadoCny';
+
+/** Los servicios de almacén que pueden volver a heredar el valor global. */
+export type ServicioDeAlmacen = 'etiquetado' | 'reempaquetado';
 
 export interface EdicionDeFichaPort {
   /**
@@ -62,6 +67,14 @@ export interface EdicionDeFichaPort {
   guardaImportesEnYuanes(
     idDelProducto: string,
     importes: Partial<Record<CampoEnYuanes, number>>,
+  ): Promise<Result<FichaDeProducto, AppError>>;
+  /**
+   * Borra el valor PROPIO de un servicio de almacén: el producto vuelve a heredar el global.
+   * Devuelve la ficha recalculada.
+   */
+  heredaServicioDeAlmacen(
+    idDelProducto: string,
+    servicio: ServicioDeAlmacen,
   ): Promise<Result<FichaDeProducto, AppError>>;
   /**
    * El recargo propio de UN tramo de cantidad, en yuanes, y devuelve la ficha ya recalculada.

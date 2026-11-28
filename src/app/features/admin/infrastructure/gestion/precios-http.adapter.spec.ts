@@ -83,6 +83,38 @@ describe('PreciosHttpAdapter', () => {
   });
 });
 
+describe('PreciosHttpAdapter · servicios de almacén', () => {
+  let adaptador: PreciosHttpAdapter;
+  let http: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(), PreciosHttpAdapter],
+    });
+    adaptador = TestBed.inject(PreciosHttpAdapter);
+    http = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => http.verify());
+
+  it('lee los dos importes globales y, si faltan, los toma como cero', async () => {
+    const promesa = adaptador.serviciosDeAlmacen();
+    http.expectOne('/api/admin/pricing/warehouse-services').flush({ etiquetadoCny: 0.5 });
+    const r = await promesa;
+    expect(r.ok && r.valor).toEqual({ etiquetadoCny: 0.5, reempaquetadoCny: 0 });
+  });
+
+  it('guarda los dos juntos con PUT', async () => {
+    const promesa = adaptador.guardaServiciosDeAlmacen({ etiquetadoCny: 0.5, reempaquetadoCny: 2 });
+    const put = http.expectOne('/api/admin/pricing/warehouse-services');
+    expect(put.request.method).toBe('PUT');
+    expect(put.request.body).toEqual({ etiquetadoCny: 0.5, reempaquetadoCny: 2 });
+    put.flush({ etiquetadoCny: 0.5, reempaquetadoCny: 2 });
+    const r = await promesa;
+    expect(r.ok && r.valor).toEqual({ etiquetadoCny: 0.5, reempaquetadoCny: 2 });
+  });
+});
+
 describe('AmbitosDeReglaHttpAdapter', () => {
   let adaptador: AmbitosDeReglaHttpAdapter;
   let http: HttpTestingController;

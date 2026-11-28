@@ -4,7 +4,7 @@ import { Result, mapea } from '@shared/result/result';
 import { AppError } from '@shared/error/app-error';
 import { ResultadoMasivo } from '../../domain/gestion/model/pagina';
 import {
-  AjusteDeMoq, AmbitoDeRegla, BorradorDeRegla, ReglaDePrecio, TipoDeMargen,
+  AjusteDeMoq, AmbitoDeRegla, BorradorDeRegla, ReglaDePrecio, ServiciosDeAlmacen, TipoDeMargen,
 } from '../../domain/gestion/model/precios';
 import {
   AmbitosDeReglaPort, OpcionDeAmbito, PreciosPort,
@@ -137,6 +137,30 @@ export class PreciosHttpAdapter implements PreciosPort {
       factorPorcentaje: dto?.factorPercent ?? ajuste.factorPorcentaje,
     }));
   }
+
+  async serviciosDeAlmacen(): Promise<Result<ServiciosDeAlmacen, AppError>> {
+    const respuesta = await this.api.get<ServiciosDto>('/admin/pricing/warehouse-services');
+    return mapea(respuesta, aServicios);
+  }
+
+  async guardaServiciosDeAlmacen(
+    servicios: ServiciosDeAlmacen,
+  ): Promise<Result<ServiciosDeAlmacen, AppError>> {
+    const respuesta = await this.api.put<ServiciosDto>('/admin/pricing/warehouse-services', {
+      etiquetadoCny: servicios.etiquetadoCny,
+      reempaquetadoCny: servicios.reempaquetadoCny,
+    });
+    return mapea(respuesta, aServicios);
+  }
+}
+
+interface ServiciosDto {
+  etiquetadoCny?: number;
+  reempaquetadoCny?: number;
+}
+
+function aServicios(dto: ServiciosDto | null | undefined): ServiciosDeAlmacen {
+  return { etiquetadoCny: dto?.etiquetadoCny ?? 0, reempaquetadoCny: dto?.reempaquetadoCny ?? 0 };
 }
 
 interface OpcionDto {

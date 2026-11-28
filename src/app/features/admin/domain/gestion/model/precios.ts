@@ -49,6 +49,15 @@ export interface AjusteDeMoq {
   readonly factorPorcentaje: number;
 }
 
+/**
+ * Los servicios de almacén (etiquetado y reempaquetado): importes GLOBALES en CNY por unidad vendida
+ * que se suman al precio de todo producto que no lleve valor propio. Nacen a 0.
+ */
+export interface ServiciosDeAlmacen {
+  readonly etiquetadoCny: number;
+  readonly reempaquetadoCny: number;
+}
+
 /** La huella de una regla: dos reglas con la misma huella hacen lo mismo y sobra una. */
 export function huellaDeRegla(regla: ReglaDePrecio): string {
   return [regla.ambito, regla.idAmbito ?? '', regla.tipo, regla.valor, regla.pais ?? '', regla.canal ?? ''].join('|');

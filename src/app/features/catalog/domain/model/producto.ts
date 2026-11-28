@@ -230,6 +230,15 @@ export interface DesgloseDePrecio {
   readonly subsidioDeEnvioCny?: number | null;
   readonly subsidioDeArancelFormateado?: string;
   readonly subsidioDeArancelCny?: number | null;
+  /**
+   * Servicios de almacén (etiquetado y reempaquetado), en CNY por unidad. El `Cny` es el valor PROPIO
+   * del producto: nulo significa que hereda el global. El formateado es el importe aplicado, sea
+   * propio o global. SOLO ADMIN.
+   */
+  readonly etiquetadoFormateado?: string;
+  readonly etiquetadoCny?: number | null;
+  readonly reempaquetadoFormateado?: string;
+  readonly reempaquetadoCny?: number | null;
 }
 
 /** La ficha completa de un producto. */

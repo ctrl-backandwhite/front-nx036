@@ -18,8 +18,10 @@ import {
   BorraReglasEnLote,
   CargaLosAmbitos,
   ConsultaElAjusteDeMoq,
+  ConsultaLosServiciosDeAlmacen,
   ConsultaReglas,
   GuardaElAjusteDeMoq,
+  GuardaLosServiciosDeAlmacen,
   GuardaLaRegla,
 } from '../../../application/gestion/use-case/precios.use-case';
 import { ReglaDePrecio } from '../../../domain/gestion/model/precios';
@@ -67,6 +69,8 @@ describe('PreciosPage', () => {
     borraEnLote: vi.fn(),
     ajusteDeMoq: vi.fn(),
     guardaAjusteDeMoq: vi.fn(),
+    serviciosDeAlmacen: vi.fn(),
+    guardaServiciosDeAlmacen: vi.fn(),
   };
   const ambitos = {
     categorias: vi.fn(),
@@ -93,6 +97,8 @@ describe('PreciosPage', () => {
         BorraReglasEnLote,
         ConsultaElAjusteDeMoq,
         GuardaElAjusteDeMoq,
+        ConsultaLosServiciosDeAlmacen,
+        GuardaLosServiciosDeAlmacen,
         CargaLosAmbitos,
         ImportesStore,
       ],
@@ -104,6 +110,7 @@ describe('PreciosPage', () => {
     puerto.reglas.mockResolvedValue(exito([regla({ costeMinimoUsd: 5, costeMaximoUsd: 50 })]));
     puerto.ajusteDeMoq.mockResolvedValue(exito({ activo: true, factorPorcentaje: 50 }));
     puerto.guardaAjusteDeMoq.mockResolvedValue(exito({ activo: true, factorPorcentaje: 40 }));
+    puerto.serviciosDeAlmacen.mockResolvedValue(exito({ etiquetadoCny: 0, reempaquetadoCny: 0 }));
     puerto.borra.mockResolvedValue(exito(undefined));
     for (const lista of [ambitos.categorias, ambitos.proveedores, ambitos.productos, ambitos.grupos]) {
       lista.mockResolvedValue(exito([]));
@@ -267,6 +274,11 @@ async function montaConDobles(opciones: OpcionesDeLote = {}) {
       { provide: BorraReglasEnLote, useValue: { ejecuta: enLote } },
       { provide: ConsultaElAjusteDeMoq, useValue: { ejecuta: consultaMoq } },
       { provide: GuardaElAjusteDeMoq, useValue: { ejecuta: guardaMoq } },
+      {
+        provide: ConsultaLosServiciosDeAlmacen,
+        useValue: { ejecuta: async () => exito({ etiquetadoCny: 0, reempaquetadoCny: 0 }) },
+      },
+      { provide: GuardaLosServiciosDeAlmacen, useValue: { ejecuta: vi.fn() } },
       {
         provide: CargaLosAmbitos,
         useValue: {

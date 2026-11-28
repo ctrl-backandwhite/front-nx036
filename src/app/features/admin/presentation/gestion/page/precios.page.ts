@@ -28,6 +28,7 @@ import {
   reglaEnBlanco,
 } from '../../../domain/gestion/model/precios';
 import { PreciosAjusteMoq } from '../component/precios-ajuste-moq';
+import { PreciosServiciosDeAlmacen } from '../component/precios-servicios-de-almacen';
 import { PreciosEditorDeRegla } from '../component/precios-editor-de-regla';
 import { PreciosTablaDeReglas } from '../component/precios-tabla-de-reglas';
 
@@ -54,7 +55,7 @@ import { PreciosTablaDeReglas } from '../component/precios-tabla-de-reglas';
  */
 @Component({
   selector: 'nx-precios-admin',
-  imports: [FaIconComponent, PreciosAjusteMoq, PreciosEditorDeRegla, PreciosTablaDeReglas],
+  imports: [FaIconComponent, PreciosAjusteMoq, PreciosServiciosDeAlmacen, PreciosEditorDeRegla, PreciosTablaDeReglas],
   template: `
     <div class="space-y-5">
       <div class="flex items-center justify-between flex-wrap gap-3">
@@ -108,6 +109,8 @@ import { PreciosTablaDeReglas } from '../component/precios-tabla-de-reglas';
         [guardando]="guardandoMoq()"
         (guarda)="guardaElMoq($event)"
       />
+
+      <nx-precios-servicios-de-almacen />
 
       <nx-precios-tabla-de-reglas
         [reglas]="reglas()"

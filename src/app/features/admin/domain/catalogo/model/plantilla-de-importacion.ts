@@ -60,6 +60,8 @@ const PLANTILLA_DE_PRODUCTOS = `[
     "surchargePct": 0.00,
     "shippingUserCny": 0.00,
     "dutyUserCny": 0.00,
+    "etiquetadoCny": 0.50,
+    "reempaquetadoCny": 2.00,
     "moq": 1,
     "monthlySales": 1200,
     "rating": 4.6,

@@ -74,6 +74,8 @@ interface DesgloseDeVarianteDto {
   surchargePct?: number | null;
   shippingUserFormatted?: string;
   dutyUserFormatted?: string;
+  etiquetadoFormatted?: string | null;
+  reempaquetadoFormatted?: string | null;
   precioBaseFormatted?: string | null;
   margenGananciaFormatted?: string | null;
   gananciaFormatted?: string | null;
@@ -102,6 +104,10 @@ export interface FichaDto extends ResumenDto {
   dutyUserCny?: number | null;
   shippingUserFormatted?: string;
   dutyUserFormatted?: string;
+  etiquetadoCny?: number | null;
+  reempaquetadoCny?: number | null;
+  etiquetadoFormatted?: string | null;
+  reempaquetadoFormatted?: string | null;
   compliance?: {
     manufacturerName?: string;
     manufacturerAddress?: string;
@@ -292,6 +298,10 @@ function aDesgloseDeVariante(
     subsidioDeEnvioCny: dto.shippingUserCny,
     subsidioDeArancelFormateado: desglose.dutyUserFormatted,
     subsidioDeArancelCny: dto.dutyUserCny,
+    etiquetadoFormateado: desglose.etiquetadoFormatted ?? dto.etiquetadoFormatted ?? undefined,
+    etiquetadoCny: dto.etiquetadoCny,
+    reempaquetadoFormateado: desglose.reempaquetadoFormatted ?? dto.reempaquetadoFormatted ?? undefined,
+    reempaquetadoCny: dto.reempaquetadoCny,
   };
 }
 
@@ -369,7 +379,9 @@ function aDesglose(dto: FichaDto): DesgloseDePrecio | undefined {
     dto.shippingFormatted ||
     dto.surchargeFormatted ||
     dto.shippingUserFormatted ||
-    dto.dutyUserFormatted;
+    dto.dutyUserFormatted ||
+    dto.etiquetadoFormatted ||
+    dto.reempaquetadoFormatted;
   if (!hayAlgo) {
     return undefined;
   }
@@ -387,6 +399,10 @@ function aDesglose(dto: FichaDto): DesgloseDePrecio | undefined {
     subsidioDeEnvioCny: dto.shippingUserCny,
     subsidioDeArancelFormateado: dto.dutyUserFormatted,
     subsidioDeArancelCny: dto.dutyUserCny,
+    etiquetadoFormateado: dto.etiquetadoFormatted ?? undefined,
+    etiquetadoCny: dto.etiquetadoCny,
+    reempaquetadoFormateado: dto.reempaquetadoFormatted ?? undefined,
+    reempaquetadoCny: dto.reempaquetadoCny,
   };
 }
 

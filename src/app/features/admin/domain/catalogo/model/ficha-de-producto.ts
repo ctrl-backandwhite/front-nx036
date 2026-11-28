@@ -32,13 +32,20 @@ export interface FabricanteDelProducto {
   readonly completo: boolean;
 }
 
-/** Los tres importes en yuanes que se editan a mano, por su nombre de negocio. */
-export type ImporteEnYuanes = 'recargo' | 'subvencionDeEnvio' | 'subvencionDeArancel';
+/** Los importes en yuanes (con los servicios de almacén; nulo en estos = hereda el global) que se editan a mano, por su nombre de negocio. */
+export type ImporteEnYuanes =
+  | 'recargo'
+  | 'subvencionDeEnvio'
+  | 'subvencionDeArancel'
+  | 'etiquetado'
+  | 'reempaquetado';
 
 export const IMPORTES_EN_YUANES: readonly ImporteEnYuanes[] = [
   'recargo',
   'subvencionDeEnvio',
   'subvencionDeArancel',
+  'etiquetado',
+  'reempaquetado',
 ];
 
 export interface FichaDeProducto {

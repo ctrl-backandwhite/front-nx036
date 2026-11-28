@@ -58,6 +58,24 @@ import { FilaDeYuanes } from './fila-de-yuanes';
         [crudo]="ficha().yuanes.subvencionDeArancel"
         (guardado)="guarda.emit($event)"
       />
+      <nx-fila-de-yuanes
+        campo="etiquetado"
+        [etiqueta]="rotuloDeServicio('product.price.labeling', ficha().yuanes.etiquetado)"
+        [etiquetaDelCampo]="t('product.price.labeling')"
+        [ayuda]="t('product.price.labeling_dbl')"
+        [formateado]="ficha().yuanesFormateados.etiquetado"
+        [crudo]="ficha().yuanes.etiquetado"
+        (guardado)="guarda.emit($event)"
+      />
+      <nx-fila-de-yuanes
+        campo="reempaquetado"
+        [etiqueta]="rotuloDeServicio('product.price.repacking', ficha().yuanes.reempaquetado)"
+        [etiquetaDelCampo]="t('product.price.repacking')"
+        [ayuda]="t('product.price.repacking_dbl')"
+        [formateado]="ficha().yuanesFormateados.reempaquetado"
+        [crudo]="ficha().yuanes.reempaquetado"
+        (guardado)="guarda.emit($event)"
+      />
 
       <nx-fila-de-dato
         [etiqueta]="t('admin.catalog.col.sales')"
@@ -82,6 +100,12 @@ import { FilaDeYuanes } from './fila-de-yuanes';
 })
 export class ResumenDeFicha {
   readonly ficha = input.required<FichaDeProducto>();
+  /** El rótulo de un servicio de almacén, con «(global)» detrás cuando el producto no lleva valor propio. */
+  protected rotuloDeServicio(clave: string, propio: number | null | undefined): string {
+    const rotulo = this.t(clave);
+    return propio === null || propio === undefined ? `${rotulo} ${this.t('product.price.inherited')}` : rotulo;
+  }
+
   readonly guarda = output<{ campo: ImporteEnYuanes; importe: number }>();
 
   protected readonly t = inject(TraduccionService).t;

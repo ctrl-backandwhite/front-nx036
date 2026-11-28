@@ -3,7 +3,7 @@ import { ApiService } from '@core/http/api.service';
 import { PreferenciasService } from '@core/preferences/preferencias';
 import { Result, mapea } from '@shared/result/result';
 import { AppError } from '@shared/error/app-error';
-import { CampoEnYuanes, EdicionDeFichaPort } from '../domain/port/edicion-de-ficha.port';
+import { CampoEnYuanes, EdicionDeFichaPort, ServicioDeAlmacen } from '../domain/port/edicion-de-ficha.port';
 import { FichaDeProducto } from '../domain/model/producto';
 import { FichaDto, aFicha } from './producto.dto';
 
@@ -72,6 +72,20 @@ export class EdicionDeFichaHttpAdapter implements EdicionDeFichaPort {
     valor: number,
   ): Promise<Result<FichaDeProducto, AppError>> {
     return this.guardaImportesEnYuanes(idDelProducto, { [campo]: valor });
+  }
+
+  async heredaServicioDeAlmacen(
+    idDelProducto: string,
+    servicio: ServicioDeAlmacen,
+  ): Promise<Result<FichaDeProducto, AppError>> {
+    const cuerpo = servicio === 'etiquetado' ? { heredaEtiquetado: true } : { heredaReempaquetado: true };
+    return mapea(
+      await this.api.put<FichaDto>(
+        `/admin/catalog/products/${idDelProducto}?lang=${this.preferencias.idioma()}`,
+        cuerpo,
+      ),
+      aFicha,
+    );
   }
 
   /**

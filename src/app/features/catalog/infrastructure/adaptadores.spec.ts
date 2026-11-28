@@ -187,6 +187,31 @@ describe('CatalogoHttpAdapter', () => {
     expect(variante?.desglose?.subsidioDeArancelCny).toBe(3);
   });
 
+  it('el desglose de la ficha trae los servicios de almacén, propios o heredados', async () => {
+    const promesa = TestBed.inject(CatalogoHttpAdapter).ficha('cubrecama');
+    http.expectOne((r) => r.url === `${BASE}/api/catalog/products/cubrecama`).flush({
+      id: 'p1',
+      slug: 'cubrecama',
+      title: 'Cubrecama',
+      source: '1688',
+      externalId: '1',
+      etiquetadoCny: 0.5,
+      etiquetadoFormatted: '0,07 €',
+      reempaquetadoCny: null,
+      reempaquetadoFormatted: '0,28 €',
+      variants: [{ id: 'v1', stock: 5, desglose: { etiquetadoFormatted: '0,07 €' } }],
+    });
+    const r = await promesa;
+    const d = r.ok ? r.valor.desglose : undefined;
+    expect(d?.etiquetadoCny).toBe(0.5);
+    expect(d?.etiquetadoFormateado).toBe('0,07 €');
+    expect(d?.reempaquetadoCny).toBeNull();
+    expect(d?.reempaquetadoFormateado).toBe('0,28 €');
+    const v = r.ok ? r.valor.variantes[0].desglose : undefined;
+    expect(v?.etiquetadoFormateado).toBe('0,07 €');
+    expect(v?.reempaquetadoFormateado).toBe('0,28 €');
+  });
+
   /** Para quien compra el backend no lo manda, y entonces no debe nacer una caja vacía. */
   it('una variante sin desglose no lo inventa', async () => {
     const promesa = TestBed.inject(CatalogoHttpAdapter).ficha('cubrecama');
@@ -367,6 +392,19 @@ describe('EdicionDeFichaHttpAdapter', () => {
     const peticion = http.expectOne((r) => r.url.startsWith(`${BASE}/api/admin/catalog/products/p1`));
     expect(peticion.request.body).toEqual({ dutyUserCny: 12.5 });
     peticion.flush({ id: 'p1', slug: 'p1', title: 'Gorro' });
+  });
+
+  /** Volver a heredar el global es un booleano propio, no un valor: el nulo no se puede mandar. */
+  it('volver a heredar un servicio de almacén manda su indicador', () => {
+    void TestBed.inject(EdicionDeFichaHttpAdapter).heredaServicioDeAlmacen('p1', 'etiquetado');
+    const a = http.expectOne((r) => r.url.startsWith(`${BASE}/api/admin/catalog/products/p1`));
+    expect(a.request.body).toEqual({ heredaEtiquetado: true });
+    a.flush({ id: 'p1', slug: 'p1', title: 'Gorro' });
+
+    void TestBed.inject(EdicionDeFichaHttpAdapter).heredaServicioDeAlmacen('p1', 'reempaquetado');
+    const b = http.expectOne((r) => r.url.startsWith(`${BASE}/api/admin/catalog/products/p1`));
+    expect(b.request.body).toEqual({ heredaReempaquetado: true });
+    b.flush({ id: 'p1', slug: 'p1', title: 'Gorro' });
   });
 
   /**
